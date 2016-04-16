@@ -10,8 +10,12 @@ import net.anyflow.lannister.session.TopicNexus;
 
 public class MqttPublishMessageHandler extends SimpleChannelInboundHandler<MqttPublishMessage> {
 
+	private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(MqttPublishMessageHandler.class);
+
 	@Override
 	protected void channelRead0(ChannelHandlerContext ctx, MqttPublishMessage msg) throws Exception {
+		logger.debug(msg.toString());
+
 		ITopic<String> topic = TopicNexus.SELF.get(msg.variableHeader().topicName());
 
 		topic.publish(msg.payload().toString(CharsetUtil.UTF_8));

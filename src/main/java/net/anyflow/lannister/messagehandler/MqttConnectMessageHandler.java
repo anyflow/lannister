@@ -14,8 +14,12 @@ import net.anyflow.lannister.session.SessionNexus;
 
 public class MqttConnectMessageHandler extends SimpleChannelInboundHandler<MqttConnectMessage> {
 
+	private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(MqttConnectMessageHandler.class);
+
 	@Override
 	protected void channelRead0(ChannelHandlerContext ctx, MqttConnectMessage msg) throws Exception {
+		logger.debug(msg.toString());
+
 		String clientId = msg.payload().clientIdentifier();
 
 		Session session = SessionNexus.SELF.getByClientId(clientId);
