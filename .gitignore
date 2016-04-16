@@ -1,0 +1,20 @@
+*.class
+
+# Package Files #
+*.jar
+*.war
+*.ear
+.DS_Store
+
+# directories #
+target/
+logs/
+
+# eclipse related #
+.settings
+.classpath
+.project
+
+#buildinfo
+build.parameters/buildinfo.properties
+/target
