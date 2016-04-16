@@ -4,8 +4,6 @@ import java.io.IOException;
 
 import org.apache.log4j.lf5.LogLevel;
 
-import net.anyflow.lannister.Application;
-
 public class Settings extends java.util.Properties {
 
 	private static final long serialVersionUID = -3232325711649130464L;
@@ -15,9 +13,6 @@ public class Settings extends java.util.Properties {
 	public final static Settings SELF;
 
 	static {
-		org.apache.log4j.xml.DOMConfigurator
-				.configure(Application.class.getClassLoader().getResource("META-INF/log4j.xml"));
-
 		SELF = new Settings();
 	}
 
