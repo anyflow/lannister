@@ -16,13 +16,10 @@ public class SessionNexus {
 
 	private final Map<String, Session> clientIdMap;
 	private final Map<String, Session> channelMap;
-	private final Object locker;
 
 	private SessionNexus() {
 		clientIdMap = Maps.newHashMap();
 		channelMap = Maps.newHashMap();
-
-		locker = new Object();
 	}
 
 	public Session getByClientId(String clientId) {
@@ -34,9 +31,18 @@ public class SessionNexus {
 	}
 
 	public void put(Session session) {
-		synchronized (locker) {
+		synchronized (this) {
 			clientIdMap.put(session.clientId(), session);
 			channelMap.put(session.ctx().channel().id().toString(), session);
+		}
+	}
+
+	public void dispose(Session session) {
+		session.dispose();
+
+		synchronized (this) {
+			clientIdMap.remove(session.clientId());
+			channelMap.remove(session.ctx().channel().id().toString());
 		}
 	}
 }

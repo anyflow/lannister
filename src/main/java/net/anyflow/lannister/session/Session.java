@@ -23,6 +23,9 @@ public class Session implements MessageListener<MessageObject> {
 
 	private static ExecutorService SERVICE = Executors.newCachedThreadPool();
 
+	private static final int MAX_MESSAGE_ID_NUM = 0xffff;
+	private static final int MIN_MESSAGE_ID_NUM = 1;
+
 	private final String clientId;
 	private final ChannelHandlerContext ctx;
 	private final Date createTime;
@@ -57,11 +60,17 @@ public class Session implements MessageListener<MessageObject> {
 		synchronized (this) {
 			messageId = messageId + 1;
 
-			if (messageId > 0xffff) {
-				messageId = 1;
+			if (messageId > MAX_MESSAGE_ID_NUM) {
+				messageId = MIN_MESSAGE_ID_NUM;
 			}
 
 			return messageId;
+		}
+	}
+
+	public void dispose() {
+		for (String topicName : topicRegisters.keySet()) {
+			TopicNexus.SELF.get(topicName).removeMessageListener(topicRegisters.get(topicName).registrationId());
 		}
 	}
 

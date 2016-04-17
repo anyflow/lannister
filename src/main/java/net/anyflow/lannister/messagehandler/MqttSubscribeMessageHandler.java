@@ -30,6 +30,11 @@ public class MqttSubscribeMessageHandler extends SimpleChannelInboundHandler<Mqt
 		logger.debug(msg.toString());
 
 		Session session = SessionNexus.SELF.getByChannelId(ctx.channel().id().toString());
+		if (session == null) {
+			logger.error("session does not exist. {}", ctx.channel().id().toString());
+			// TODO handing null session
+			return;
+		}
 
 		List<MqttTopicSubscription> topics = msg.payload().topicSubscriptions();
 

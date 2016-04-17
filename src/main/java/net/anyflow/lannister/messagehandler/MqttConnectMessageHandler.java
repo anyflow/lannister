@@ -48,4 +48,5 @@ public class MqttConnectMessageHandler extends SimpleChannelInboundHandler<MqttC
 
 		logger.debug("MqttConnectMessageHandler execution finished.");
 	}
+
 }
