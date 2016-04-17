@@ -45,5 +45,7 @@ public class MqttConnectMessageHandler extends SimpleChannelInboundHandler<MqttC
 				MqttConnectReturnCode.CONNECTION_ACCEPTED, sessionPresent);
 
 		ctx.channel().writeAndFlush(new MqttConnAckMessage(fixedHeader, variableHeader));
+
+		logger.debug("MqttConnectMessageHandler execution finished.");
 	}
 }

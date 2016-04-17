@@ -12,5 +12,7 @@ public class MqttUnsubscribeMessageHandler extends SimpleChannelInboundHandler<M
 	@Override
 	protected void channelRead0(ChannelHandlerContext ctx, MqttUnsubscribeMessage msg) throws Exception {
 		logger.debug(msg.toString());
+
+		logger.debug("MqttUnsubscribeMessageHandler execution finished.");
 	}
 }

@@ -23,7 +23,7 @@ public class TopicNexus {
 		hcInstance = Hazelcast.newHazelcastInstance(config);
 	}
 
-	public ITopic<String> get(String topicName) {
+	public ITopic<MessageObject> get(String topicName) {
 		return hcInstance.getTopic(topicName);
 	}
 }

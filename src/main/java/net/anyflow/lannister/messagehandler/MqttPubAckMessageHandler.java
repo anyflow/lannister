@@ -11,5 +11,7 @@ public class MqttPubAckMessageHandler extends SimpleChannelInboundHandler<MqttPu
 	@Override
 	protected void channelRead0(ChannelHandlerContext ctx, MqttPubAckMessage msg) throws Exception {
 		logger.debug(msg.toString());
+
+		logger.debug("MqttPubAckMessageHandler execution finished.");
 	}
 }
