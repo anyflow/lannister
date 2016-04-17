@@ -40,13 +40,11 @@ public class MqttUnsubscribeMessageHandler extends SimpleChannelInboundHandler<M
 			TopicNexus.SELF.get(item).removeMessageListener(tr.registrationId());
 		}
 
-		MqttFixedHeader fixedHeader = new MqttFixedHeader(MqttMessageType.UNSUBACK, false, MqttQoS.AT_MOST_ONCE, false,
+		MqttFixedHeader fixedHeader = new MqttFixedHeader(MqttMessageType.UNSUBACK, false, MqttQoS.AT_LEAST_ONCE, false,
 				2);
 
-		MqttMessageIdVariableHeader variableHeader = MqttMessageIdVariableHeader.from(session.nextMessageId());
+		MqttMessageIdVariableHeader variableHeader = MqttMessageIdVariableHeader.from(msg.variableHeader().messageId());
 
 		ctx.channel().writeAndFlush(new MqttUnsubAckMessage(fixedHeader, variableHeader));
-
-		logger.debug("MqttUnsubscribeMessageHandler execution finished.");
 	}
 }

@@ -38,15 +38,12 @@ public class MqttConnectMessageHandler extends SimpleChannelInboundHandler<MqttC
 		session = new Session(ctx, clientId);
 		SessionNexus.SELF.put(session);
 
-		MqttFixedHeader fixedHeader = new MqttFixedHeader(MqttMessageType.CONNACK, false, MqttQoS.AT_MOST_ONCE, false,
+		MqttFixedHeader fixedHeader = new MqttFixedHeader(MqttMessageType.CONNACK, false, MqttQoS.AT_LEAST_ONCE, false,
 				2);
 
 		MqttConnAckVariableHeader variableHeader = new MqttConnAckVariableHeader(
 				MqttConnectReturnCode.CONNECTION_ACCEPTED, sessionPresent);
 
 		ctx.channel().writeAndFlush(new MqttConnAckMessage(fixedHeader, variableHeader));
-
-		logger.debug("MqttConnectMessageHandler execution finished.");
 	}
-
 }

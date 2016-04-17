@@ -40,6 +40,10 @@ public class Session implements MessageListener<MessageObject> {
 		this.messageId = 0;
 	}
 
+	public String id() {
+		return ctx.channel().id().toString();
+	}
+
 	public String clientId() {
 		return clientId;
 	}

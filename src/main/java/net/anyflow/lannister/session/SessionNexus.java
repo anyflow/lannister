@@ -5,7 +5,7 @@ import java.util.Map;
 import com.google.common.collect.Maps;
 
 public class SessionNexus {
-	@SuppressWarnings("unused")
+
 	private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(SessionNexus.class);
 
 	public static SessionNexus SELF;
@@ -38,6 +38,8 @@ public class SessionNexus {
 	}
 
 	public void dispose(Session session) {
+		logger.debug("SessionNexus.dispose() called : sessionID={}", session.id());
+
 		session.dispose();
 
 		synchronized (this) {

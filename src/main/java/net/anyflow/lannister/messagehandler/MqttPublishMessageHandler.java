@@ -24,16 +24,6 @@ public class MqttPublishMessageHandler extends SimpleChannelInboundHandler<MqttP
 	protected void channelRead0(ChannelHandlerContext ctx, MqttPublishMessage msg) throws Exception {
 		logger.debug(msg.toString());
 
-		ITopic<MessageObject> topic = TopicNexus.SELF.get(msg.variableHeader().topicName());
-
-		topic.publish(new MessageObject(msg.variableHeader().messageId(), msg.variableHeader().topicName(),
-				NettyUtil.copy(msg.payload())));
-
-		// TODO QoS leveling
-
-		MqttFixedHeader fixedHeader = new MqttFixedHeader(MqttMessageType.PUBACK, false, MqttQoS.AT_MOST_ONCE, false,
-				2);
-
 		Session session = SessionNexus.SELF.getByChannelId(ctx.channel().id().toString());
 		if (session == null) {
 			logger.error("session does not exist. {}", ctx.channel().id().toString());
@@ -41,10 +31,27 @@ public class MqttPublishMessageHandler extends SimpleChannelInboundHandler<MqttP
 			return;
 		}
 
-		MqttMessageIdVariableHeader variableHeader = MqttMessageIdVariableHeader.from(session.nextMessageId());
+		ITopic<MessageObject> topic = TopicNexus.SELF.get(msg.variableHeader().topicName());
 
-		ctx.channel().writeAndFlush(new MqttPubAckMessage(fixedHeader, variableHeader));
+		topic.publish(new MessageObject(msg.variableHeader().messageId(), msg.variableHeader().topicName(),
+				NettyUtil.copy(msg.payload())));
 
-		logger.debug("MqttPublishMessageHandler execution finished.");
+		// TODO QoS leveling
+		switch (msg.fixedHeader().qosLevel()) {
+		case AT_MOST_ONCE:
+			return;
+
+		case AT_LEAST_ONCE:
+			MqttFixedHeader fixedHeader = new MqttFixedHeader(MqttMessageType.PUBACK, false, MqttQoS.AT_LEAST_ONCE,
+					false, 2);
+
+			MqttMessageIdVariableHeader variableHeader = MqttMessageIdVariableHeader
+					.from(msg.variableHeader().messageId());
+			ctx.channel().writeAndFlush(new MqttPubAckMessage(fixedHeader, variableHeader));
+			return;
+
+		default:
+			throw new IllegalArgumentException("only qos 0, 1 supported");
+		}
 	}
 }

@@ -40,15 +40,15 @@ public class Server {
 
 			bootstrap = bootstrap.group(bossGroup, workerGroup).channel(NioServerSocketChannel.class);
 
-			if ("true".equalsIgnoreCase(Settings.SELF.getProperty("netty.logger"))) {
-				bootstrap = bootstrap.handler(new LoggingHandler(LogLevel.DEBUG));
-			}
-
 			bootstrap.childHandler(new ChannelInitializer<SocketChannel>() {
 
 				@Override
 				protected void initChannel(SocketChannel ch) throws Exception {
 					logger.debug("Initializaing channels...");
+
+					if ("true".equalsIgnoreCase(Settings.SELF.getProperty("netty.logger"))) {
+						ch.pipeline().addLast(LoggingHandler.class.getName(), new LoggingHandler(LogLevel.DEBUG));
+					}
 
 					ch.pipeline().addLast(MqttDecoder.class.getName(), new MqttDecoder());
 					ch.pipeline().addLast(MqttEncoder.class.getName(), MqttEncoder.INSTANCE);

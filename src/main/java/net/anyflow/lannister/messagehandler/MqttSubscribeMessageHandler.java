@@ -49,13 +49,11 @@ public class MqttSubscribeMessageHandler extends SimpleChannelInboundHandler<Mqt
 			grantedQoss.add(item.qualityOfService().value());
 		}
 
-		MqttFixedHeader fixedHeader = new MqttFixedHeader(MqttMessageType.PUBACK, false, MqttQoS.AT_MOST_ONCE, false,
+		MqttFixedHeader fixedHeader = new MqttFixedHeader(MqttMessageType.PUBACK, false, MqttQoS.AT_LEAST_ONCE, false,
 				2 + grantedQoss.size());
 
-		MqttMessageIdVariableHeader variableHeader = MqttMessageIdVariableHeader.from(session.nextMessageId());
+		MqttMessageIdVariableHeader variableHeader = MqttMessageIdVariableHeader.from(msg.variableHeader().messageId());
 		MqttSubAckPayload payload = new MqttSubAckPayload(grantedQoss);
 		ctx.channel().writeAndFlush(new MqttSubAckMessage(fixedHeader, variableHeader, payload));
-
-		logger.debug("MqttSubscribeMessageHandler execution finished.");
 	}
 }
