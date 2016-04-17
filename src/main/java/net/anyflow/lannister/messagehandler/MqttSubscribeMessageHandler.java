@@ -19,6 +19,7 @@ import net.anyflow.lannister.session.MessageObject;
 import net.anyflow.lannister.session.Session;
 import net.anyflow.lannister.session.SessionNexus;
 import net.anyflow.lannister.session.TopicNexus;
+import net.anyflow.lannister.session.TopicRegister;
 
 public class MqttSubscribeMessageHandler extends SimpleChannelInboundHandler<MqttSubscribeMessage> {
 
@@ -37,9 +38,8 @@ public class MqttSubscribeMessageHandler extends SimpleChannelInboundHandler<Mqt
 		for (MqttTopicSubscription item : topics) {
 			ITopic<MessageObject> topic = TopicNexus.SELF.get(item.topicName());
 
-			session.topics().put(topic.getName(), item.qualityOfService());
-
-			topic.addMessageListener(session);
+			String registrationId = topic.addMessageListener(session);
+			session.topicRegisters().put(topic.getName(), new TopicRegister(registrationId, item.qualityOfService()));
 
 			grantedQoss.add(item.qualityOfService().value());
 		}

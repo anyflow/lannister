@@ -26,14 +26,14 @@ public class Session implements MessageListener<MessageObject> {
 	private final String clientId;
 	private final ChannelHandlerContext ctx;
 	private final Date createTime;
-	private final ConcurrentMap<String, MqttQoS> topics;
+	private final ConcurrentMap<String, TopicRegister> topicRegisters;
 	private int messageId;
 
 	public Session(ChannelHandlerContext ctx, String clientId) {
 		this.ctx = ctx;
 		this.clientId = clientId;
 		this.createTime = new Date();
-		this.topics = Maps.newConcurrentMap();
+		this.topicRegisters = Maps.newConcurrentMap();
 		this.messageId = 0;
 	}
 
@@ -49,8 +49,8 @@ public class Session implements MessageListener<MessageObject> {
 		return createTime;
 	}
 
-	public ConcurrentMap<String, MqttQoS> topics() {
-		return topics;
+	public ConcurrentMap<String, TopicRegister> topicRegisters() {
+		return topicRegisters;
 	}
 
 	public int nextMessageId() {
