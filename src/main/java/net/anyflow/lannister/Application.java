@@ -11,9 +11,11 @@ public class Application {
 		org.apache.log4j.xml.DOMConfigurator
 				.configure(Application.class.getClassLoader().getResource("META-INF/log4j.xml"));
 
+		logger.info("Lannister bootstrapping started.");
+
 		server = new Server();
 		server.Start();
 
-		logger.debug("Lannister bootstrapping finished successfully.");
+		logger.debug("Lannister bootstrapping completed.");
 	}
 }

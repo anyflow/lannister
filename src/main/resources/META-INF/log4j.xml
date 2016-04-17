@@ -54,7 +54,7 @@
 		<appender-ref ref="ASYNC_APPLICATION" />
 	</logger>
 
-	<logger name="com.lge">
+	<logger name="net.anyflow">
 		<level value="DEBUG" />
 		<appender-ref ref="ASYNC_APPLICATION" />
 	</logger>

@@ -52,22 +52,11 @@
 			<artifactId>slf4j-log4j12</artifactId>
 			<version>1.7.21</version>
 		</dependency>
-		<dependency>
-			<groupId>log4j</groupId>
-			<artifactId>log4j</artifactId>
-			<version>1.2.17</version>
-		</dependency>
 
 		<dependency>
 			<groupId>io.netty</groupId>
 			<artifactId>netty-all</artifactId>
 			<version>4.1.0.CR7</version>
-		</dependency>
-
-		<dependency>
-			<groupId>io.moquette</groupId>
-			<artifactId>moquette-broker</artifactId>
-			<version>0.8</version>
 		</dependency>
 
 		<dependency>
