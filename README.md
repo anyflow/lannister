@@ -1,3 +1,3 @@
 # Lannister
 
-MQTT broker equiped with clustering, websocket, QoS2
+MQTT broker targeting 500K connection, clustering, WebSocket, QoS2

@@ -6,7 +6,7 @@
 	<artifactId>lannister</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
 	<name>lannister</name>
-	<description>MQTT broker equipped with clustering, websocket, QoS2</description>
+	<description>MQTT broker targeting 500K connection, clustering, websocket, QoS2</description>
 
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -22,19 +22,6 @@
 			</activation>
 		</profile>
 	</profiles>
-
-	<repositories>
-		<repository>
-			<id>bintray</id>
-			<url>http://dl.bintray.com/andsel/maven/</url>
-			<releases>
-				<enabled>true</enabled>
-			</releases>
-			<snapshots>
-				<enabled>false</enabled>
-			</snapshots>
-		</repository>
-	</repositories>
 
 	<dependencies>
 		<dependency>
