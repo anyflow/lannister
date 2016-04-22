@@ -13,8 +13,8 @@ import io.netty.handler.codec.mqtt.MqttQoS;
 import net.anyflow.lannister.NettyUtil;
 import net.anyflow.lannister.session.MessageObject;
 import net.anyflow.lannister.session.Session;
-import net.anyflow.lannister.session.SessionNexus;
-import net.anyflow.lannister.session.TopicNexus;
+import net.anyflow.lannister.session.LiveSessions;
+import net.anyflow.lannister.session.Repository;
 
 public class MqttPublishMessageHandler extends SimpleChannelInboundHandler<MqttPublishMessage> {
 
@@ -24,14 +24,14 @@ public class MqttPublishMessageHandler extends SimpleChannelInboundHandler<MqttP
 	protected void channelRead0(ChannelHandlerContext ctx, MqttPublishMessage msg) throws Exception {
 		logger.debug(msg.toString());
 
-		Session session = SessionNexus.SELF.getByChannelId(ctx.channel().id().toString());
+		Session session = LiveSessions.SELF.getByChannelId(ctx.channel().id().toString());
 		if (session == null) {
 			logger.error("session does not exist. {}", ctx.channel().id().toString());
 			// TODO handing null session
 			return;
 		}
 
-		ITopic<MessageObject> topic = TopicNexus.SELF.get(msg.variableHeader().topicName());
+		ITopic<MessageObject> topic = Repository.SELF.topic(msg.variableHeader().topicName());
 
 		topic.publish(new MessageObject(msg.variableHeader().messageId(), msg.variableHeader().topicName(),
 				NettyUtil.copy(msg.payload())));

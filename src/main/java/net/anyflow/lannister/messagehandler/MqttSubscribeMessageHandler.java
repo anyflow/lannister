@@ -17,8 +17,8 @@ import io.netty.handler.codec.mqtt.MqttSubscribeMessage;
 import io.netty.handler.codec.mqtt.MqttTopicSubscription;
 import net.anyflow.lannister.session.MessageObject;
 import net.anyflow.lannister.session.Session;
-import net.anyflow.lannister.session.SessionNexus;
-import net.anyflow.lannister.session.TopicNexus;
+import net.anyflow.lannister.session.LiveSessions;
+import net.anyflow.lannister.session.Repository;
 import net.anyflow.lannister.session.TopicRegister;
 
 public class MqttSubscribeMessageHandler extends SimpleChannelInboundHandler<MqttSubscribeMessage> {
@@ -29,7 +29,7 @@ public class MqttSubscribeMessageHandler extends SimpleChannelInboundHandler<Mqt
 	protected void channelRead0(ChannelHandlerContext ctx, MqttSubscribeMessage msg) throws Exception {
 		logger.debug(msg.toString());
 
-		Session session = SessionNexus.SELF.getByChannelId(ctx.channel().id().toString());
+		Session session = LiveSessions.SELF.getByChannelId(ctx.channel().id().toString());
 		if (session == null) {
 			logger.error("session does not exist. {}", ctx.channel().id().toString());
 			// TODO handing null session
@@ -41,7 +41,7 @@ public class MqttSubscribeMessageHandler extends SimpleChannelInboundHandler<Mqt
 		List<Integer> grantedQoss = Lists.newArrayList();
 
 		for (MqttTopicSubscription item : topics) {
-			ITopic<MessageObject> topic = TopicNexus.SELF.get(item.topicName());
+			ITopic<MessageObject> topic = Repository.SELF.topic(item.topicName());
 
 			String registrationId = topic.addMessageListener(session);
 			session.topicRegisters().put(topic.getName(), new TopicRegister(registrationId, item.qualityOfService()));

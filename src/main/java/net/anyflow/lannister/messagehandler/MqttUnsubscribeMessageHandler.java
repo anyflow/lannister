@@ -11,8 +11,8 @@ import io.netty.handler.codec.mqtt.MqttQoS;
 import io.netty.handler.codec.mqtt.MqttUnsubAckMessage;
 import io.netty.handler.codec.mqtt.MqttUnsubscribeMessage;
 import net.anyflow.lannister.session.Session;
-import net.anyflow.lannister.session.SessionNexus;
-import net.anyflow.lannister.session.TopicNexus;
+import net.anyflow.lannister.session.LiveSessions;
+import net.anyflow.lannister.session.Repository;
 import net.anyflow.lannister.session.TopicRegister;
 
 public class MqttUnsubscribeMessageHandler extends SimpleChannelInboundHandler<MqttUnsubscribeMessage> {
@@ -24,7 +24,7 @@ public class MqttUnsubscribeMessageHandler extends SimpleChannelInboundHandler<M
 	protected void channelRead0(ChannelHandlerContext ctx, MqttUnsubscribeMessage msg) throws Exception {
 		logger.debug(msg.toString());
 
-		Session session = SessionNexus.SELF.getByChannelId(ctx.channel().id().toString());
+		Session session = LiveSessions.SELF.getByChannelId(ctx.channel().id().toString());
 		if (session == null) {
 			// TODO handing null session
 			return;
@@ -37,7 +37,7 @@ public class MqttUnsubscribeMessageHandler extends SimpleChannelInboundHandler<M
 				continue;
 			}
 
-			TopicNexus.SELF.get(item).removeMessageListener(tr.registrationId());
+			Repository.SELF.topic(item).removeMessageListener(tr.registrationId());
 		}
 
 		MqttFixedHeader fixedHeader = new MqttFixedHeader(MqttMessageType.UNSUBACK, false, MqttQoS.AT_LEAST_ONCE, false,

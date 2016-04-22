@@ -7,7 +7,7 @@ import io.netty.handler.codec.mqtt.MqttMessage;
 import io.netty.handler.codec.mqtt.MqttMessageType;
 import io.netty.handler.codec.mqtt.MqttQoS;
 import net.anyflow.lannister.session.Session;
-import net.anyflow.lannister.session.SessionNexus;
+import net.anyflow.lannister.session.LiveSessions;
 
 public class GenericMqttMessageHandler extends SimpleChannelInboundHandler<MqttMessage> {
 
@@ -21,7 +21,7 @@ public class GenericMqttMessageHandler extends SimpleChannelInboundHandler<MqttM
 		else {
 			logger.debug(msg.toString());
 
-			Session session = SessionNexus.SELF.getByChannelId(ctx.channel().id().toString());
+			Session session = LiveSessions.SELF.getByChannelId(ctx.channel().id().toString());
 			if (session == null) {
 				logger.error("session does not exist. {}", ctx.channel().id().toString());
 				// TODO handing null session
@@ -30,7 +30,7 @@ public class GenericMqttMessageHandler extends SimpleChannelInboundHandler<MqttM
 
 			switch (msg.fixedHeader().messageType()) {
 			case DISCONNECT:
-				SessionNexus.SELF.dispose(session);
+				LiveSessions.SELF.dispose(session);
 				break;
 
 			case PINGREQ:
@@ -53,13 +53,13 @@ public class GenericMqttMessageHandler extends SimpleChannelInboundHandler<MqttM
 
 	@Override
 	public void channelInactive(ChannelHandlerContext ctx) throws Exception {
-		Session session = SessionNexus.SELF.getByChannelId(ctx.channel().id().toString());
+		Session session = LiveSessions.SELF.getByChannelId(ctx.channel().id().toString());
 		if (session == null) {
 			logger.error("session does not exist. {}", ctx.channel().id().toString());
 			// TODO handing null session
 			return;
 		}
 
-		SessionNexus.SELF.dispose(session);
+		LiveSessions.SELF.dispose(session);
 	}
 }

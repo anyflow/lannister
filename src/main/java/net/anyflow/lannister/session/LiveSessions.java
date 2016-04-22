@@ -4,20 +4,22 @@ import java.util.Map;
 
 import com.google.common.collect.Maps;
 
-public class SessionNexus {
+import io.netty.channel.ChannelHandlerContext;
 
-	private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(SessionNexus.class);
+public class LiveSessions {
 
-	public static SessionNexus SELF;
+	private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(LiveSessions.class);
+
+	public static LiveSessions SELF;
 
 	static {
-		SELF = new SessionNexus();
+		SELF = new LiveSessions();
 	}
 
 	private final Map<String, Session> clientIdMap;
 	private final Map<String, Session> channelMap;
 
-	private SessionNexus() {
+	private LiveSessions() {
 		clientIdMap = Maps.newHashMap();
 		channelMap = Maps.newHashMap();
 	}
@@ -35,6 +37,13 @@ public class SessionNexus {
 			clientIdMap.put(session.clientId(), session);
 			channelMap.put(session.ctx().channel().id().toString(), session);
 		}
+	}
+
+	public void dispose(ChannelHandlerContext ctx) {
+		Session session = getByChannelId(ctx.channel().id().toString());
+		if (session == null) { return; }
+
+		dispose(session);
 	}
 
 	public void dispose(Session session) {

@@ -66,7 +66,7 @@ public class Server {
 
 			bootstrap.bind(PORT).sync();
 
-			logger.info("Lannister server started.");
+			logger.info("Lannister server started: Port:{}", PORT);
 		}
 		catch (Exception e) {
 			logger.error("Lannister failed to start...", e);
