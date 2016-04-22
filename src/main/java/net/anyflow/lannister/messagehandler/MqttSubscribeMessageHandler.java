@@ -15,10 +15,10 @@ import io.netty.handler.codec.mqtt.MqttSubAckMessage;
 import io.netty.handler.codec.mqtt.MqttSubAckPayload;
 import io.netty.handler.codec.mqtt.MqttSubscribeMessage;
 import io.netty.handler.codec.mqtt.MqttTopicSubscription;
-import net.anyflow.lannister.session.MessageObject;
-import net.anyflow.lannister.session.Session;
 import net.anyflow.lannister.session.LiveSessions;
+import net.anyflow.lannister.session.MessageObject;
 import net.anyflow.lannister.session.Repository;
+import net.anyflow.lannister.session.Session;
 import net.anyflow.lannister.session.TopicRegister;
 
 public class MqttSubscribeMessageHandler extends SimpleChannelInboundHandler<MqttSubscribeMessage> {
@@ -29,7 +29,7 @@ public class MqttSubscribeMessageHandler extends SimpleChannelInboundHandler<Mqt
 	protected void channelRead0(ChannelHandlerContext ctx, MqttSubscribeMessage msg) throws Exception {
 		logger.debug(msg.toString());
 
-		Session session = LiveSessions.SELF.getByChannelId(ctx.channel().id().toString());
+		Session session = LiveSessions.SELF.getByChannelId(ctx.channel().id());
 		if (session == null) {
 			logger.error("session does not exist. {}", ctx.channel().id().toString());
 			// TODO handing null session

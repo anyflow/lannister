@@ -11,10 +11,10 @@ import io.netty.handler.codec.mqtt.MqttPubAckMessage;
 import io.netty.handler.codec.mqtt.MqttPublishMessage;
 import io.netty.handler.codec.mqtt.MqttQoS;
 import net.anyflow.lannister.NettyUtil;
-import net.anyflow.lannister.session.MessageObject;
-import net.anyflow.lannister.session.Session;
 import net.anyflow.lannister.session.LiveSessions;
+import net.anyflow.lannister.session.MessageObject;
 import net.anyflow.lannister.session.Repository;
+import net.anyflow.lannister.session.Session;
 
 public class MqttPublishMessageHandler extends SimpleChannelInboundHandler<MqttPublishMessage> {
 
@@ -24,7 +24,7 @@ public class MqttPublishMessageHandler extends SimpleChannelInboundHandler<MqttP
 	protected void channelRead0(ChannelHandlerContext ctx, MqttPublishMessage msg) throws Exception {
 		logger.debug(msg.toString());
 
-		Session session = LiveSessions.SELF.getByChannelId(ctx.channel().id().toString());
+		Session session = LiveSessions.SELF.getByChannelId(ctx.channel().id());
 		if (session == null) {
 			logger.error("session does not exist. {}", ctx.channel().id().toString());
 			// TODO handing null session

@@ -5,6 +5,7 @@ import java.util.Map;
 import com.google.common.collect.Maps;
 
 import io.netty.channel.ChannelHandlerContext;
+import io.netty.channel.ChannelId;
 
 public class LiveSessions {
 
@@ -17,7 +18,7 @@ public class LiveSessions {
 	}
 
 	private final Map<String, Session> clientIdMap;
-	private final Map<String, Session> channelMap;
+	private final Map<ChannelId, Session> channelMap;
 
 	private LiveSessions() {
 		clientIdMap = Maps.newHashMap();
@@ -28,32 +29,36 @@ public class LiveSessions {
 		return clientIdMap.get(clientId);
 	}
 
-	public Session getByChannelId(String channelId) {
+	public Session getByChannelId(ChannelId channelId) {
 		return channelMap.get(channelId);
 	}
 
 	public void put(Session session) {
 		synchronized (this) {
 			clientIdMap.put(session.clientId(), session);
-			channelMap.put(session.ctx().channel().id().toString(), session);
+			channelMap.put(session.ctx().channel().id(), session);
 		}
 	}
 
 	public void dispose(ChannelHandlerContext ctx) {
-		Session session = getByChannelId(ctx.channel().id().toString());
+		Session session = getByChannelId(ctx.channel().id());
 		if (session == null) { return; }
 
 		dispose(session);
 	}
 
-	public void dispose(Session session) {
-		logger.debug("SessionNexus.dispose() called : sessionID={}", session.id());
-
-		session.dispose();
+	public void dispose(Session session, boolean sendWill) {
+		logger.debug("LiveSessions.dispose() called : sessionID={}", session.id());
 
 		synchronized (this) {
 			clientIdMap.remove(session.clientId());
-			channelMap.remove(session.ctx().channel().id().toString());
+			channelMap.remove(session.ctx().channel().id());
 		}
+
+		session.dispose(sendWill);
+	}
+
+	public void dispose(Session session) {
+		dispose(session, false);
 	}
 }

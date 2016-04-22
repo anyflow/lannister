@@ -6,8 +6,8 @@ import io.netty.handler.codec.mqtt.MqttFixedHeader;
 import io.netty.handler.codec.mqtt.MqttMessage;
 import io.netty.handler.codec.mqtt.MqttMessageType;
 import io.netty.handler.codec.mqtt.MqttQoS;
-import net.anyflow.lannister.session.Session;
 import net.anyflow.lannister.session.LiveSessions;
+import net.anyflow.lannister.session.Session;
 
 public class GenericMqttMessageHandler extends SimpleChannelInboundHandler<MqttMessage> {
 
@@ -21,7 +21,7 @@ public class GenericMqttMessageHandler extends SimpleChannelInboundHandler<MqttM
 		else {
 			logger.debug(msg.toString());
 
-			Session session = LiveSessions.SELF.getByChannelId(ctx.channel().id().toString());
+			Session session = LiveSessions.SELF.getByChannelId(ctx.channel().id());
 			if (session == null) {
 				logger.error("session does not exist. {}", ctx.channel().id().toString());
 				// TODO handing null session
@@ -53,7 +53,7 @@ public class GenericMqttMessageHandler extends SimpleChannelInboundHandler<MqttM
 
 	@Override
 	public void channelInactive(ChannelHandlerContext ctx) throws Exception {
-		Session session = LiveSessions.SELF.getByChannelId(ctx.channel().id().toString());
+		Session session = LiveSessions.SELF.getByChannelId(ctx.channel().id());
 		if (session == null) {
 			logger.error("session does not exist. {}", ctx.channel().id().toString());
 			// TODO handing null session

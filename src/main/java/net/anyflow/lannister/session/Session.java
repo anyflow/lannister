@@ -27,6 +27,8 @@ public class Session implements MessageListener<MessageObject>, java.io.Serializ
 	// TODO The Server closes the Network Connection because of a protocol
 	// error.
 
+	// TODO keepAlive checking
+
 	private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(Session.class);
 	private static final long serialVersionUID = -1800874748722060393L;
 
@@ -43,13 +45,16 @@ public class Session implements MessageListener<MessageObject>, java.io.Serializ
 	private Will will;
 	private String retainedMessage;
 	private boolean shouldPersist;
+	private int keepAliveTimeSeconds;
+	private Date lastIncomingTime;
 
-	public Session(ChannelHandlerContext ctx, String clientId, boolean shouldPersist) {
+	public Session(ChannelHandlerContext ctx, String clientId, int keepAliveTimeSeconds, boolean shouldPersist) {
 		this.ctx = ctx;
 		this.clientId = clientId;
 		this.createTime = new Date();
 		this.topicRegisters = Maps.newConcurrentMap();
 		this.messageId = 0;
+		this.keepAliveTimeSeconds = keepAliveTimeSeconds;
 		this.shouldPersist = shouldPersist;
 	}
 
@@ -85,6 +90,18 @@ public class Session implements MessageListener<MessageObject>, java.io.Serializ
 		return shouldPersist;
 	}
 
+	public Date lastIncomingTime() {
+		return lastIncomingTime;
+	}
+
+	public void setLastIncomingTime(Date lastIncomingTime) {
+		this.lastIncomingTime = lastIncomingTime;
+	}
+
+	public int keepAliveTimeSeconds() {
+		return keepAliveTimeSeconds;
+	}
+
 	public ConcurrentMap<String, TopicRegister> topicRegisters() {
 		return topicRegisters;
 	}
@@ -106,7 +123,11 @@ public class Session implements MessageListener<MessageObject>, java.io.Serializ
 		}
 	}
 
-	public void dispose() {
+	public boolean isConnected() {
+		return ctx != null && ctx.channel().isActive();
+	}
+
+	public void dispose(boolean sendWill) {
 		ctx.disconnect().addListener(ChannelFutureListener.CLOSE);
 
 		this.ctx = null;
@@ -119,6 +140,8 @@ public class Session implements MessageListener<MessageObject>, java.io.Serializ
 		for (String topicName : topicRegisters.keySet()) {
 			Repository.SELF.topic(topicName).removeMessageListener(topicRegisters.get(topicName).registrationId());
 		}
+
+		// TODO send Will
 	}
 
 	@Override
