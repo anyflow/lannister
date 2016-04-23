@@ -8,12 +8,6 @@ import com.hazelcast.core.ITopic;
 
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
-import io.netty.handler.codec.mqtt.MqttFixedHeader;
-import io.netty.handler.codec.mqtt.MqttMessageIdVariableHeader;
-import io.netty.handler.codec.mqtt.MqttMessageType;
-import io.netty.handler.codec.mqtt.MqttQoS;
-import io.netty.handler.codec.mqtt.MqttSubAckMessage;
-import io.netty.handler.codec.mqtt.MqttSubAckPayload;
 import io.netty.handler.codec.mqtt.MqttSubscribeMessage;
 import io.netty.handler.codec.mqtt.MqttTopicSubscription;
 import net.anyflow.lannister.session.LiveSessions;
@@ -36,6 +30,7 @@ public class MqttSubscribeMessageHandler extends SimpleChannelInboundHandler<Mqt
 		Session session = LiveSessions.SELF.getByChannelId(ctx.channel().id());
 		if (session == null) {
 			logger.error("None exist session message : {}", msg.toString());
+			LiveSessions.SELF.dispose(session, true);
 			return;
 		}
 
@@ -54,11 +49,6 @@ public class MqttSubscribeMessageHandler extends SimpleChannelInboundHandler<Mqt
 			grantedQoss.add(item.qualityOfService().value());
 		}
 
-		MqttFixedHeader fixedHeader = new MqttFixedHeader(MqttMessageType.PUBACK, false, MqttQoS.AT_LEAST_ONCE, false,
-				2 + grantedQoss.size());
-		MqttMessageIdVariableHeader variableHeader = MqttMessageIdVariableHeader.from(msg.variableHeader().messageId());
-		MqttSubAckPayload payload = new MqttSubAckPayload(grantedQoss);
-
-		session.send(new MqttSubAckMessage(fixedHeader, variableHeader, payload));
+		session.send(MessageFactory.suback(msg.variableHeader().messageId(), grantedQoss));// [MQTT-2.3.1-7]
 	}
 }

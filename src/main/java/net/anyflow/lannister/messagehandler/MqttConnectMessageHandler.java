@@ -84,7 +84,7 @@ public class MqttConnectMessageHandler extends SimpleChannelInboundHandler<MqttC
 
 		session = LiveSessions.SELF.getByClientId(clientId);
 		if (session != null) {
-			LiveSessions.SELF.dispose(session); // [MQTT-3.1.4-2]
+			LiveSessions.SELF.dispose(session, false); // [MQTT-3.1.4-2]
 		}
 
 		boolean sessionPresent = !cleanSession;
@@ -116,7 +116,7 @@ public class MqttConnectMessageHandler extends SimpleChannelInboundHandler<MqttC
 					msg.variableHeader().isWillRetain()));
 		}
 
-		MqttConnAckMessage acceptMsg = MessageFactory.connAck(returnCode, sessionPresent);
+		MqttConnAckMessage acceptMsg = MessageFactory.connack(returnCode, sessionPresent);
 
 		final boolean sendUnackedMessage = sessionPresent;
 		final Session sessionFinal = session;
@@ -135,9 +135,9 @@ public class MqttConnectMessageHandler extends SimpleChannelInboundHandler<MqttC
 
 	private ChannelFuture sendNoneAcceptMessage(ChannelHandlerContext ctx, MqttConnectReturnCode returnCode,
 			boolean sessionPresent) {
-		MqttConnAckMessage msg = MessageFactory.connAck(returnCode, sessionPresent);
+		MqttConnAckMessage msg = MessageFactory.connack(returnCode, sessionPresent);
 
-		ChannelFuture ret = ctx.channel().writeAndFlush(MessageFactory.connAck(returnCode, sessionPresent))
+		ChannelFuture ret = ctx.channel().writeAndFlush(MessageFactory.connack(returnCode, sessionPresent))
 				.addListener(new ChannelFutureListener() {
 					@Override
 					public void operationComplete(ChannelFuture future) throws Exception {

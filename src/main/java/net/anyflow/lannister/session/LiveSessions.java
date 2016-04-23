@@ -52,10 +52,6 @@ public class LiveSessions {
 		session.dispose(sendWill);
 	}
 
-	public void dispose(Session session) {
-		dispose(session, false);
-	}
-
 	public Collection<Session> list() {
 		return clientIdMap.values();
 	}

@@ -4,10 +4,7 @@ import java.util.Date;
 
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
-import io.netty.handler.codec.mqtt.MqttFixedHeader;
 import io.netty.handler.codec.mqtt.MqttMessage;
-import io.netty.handler.codec.mqtt.MqttMessageType;
-import io.netty.handler.codec.mqtt.MqttQoS;
 import net.anyflow.lannister.session.LiveSessions;
 import net.anyflow.lannister.session.Session;
 
@@ -26,6 +23,7 @@ public class GenericMqttMessageHandler extends SimpleChannelInboundHandler<MqttM
 			Session session = LiveSessions.SELF.getByChannelId(ctx.channel().id());
 			if (session == null) {
 				logger.error("None exist session message : {}", msg.toString());
+				LiveSessions.SELF.dispose(session, true);
 				return;
 			}
 
@@ -33,14 +31,11 @@ public class GenericMqttMessageHandler extends SimpleChannelInboundHandler<MqttM
 
 			switch (msg.fixedHeader().messageType()) {
 			case DISCONNECT:
-				LiveSessions.SELF.dispose(session);
+				LiveSessions.SELF.dispose(session, false);
 				break;
 
 			case PINGREQ:
-				MqttFixedHeader fixedHeader = new MqttFixedHeader(MqttMessageType.PINGRESP, false,
-						MqttQoS.AT_LEAST_ONCE, false, 0);
-
-				session.send(new MqttMessage(fixedHeader));
+				session.send(MessageFactory.pingresp());
 				break;
 
 			// PUBREC(5),
@@ -49,7 +44,7 @@ public class GenericMqttMessageHandler extends SimpleChannelInboundHandler<MqttM
 			// PINGRESP(13)// never incoming
 
 			default:
-				throw new IllegalArgumentException(msg.toString());
+				LiveSessions.SELF.dispose(session, true);
 			}
 		}
 	}
@@ -58,10 +53,12 @@ public class GenericMqttMessageHandler extends SimpleChannelInboundHandler<MqttM
 	public void channelInactive(ChannelHandlerContext ctx) throws Exception {
 		Session session = LiveSessions.SELF.getByChannelId(ctx.channel().id());
 		if (session == null) {
-			logger.debug("session does not exist. [channelId={}]", ctx.channel().id());
+			logger.debug("session does not exist : [channelId={}]", ctx.channel().id());
 			return;
 		}
-
-		LiveSessions.SELF.dispose(session, true);
+		else {
+			LiveSessions.SELF.dispose(session, true); // abnormal disconnection
+														// without DISCONNECT
+		}
 	}
 }

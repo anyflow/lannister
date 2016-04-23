@@ -19,6 +19,7 @@ public class MqttPubAckMessageHandler extends SimpleChannelInboundHandler<MqttPu
 		Session session = LiveSessions.SELF.getByChannelId(ctx.channel().id());
 		if (session == null) {
 			logger.error("None exist session message : {}", msg.toString());
+			LiveSessions.SELF.dispose(session, true); // [MQTT-3.3.1-4]
 			return;
 		}
 

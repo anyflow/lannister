@@ -7,12 +7,7 @@ import com.hazelcast.core.ITopic;
 import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
-import io.netty.handler.codec.mqtt.MqttFixedHeader;
-import io.netty.handler.codec.mqtt.MqttMessageIdVariableHeader;
-import io.netty.handler.codec.mqtt.MqttMessageType;
-import io.netty.handler.codec.mqtt.MqttPubAckMessage;
 import io.netty.handler.codec.mqtt.MqttPublishMessage;
-import io.netty.handler.codec.mqtt.MqttQoS;
 import net.anyflow.lannister.NettyUtil;
 import net.anyflow.lannister.session.LiveSessions;
 import net.anyflow.lannister.session.Message;
@@ -30,6 +25,7 @@ public class MqttPublishMessageHandler extends SimpleChannelInboundHandler<MqttP
 		Session session = LiveSessions.SELF.getByChannelId(ctx.channel().id());
 		if (session == null) {
 			logger.error("None exist session message : {}", msg.toString());
+			LiveSessions.SELF.dispose(session, true);
 			return;
 		}
 
@@ -40,22 +36,21 @@ public class MqttPublishMessageHandler extends SimpleChannelInboundHandler<MqttP
 		topic.publish(new Message(msg.variableHeader().messageId(), msg.variableHeader().topicName(),
 				NettyUtil.copy(msg.payload()), msg.fixedHeader().qosLevel(), msg.fixedHeader().isRetain()));
 
-		// TODO QoS leveling
 		switch (msg.fixedHeader().qosLevel()) {
 		case AT_MOST_ONCE:
-			return;
+			return; // QoS 0 do not send any acknowledge packet [MQTT-3.3.4-1]
 
 		case AT_LEAST_ONCE:
-			MqttFixedHeader fixedHeader = new MqttFixedHeader(MqttMessageType.PUBACK, false, MqttQoS.AT_LEAST_ONCE,
-					false, 2);
-			MqttMessageIdVariableHeader variableHeader = MqttMessageIdVariableHeader
-					.from(msg.variableHeader().messageId());
+			session.send(MessageFactory.puback(msg.variableHeader().messageId())); // [MQTT-3.3.4-1],[MQTT-2.3.1-6]
+			return;
 
-			session.send(new MqttPubAckMessage(fixedHeader, variableHeader));
+		case EXACTLY_ONCE:
+			session.send(MessageFactory.pubrec(msg.variableHeader().messageId())); // [MQTT-3.3.4-1],[MQTT-2.3.1-6]
 			return;
 
 		default:
-			throw new IllegalArgumentException("only qos 0, 1 supported");
+			LiveSessions.SELF.dispose(session, true); // [MQTT-3.3.1-4]
+			return;
 		}
 	}
 
@@ -78,5 +73,4 @@ public class MqttPublishMessageHandler extends SimpleChannelInboundHandler<MqttP
 			super.exceptionCaught(ctx, cause);
 		}
 	}
-
 }

@@ -28,6 +28,7 @@ public class MqttUnsubscribeMessageHandler extends SimpleChannelInboundHandler<M
 		Session session = LiveSessions.SELF.getByChannelId(ctx.channel().id());
 		if (session == null) {
 			logger.error("None exist session message : {}", msg.toString());
+			LiveSessions.SELF.dispose(session, true);
 			return;
 		}
 
