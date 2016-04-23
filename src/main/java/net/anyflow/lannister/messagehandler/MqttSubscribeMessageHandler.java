@@ -31,7 +31,7 @@ public class MqttSubscribeMessageHandler extends SimpleChannelInboundHandler<Mqt
 
 	@Override
 	protected void channelRead0(ChannelHandlerContext ctx, MqttSubscribeMessage msg) throws Exception {
-		logger.debug("MQTT message incoming : {}", msg.toString());
+		logger.debug("packet incoming : {}", msg.toString());
 
 		Session session = LiveSessions.SELF.getByChannelId(ctx.channel().id());
 		if (session == null) {

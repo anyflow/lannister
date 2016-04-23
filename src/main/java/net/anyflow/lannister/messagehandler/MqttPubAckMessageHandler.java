@@ -14,7 +14,7 @@ public class MqttPubAckMessageHandler extends SimpleChannelInboundHandler<MqttPu
 
 	@Override
 	protected void channelRead0(ChannelHandlerContext ctx, MqttPubAckMessage msg) throws Exception {
-		logger.debug("MQTT message incoming : {}", msg.toString());
+		logger.debug("packet incoming : {}", msg.toString());
 
 		Session session = LiveSessions.SELF.getByChannelId(ctx.channel().id());
 		if (session == null) {

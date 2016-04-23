@@ -25,7 +25,7 @@ public class MqttPublishMessageHandler extends SimpleChannelInboundHandler<MqttP
 
 	@Override
 	protected void channelRead0(ChannelHandlerContext ctx, MqttPublishMessage msg) throws Exception {
-		logger.debug("MQTT message incoming : {}", msg.toString());
+		logger.debug("packet incoming : {}", msg.toString());
 
 		Session session = LiveSessions.SELF.getByChannelId(ctx.channel().id());
 		if (session == null) {

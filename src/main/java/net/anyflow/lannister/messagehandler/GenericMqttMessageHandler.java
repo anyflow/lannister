@@ -21,7 +21,7 @@ public class GenericMqttMessageHandler extends SimpleChannelInboundHandler<MqttM
 			logger.error("decoding MQTT message failed : {}", msg.decoderResult().cause().getMessage());
 		}
 		else {
-			logger.debug("MQTT message incoming : {}", msg.toString());
+			logger.debug("packet incoming : {}", msg.toString());
 
 			Session session = LiveSessions.SELF.getByChannelId(ctx.channel().id());
 			if (session == null) {
@@ -58,7 +58,7 @@ public class GenericMqttMessageHandler extends SimpleChannelInboundHandler<MqttM
 	public void channelInactive(ChannelHandlerContext ctx) throws Exception {
 		Session session = LiveSessions.SELF.getByChannelId(ctx.channel().id());
 		if (session == null) {
-			logger.error("session does not exist. [channelId={}]", ctx.channel().id());
+			logger.debug("session does not exist. [channelId={}]", ctx.channel().id());
 			return;
 		}
 

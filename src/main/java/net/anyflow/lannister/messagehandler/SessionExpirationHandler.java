@@ -25,8 +25,6 @@ public class SessionExpirationHandler extends ChannelInboundHandlerAdapter {
 
 			@Override
 			public void run() {
-				logger.debug("SessionExpirationHandler fired.");
-
 				Collection<Session> sessions = LiveSessions.SELF.list();
 				List<Session> disposes = Lists.newArrayList();
 
@@ -41,6 +39,8 @@ public class SessionExpirationHandler extends ChannelInboundHandlerAdapter {
 				for (Session item : disposes) {
 					LiveSessions.SELF.dispose(item, true); // [MQTT-3.1.2-24]
 				}
+
+				logger.debug("SessionExpirationHandler executed : [dispose count={}]", disposes.size());
 			}
 
 		}, interval, interval, TimeUnit.SECONDS);

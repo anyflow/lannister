@@ -32,7 +32,7 @@ public class MqttConnectMessageHandler extends SimpleChannelInboundHandler<MqttC
 
 	@Override
 	protected void channelRead0(ChannelHandlerContext ctx, MqttConnectMessage msg) throws Exception {
-		logger.debug("MQTT message incoming : {}", msg.toString());
+		logger.debug("packet incoming : {}", msg.toString());
 
 		eventListener.connectMessageReceived(msg);
 
@@ -141,7 +141,7 @@ public class MqttConnectMessageHandler extends SimpleChannelInboundHandler<MqttC
 				.addListener(new ChannelFutureListener() {
 					@Override
 					public void operationComplete(ChannelFuture future) throws Exception {
-						logger.debug("Message sent : {}", msg.toString());
+						logger.debug("packet outgoing : {}", msg);
 
 						eventListener.connAckMessageSent(msg);
 

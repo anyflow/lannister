@@ -28,7 +28,7 @@ public class Session implements MessageListener<Message>, java.io.Serializable {
 	private static final int MIN_MESSAGE_ID_NUM = 1;
 
 	private final String clientId;
-	private ChannelHandlerContext ctx;
+	private transient ChannelHandlerContext ctx;
 	private final Date createTime;
 	private final Map<String, SessionTopic> topics;
 	private int messageId;
@@ -124,7 +124,7 @@ public class Session implements MessageListener<Message>, java.io.Serializable {
 		return ctx.writeAndFlush(message).addListener(new ChannelFutureListener() {
 			@Override
 			public void operationComplete(ChannelFuture future) throws Exception {
-				logger.debug("Message outgoing : {}", log);
+				logger.debug("packet outgoing : {}", log);
 			}
 		});
 	}
@@ -193,7 +193,6 @@ public class Session implements MessageListener<Message>, java.io.Serializable {
 						message.setSent(true);
 					}
 				});
-
 			}
 		});
 	}
