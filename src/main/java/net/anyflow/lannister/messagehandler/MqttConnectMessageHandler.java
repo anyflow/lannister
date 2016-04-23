@@ -7,12 +7,9 @@ import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
 import io.netty.handler.codec.mqtt.MqttConnAckMessage;
-import io.netty.handler.codec.mqtt.MqttConnAckVariableHeader;
 import io.netty.handler.codec.mqtt.MqttConnectMessage;
 import io.netty.handler.codec.mqtt.MqttConnectReturnCode;
-import io.netty.handler.codec.mqtt.MqttFixedHeader;
 import io.netty.handler.codec.mqtt.MqttIdentifierRejectedException;
-import io.netty.handler.codec.mqtt.MqttMessageType;
 import io.netty.handler.codec.mqtt.MqttQoS;
 import io.netty.handler.codec.mqtt.MqttUnacceptableProtocolVersionException;
 import net.anyflow.lannister.Settings;
@@ -35,7 +32,7 @@ public class MqttConnectMessageHandler extends SimpleChannelInboundHandler<MqttC
 
 	@Override
 	protected void channelRead0(ChannelHandlerContext ctx, MqttConnectMessage msg) throws Exception {
-		logger.debug(msg.toString());
+		logger.debug("MQTT message incoming : {}", msg.toString());
 
 		eventListener.connectMessageReceived(msg);
 
@@ -78,12 +75,7 @@ public class MqttConnectMessageHandler extends SimpleChannelInboundHandler<MqttC
 		}
 
 		if (returnCode != MqttConnectReturnCode.CONNECTION_ACCEPTED) {
-			sendConnAckMessage(ctx, returnCode, false).addListener(new ChannelFutureListener() { // [MQTT-3.2.2-4]
-				@Override
-				public void operationComplete(ChannelFuture future) throws Exception {
-					LiveSessions.SELF.dispose(ctx); // [MQTT-3.2.2-5]
-				}
-			});
+			sendNoneAcceptMessage(ctx, returnCode, false); // [MQTT-3.2.2-4]
 			return;
 		}
 
@@ -126,20 +118,29 @@ public class MqttConnectMessageHandler extends SimpleChannelInboundHandler<MqttC
 					msg.variableHeader().isWillRetain()));
 		}
 
-		sendConnAckMessage(ctx, returnCode, sessionPresent);
+		MqttConnAckMessage acceptMsg = MessageFactory.connAck(returnCode, sessionPresent);
+
+		session.send(acceptMsg).addListener(new ChannelFutureListener() {
+			@Override
+			public void operationComplete(ChannelFuture future) throws Exception {
+				eventListener.connAckMessageSent(acceptMsg);
+			}
+		});
 	}
 
-	private ChannelFuture sendConnAckMessage(ChannelHandlerContext ctx, MqttConnectReturnCode returnCode,
+	private ChannelFuture sendNoneAcceptMessage(ChannelHandlerContext ctx, MqttConnectReturnCode returnCode,
 			boolean sessionPresent) {
-		MqttFixedHeader fixedHeader = new MqttFixedHeader(MqttMessageType.CONNACK, false, MqttQoS.AT_LEAST_ONCE, false,
-				2);
-		MqttConnAckVariableHeader variableHeader = new MqttConnAckVariableHeader(returnCode, sessionPresent);
+		MqttConnAckMessage msg = MessageFactory.connAck(returnCode, sessionPresent);
 
-		MqttConnAckMessage connAckMsg = new MqttConnAckMessage(fixedHeader, variableHeader);
-
-		ChannelFuture ret = ctx.channel().writeAndFlush(connAckMsg);
-
-		eventListener.connAckMessageSent(connAckMsg);
+		ChannelFuture ret = ctx.channel().writeAndFlush(MessageFactory.connAck(returnCode, sessionPresent))
+				.addListener(new ChannelFutureListener() {
+					@Override
+					public void operationComplete(ChannelFuture future) throws Exception {
+						logger.debug("Message sent : {}", msg.toString());
+						eventListener.connAckMessageSent(msg);
+						LiveSessions.SELF.dispose(ctx); // [MQTT-3.2.2-5]
+					}
+				});
 
 		return ret;
 	}
@@ -167,11 +168,6 @@ public class MqttConnectMessageHandler extends SimpleChannelInboundHandler<MqttC
 			return;
 		}
 
-		sendConnAckMessage(ctx, returnCode, false).addListener(new ChannelFutureListener() { // [MQTT-3.2.2-4]
-			@Override
-			public void operationComplete(ChannelFuture future) throws Exception {
-				LiveSessions.SELF.dispose(ctx); // [MQTT-3.2.2-5]
-			}
-		});
+		sendNoneAcceptMessage(ctx, returnCode, false); // [MQTT-3.2.2-4]
 	}
 }

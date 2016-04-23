@@ -1,5 +1,7 @@
 package net.anyflow.lannister.messagehandler;
 
+import java.util.Date;
+
 import com.hazelcast.core.ITopic;
 
 import io.netty.channel.ChannelHandlerContext;
@@ -22,14 +24,15 @@ public class MqttPublishMessageHandler extends SimpleChannelInboundHandler<MqttP
 
 	@Override
 	protected void channelRead0(ChannelHandlerContext ctx, MqttPublishMessage msg) throws Exception {
-		logger.debug(msg.toString());
+		logger.debug("MQTT message incoming : {}", msg.toString());
 
 		Session session = LiveSessions.SELF.getByChannelId(ctx.channel().id());
 		if (session == null) {
-			logger.error("session does not exist. {}", ctx.channel().id().toString());
-			// TODO handing null session
+			logger.error("None exist session message : {}", msg.toString());
 			return;
 		}
+
+		session.setLastIncomingTime(new Date());
 
 		ITopic<MessageObject> topic = Repository.SELF.topic(msg.variableHeader().topicName());
 
@@ -44,10 +47,10 @@ public class MqttPublishMessageHandler extends SimpleChannelInboundHandler<MqttP
 		case AT_LEAST_ONCE:
 			MqttFixedHeader fixedHeader = new MqttFixedHeader(MqttMessageType.PUBACK, false, MqttQoS.AT_LEAST_ONCE,
 					false, 2);
-
 			MqttMessageIdVariableHeader variableHeader = MqttMessageIdVariableHeader
 					.from(msg.variableHeader().messageId());
-			ctx.channel().writeAndFlush(new MqttPubAckMessage(fixedHeader, variableHeader));
+
+			session.send(new MqttPubAckMessage(fixedHeader, variableHeader));
 			return;
 
 		default:

@@ -1,5 +1,6 @@
 package net.anyflow.lannister.messagehandler;
 
+import java.util.Date;
 import java.util.List;
 
 import com.google.common.collect.Lists;
@@ -27,14 +28,15 @@ public class MqttSubscribeMessageHandler extends SimpleChannelInboundHandler<Mqt
 
 	@Override
 	protected void channelRead0(ChannelHandlerContext ctx, MqttSubscribeMessage msg) throws Exception {
-		logger.debug(msg.toString());
+		logger.debug("MQTT message incoming : {}", msg.toString());
 
 		Session session = LiveSessions.SELF.getByChannelId(ctx.channel().id());
 		if (session == null) {
-			logger.error("session does not exist. {}", ctx.channel().id().toString());
-			// TODO handing null session
+			logger.error("None exist session message : {}", msg.toString());
 			return;
 		}
+
+		session.setLastIncomingTime(new Date());
 
 		List<MqttTopicSubscription> topics = msg.payload().topicSubscriptions();
 
@@ -51,9 +53,9 @@ public class MqttSubscribeMessageHandler extends SimpleChannelInboundHandler<Mqt
 
 		MqttFixedHeader fixedHeader = new MqttFixedHeader(MqttMessageType.PUBACK, false, MqttQoS.AT_LEAST_ONCE, false,
 				2 + grantedQoss.size());
-
 		MqttMessageIdVariableHeader variableHeader = MqttMessageIdVariableHeader.from(msg.variableHeader().messageId());
 		MqttSubAckPayload payload = new MqttSubAckPayload(grantedQoss);
-		ctx.channel().writeAndFlush(new MqttSubAckMessage(fixedHeader, variableHeader, payload));
+
+		session.send(new MqttSubAckMessage(fixedHeader, variableHeader, payload));
 	}
 }

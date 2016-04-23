@@ -10,9 +10,11 @@ import com.hazelcast.core.Message;
 import com.hazelcast.core.MessageListener;
 
 import io.netty.buffer.Unpooled;
+import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.mqtt.MqttFixedHeader;
+import io.netty.handler.codec.mqtt.MqttMessage;
 import io.netty.handler.codec.mqtt.MqttMessageType;
 import io.netty.handler.codec.mqtt.MqttPublishMessage;
 import io.netty.handler.codec.mqtt.MqttPublishVariableHeader;
@@ -56,10 +58,6 @@ public class Session implements MessageListener<MessageObject>, java.io.Serializ
 		this.messageId = 0;
 		this.keepAliveTimeSeconds = keepAliveTimeSeconds;
 		this.shouldPersist = shouldPersist;
-	}
-
-	public String id() {
-		return ctx.channel().id().toString();
 	}
 
 	public String clientId() {
@@ -127,11 +125,23 @@ public class Session implements MessageListener<MessageObject>, java.io.Serializ
 		return ctx != null && ctx.channel().isActive();
 	}
 
+	public ChannelFuture send(MqttMessage message) {
+		if (ctx == null || ctx.channel().isActive() == false) {
+			logger.error("Message is not sent - Channel is inactive : {}", message);
+			return null;
+		}
+
+		final String log = message.toString();
+		return ctx.writeAndFlush(message).addListener(new ChannelFutureListener() {
+			@Override
+			public void operationComplete(ChannelFuture future) throws Exception {
+				logger.debug("Message outgoing : {}", log);
+			}
+		});
+	}
+
 	public void dispose(boolean sendWill) {
 		ctx.disconnect().addListener(ChannelFutureListener.CLOSE);
-
-		this.ctx = null;
-		this.retainedMessage = null; // [MQTT-3.1.2.7]
 
 		if (shouldPersist) {
 			Repository.SELF.sessions().put(this.clientId, this); // [MQTT-3.1.2-4]
@@ -142,6 +152,11 @@ public class Session implements MessageListener<MessageObject>, java.io.Serializ
 		}
 
 		// TODO send Will
+
+		logger.debug("Session disposed. [clientId={}/channelId={}]", clientId, ctx.channel().id());
+
+		this.ctx = null;
+		this.retainedMessage = null; // [MQTT-3.1.2.7]
 	}
 
 	@Override
@@ -151,6 +166,8 @@ public class Session implements MessageListener<MessageObject>, java.io.Serializ
 		SERVICE.submit(new Runnable() {
 			@Override
 			public void run() {
+				logger.debug("Event arrived : [clientId:{}/message:{}]", Session.this.clientId, msg.toString());
+
 				// TODO QoS leveling
 
 				MqttFixedHeader fixedHeader = new MqttFixedHeader(MqttMessageType.PUBLISH, false, MqttQoS.AT_LEAST_ONCE,
@@ -159,10 +176,9 @@ public class Session implements MessageListener<MessageObject>, java.io.Serializ
 				MqttPublishVariableHeader variableHeader = new MqttPublishVariableHeader(msg.topicName(),
 						nextMessageId());
 
-				ctx.channel().writeAndFlush(
+				Session.this.send(
 						new MqttPublishMessage(fixedHeader, variableHeader, Unpooled.wrappedBuffer(msg.message())));
 
-				logger.debug("onMessage execution finished : {}", msg.toString());
 			}
 		});
 	}

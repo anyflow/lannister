@@ -48,8 +48,6 @@ public class LiveSessions {
 	}
 
 	public void dispose(Session session, boolean sendWill) {
-		logger.debug("LiveSessions.dispose() called : sessionID={}", session.id());
-
 		synchronized (this) {
 			clientIdMap.remove(session.clientId());
 			channelMap.remove(session.ctx().channel().id());

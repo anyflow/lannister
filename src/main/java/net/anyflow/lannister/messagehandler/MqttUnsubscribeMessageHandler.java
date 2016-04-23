@@ -1,5 +1,6 @@
 package net.anyflow.lannister.messagehandler;
 
+import java.util.Date;
 import java.util.List;
 
 import io.netty.channel.ChannelHandlerContext;
@@ -22,13 +23,15 @@ public class MqttUnsubscribeMessageHandler extends SimpleChannelInboundHandler<M
 
 	@Override
 	protected void channelRead0(ChannelHandlerContext ctx, MqttUnsubscribeMessage msg) throws Exception {
-		logger.debug(msg.toString());
+		logger.debug("MQTT message incoming : {}", msg.toString());
 
 		Session session = LiveSessions.SELF.getByChannelId(ctx.channel().id());
 		if (session == null) {
-			// TODO handing null session
+			logger.error("None exist session message : {}", msg.toString());
 			return;
 		}
+
+		session.setLastIncomingTime(new Date());
 
 		List<String> topicNames = msg.payload().topics();
 		for (String item : topicNames) {
@@ -42,9 +45,8 @@ public class MqttUnsubscribeMessageHandler extends SimpleChannelInboundHandler<M
 
 		MqttFixedHeader fixedHeader = new MqttFixedHeader(MqttMessageType.UNSUBACK, false, MqttQoS.AT_LEAST_ONCE, false,
 				2);
-
 		MqttMessageIdVariableHeader variableHeader = MqttMessageIdVariableHeader.from(msg.variableHeader().messageId());
 
-		ctx.channel().writeAndFlush(new MqttUnsubAckMessage(fixedHeader, variableHeader));
+		session.send(new MqttUnsubAckMessage(fixedHeader, variableHeader));
 	}
 }
