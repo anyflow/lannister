@@ -17,6 +17,7 @@ import net.anyflow.lannister.messagehandler.MqttPubAckMessageHandler;
 import net.anyflow.lannister.messagehandler.MqttPublishMessageHandler;
 import net.anyflow.lannister.messagehandler.MqttSubscribeMessageHandler;
 import net.anyflow.lannister.messagehandler.MqttUnsubscribeMessageHandler;
+import net.anyflow.lannister.messagehandler.SessionExpirationHandler;
 
 public class Server {
 
@@ -40,7 +41,7 @@ public class Server {
 
 			bootstrap = bootstrap.group(bossGroup, workerGroup).channel(NioServerSocketChannel.class);
 
-			bootstrap.childHandler(new ChannelInitializer<SocketChannel>() {
+			bootstrap.handler(new SessionExpirationHandler()).childHandler(new ChannelInitializer<SocketChannel>() {
 
 				@Override
 				protected void initChannel(SocketChannel ch) throws Exception {

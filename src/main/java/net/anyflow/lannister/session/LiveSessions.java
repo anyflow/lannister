@@ -1,5 +1,6 @@
 package net.anyflow.lannister.session;
 
+import java.util.Collection;
 import java.util.Map;
 
 import com.google.common.collect.Maps;
@@ -58,5 +59,9 @@ public class LiveSessions {
 
 	public void dispose(Session session) {
 		dispose(session, false);
+	}
+
+	public Collection<Session> list() {
+		return clientIdMap.values();
 	}
 }

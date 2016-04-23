@@ -59,10 +59,9 @@ public class GenericMqttMessageHandler extends SimpleChannelInboundHandler<MqttM
 		Session session = LiveSessions.SELF.getByChannelId(ctx.channel().id());
 		if (session == null) {
 			logger.error("session does not exist. [channelId={}]", ctx.channel().id());
-			// TODO handing null session
 			return;
 		}
 
-		LiveSessions.SELF.dispose(session);
+		LiveSessions.SELF.dispose(session, true);
 	}
 }

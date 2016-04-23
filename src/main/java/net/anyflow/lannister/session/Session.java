@@ -57,6 +57,7 @@ public class Session implements MessageListener<MessageObject>, java.io.Serializ
 		this.topicRegisters = Maps.newConcurrentMap();
 		this.messageId = 0;
 		this.keepAliveTimeSeconds = keepAliveTimeSeconds;
+		this.lastIncomingTime = new Date();
 		this.shouldPersist = shouldPersist;
 	}
 
@@ -90,6 +91,12 @@ public class Session implements MessageListener<MessageObject>, java.io.Serializ
 
 	public Date lastIncomingTime() {
 		return lastIncomingTime;
+	}
+
+	public boolean isExpired() {
+		if (keepAliveTimeSeconds == 0) { return false; }
+
+		return ((new Date()).getTime() - lastIncomingTime.getTime()) * 1000 < keepAliveTimeSeconds;
 	}
 
 	public void setLastIncomingTime(Date lastIncomingTime) {

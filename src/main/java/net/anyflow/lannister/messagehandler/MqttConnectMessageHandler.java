@@ -40,7 +40,7 @@ public class MqttConnectMessageHandler extends SimpleChannelInboundHandler<MqttC
 
 		Session session = LiveSessions.SELF.getByChannelId(ctx.channel().id());
 		if (session != null) {
-			LiveSessions.SELF.dispose(session); // [MQTT-3.1.0-2]
+			LiveSessions.SELF.dispose(session, true); // [MQTT-3.1.0-2]
 			return;
 		}
 
