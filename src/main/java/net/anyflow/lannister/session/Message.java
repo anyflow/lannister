@@ -13,7 +13,6 @@ public class Message implements java.io.Serializable {
 	private MqttQoS qos;
 	private boolean isRetain;
 	private boolean sent;
-	private boolean acked;
 
 	public Message(int id, String topicName, byte[] message, MqttQoS qos, boolean isRetain) {
 		this.id = id;
@@ -22,7 +21,6 @@ public class Message implements java.io.Serializable {
 		this.qos = qos;
 		this.isRetain = isRetain;
 		this.sent = false;
-		this.acked = false;
 	}
 
 	public int id() {
@@ -51,14 +49,6 @@ public class Message implements java.io.Serializable {
 
 	public void setSent(boolean sent) {
 		this.sent = sent;
-	}
-
-	public boolean acked() {
-		return acked;
-	}
-
-	public void setAcked(boolean acked) {
-		this.acked = acked;
 	}
 
 	@Override

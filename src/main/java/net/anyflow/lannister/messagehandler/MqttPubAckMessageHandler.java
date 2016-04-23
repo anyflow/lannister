@@ -6,9 +6,12 @@ import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
 import io.netty.handler.codec.mqtt.MqttPubAckMessage;
 import net.anyflow.lannister.session.LiveSessions;
+import net.anyflow.lannister.session.Message;
 import net.anyflow.lannister.session.Session;
 
 public class MqttPubAckMessageHandler extends SimpleChannelInboundHandler<MqttPubAckMessage> {
+
+	// TODO [DEBUG] first ack is always no message exist
 
 	private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(MqttPubAckMessageHandler.class);
 
@@ -19,12 +22,20 @@ public class MqttPubAckMessageHandler extends SimpleChannelInboundHandler<MqttPu
 		Session session = LiveSessions.SELF.getByChannelId(ctx.channel().id());
 		if (session == null) {
 			logger.error("None exist session message : {}", msg.toString());
-			LiveSessions.SELF.dispose(session, true); // [MQTT-3.3.1-4]
+			LiveSessions.SELF.dispose(session, true);
 			return;
 		}
 
 		session.setLastIncomingTime(new Date());
 
-		logger.debug("MqttPubAckMessageHandler execution finished.");
+		Message message = session.messages().remove(msg.variableHeader().messageId());
+		if (message == null) {
+			logger.error("No message exist to ack : [clientId:{}, messageId:{}]", session.clientId(),
+					msg.variableHeader().messageId());
+		}
+		else {
+			logger.debug("message acked : [clientId:{}, messageId:{}]", session.clientId(),
+					msg.variableHeader().messageId());
+		}
 	}
 }

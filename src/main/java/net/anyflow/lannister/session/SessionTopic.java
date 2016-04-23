@@ -1,9 +1,5 @@
 package net.anyflow.lannister.session;
 
-import java.util.Map;
-
-import com.google.common.collect.Maps;
-
 import io.netty.handler.codec.mqtt.MqttQoS;
 
 public class SessionTopic implements java.io.Serializable {
@@ -14,12 +10,9 @@ public class SessionTopic implements java.io.Serializable {
 	private String registrationId;
 	private Message retainedMessage;
 
-	private Map<Integer, Message> messages;
-
 	public SessionTopic(String registrationId, MqttQoS qos) {
 		this.registrationId = registrationId;
 		this.qos = qos;
-		this.messages = Maps.newConcurrentMap();
 	}
 
 	public MqttQoS qos() {
@@ -36,9 +29,5 @@ public class SessionTopic implements java.io.Serializable {
 
 	public void setRetainedMesage(Message retainedMessage) {
 		this.retainedMessage = retainedMessage;
-	}
-
-	public Map<Integer, Message> messages() {
-		return messages;
 	}
 }

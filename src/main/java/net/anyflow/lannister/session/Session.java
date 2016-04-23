@@ -31,6 +31,7 @@ public class Session implements MessageListener<Message>, java.io.Serializable {
 	private transient ChannelHandlerContext ctx;
 	private final Date createTime;
 	private final Map<String, SessionTopic> topics;
+	private final Map<Integer, Message> messages;
 	private int messageId;
 	private Will will;
 	private boolean shouldPersist;
@@ -42,6 +43,7 @@ public class Session implements MessageListener<Message>, java.io.Serializable {
 		this.clientId = clientId;
 		this.createTime = new Date();
 		this.topics = Maps.newConcurrentMap();
+		this.messages = Maps.newConcurrentMap();
 		this.messageId = 0;
 		this.keepAliveTimeSeconds = keepAliveTimeSeconds;
 		this.lastIncomingTime = new Date();
@@ -92,6 +94,10 @@ public class Session implements MessageListener<Message>, java.io.Serializable {
 
 	public Map<String, SessionTopic> topics() {
 		return topics;
+	}
+
+	public Map<Integer, Message> messages() {
+		return messages;
 	}
 
 	public void revive(ChannelHandlerContext ctx) {
@@ -163,7 +169,7 @@ public class Session implements MessageListener<Message>, java.io.Serializable {
 				SessionTopic topic = topics.get(message.topicName());
 
 				if (message.qos().value() > 0) {
-					topic.messages().put(message.id(), message);
+					messages.put(message.id(), message);
 				}
 
 				if (message.isRetain()) {
@@ -199,7 +205,6 @@ public class Session implements MessageListener<Message>, java.io.Serializable {
 
 	public void publishUnackedMessages() {
 		for (String key : topics.keySet()) {
-			final Map<Integer, Message> messages = topics.get(key).messages();
 			final SessionTopic topic = topics.get(key);
 
 			messages.keySet().stream().sorted().forEach(new Consumer<Integer>() {
