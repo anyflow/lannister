@@ -5,11 +5,11 @@ import java.util.Map;
 
 import com.google.common.collect.Maps;
 
-import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelId;
 
 public class LiveSessions {
 
+	@SuppressWarnings("unused")
 	private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(LiveSessions.class);
 
 	public static LiveSessions SELF;
@@ -38,14 +38,9 @@ public class LiveSessions {
 		synchronized (this) {
 			clientIdMap.put(session.clientId(), session);
 			channelMap.put(session.ctx().channel().id(), session);
+
+			Repository.SELF.sessions().put(session.clientId(), session); // [MQTT-3.1.2-4]
 		}
-	}
-
-	public void dispose(ChannelHandlerContext ctx) {
-		Session session = getByChannelId(ctx.channel().id());
-		if (session == null) { return; }
-
-		dispose(session);
 	}
 
 	public void dispose(Session session, boolean sendWill) {

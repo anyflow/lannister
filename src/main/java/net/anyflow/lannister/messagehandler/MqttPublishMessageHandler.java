@@ -4,6 +4,7 @@ import java.util.Date;
 
 import com.hazelcast.core.ITopic;
 
+import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
 import io.netty.handler.codec.mqtt.MqttFixedHeader;
@@ -14,7 +15,7 @@ import io.netty.handler.codec.mqtt.MqttPublishMessage;
 import io.netty.handler.codec.mqtt.MqttQoS;
 import net.anyflow.lannister.NettyUtil;
 import net.anyflow.lannister.session.LiveSessions;
-import net.anyflow.lannister.session.MessageObject;
+import net.anyflow.lannister.session.Message;
 import net.anyflow.lannister.session.Repository;
 import net.anyflow.lannister.session.Session;
 
@@ -34,10 +35,10 @@ public class MqttPublishMessageHandler extends SimpleChannelInboundHandler<MqttP
 
 		session.setLastIncomingTime(new Date());
 
-		ITopic<MessageObject> topic = Repository.SELF.topic(msg.variableHeader().topicName());
+		ITopic<Message> topic = Repository.SELF.topic(msg.variableHeader().topicName());
 
-		topic.publish(new MessageObject(msg.variableHeader().messageId(), msg.variableHeader().topicName(),
-				NettyUtil.copy(msg.payload())));
+		topic.publish(new Message(msg.variableHeader().messageId(), msg.variableHeader().topicName(),
+				NettyUtil.copy(msg.payload()), msg.fixedHeader().qosLevel(), msg.fixedHeader().isRetain()));
 
 		// TODO QoS leveling
 		switch (msg.fixedHeader().qosLevel()) {
@@ -57,4 +58,25 @@ public class MqttPublishMessageHandler extends SimpleChannelInboundHandler<MqttP
 			throw new IllegalArgumentException("only qos 0, 1 supported");
 		}
 	}
+
+	@Override
+	public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
+		logger.error(cause.getMessage(), cause);
+
+		if (IllegalArgumentException.class.getName().equals(cause.getClass().getName())
+				&& cause.getMessage().contains("invalid QoS")) {
+			Session session = LiveSessions.SELF.getByChannelId(ctx.channel().id());
+
+			if (session != null) {
+				LiveSessions.SELF.dispose(session, true); // [MQTT-3.3.1-4]
+			}
+			else {
+				ctx.channel().disconnect().addListener(ChannelFutureListener.CLOSE); // [MQTT-3.3.1-4]
+			}
+		}
+		else {
+			super.exceptionCaught(ctx, cause);
+		}
+	}
+
 }

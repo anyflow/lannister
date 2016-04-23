@@ -26,7 +26,7 @@ public class Repository {
 		sessions = hcInstance.getMap("session");
 	}
 
-	public ITopic<MessageObject> topic(String topicFilter) {
+	public ITopic<Message> topic(String topicFilter) {
 		return hcInstance.getTopic(topicFilter);
 	}
 

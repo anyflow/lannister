@@ -1,35 +1,23 @@
 package net.anyflow.lannister.session;
 
 import java.util.Date;
-import java.util.concurrent.ConcurrentMap;
+import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.function.Consumer;
 
 import com.google.common.collect.Maps;
-import com.hazelcast.core.Message;
 import com.hazelcast.core.MessageListener;
 
-import io.netty.buffer.Unpooled;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandlerContext;
-import io.netty.handler.codec.mqtt.MqttFixedHeader;
 import io.netty.handler.codec.mqtt.MqttMessage;
-import io.netty.handler.codec.mqtt.MqttMessageType;
 import io.netty.handler.codec.mqtt.MqttPublishMessage;
-import io.netty.handler.codec.mqtt.MqttPublishVariableHeader;
 import io.netty.handler.codec.mqtt.MqttQoS;
+import net.anyflow.lannister.messagehandler.MessageFactory;
 
-public class Session implements MessageListener<MessageObject>, java.io.Serializable {
-
-	// TODO An I/O error or network failure detected by the Server.
-	// TODO The Client fails to communicate within the Keep Alive time.
-	// TODO The Client closes the Network Connection without first sending a
-	// DISCONNECT Packet.
-	// TODO The Server closes the Network Connection because of a protocol
-	// error.
-
-	// TODO keepAlive checking
+public class Session implements MessageListener<Message>, java.io.Serializable {
 
 	private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(Session.class);
 	private static final long serialVersionUID = -1800874748722060393L;
@@ -42,10 +30,9 @@ public class Session implements MessageListener<MessageObject>, java.io.Serializ
 	private final String clientId;
 	private ChannelHandlerContext ctx;
 	private final Date createTime;
-	private final ConcurrentMap<String, TopicRegister> topicRegisters;
+	private final Map<String, SessionTopic> topics;
 	private int messageId;
 	private Will will;
-	private String retainedMessage;
 	private boolean shouldPersist;
 	private int keepAliveTimeSeconds;
 	private Date lastIncomingTime;
@@ -54,7 +41,7 @@ public class Session implements MessageListener<MessageObject>, java.io.Serializ
 		this.ctx = ctx;
 		this.clientId = clientId;
 		this.createTime = new Date();
-		this.topicRegisters = Maps.newConcurrentMap();
+		this.topics = Maps.newConcurrentMap();
 		this.messageId = 0;
 		this.keepAliveTimeSeconds = keepAliveTimeSeconds;
 		this.lastIncomingTime = new Date();
@@ -81,10 +68,6 @@ public class Session implements MessageListener<MessageObject>, java.io.Serializ
 		this.will = will;
 	}
 
-	public String retainedMessage() {
-		return retainedMessage;
-	}
-
 	public boolean shouldPersist() {
 		return shouldPersist;
 	}
@@ -107,13 +90,12 @@ public class Session implements MessageListener<MessageObject>, java.io.Serializ
 		return keepAliveTimeSeconds;
 	}
 
-	public ConcurrentMap<String, TopicRegister> topicRegisters() {
-		return topicRegisters;
+	public Map<String, SessionTopic> topics() {
+		return topics;
 	}
 
 	public void revive(ChannelHandlerContext ctx) {
 		this.ctx = ctx;
-		this.retainedMessage = null;
 	}
 
 	public int nextMessageId() {
@@ -150,12 +132,12 @@ public class Session implements MessageListener<MessageObject>, java.io.Serializ
 	public void dispose(boolean sendWill) {
 		ctx.disconnect().addListener(ChannelFutureListener.CLOSE);
 
-		if (shouldPersist) {
-			Repository.SELF.sessions().put(this.clientId, this); // [MQTT-3.1.2-4]
+		if (shouldPersist == false) {
+			Repository.SELF.sessions().remove(this.clientId);
 		}
 
-		for (String topicName : topicRegisters.keySet()) {
-			Repository.SELF.topic(topicName).removeMessageListener(topicRegisters.get(topicName).registrationId());
+		for (String topicName : topics.keySet()) {
+			Repository.SELF.topic(topicName).removeMessageListener(topics.get(topicName).registrationId());
 		}
 
 		// TODO send Will
@@ -163,30 +145,84 @@ public class Session implements MessageListener<MessageObject>, java.io.Serializ
 		logger.debug("Session disposed. [clientId={}/channelId={}]", clientId, ctx.channel().id());
 
 		this.ctx = null;
-		this.retainedMessage = null; // [MQTT-3.1.2.7]
+
+		for (SessionTopic topic : topics.values()) {
+			topic.setRetainedMesage(null); // [MQTT-3.1.2.7]
+		}
 	}
 
 	@Override
-	public void onMessage(Message<MessageObject> message) {
-		final MessageObject msg = message.getMessageObject();
+	public void onMessage(com.hazelcast.core.Message<Message> rawMessage) {
+		final Message message = rawMessage.getMessageObject();
 
 		SERVICE.submit(new Runnable() {
 			@Override
 			public void run() {
-				logger.debug("Event arrived : [clientId:{}/message:{}]", Session.this.clientId, msg.toString());
+				logger.debug("Event arrived : [clientId:{}/message:{}]", Session.this.clientId, message.toString());
 
-				// TODO QoS leveling
+				SessionTopic topic = topics.get(message.topicName());
 
-				MqttFixedHeader fixedHeader = new MqttFixedHeader(MqttMessageType.PUBLISH, false, MqttQoS.AT_LEAST_ONCE,
-						false, 7 + msg.message().length);
+				if (message.qos().value() > 0) {
+					topic.messages().put(message.id(), message);
+				}
 
-				MqttPublishVariableHeader variableHeader = new MqttPublishVariableHeader(msg.topicName(),
+				if (message.isRetain()) {
+					if (message.message().length > 0) {
+						topic.setRetainedMesage(message);
+					}
+					else {
+						topic.setRetainedMesage(null); // [MQTT-3.3.1-10],[MQTT-3.3.1-11]
+					}
+				}
+				else {
+					// do nothing [MQTT-3.3.1-12]
+				}
+
+				if (isConnected() == false) { return; }
+
+				MqttQoS qos = topic.qos().value() <= message.qos().value() ? topic.qos() : message.qos();
+				boolean isDuplicated = false; // [MQTT-3.3.1-2], [MQTT-3.3.1-3]
+				boolean isRetain = false; // [MQTT-3.3.1-9]
+
+				MqttPublishMessage publish = MessageFactory.publish(message, isDuplicated, qos, isRetain,
 						nextMessageId());
 
-				Session.this.send(
-						new MqttPublishMessage(fixedHeader, variableHeader, Unpooled.wrappedBuffer(msg.message())));
+				Session.this.send(publish).addListener(new ChannelFutureListener() {
+					@Override
+					public void operationComplete(ChannelFuture future) throws Exception {
+						message.setSent(true);
+					}
+				});
 
 			}
 		});
+	}
+
+	public void publishUnackedMessages() {
+		for (String key : topics.keySet()) {
+			final Map<Integer, Message> messages = topics.get(key).messages();
+			final SessionTopic topic = topics.get(key);
+
+			messages.keySet().stream().sorted().forEach(new Consumer<Integer>() {
+				@Override
+				public void accept(Integer t) {
+					Message message = messages.get(t);
+
+					MqttQoS qos = topic.qos().value() <= message.qos().value() ? topic.qos() : message.qos();
+					boolean isDuplicated = message.isSent();
+					boolean isRetain = false; // [MQTT-3.3.1-9]
+
+					MqttPublishMessage publish = MessageFactory.publish(message, isDuplicated, qos, isRetain,
+							nextMessageId());
+
+					Session.this.send(publish).addListener(new ChannelFutureListener() {
+						@Override
+						public void operationComplete(ChannelFuture future) throws Exception {
+							message.setSent(true);
+						}
+					});
+				}
+			});
+		}
 	}
 }

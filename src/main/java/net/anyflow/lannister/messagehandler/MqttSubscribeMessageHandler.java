@@ -17,12 +17,15 @@ import io.netty.handler.codec.mqtt.MqttSubAckPayload;
 import io.netty.handler.codec.mqtt.MqttSubscribeMessage;
 import io.netty.handler.codec.mqtt.MqttTopicSubscription;
 import net.anyflow.lannister.session.LiveSessions;
-import net.anyflow.lannister.session.MessageObject;
+import net.anyflow.lannister.session.Message;
 import net.anyflow.lannister.session.Repository;
 import net.anyflow.lannister.session.Session;
-import net.anyflow.lannister.session.TopicRegister;
+import net.anyflow.lannister.session.SessionTopic;
 
 public class MqttSubscribeMessageHandler extends SimpleChannelInboundHandler<MqttSubscribeMessage> {
+
+	// TODO send retain message [MQTT-3.3.1-6]
+	// TODO retain message flag should be true [MQTT-3.3.1-8]
 
 	private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(MqttSubscribeMessageHandler.class);
 
@@ -43,10 +46,10 @@ public class MqttSubscribeMessageHandler extends SimpleChannelInboundHandler<Mqt
 		List<Integer> grantedQoss = Lists.newArrayList();
 
 		for (MqttTopicSubscription item : topics) {
-			ITopic<MessageObject> topic = Repository.SELF.topic(item.topicName());
+			ITopic<Message> topic = Repository.SELF.topic(item.topicName());
 
 			String registrationId = topic.addMessageListener(session);
-			session.topicRegisters().put(topic.getName(), new TopicRegister(registrationId, item.qualityOfService()));
+			session.topics().put(topic.getName(), new SessionTopic(registrationId, item.qualityOfService()));
 
 			grantedQoss.add(item.qualityOfService().value());
 		}

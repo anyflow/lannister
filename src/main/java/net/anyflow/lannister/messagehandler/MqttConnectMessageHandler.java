@@ -36,8 +36,6 @@ public class MqttConnectMessageHandler extends SimpleChannelInboundHandler<MqttC
 
 		eventListener.connectMessageReceived(msg);
 
-		String clientId = msg.payload().clientIdentifier();
-
 		Session session = LiveSessions.SELF.getByChannelId(ctx.channel().id());
 		if (session != null) {
 			LiveSessions.SELF.dispose(session, true); // [MQTT-3.1.0-2]
@@ -47,6 +45,8 @@ public class MqttConnectMessageHandler extends SimpleChannelInboundHandler<MqttC
 		MqttConnectReturnCode returnCode = MqttConnectReturnCode.CONNECTION_ACCEPTED;
 
 		boolean cleanSession = msg.variableHeader().isCleanSession();
+
+		String clientId = msg.payload().clientIdentifier();
 
 		if (Strings.isNullOrEmpty(clientId)) {
 			if (cleanSession == false) {
@@ -89,8 +89,6 @@ public class MqttConnectMessageHandler extends SimpleChannelInboundHandler<MqttC
 
 		boolean sessionPresent = !cleanSession;
 		if (cleanSession) {
-			Repository.SELF.sessions().remove(clientId);
-
 			session = new Session(ctx, clientId, msg.variableHeader().keepAliveTimeSeconds(), false); // [MQTT-3.1.2-6]
 
 			LiveSessions.SELF.put(session);
@@ -120,10 +118,17 @@ public class MqttConnectMessageHandler extends SimpleChannelInboundHandler<MqttC
 
 		MqttConnAckMessage acceptMsg = MessageFactory.connAck(returnCode, sessionPresent);
 
+		final boolean sendUnackedMessage = sessionPresent;
+		final Session sessionFinal = session;
+
 		session.send(acceptMsg).addListener(new ChannelFutureListener() {
 			@Override
 			public void operationComplete(ChannelFuture future) throws Exception {
 				eventListener.connAckMessageSent(acceptMsg);
+
+				if (sendUnackedMessage) {
+					sessionFinal.publishUnackedMessages();
+				}
 			}
 		});
 	}
@@ -137,8 +142,17 @@ public class MqttConnectMessageHandler extends SimpleChannelInboundHandler<MqttC
 					@Override
 					public void operationComplete(ChannelFuture future) throws Exception {
 						logger.debug("Message sent : {}", msg.toString());
+
 						eventListener.connAckMessageSent(msg);
-						LiveSessions.SELF.dispose(ctx); // [MQTT-3.2.2-5]
+
+						Session session = LiveSessions.SELF.getByChannelId(ctx.channel().id());
+
+						if (session != null) {
+							LiveSessions.SELF.dispose(session, true); // [MQTT-3.2.2-5]
+						}
+						else {
+							ctx.channel().disconnect().addListener(ChannelFutureListener.CLOSE); // [MQTT-3.2.2-5]
+						}
 					}
 				});
 
@@ -153,6 +167,11 @@ public class MqttConnectMessageHandler extends SimpleChannelInboundHandler<MqttC
 
 		if (MqttIdentifierRejectedException.class.getName().equals(cause.getClass().getName())) {
 			returnCode = MqttConnectReturnCode.CONNECTION_REFUSED_IDENTIFIER_REJECTED;
+		}
+		else if (IllegalArgumentException.class.getName().equals(cause.getClass().getName())
+				&& cause.getMessage().contains("invalid QoS")) {
+			// [MQTT-3.1.2-2]
+			returnCode = MqttConnectReturnCode.CONNECTION_REFUSED_UNACCEPTABLE_PROTOCOL_VERSION;
 		}
 		else if (IllegalArgumentException.class.getName().equals(cause.getClass().getName())
 				&& cause.getMessage().contains(" is unknown mqtt version")) {

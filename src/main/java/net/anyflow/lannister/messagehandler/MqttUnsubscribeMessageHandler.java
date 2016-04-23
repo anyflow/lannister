@@ -14,7 +14,7 @@ import io.netty.handler.codec.mqtt.MqttUnsubscribeMessage;
 import net.anyflow.lannister.session.LiveSessions;
 import net.anyflow.lannister.session.Repository;
 import net.anyflow.lannister.session.Session;
-import net.anyflow.lannister.session.TopicRegister;
+import net.anyflow.lannister.session.SessionTopic;
 
 public class MqttUnsubscribeMessageHandler extends SimpleChannelInboundHandler<MqttUnsubscribeMessage> {
 
@@ -35,7 +35,7 @@ public class MqttUnsubscribeMessageHandler extends SimpleChannelInboundHandler<M
 
 		List<String> topicNames = msg.payload().topics();
 		for (String item : topicNames) {
-			TopicRegister tr = session.topicRegisters().remove(item);
+			SessionTopic tr = session.topics().remove(item);
 			if (tr == null) {
 				continue;
 			}
