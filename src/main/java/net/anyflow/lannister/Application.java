@@ -20,6 +20,8 @@ public class Application {
 		// TODO exception handling thrown by codec
 		// TODO Establish removing polishes of unused old persistent sessions,
 		// topics.
+		// TODO TEST will sending
+
 		// TODO $SYS
 		// TODO wildcard support
 		// TODO QoS2 support

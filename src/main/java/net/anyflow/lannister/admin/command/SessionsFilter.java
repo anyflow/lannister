@@ -13,7 +13,7 @@ public class SessionsFilter implements MessageFilter {
 
 	private byte[] live() {
 		try {
-			return (new ObjectMapper()).writeValueAsBytes(net.anyflow.lannister.session.Sessions.SELF.clientIdMap());
+			return (new ObjectMapper()).writeValueAsBytes(net.anyflow.lannister.session.Session.clientIdMap());
 		}
 		catch (JsonProcessingException e) {
 			logger.error(e.getMessage(), e);

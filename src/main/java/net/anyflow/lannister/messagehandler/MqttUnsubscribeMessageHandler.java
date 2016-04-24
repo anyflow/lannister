@@ -7,7 +7,6 @@ import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
 import io.netty.handler.codec.mqtt.MqttUnsubscribeMessage;
 import net.anyflow.lannister.session.Session;
-import net.anyflow.lannister.session.Sessions;
 
 public class MqttUnsubscribeMessageHandler extends SimpleChannelInboundHandler<MqttUnsubscribeMessage> {
 
@@ -18,10 +17,10 @@ public class MqttUnsubscribeMessageHandler extends SimpleChannelInboundHandler<M
 	protected void channelRead0(ChannelHandlerContext ctx, MqttUnsubscribeMessage msg) throws Exception {
 		logger.debug("packet incoming : {}", msg.toString());
 
-		Session session = Sessions.SELF.getByChannelId(ctx.channel().id());
+		Session session = Session.getByChannelId(ctx.channel().id());
 		if (session == null) {
 			logger.error("None exist session message : {}", msg.toString());
-			Sessions.SELF.dispose(session, true); // [MQTT-4.8.0-1]
+			Session.dispose(session, true); // [MQTT-4.8.0-1]
 			return;
 		}
 
@@ -30,7 +29,7 @@ public class MqttUnsubscribeMessageHandler extends SimpleChannelInboundHandler<M
 		List<String> topicNames = msg.payload().topics();
 
 		if (topicNames == null || topicNames.isEmpty()) {
-			Sessions.SELF.dispose(session, true); // [MQTT-4.8.0-1]
+			Session.dispose(session, true); // [MQTT-4.8.0-1]
 			return;
 		}
 

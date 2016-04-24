@@ -11,7 +11,6 @@ import io.netty.handler.codec.mqtt.MqttQoS;
 import io.netty.handler.codec.mqtt.MqttSubscribeMessage;
 import io.netty.handler.codec.mqtt.MqttTopicSubscription;
 import net.anyflow.lannister.session.Session;
-import net.anyflow.lannister.session.Sessions;
 
 public class MqttSubscribeMessageHandler extends SimpleChannelInboundHandler<MqttSubscribeMessage> {
 
@@ -21,10 +20,10 @@ public class MqttSubscribeMessageHandler extends SimpleChannelInboundHandler<Mqt
 	protected void channelRead0(ChannelHandlerContext ctx, MqttSubscribeMessage msg) throws Exception {
 		logger.debug("packet incoming : {}", msg.toString());
 
-		Session session = Sessions.SELF.getByChannelId(ctx.channel().id());
+		Session session = Session.getByChannelId(ctx.channel().id());
 		if (session == null) {
 			logger.error("None exist session message : {}", msg.toString());
-			Sessions.SELF.dispose(session, true); // [MQTT-4.8.0-1]
+			Session.dispose(session, true); // [MQTT-4.8.0-1]
 			return;
 		}
 
@@ -33,7 +32,7 @@ public class MqttSubscribeMessageHandler extends SimpleChannelInboundHandler<Mqt
 		List<MqttTopicSubscription> topics = msg.payload().topicSubscriptions();
 
 		if (topics == null || topics.isEmpty()) {
-			Sessions.SELF.dispose(session, true); // [MQTT-4.8.0-1]
+			Session.dispose(session, true); // [MQTT-4.8.0-1]
 			return;
 		}
 

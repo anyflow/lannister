@@ -10,6 +10,7 @@ import com.google.common.collect.Maps;
 
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelHandlerContext;
+import io.netty.channel.ChannelId;
 import io.netty.handler.codec.mqtt.MqttMessage;
 import io.netty.handler.codec.mqtt.MqttQoS;
 import net.anyflow.lannister.Jsonizable;
@@ -21,6 +22,8 @@ public class Session extends Jsonizable implements com.hazelcast.core.MessageLis
 	private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(Session.class);
 
 	private static final long serialVersionUID = -1800874748722060393L;
+
+	private static Sessions SESSIONS = new Sessions();
 
 	private transient ChannelHandlerContext ctx;
 	private transient Synchronizer synchronizer;
@@ -38,7 +41,7 @@ public class Session extends Jsonizable implements com.hazelcast.core.MessageLis
 	@JsonProperty
 	private int currentMessageId;
 	@JsonProperty
-	private Will will;
+	private Message will;
 	@JsonProperty
 	private boolean cleanSession;
 	@JsonProperty
@@ -50,7 +53,8 @@ public class Session extends Jsonizable implements com.hazelcast.core.MessageLis
 	@JsonProperty
 	private Date lastIncomingTime;
 
-	public Session(ChannelHandlerContext ctx, String clientId, int keepAliveSeconds, boolean cleanSession) {
+	public Session(ChannelHandlerContext ctx, String clientId, int keepAliveSeconds, boolean cleanSession,
+			Message will) {
 		this.clientId = clientId;
 		this.createTime = new Date();
 		this.topics = Maps.newConcurrentMap();
@@ -59,6 +63,7 @@ public class Session extends Jsonizable implements com.hazelcast.core.MessageLis
 		this.keepAliveSeconds = keepAliveSeconds;
 		this.lastIncomingTime = new Date();
 		this.cleanSession = cleanSession;
+		this.will = will; // [MQTT-3.1.2-9]
 
 		revive(ctx);
 	}
@@ -70,7 +75,7 @@ public class Session extends Jsonizable implements com.hazelcast.core.MessageLis
 		this.messageSender = new MessageSender(ctx, topics, messages, synchronizer);
 		this.messageListener = new MessageListener(this, topics, messages, synchronizer, messageSender,
 				currentMessageId);
-		this.sessionDisposer = new SessionDisposer(ctx, topics, clientId);
+		this.sessionDisposer = new SessionDisposer(ctx, clientId, topics, will, messageSender);
 
 		// TODO Do I must add listener to Repository.broadcaster?
 	}
@@ -87,13 +92,8 @@ public class Session extends Jsonizable implements com.hazelcast.core.MessageLis
 		return createTime;
 	}
 
-	public Will will() {
+	public Message will() {
 		return will;
-	}
-
-	public void setWill(Will will) {
-		this.will = will;
-		synchronizer.execute();
 	}
 
 	public boolean cleanSession() {
@@ -138,16 +138,16 @@ public class Session extends Jsonizable implements com.hazelcast.core.MessageLis
 		return ImmutableMap.copyOf(topics);
 	}
 
+	public boolean isConnected() {
+		return ctx != null && ctx.channel().isActive();
+	}
+
 	public boolean putTopic(String topicName, MqttQoS mqttQoS) {
 		return topicHandler.putTopic(topicName, mqttQoS, this);
 	}
 
 	public Topic removeTopic(final String topicName) {
 		return topicHandler.removeTopic(topicName);
-	}
-
-	public boolean isConnected() {
-		return ctx != null && ctx.channel().isActive();
 	}
 
 	public ChannelFuture send(MqttMessage message) {
@@ -165,5 +165,25 @@ public class Session extends Jsonizable implements com.hazelcast.core.MessageLis
 	@Override
 	public void onMessage(com.hazelcast.core.Message<Message> rawMessage) {
 		messageListener.onMessage(rawMessage);
+	}
+
+	public static Session getByClientId(String clientId, boolean includePersisted) {
+		return SESSIONS.getByClientId(clientId, includePersisted);
+	}
+
+	public static Session getByChannelId(ChannelId channelId) {
+		return SESSIONS.getByChannelId(channelId);
+	}
+
+	public static void put(Session session) {
+		SESSIONS.put(session);
+	}
+
+	public static void dispose(Session session, boolean sendWill) {
+		SESSIONS.dispose(session, sendWill);
+	}
+
+	public static ImmutableMap<String, Session> clientIdMap() {
+		return SESSIONS.clientIdMap();
 	}
 }

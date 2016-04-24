@@ -7,6 +7,8 @@ import org.junit.Test;
 
 import com.hazelcast.core.IMap;
 
+import io.netty.handler.codec.mqtt.MqttQoS;
+
 public class RepositoryTest {
 
 	@BeforeClass
@@ -20,14 +22,14 @@ public class RepositoryTest {
 	@Test
 	public void testSynchronize() throws Exception {
 		IMap<String, Session> map = Repository.SELF.clientIdSessionMap();
-		Session session = new Session(null, "test1", 0, false);
+		Session session = new Session(null, "test1", 0, false, null);
 
 		map.put("test1", session);
 
-		session.setWill(new Will(null, null, null, false));
+		session.putTopic("test", MqttQoS.AT_LEAST_ONCE);
 
 		Session retrieved = map.get("test1");
 
-		Assert.assertNotNull(retrieved.will());
+		Assert.assertTrue(retrieved.topics().size() == session.topics().size());
 	}
 }

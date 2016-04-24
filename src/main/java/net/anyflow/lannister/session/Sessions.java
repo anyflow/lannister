@@ -12,16 +12,10 @@ public class Sessions {
 	@SuppressWarnings("unused")
 	private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(Sessions.class);
 
-	public static Sessions SELF;
-
-	static {
-		SELF = new Sessions();
-	}
-
 	private final Map<String, Session> clientIdMap;
 	private final Map<ChannelId, Session> channelIdMap;
 
-	private Sessions() {
+	public Sessions() {
 		clientIdMap = Maps.newHashMap();
 		channelIdMap = Maps.newHashMap();
 	}

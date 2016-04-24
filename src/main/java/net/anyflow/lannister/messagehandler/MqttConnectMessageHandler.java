@@ -17,9 +17,9 @@ import net.anyflow.lannister.plugin.Authorization;
 import net.anyflow.lannister.plugin.EventListener;
 import net.anyflow.lannister.plugin.PluginFactory;
 import net.anyflow.lannister.plugin.ServiceStatus;
-import net.anyflow.lannister.session.Sessions;
+import net.anyflow.lannister.session.Message;
+import net.anyflow.lannister.session.Repository;
 import net.anyflow.lannister.session.Session;
-import net.anyflow.lannister.session.Will;
 
 public class MqttConnectMessageHandler extends SimpleChannelInboundHandler<MqttConnectMessage> {
 
@@ -35,9 +35,9 @@ public class MqttConnectMessageHandler extends SimpleChannelInboundHandler<MqttC
 
 		eventListener.connectMessageReceived(msg);
 
-		Session session = Sessions.SELF.getByChannelId(ctx.channel().id());
+		Session session = Session.getByChannelId(ctx.channel().id());
 		if (session != null) {
-			Sessions.SELF.dispose(session, true); // [MQTT-3.1.0-2]
+			Session.dispose(session, true); // [MQTT-3.1.0-2]
 			return;
 		}
 
@@ -81,24 +81,24 @@ public class MqttConnectMessageHandler extends SimpleChannelInboundHandler<MqttC
 		// TODO [MQTT-3.1.2-3] handling Reserved Flag, but netty variable header
 		// doesn't have it
 
-		session = Sessions.SELF.getByClientId(clientId, false);
+		session = Session.getByClientId(clientId, false);
 		if (session != null) {
-			Sessions.SELF.dispose(session, false); // [MQTT-3.1.4-2]
+			Session.dispose(session, false); // [MQTT-3.1.4-2]
 		}
 
 		boolean sessionPresent = !cleanSession;
 		if (cleanSession) {
-			session = new Session(ctx, clientId, msg.variableHeader().keepAliveTimeSeconds(), true); // [MQTT-3.1.2-6]
+			session = new Session(ctx, clientId, msg.variableHeader().keepAliveTimeSeconds(), true, will(msg)); // [MQTT-3.1.2-6]
 
-			Sessions.SELF.put(session);
+			Session.put(session);
 
 			sessionPresent = false; // [MQTT-3.2.2-1]
 		}
 		else {
-			session = Sessions.SELF.getByClientId(clientId, true);
+			session = Session.getByClientId(clientId, true);
 
 			if (session == null) {
-				session = new Session(ctx, clientId, msg.variableHeader().keepAliveTimeSeconds(), false);
+				session = new Session(ctx, clientId, msg.variableHeader().keepAliveTimeSeconds(), false, will(msg));
 				sessionPresent = false; // [MQTT-3.2.2-3]
 			}
 			else {
@@ -106,13 +106,11 @@ public class MqttConnectMessageHandler extends SimpleChannelInboundHandler<MqttC
 				sessionPresent = true; // [MQTT-3.2.2-2]
 			}
 
-			Sessions.SELF.put(session);
+			Session.put(session);
 		}
 
-		if (msg.variableHeader().isWillFlag()) {
-			session.setWill(new Will(msg.payload().willTopic(), msg.payload().willMessage(),
-					msg.variableHeader().willQos() == 0 ? MqttQoS.AT_MOST_ONCE : MqttQoS.AT_LEAST_ONCE,
-					msg.variableHeader().isWillRetain()));
+		if (session.will() != null) {
+			Repository.SELF.broadcaster(session.will().topicName()).publish(session.will());
 		}
 
 		MqttConnAckMessage acceptMsg = MessageFactory.connack(returnCode, sessionPresent);
@@ -132,6 +130,14 @@ public class MqttConnectMessageHandler extends SimpleChannelInboundHandler<MqttC
 		});
 	}
 
+	private Message will(MqttConnectMessage conn) {
+		if (conn.variableHeader().isWillFlag() == false) { return null; } // [MQTT-3.1.2-12]
+
+		return new Message(null, conn.payload().willTopic(), conn.payload().willMessage().getBytes(),
+				conn.variableHeader().willQos() == 0 ? MqttQoS.AT_MOST_ONCE : MqttQoS.AT_LEAST_ONCE,
+				conn.variableHeader().isWillRetain());
+	}
+
 	private ChannelFuture sendNoneAcceptMessage(ChannelHandlerContext ctx, MqttConnectReturnCode returnCode,
 			boolean sessionPresent) {
 		MqttConnAckMessage msg = MessageFactory.connack(returnCode, sessionPresent);
@@ -144,10 +150,10 @@ public class MqttConnectMessageHandler extends SimpleChannelInboundHandler<MqttC
 
 						eventListener.connAckMessageSent(msg);
 
-						Session session = Sessions.SELF.getByChannelId(ctx.channel().id());
+						Session session = Session.getByChannelId(ctx.channel().id());
 
 						if (session != null) {
-							Sessions.SELF.dispose(session, true); // [MQTT-3.2.2-5]
+							Session.dispose(session, true); // [MQTT-3.2.2-5]
 						}
 						else {
 							ctx.channel().disconnect().addListener(ChannelFutureListener.CLOSE); // [MQTT-3.2.2-5]

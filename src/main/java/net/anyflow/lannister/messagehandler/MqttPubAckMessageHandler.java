@@ -7,7 +7,6 @@ import io.netty.channel.SimpleChannelInboundHandler;
 import io.netty.handler.codec.mqtt.MqttPubAckMessage;
 import net.anyflow.lannister.session.Message;
 import net.anyflow.lannister.session.Session;
-import net.anyflow.lannister.session.Sessions;
 
 public class MqttPubAckMessageHandler extends SimpleChannelInboundHandler<MqttPubAckMessage> {
 
@@ -17,10 +16,10 @@ public class MqttPubAckMessageHandler extends SimpleChannelInboundHandler<MqttPu
 	protected void channelRead0(ChannelHandlerContext ctx, MqttPubAckMessage msg) throws Exception {
 		logger.debug("packet incoming : {}", msg.toString());
 
-		Session session = Sessions.SELF.getByChannelId(ctx.channel().id());
+		Session session = Session.getByChannelId(ctx.channel().id());
 		if (session == null) {
 			logger.error("None exist session message : {}", msg.toString());
-			Sessions.SELF.dispose(session, true); // [MQTT-4.8.0-1]
+			Session.dispose(session, true); // [MQTT-4.8.0-1]
 			return;
 		}
 

@@ -6,7 +6,6 @@ import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
 import io.netty.handler.codec.mqtt.MqttMessage;
 import net.anyflow.lannister.session.Session;
-import net.anyflow.lannister.session.Sessions;
 
 public class GenericMqttMessageHandler extends SimpleChannelInboundHandler<MqttMessage> {
 
@@ -20,10 +19,10 @@ public class GenericMqttMessageHandler extends SimpleChannelInboundHandler<MqttM
 		else {
 			logger.debug("packet incoming : {}", msg.toString());
 
-			Session session = Sessions.SELF.getByChannelId(ctx.channel().id());
+			Session session = Session.getByChannelId(ctx.channel().id());
 			if (session == null) {
 				logger.error("None exist session message : {}", msg.toString());
-				Sessions.SELF.dispose(session, true); // [MQTT-4.8.0-1]
+				Session.dispose(session, true); // [MQTT-4.8.0-1]
 				return;
 			}
 
@@ -31,7 +30,7 @@ public class GenericMqttMessageHandler extends SimpleChannelInboundHandler<MqttM
 
 			switch (msg.fixedHeader().messageType()) {
 			case DISCONNECT:
-				Sessions.SELF.dispose(session, false); // [MQTT-3.14.4-1],[MQTT-3.14.4-2],[MQTT-3.14.4-3]
+				Session.dispose(session, false); // [MQTT-3.14.4-1],[MQTT-3.14.4-2],[MQTT-3.14.4-3]
 				break;
 
 			case PINGREQ:
@@ -44,21 +43,21 @@ public class GenericMqttMessageHandler extends SimpleChannelInboundHandler<MqttM
 			// PINGRESP(13)// never incoming
 
 			default:
-				Sessions.SELF.dispose(session, true);
+				Session.dispose(session, true);
 			}
 		}
 	}
 
 	@Override
 	public void channelInactive(ChannelHandlerContext ctx) throws Exception {
-		Session session = Sessions.SELF.getByChannelId(ctx.channel().id());
+		Session session = Session.getByChannelId(ctx.channel().id());
 		if (session == null) {
 			logger.debug("session does not exist : [channelId={}]", ctx.channel().id());
 			return;
 		}
 		else {
-			Sessions.SELF.dispose(session, true); // abnormal disconnection
-													// without DISCONNECT
+			Session.dispose(session, true); // abnormal disconnection without
+											// DISCONNECT [MQTT-4.8.0-1]
 		}
 	}
 }
