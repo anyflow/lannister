@@ -36,6 +36,10 @@ public class Message extends Jsonizable implements java.io.Serializable {
 		return id;
 	}
 
+	public void setId(int id) {
+		this.id = id;
+	}
+
 	public String topicName() {
 		return topicName;
 	}

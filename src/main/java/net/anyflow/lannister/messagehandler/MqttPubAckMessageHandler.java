@@ -11,8 +11,6 @@ import net.anyflow.lannister.session.Sessions;
 
 public class MqttPubAckMessageHandler extends SimpleChannelInboundHandler<MqttPubAckMessage> {
 
-	// TODO [DEBUG] first ack is always no message exist
-
 	private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(MqttPubAckMessageHandler.class);
 
 	@Override

@@ -180,17 +180,15 @@ public class Session extends Jsonizable implements MessageListener<Message>, jav
 	}
 
 	public int nextMessageId() {
-		synchronized (this) {
-			currentMessageId = currentMessageId + 1;
+		currentMessageId = currentMessageId + 1;
 
-			if (currentMessageId > MAX_MESSAGE_ID_NUM) {
-				currentMessageId = MIN_MESSAGE_ID_NUM;
-			}
-
-			synchronize();
-
-			return currentMessageId;
+		if (currentMessageId > MAX_MESSAGE_ID_NUM) {
+			currentMessageId = MIN_MESSAGE_ID_NUM;
 		}
+
+		synchronize();
+
+		return currentMessageId;
 	}
 
 	public boolean isConnected() {
@@ -248,6 +246,7 @@ public class Session extends Jsonizable implements MessageListener<Message>, jav
 				Topic topic = topics.get(message.topicName());
 
 				if (message.qos().value() > 0) {
+					message.setId(nextMessageId());
 					messages.put(message.id(), message);
 				}
 
@@ -274,8 +273,7 @@ public class Session extends Jsonizable implements MessageListener<Message>, jav
 				boolean isDuplicated = false; // [MQTT-3.3.1-2], [MQTT-3.3.1-3]
 				boolean isRetain = false; // [MQTT-3.3.1-9]
 
-				MqttPublishMessage publish = MessageFactory.publish(message, isDuplicated, qos, isRetain,
-						nextMessageId());
+				MqttPublishMessage publish = MessageFactory.publish(message, isDuplicated, qos, isRetain, message.id());
 
 				Session.this.send(publish).addListener(new ChannelFutureListener() {
 					@Override
