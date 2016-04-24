@@ -11,7 +11,7 @@ public class Message extends Jsonizable implements java.io.Serializable {
 	private static final long serialVersionUID = -3661073065729414035L;
 
 	@JsonProperty
-	private int id;
+	private Integer id;
 	@JsonProperty
 	private String topicName;
 	@JsonProperty
@@ -23,7 +23,7 @@ public class Message extends Jsonizable implements java.io.Serializable {
 	@JsonProperty
 	private boolean sent;
 
-	public Message(int id, String topicName, byte[] message, MqttQoS qos, boolean isRetain) {
+	public Message(Integer id, String topicName, byte[] message, MqttQoS qos, boolean isRetain) {
 		this.id = id;
 		this.topicName = topicName;
 		this.message = message;
@@ -34,10 +34,6 @@ public class Message extends Jsonizable implements java.io.Serializable {
 
 	public int id() {
 		return id;
-	}
-
-	public void setId(int id) {
-		this.id = id;
 	}
 
 	public String topicName() {
@@ -54,6 +50,10 @@ public class Message extends Jsonizable implements java.io.Serializable {
 
 	public MqttQoS qos() {
 		return qos;
+	}
+
+	public void setQos(MqttQoS qos) {
+		this.qos = qos;
 	}
 
 	public boolean isRetain() {

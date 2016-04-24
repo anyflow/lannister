@@ -28,12 +28,11 @@ public class MessageFactory {
 		return new MqttConnAckMessage(fixedHeader, variableHeader);
 	}
 
-	public static MqttPublishMessage publish(Message message, boolean isDuplicated, MqttQoS qos, boolean isRetain,
-			int messageId) {
-		MqttFixedHeader fixedHeader = new MqttFixedHeader(MqttMessageType.PUBLISH, isDuplicated, qos, isRetain,
-				7 + message.message().length);
+	public static MqttPublishMessage publish(Message message) {
+		MqttFixedHeader fixedHeader = new MqttFixedHeader(MqttMessageType.PUBLISH, message.isSent(), message.qos(),
+				message.isRetain(), 7 + message.message().length);
 
-		MqttPublishVariableHeader variableHeader = new MqttPublishVariableHeader(message.topicName(), messageId);
+		MqttPublishVariableHeader variableHeader = new MqttPublishVariableHeader(message.topicName(), message.id());
 
 		return new MqttPublishMessage(fixedHeader, variableHeader, Unpooled.wrappedBuffer(message.message()));
 	}

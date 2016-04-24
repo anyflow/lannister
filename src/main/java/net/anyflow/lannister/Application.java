@@ -16,6 +16,7 @@ public class Application {
 		server = new Server();
 		server.Start();
 
+		// TODO TEST revive persisted session
 		// TODO exception handling thrown by codec
 		// TODO Establish removing polishes of unused old persistent sessions,
 		// topics.

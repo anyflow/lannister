@@ -15,9 +15,6 @@ import net.anyflow.lannister.session.Sessions;
 
 public class MqttSubscribeMessageHandler extends SimpleChannelInboundHandler<MqttSubscribeMessage> {
 
-	// TODO send retain message [MQTT-3.3.1-6]
-	// TODO retain message flag should be true [MQTT-3.3.1-8]
-
 	private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(MqttSubscribeMessageHandler.class);
 
 	@Override
