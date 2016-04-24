@@ -25,7 +25,7 @@ public class SessionExpirationHandler extends ChannelInboundHandlerAdapter {
 
 			@Override
 			public void run() {
-				Collection<Session> sessions = LiveSessions.SELF.list();
+				Collection<Session> sessions = LiveSessions.SELF.clientIdMap().values();
 				List<Session> disposes = Lists.newArrayList();
 
 				for (Session item : sessions) {

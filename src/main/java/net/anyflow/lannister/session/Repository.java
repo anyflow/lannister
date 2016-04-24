@@ -17,20 +17,20 @@ public class Repository {
 	}
 
 	private HazelcastInstance hcInstance;
-	private IMap<String, Session> sessions;
+	private IMap<String, Session> clientIdSessionMap;
 
 	private Repository() {
 		Config config = new Config();
 
 		hcInstance = Hazelcast.newHazelcastInstance(config);
-		sessions = hcInstance.getMap("session");
+		clientIdSessionMap = hcInstance.getMap("session");
 	}
 
 	public ITopic<Message> topic(String topicFilter) {
 		return hcInstance.getTopic(topicFilter);
 	}
 
-	public IMap<String, Session> sessions() {
-		return sessions;
+	public IMap<String, Session> clientIdSessionMap() {
+		return clientIdSessionMap;
 	}
 }

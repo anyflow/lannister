@@ -44,7 +44,8 @@ public class MqttSubscribeMessageHandler extends SimpleChannelInboundHandler<Mqt
 			ITopic<Message> topic = Repository.SELF.topic(item.topicName());
 
 			String registrationId = topic.addMessageListener(session);
-			session.topics().put(topic.getName(), new SessionTopic(registrationId, item.qualityOfService()));
+			session.topics().put(topic.getName(),
+					new SessionTopic(registrationId, topic.getName(), item.qualityOfService()));
 
 			grantedQoss.add(item.qualityOfService().value());
 		}

@@ -1,17 +1,26 @@
 package net.anyflow.lannister.session;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 import io.netty.handler.codec.mqtt.MqttQoS;
 import io.netty.util.internal.StringUtil;
+import net.anyflow.lannister.Jsonizable;
 
-public class Message implements java.io.Serializable {
+public class Message extends Jsonizable implements java.io.Serializable {
 
 	private static final long serialVersionUID = -3661073065729414035L;
 
+	@JsonProperty
 	private int id;
+	@JsonProperty
 	private String topicName;
+	@JsonProperty
 	private byte[] message;
+	@JsonProperty
 	private MqttQoS qos;
+	@JsonProperty
 	private boolean isRetain;
+	@JsonProperty
 	private boolean sent;
 
 	public Message(int id, String topicName, byte[] message, MqttQoS qos, boolean isRetain) {
@@ -33,6 +42,10 @@ public class Message implements java.io.Serializable {
 
 	public byte[] message() {
 		return message;
+	}
+
+	public void setMessage(byte[] message) {
+		this.message = message;
 	}
 
 	public MqttQoS qos() {

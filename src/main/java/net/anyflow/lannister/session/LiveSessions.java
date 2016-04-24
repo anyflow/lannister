@@ -1,8 +1,8 @@
 package net.anyflow.lannister.session;
 
-import java.util.Collection;
 import java.util.Map;
 
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
 
 import io.netty.channel.ChannelId;
@@ -19,11 +19,11 @@ public class LiveSessions {
 	}
 
 	private final Map<String, Session> clientIdMap;
-	private final Map<ChannelId, Session> channelMap;
+	private final Map<ChannelId, Session> channelIdMap;
 
 	private LiveSessions() {
 		clientIdMap = Maps.newHashMap();
-		channelMap = Maps.newHashMap();
+		channelIdMap = Maps.newHashMap();
 	}
 
 	public Session getByClientId(String clientId) {
@@ -31,28 +31,28 @@ public class LiveSessions {
 	}
 
 	public Session getByChannelId(ChannelId channelId) {
-		return channelMap.get(channelId);
+		return channelIdMap.get(channelId);
 	}
 
 	public void put(Session session) {
 		synchronized (this) {
 			clientIdMap.put(session.clientId(), session);
-			channelMap.put(session.ctx().channel().id(), session);
+			channelIdMap.put(session.ctx().channel().id(), session);
 
-			Repository.SELF.sessions().put(session.clientId(), session); // [MQTT-3.1.2-4]
+			Repository.SELF.clientIdSessionMap().put(session.clientId(), session); // [MQTT-3.1.2-4]
 		}
 	}
 
 	public void dispose(Session session, boolean sendWill) {
 		synchronized (this) {
 			clientIdMap.remove(session.clientId());
-			channelMap.remove(session.ctx().channel().id());
+			channelIdMap.remove(session.ctx().channel().id());
 		}
 
 		session.dispose(sendWill);
 	}
 
-	public Collection<Session> list() {
-		return clientIdMap.values();
+	public ImmutableMap<String, Session> clientIdMap() {
+		return ImmutableMap.copyOf(clientIdMap);
 	}
 }

@@ -6,6 +6,8 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.function.Consumer;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.common.collect.Maps;
 import com.hazelcast.core.MessageListener;
 
@@ -15,9 +17,12 @@ import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.mqtt.MqttMessage;
 import io.netty.handler.codec.mqtt.MqttPublishMessage;
 import io.netty.handler.codec.mqtt.MqttQoS;
+import net.anyflow.lannister.Jsonizable;
+import net.anyflow.lannister.Literals;
+import net.anyflow.lannister.admin.command.Sessions;
 import net.anyflow.lannister.messagehandler.MessageFactory;
 
-public class Session implements MessageListener<Message>, java.io.Serializable {
+public class Session extends Jsonizable implements MessageListener<Message>, java.io.Serializable {
 
 	private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(Session.class);
 	private static final long serialVersionUID = -1800874748722060393L;
@@ -27,27 +32,39 @@ public class Session implements MessageListener<Message>, java.io.Serializable {
 	private static final int MAX_MESSAGE_ID_NUM = 0xffff;
 	private static final int MIN_MESSAGE_ID_NUM = 1;
 
-	private final String clientId;
 	private transient ChannelHandlerContext ctx;
+
+	@JsonProperty
+	private final String clientId;
+	@JsonFormat(shape = JsonFormat.Shape.STRING, pattern = Literals.DATE_DEFAULT_FORMAT, timezone = Literals.DATE_DEFAULT_TIMEZONE)
+	@JsonProperty
 	private final Date createTime;
+	@JsonProperty
 	private final Map<String, SessionTopic> topics;
+	@JsonProperty
 	private final Map<Integer, Message> messages;
-	private int messageId;
+	@JsonProperty
+	private int currentMessageId;
+	@JsonProperty
 	private Will will;
-	private boolean shouldPersist;
+	@JsonProperty
+	private boolean cleanSession;
+	@JsonProperty
 	private int keepAliveTimeSeconds;
+	@JsonFormat(shape = JsonFormat.Shape.STRING, pattern = Literals.DATE_DEFAULT_FORMAT, timezone = Literals.DATE_DEFAULT_TIMEZONE)
+	@JsonProperty
 	private Date lastIncomingTime;
 
-	public Session(ChannelHandlerContext ctx, String clientId, int keepAliveTimeSeconds, boolean shouldPersist) {
+	public Session(ChannelHandlerContext ctx, String clientId, int keepAliveTimeSeconds, boolean cleanSession) {
 		this.ctx = ctx;
 		this.clientId = clientId;
 		this.createTime = new Date();
 		this.topics = Maps.newConcurrentMap();
 		this.messages = Maps.newConcurrentMap();
-		this.messageId = 0;
+		this.currentMessageId = 0;
 		this.keepAliveTimeSeconds = keepAliveTimeSeconds;
 		this.lastIncomingTime = new Date();
-		this.shouldPersist = shouldPersist;
+		this.cleanSession = cleanSession;
 	}
 
 	public String clientId() {
@@ -71,7 +88,7 @@ public class Session implements MessageListener<Message>, java.io.Serializable {
 	}
 
 	public boolean shouldPersist() {
-		return shouldPersist;
+		return cleanSession;
 	}
 
 	public Date lastIncomingTime() {
@@ -106,13 +123,13 @@ public class Session implements MessageListener<Message>, java.io.Serializable {
 
 	public int nextMessageId() {
 		synchronized (this) {
-			messageId = messageId + 1;
+			currentMessageId = currentMessageId + 1;
 
-			if (messageId > MAX_MESSAGE_ID_NUM) {
-				messageId = MIN_MESSAGE_ID_NUM;
+			if (currentMessageId > MAX_MESSAGE_ID_NUM) {
+				currentMessageId = MIN_MESSAGE_ID_NUM;
 			}
 
-			return messageId;
+			return currentMessageId;
 		}
 	}
 
@@ -138,8 +155,8 @@ public class Session implements MessageListener<Message>, java.io.Serializable {
 	public void dispose(boolean sendWill) {
 		ctx.disconnect().addListener(ChannelFutureListener.CLOSE);
 
-		if (shouldPersist == false) {
-			Repository.SELF.sessions().remove(this.clientId);
+		if (cleanSession == false) {
+			Repository.SELF.clientIdSessionMap().remove(this.clientId);
 		}
 
 		for (String topicName : topics.keySet()) {
@@ -186,6 +203,8 @@ public class Session implements MessageListener<Message>, java.io.Serializable {
 
 				if (isConnected() == false) { return; }
 
+				filter(message);
+
 				MqttQoS qos = topic.qos().value() <= message.qos().value() ? topic.qos() : message.qos();
 				boolean isDuplicated = false; // [MQTT-3.3.1-2], [MQTT-3.3.1-3]
 				boolean isRetain = false; // [MQTT-3.3.1-9]
@@ -201,6 +220,20 @@ public class Session implements MessageListener<Message>, java.io.Serializable {
 				});
 			}
 		});
+	}
+
+	private void filter(Message message) {
+		if (message.topicName().startsWith("$") == false) { return; }
+
+		if (message.topicName().equals("$COMMAND/GET/sessions")) {
+			message.setMessage((new Sessions()).live());
+		}
+		else if (message.topicName().equals("$COMMAND/GET/sessions?filter=live")) {
+			message.setMessage((new Sessions()).live());
+		}
+		else if (message.topicName().equals("$COMMAND/GET/sessions?filter=persisted")) {
+			message.setMessage((new Sessions()).persisted());
+		}
 	}
 
 	public void publishUnackedMessages() {

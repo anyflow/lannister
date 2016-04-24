@@ -1,8 +1,9 @@
 package net.anyflow.lannister.session;
 
 import io.netty.handler.codec.mqtt.MqttQoS;
+import net.anyflow.lannister.Jsonizable;
 
-public class Will implements java.io.Serializable {
+public class Will extends Jsonizable implements java.io.Serializable {
 
 	// Situations in which the Will Message is published include, but are not
 	// limited to:

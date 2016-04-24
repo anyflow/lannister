@@ -89,17 +89,17 @@ public class MqttConnectMessageHandler extends SimpleChannelInboundHandler<MqttC
 
 		boolean sessionPresent = !cleanSession;
 		if (cleanSession) {
-			session = new Session(ctx, clientId, msg.variableHeader().keepAliveTimeSeconds(), false); // [MQTT-3.1.2-6]
+			session = new Session(ctx, clientId, msg.variableHeader().keepAliveTimeSeconds(), true); // [MQTT-3.1.2-6]
 
 			LiveSessions.SELF.put(session);
 
 			sessionPresent = false; // [MQTT-3.2.2-1]
 		}
 		else {
-			session = Repository.SELF.sessions().get(clientId);
+			session = Repository.SELF.clientIdSessionMap().get(clientId);
 
 			if (session == null) {
-				session = new Session(ctx, clientId, msg.variableHeader().keepAliveTimeSeconds(), true);
+				session = new Session(ctx, clientId, msg.variableHeader().keepAliveTimeSeconds(), false);
 				sessionPresent = false; // [MQTT-3.2.2-3]
 			}
 			else {
