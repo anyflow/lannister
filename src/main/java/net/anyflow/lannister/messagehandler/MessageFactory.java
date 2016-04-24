@@ -16,6 +16,7 @@ import io.netty.handler.codec.mqtt.MqttPublishVariableHeader;
 import io.netty.handler.codec.mqtt.MqttQoS;
 import io.netty.handler.codec.mqtt.MqttSubAckMessage;
 import io.netty.handler.codec.mqtt.MqttSubAckPayload;
+import io.netty.handler.codec.mqtt.MqttUnsubAckMessage;
 import net.anyflow.lannister.session.Message;
 
 public class MessageFactory {
@@ -67,5 +68,13 @@ public class MessageFactory {
 		MqttSubAckPayload payload = new MqttSubAckPayload(grantedQoss);
 
 		return new MqttSubAckMessage(fixedHeader, variableHeader, payload);
+	}
+
+	public static MqttUnsubAckMessage unsuback(int messageId) {
+		MqttFixedHeader fixedHeader = new MqttFixedHeader(MqttMessageType.UNSUBACK, false, MqttQoS.AT_MOST_ONCE, false,
+				2);
+		MqttMessageIdVariableHeader variableHeader = MqttMessageIdVariableHeader.from(messageId);
+
+		return new MqttUnsubAckMessage(fixedHeader, variableHeader);
 	}
 }

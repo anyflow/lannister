@@ -16,6 +16,9 @@ public class Application {
 		server = new Server();
 		server.Start();
 
+		// TODO exception handling thrown by codec
+		// TODO Establish removing polishes of unused old persistent sessions,
+		// topics.
 		// TODO $SYS
 		// TODO wildcard support
 		// TODO QoS2 support

@@ -5,7 +5,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import io.netty.handler.codec.mqtt.MqttQoS;
 import net.anyflow.lannister.Jsonizable;
 
-public class SessionTopic extends Jsonizable implements java.io.Serializable {
+public class Topic extends Jsonizable implements java.io.Serializable {
 
 	private static final long serialVersionUID = -3335949846595801533L;
 
@@ -18,7 +18,7 @@ public class SessionTopic extends Jsonizable implements java.io.Serializable {
 	@JsonProperty
 	private Message retainedMessage;
 
-	public SessionTopic(String registrationId, String name, MqttQoS qos) {
+	public Topic(String registrationId, String name, MqttQoS qos) {
 		this.registrationId = registrationId;
 		this.name = name;
 		this.qos = qos;
@@ -40,7 +40,7 @@ public class SessionTopic extends Jsonizable implements java.io.Serializable {
 		return retainedMessage;
 	}
 
-	public void setRetainedMesage(Message retainedMessage) {
+	public void setRetainedMessage(Message retainedMessage) {
 		this.retainedMessage = retainedMessage;
 	}
 }

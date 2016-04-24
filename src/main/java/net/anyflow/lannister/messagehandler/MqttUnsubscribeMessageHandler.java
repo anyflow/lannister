@@ -5,16 +5,9 @@ import java.util.List;
 
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
-import io.netty.handler.codec.mqtt.MqttFixedHeader;
-import io.netty.handler.codec.mqtt.MqttMessageIdVariableHeader;
-import io.netty.handler.codec.mqtt.MqttMessageType;
-import io.netty.handler.codec.mqtt.MqttQoS;
-import io.netty.handler.codec.mqtt.MqttUnsubAckMessage;
 import io.netty.handler.codec.mqtt.MqttUnsubscribeMessage;
-import net.anyflow.lannister.session.Sessions;
-import net.anyflow.lannister.session.Repository;
 import net.anyflow.lannister.session.Session;
-import net.anyflow.lannister.session.SessionTopic;
+import net.anyflow.lannister.session.Sessions;
 
 public class MqttUnsubscribeMessageHandler extends SimpleChannelInboundHandler<MqttUnsubscribeMessage> {
 
@@ -28,26 +21,23 @@ public class MqttUnsubscribeMessageHandler extends SimpleChannelInboundHandler<M
 		Session session = Sessions.SELF.getByChannelId(ctx.channel().id());
 		if (session == null) {
 			logger.error("None exist session message : {}", msg.toString());
-			Sessions.SELF.dispose(session, true);
+			Sessions.SELF.dispose(session, true); // [MQTT-4.8.0-1]
 			return;
 		}
 
 		session.setLastIncomingTime(new Date());
 
 		List<String> topicNames = msg.payload().topics();
-		for (String item : topicNames) {
-			SessionTopic tr = session.removeTopic(item);
-			if (tr == null) {
-				continue;
-			}
 
-			Repository.SELF.topic(item).removeMessageListener(tr.registrationId());
+		if (topicNames == null || topicNames.isEmpty()) {
+			Sessions.SELF.dispose(session, true); // [MQTT-4.8.0-1]
+			return;
 		}
 
-		MqttFixedHeader fixedHeader = new MqttFixedHeader(MqttMessageType.UNSUBACK, false, MqttQoS.AT_LEAST_ONCE, false,
-				2);
-		MqttMessageIdVariableHeader variableHeader = MqttMessageIdVariableHeader.from(msg.variableHeader().messageId());
+		for (String topicName : topicNames) {
+			session.removeTopic(topicName);
+		}
 
-		session.send(new MqttUnsubAckMessage(fixedHeader, variableHeader));
+		session.send(MessageFactory.unsuback(msg.variableHeader().messageId())); // [MQTT-3.10.4-4],[MQTT-3.10.4-5]
 	}
 }

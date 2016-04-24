@@ -26,7 +26,7 @@ public class Repository {
 		clientIdSessionMap = hcInstance.getMap("clientIdSessionMap");
 	}
 
-	public ITopic<Message> topic(String topicFilter) {
+	public ITopic<Message> broadcaster(String topicFilter) {
 		return hcInstance.getTopic(topicFilter);
 	}
 

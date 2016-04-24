@@ -2,9 +2,11 @@ package net.anyflow.lannister.session;
 
 import java.util.Date;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.function.Consumer;
+import java.util.function.Predicate;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -41,7 +43,7 @@ public class Session extends Jsonizable implements MessageListener<Message>, jav
 	@JsonProperty
 	private final Date createTime;
 	@JsonProperty
-	private final Map<String, SessionTopic> topics;
+	private final Map<String, Topic> topics;
 	@JsonProperty
 	private final Map<Integer, Message> messages;
 	@JsonProperty
@@ -127,17 +129,47 @@ public class Session extends Jsonizable implements MessageListener<Message>, jav
 		return ret;
 	}
 
-	public ImmutableMap<String, SessionTopic> topics() {
+	public ImmutableMap<String, Topic> topics() {
 		return ImmutableMap.copyOf(topics);
 	}
 
-	public void putTopic(String name, SessionTopic sessionTopic) {
-		topics.put(name, sessionTopic);
+	public boolean putTopic(String topicName, MqttQoS mqttQoS) {
+		if (TopicValidator.isATopicName(topicName) == false) { return false; }
+
+		String registrationId = Repository.SELF.broadcaster(topicName).addMessageListener(this);
+
+		Topic topic = new Topic(registrationId, topicName, mqttQoS);
+
+		Topic old = topics.get(topicName);
+		if (old != null) {
+			topic.setRetainedMessage(old.retainedMessage());
+		}
+
+		topics.put(topicName, topic); // [MQTT-3.8.4-3]
+
 		synchronize();
+
+		return true;
 	}
 
-	public SessionTopic removeTopic(String sessionTopic) {
-		SessionTopic ret = topics.remove(sessionTopic);
+	public Topic removeTopic(final String topicName) {
+		if (TopicValidator.isATopicName(topicName) == false) { return null; }
+
+		Topic ret = topics.remove(topicName);
+		if (ret == null) { return null; }
+
+		messages.entrySet().removeIf(new Predicate<Entry<Integer, Message>>() {
+			@Override
+			public boolean test(Entry<Integer, Message> t) {
+				if (topicName.equals(t.getValue().topicName()) == false) { return false; }
+				if (t.getValue().isSent()) { return false; } // [MQTT-3.10.4-3]
+
+				return true;
+			}
+		});
+
+		Repository.SELF.broadcaster(topicName).removeMessageListener(ret.registrationId());
+
 		synchronize();
 
 		return ret;
@@ -189,12 +221,8 @@ public class Session extends Jsonizable implements MessageListener<Message>, jav
 	public void dispose(boolean sendWill) {
 		ctx.disconnect().addListener(ChannelFutureListener.CLOSE);
 
-		if (cleanSession) {
-			Repository.SELF.clientIdSessionMap().remove(this.clientId);
-		}
-
 		for (String topicName : topics.keySet()) {
-			Repository.SELF.topic(topicName).removeMessageListener(topics.get(topicName).registrationId());
+			Repository.SELF.broadcaster(topicName).removeMessageListener(topics.get(topicName).registrationId());
 		}
 
 		// TODO send Will
@@ -203,8 +231,8 @@ public class Session extends Jsonizable implements MessageListener<Message>, jav
 
 		this.ctx = null;
 
-		for (SessionTopic topic : topics.values()) {
-			topic.setRetainedMesage(null); // [MQTT-3.1.2.7]
+		for (Topic topic : topics.values()) {
+			topic.setRetainedMessage(null); // [MQTT-3.1.2.7]
 		}
 	}
 
@@ -217,7 +245,7 @@ public class Session extends Jsonizable implements MessageListener<Message>, jav
 			public void run() {
 				logger.debug("Event arrived : [clientId:{}/message:{}]", Session.this.clientId, message.toString());
 
-				SessionTopic topic = topics.get(message.topicName());
+				Topic topic = topics.get(message.topicName());
 
 				if (message.qos().value() > 0) {
 					messages.put(message.id(), message);
@@ -225,10 +253,10 @@ public class Session extends Jsonizable implements MessageListener<Message>, jav
 
 				if (message.isRetain()) {
 					if (message.message().length > 0) {
-						topic.setRetainedMesage(message);
+						topic.setRetainedMessage(message);
 					}
 					else {
-						topic.setRetainedMesage(null); // [MQTT-3.3.1-10],[MQTT-3.3.1-11]
+						topic.setRetainedMessage(null); // [MQTT-3.3.1-10],[MQTT-3.3.1-11]
 					}
 				}
 				else {
@@ -276,7 +304,7 @@ public class Session extends Jsonizable implements MessageListener<Message>, jav
 
 	public void publishUnackedMessages() {
 		for (String key : topics.keySet()) {
-			final SessionTopic topic = topics.get(key);
+			final Topic topic = topics.get(key);
 
 			messages.keySet().stream().sorted().forEach(new Consumer<Integer>() {
 				@Override

@@ -5,8 +5,8 @@ import java.util.Date;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
 import io.netty.handler.codec.mqtt.MqttMessage;
-import net.anyflow.lannister.session.Sessions;
 import net.anyflow.lannister.session.Session;
+import net.anyflow.lannister.session.Sessions;
 
 public class GenericMqttMessageHandler extends SimpleChannelInboundHandler<MqttMessage> {
 
@@ -23,7 +23,7 @@ public class GenericMqttMessageHandler extends SimpleChannelInboundHandler<MqttM
 			Session session = Sessions.SELF.getByChannelId(ctx.channel().id());
 			if (session == null) {
 				logger.error("None exist session message : {}", msg.toString());
-				Sessions.SELF.dispose(session, true);
+				Sessions.SELF.dispose(session, true); // [MQTT-4.8.0-1]
 				return;
 			}
 
@@ -31,11 +31,11 @@ public class GenericMqttMessageHandler extends SimpleChannelInboundHandler<MqttM
 
 			switch (msg.fixedHeader().messageType()) {
 			case DISCONNECT:
-				Sessions.SELF.dispose(session, false);
+				Sessions.SELF.dispose(session, false); // [MQTT-3.14.4-1],[MQTT-3.14.4-2],[MQTT-3.14.4-3]
 				break;
 
 			case PINGREQ:
-				session.send(MessageFactory.pingresp());
+				session.send(MessageFactory.pingresp()); // [MQTT-3.12.4-1]
 				break;
 
 			// PUBREC(5),
@@ -58,7 +58,7 @@ public class GenericMqttMessageHandler extends SimpleChannelInboundHandler<MqttM
 		}
 		else {
 			Sessions.SELF.dispose(session, true); // abnormal disconnection
-														// without DISCONNECT
+													// without DISCONNECT
 		}
 	}
 }

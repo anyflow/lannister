@@ -9,10 +9,10 @@ import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
 import io.netty.handler.codec.mqtt.MqttPublishMessage;
 import net.anyflow.lannister.NettyUtil;
-import net.anyflow.lannister.session.Sessions;
 import net.anyflow.lannister.session.Message;
 import net.anyflow.lannister.session.Repository;
 import net.anyflow.lannister.session.Session;
+import net.anyflow.lannister.session.Sessions;
 
 public class MqttPublishMessageHandler extends SimpleChannelInboundHandler<MqttPublishMessage> {
 
@@ -25,13 +25,13 @@ public class MqttPublishMessageHandler extends SimpleChannelInboundHandler<MqttP
 		Session session = Sessions.SELF.getByChannelId(ctx.channel().id());
 		if (session == null) {
 			logger.error("None exist session message : {}", msg.toString());
-			Sessions.SELF.dispose(session, true);
+			Sessions.SELF.dispose(session, true); // [MQTT-4.8.0-1]
 			return;
 		}
 
 		session.setLastIncomingTime(new Date());
 
-		ITopic<Message> topic = Repository.SELF.topic(msg.variableHeader().topicName());
+		ITopic<Message> topic = Repository.SELF.broadcaster(msg.variableHeader().topicName());
 
 		topic.publish(new Message(msg.variableHeader().messageId(), msg.variableHeader().topicName(),
 				NettyUtil.copy(msg.payload()), msg.fixedHeader().qosLevel(), msg.fixedHeader().isRetain()));

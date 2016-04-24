@@ -60,6 +60,11 @@ public class Sessions {
 			channelIdMap.remove(session.ctx().channel().id());
 		}
 
+		if (sendWill == false) {
+			// TODO Check whether DISCONNECT means delete persistent session.
+			Repository.SELF.clientIdSessionMap().remove(session.clientId());
+		}
+
 		session.dispose(sendWill);
 	}
 
