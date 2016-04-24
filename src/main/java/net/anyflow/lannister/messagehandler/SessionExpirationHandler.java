@@ -9,7 +9,7 @@ import com.google.common.collect.Lists;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
 import net.anyflow.lannister.Settings;
-import net.anyflow.lannister.session.LiveSessions;
+import net.anyflow.lannister.session.Sessions;
 import net.anyflow.lannister.session.Session;
 
 public class SessionExpirationHandler extends ChannelInboundHandlerAdapter {
@@ -19,13 +19,13 @@ public class SessionExpirationHandler extends ChannelInboundHandlerAdapter {
 	@Override
 	public void handlerAdded(ChannelHandlerContext ctx) throws Exception {
 
-		int interval = Settings.SELF.getInt("lannister.sessionExpirationHandlerExecutionIntervalInSecond", 0);
+		int interval = Settings.SELF.getInt("lannister.sessionExpirationHandlerExecutionIntervalSeconds", 0);
 
 		ctx.executor().scheduleWithFixedDelay(new Runnable() {
 
 			@Override
 			public void run() {
-				Collection<Session> sessions = LiveSessions.SELF.clientIdMap().values();
+				Collection<Session> sessions = Sessions.SELF.clientIdMap().values();
 				List<Session> disposes = Lists.newArrayList();
 
 				for (Session item : sessions) {
@@ -37,7 +37,7 @@ public class SessionExpirationHandler extends ChannelInboundHandlerAdapter {
 				}
 
 				for (Session item : disposes) {
-					LiveSessions.SELF.dispose(item, true); // [MQTT-3.1.2-24]
+					Sessions.SELF.dispose(item, true); // [MQTT-3.1.2-24]
 				}
 
 				logger.debug("SessionExpirationHandler executed : [dispose count={}]", disposes.size());

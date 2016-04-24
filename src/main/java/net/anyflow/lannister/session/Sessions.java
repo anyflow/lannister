@@ -7,27 +7,36 @@ import com.google.common.collect.Maps;
 
 import io.netty.channel.ChannelId;
 
-public class LiveSessions {
+public class Sessions {
 
 	@SuppressWarnings("unused")
-	private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(LiveSessions.class);
+	private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(Sessions.class);
 
-	public static LiveSessions SELF;
+	public static Sessions SELF;
 
 	static {
-		SELF = new LiveSessions();
+		SELF = new Sessions();
 	}
 
 	private final Map<String, Session> clientIdMap;
 	private final Map<ChannelId, Session> channelIdMap;
 
-	private LiveSessions() {
+	private Sessions() {
 		clientIdMap = Maps.newHashMap();
 		channelIdMap = Maps.newHashMap();
 	}
 
-	public Session getByClientId(String clientId) {
-		return clientIdMap.get(clientId);
+	public Session getByClientId(String clientId, boolean includePersisted) {
+		Session ret = clientIdMap.get(clientId);
+
+		if (ret == null) {
+			if (includePersisted == false) { return ret; }
+
+			return Repository.SELF.clientIdSessionMap().get(clientId);
+		}
+		else {
+			return ret;
+		}
 	}
 
 	public Session getByChannelId(ChannelId channelId) {
@@ -38,6 +47,8 @@ public class LiveSessions {
 		synchronized (this) {
 			clientIdMap.put(session.clientId(), session);
 			channelIdMap.put(session.ctx().channel().id(), session);
+
+			if (session.cleanSession()) { return; }
 
 			Repository.SELF.clientIdSessionMap().put(session.clientId(), session); // [MQTT-3.1.2-4]
 		}

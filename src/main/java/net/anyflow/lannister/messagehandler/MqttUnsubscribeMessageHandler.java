@@ -11,7 +11,7 @@ import io.netty.handler.codec.mqtt.MqttMessageType;
 import io.netty.handler.codec.mqtt.MqttQoS;
 import io.netty.handler.codec.mqtt.MqttUnsubAckMessage;
 import io.netty.handler.codec.mqtt.MqttUnsubscribeMessage;
-import net.anyflow.lannister.session.LiveSessions;
+import net.anyflow.lannister.session.Sessions;
 import net.anyflow.lannister.session.Repository;
 import net.anyflow.lannister.session.Session;
 import net.anyflow.lannister.session.SessionTopic;
@@ -25,10 +25,10 @@ public class MqttUnsubscribeMessageHandler extends SimpleChannelInboundHandler<M
 	protected void channelRead0(ChannelHandlerContext ctx, MqttUnsubscribeMessage msg) throws Exception {
 		logger.debug("packet incoming : {}", msg.toString());
 
-		Session session = LiveSessions.SELF.getByChannelId(ctx.channel().id());
+		Session session = Sessions.SELF.getByChannelId(ctx.channel().id());
 		if (session == null) {
 			logger.error("None exist session message : {}", msg.toString());
-			LiveSessions.SELF.dispose(session, true);
+			Sessions.SELF.dispose(session, true);
 			return;
 		}
 
@@ -36,7 +36,7 @@ public class MqttUnsubscribeMessageHandler extends SimpleChannelInboundHandler<M
 
 		List<String> topicNames = msg.payload().topics();
 		for (String item : topicNames) {
-			SessionTopic tr = session.topics().remove(item);
+			SessionTopic tr = session.removeTopic(item);
 			if (tr == null) {
 				continue;
 			}

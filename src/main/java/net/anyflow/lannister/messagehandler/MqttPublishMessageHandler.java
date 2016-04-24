@@ -9,7 +9,7 @@ import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
 import io.netty.handler.codec.mqtt.MqttPublishMessage;
 import net.anyflow.lannister.NettyUtil;
-import net.anyflow.lannister.session.LiveSessions;
+import net.anyflow.lannister.session.Sessions;
 import net.anyflow.lannister.session.Message;
 import net.anyflow.lannister.session.Repository;
 import net.anyflow.lannister.session.Session;
@@ -22,10 +22,10 @@ public class MqttPublishMessageHandler extends SimpleChannelInboundHandler<MqttP
 	protected void channelRead0(ChannelHandlerContext ctx, MqttPublishMessage msg) throws Exception {
 		logger.debug("packet incoming : {}", msg.toString());
 
-		Session session = LiveSessions.SELF.getByChannelId(ctx.channel().id());
+		Session session = Sessions.SELF.getByChannelId(ctx.channel().id());
 		if (session == null) {
 			logger.error("None exist session message : {}", msg.toString());
-			LiveSessions.SELF.dispose(session, true);
+			Sessions.SELF.dispose(session, true);
 			return;
 		}
 
@@ -49,7 +49,7 @@ public class MqttPublishMessageHandler extends SimpleChannelInboundHandler<MqttP
 			return;
 
 		default:
-			LiveSessions.SELF.dispose(session, true); // [MQTT-3.3.1-4]
+			Sessions.SELF.dispose(session, true); // [MQTT-3.3.1-4]
 			return;
 		}
 	}
@@ -60,10 +60,10 @@ public class MqttPublishMessageHandler extends SimpleChannelInboundHandler<MqttP
 
 		if (IllegalArgumentException.class.getName().equals(cause.getClass().getName())
 				&& cause.getMessage().contains("invalid QoS")) {
-			Session session = LiveSessions.SELF.getByChannelId(ctx.channel().id());
+			Session session = Sessions.SELF.getByChannelId(ctx.channel().id());
 
 			if (session != null) {
-				LiveSessions.SELF.dispose(session, true); // [MQTT-3.3.1-4]
+				Sessions.SELF.dispose(session, true); // [MQTT-3.3.1-4]
 			}
 			else {
 				ctx.channel().disconnect().addListener(ChannelFutureListener.CLOSE); // [MQTT-3.3.1-4]

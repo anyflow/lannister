@@ -8,6 +8,7 @@ import java.util.function.Consumer;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
 import com.hazelcast.core.MessageListener;
 
@@ -50,19 +51,19 @@ public class Session extends Jsonizable implements MessageListener<Message>, jav
 	@JsonProperty
 	private boolean cleanSession;
 	@JsonProperty
-	private int keepAliveTimeSeconds;
+	private int keepAliveSeconds;
 	@JsonFormat(shape = JsonFormat.Shape.STRING, pattern = Literals.DATE_DEFAULT_FORMAT, timezone = Literals.DATE_DEFAULT_TIMEZONE)
 	@JsonProperty
 	private Date lastIncomingTime;
 
-	public Session(ChannelHandlerContext ctx, String clientId, int keepAliveTimeSeconds, boolean cleanSession) {
+	public Session(ChannelHandlerContext ctx, String clientId, int keepAliveSeconds, boolean cleanSession) {
 		this.ctx = ctx;
 		this.clientId = clientId;
 		this.createTime = new Date();
 		this.topics = Maps.newConcurrentMap();
 		this.messages = Maps.newConcurrentMap();
 		this.currentMessageId = 0;
-		this.keepAliveTimeSeconds = keepAliveTimeSeconds;
+		this.keepAliveSeconds = keepAliveSeconds;
 		this.lastIncomingTime = new Date();
 		this.cleanSession = cleanSession;
 	}
@@ -85,6 +86,11 @@ public class Session extends Jsonizable implements MessageListener<Message>, jav
 
 	public void setWill(Will will) {
 		this.will = will;
+		synchronize();
+	}
+
+	public boolean cleanSession() {
+		return cleanSession;
 	}
 
 	public boolean shouldPersist() {
@@ -96,25 +102,45 @@ public class Session extends Jsonizable implements MessageListener<Message>, jav
 	}
 
 	public boolean isExpired() {
-		if (keepAliveTimeSeconds == 0) { return false; }
+		if (keepAliveSeconds == 0) { return false; }
 
-		return ((new Date()).getTime() - lastIncomingTime.getTime()) * 1000 < keepAliveTimeSeconds;
+		return ((new Date()).getTime() - lastIncomingTime.getTime()) * 1000 < keepAliveSeconds;
 	}
 
 	public void setLastIncomingTime(Date lastIncomingTime) {
 		this.lastIncomingTime = lastIncomingTime;
+		synchronize();
 	}
 
-	public int keepAliveTimeSeconds() {
-		return keepAliveTimeSeconds;
+	public int keepAliveSeconds() {
+		return keepAliveSeconds;
 	}
 
-	public Map<String, SessionTopic> topics() {
-		return topics;
+	public ImmutableMap<Integer, Message> messages() {
+		return ImmutableMap.copyOf(messages);
 	}
 
-	public Map<Integer, Message> messages() {
-		return messages;
+	public Message removeMessage(int messageId) {
+		Message ret = messages.remove(messageId);
+		synchronize();
+
+		return ret;
+	}
+
+	public ImmutableMap<String, SessionTopic> topics() {
+		return ImmutableMap.copyOf(topics);
+	}
+
+	public void putTopic(String name, SessionTopic sessionTopic) {
+		topics.put(name, sessionTopic);
+		synchronize();
+	}
+
+	public SessionTopic removeTopic(String sessionTopic) {
+		SessionTopic ret = topics.remove(sessionTopic);
+		synchronize();
+
+		return ret;
 	}
 
 	public void revive(ChannelHandlerContext ctx) {
@@ -128,6 +154,8 @@ public class Session extends Jsonizable implements MessageListener<Message>, jav
 			if (currentMessageId > MAX_MESSAGE_ID_NUM) {
 				currentMessageId = MIN_MESSAGE_ID_NUM;
 			}
+
+			synchronize();
 
 			return currentMessageId;
 		}
@@ -152,10 +180,16 @@ public class Session extends Jsonizable implements MessageListener<Message>, jav
 		});
 	}
 
+	private void synchronize() {
+		if (cleanSession) { return; }
+
+		Repository.SELF.clientIdSessionMap().put(this.clientId, this);
+	}
+
 	public void dispose(boolean sendWill) {
 		ctx.disconnect().addListener(ChannelFutureListener.CLOSE);
 
-		if (cleanSession == false) {
+		if (cleanSession) {
 			Repository.SELF.clientIdSessionMap().remove(this.clientId);
 		}
 
@@ -201,7 +235,10 @@ public class Session extends Jsonizable implements MessageListener<Message>, jav
 					// do nothing [MQTT-3.3.1-12]
 				}
 
-				if (isConnected() == false) { return; }
+				if (isConnected() == false) {
+					synchronize();
+					return;
+				}
 
 				filter(message);
 
@@ -216,6 +253,7 @@ public class Session extends Jsonizable implements MessageListener<Message>, jav
 					@Override
 					public void operationComplete(ChannelFuture future) throws Exception {
 						message.setSent(true);
+						synchronize();
 					}
 				});
 			}
@@ -256,6 +294,7 @@ public class Session extends Jsonizable implements MessageListener<Message>, jav
 						@Override
 						public void operationComplete(ChannelFuture future) throws Exception {
 							message.setSent(true);
+							synchronize();
 						}
 					});
 				}

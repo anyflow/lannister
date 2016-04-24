@@ -16,8 +16,6 @@ public class Application {
 		server = new Server();
 		server.Start();
 
-		// TODO synchronize live & persist session
-
 		// TODO $SYS
 		// TODO wildcard support
 		// TODO QoS2 support

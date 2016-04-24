@@ -23,7 +23,7 @@ public class Repository {
 		Config config = new Config();
 
 		hcInstance = Hazelcast.newHazelcastInstance(config);
-		clientIdSessionMap = hcInstance.getMap("session");
+		clientIdSessionMap = hcInstance.getMap("clientIdSessionMap");
 	}
 
 	public ITopic<Message> topic(String topicFilter) {

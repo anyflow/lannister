@@ -10,7 +10,7 @@ import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
 import io.netty.handler.codec.mqtt.MqttSubscribeMessage;
 import io.netty.handler.codec.mqtt.MqttTopicSubscription;
-import net.anyflow.lannister.session.LiveSessions;
+import net.anyflow.lannister.session.Sessions;
 import net.anyflow.lannister.session.Message;
 import net.anyflow.lannister.session.Repository;
 import net.anyflow.lannister.session.Session;
@@ -27,10 +27,10 @@ public class MqttSubscribeMessageHandler extends SimpleChannelInboundHandler<Mqt
 	protected void channelRead0(ChannelHandlerContext ctx, MqttSubscribeMessage msg) throws Exception {
 		logger.debug("packet incoming : {}", msg.toString());
 
-		Session session = LiveSessions.SELF.getByChannelId(ctx.channel().id());
+		Session session = Sessions.SELF.getByChannelId(ctx.channel().id());
 		if (session == null) {
 			logger.error("None exist session message : {}", msg.toString());
-			LiveSessions.SELF.dispose(session, true);
+			Sessions.SELF.dispose(session, true);
 			return;
 		}
 
@@ -44,7 +44,7 @@ public class MqttSubscribeMessageHandler extends SimpleChannelInboundHandler<Mqt
 			ITopic<Message> topic = Repository.SELF.topic(item.topicName());
 
 			String registrationId = topic.addMessageListener(session);
-			session.topics().put(topic.getName(),
+			session.putTopic(topic.getName(),
 					new SessionTopic(registrationId, topic.getName(), item.qualityOfService()));
 
 			grantedQoss.add(item.qualityOfService().value());

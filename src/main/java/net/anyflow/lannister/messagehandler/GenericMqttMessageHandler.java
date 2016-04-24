@@ -5,7 +5,7 @@ import java.util.Date;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
 import io.netty.handler.codec.mqtt.MqttMessage;
-import net.anyflow.lannister.session.LiveSessions;
+import net.anyflow.lannister.session.Sessions;
 import net.anyflow.lannister.session.Session;
 
 public class GenericMqttMessageHandler extends SimpleChannelInboundHandler<MqttMessage> {
@@ -20,10 +20,10 @@ public class GenericMqttMessageHandler extends SimpleChannelInboundHandler<MqttM
 		else {
 			logger.debug("packet incoming : {}", msg.toString());
 
-			Session session = LiveSessions.SELF.getByChannelId(ctx.channel().id());
+			Session session = Sessions.SELF.getByChannelId(ctx.channel().id());
 			if (session == null) {
 				logger.error("None exist session message : {}", msg.toString());
-				LiveSessions.SELF.dispose(session, true);
+				Sessions.SELF.dispose(session, true);
 				return;
 			}
 
@@ -31,7 +31,7 @@ public class GenericMqttMessageHandler extends SimpleChannelInboundHandler<MqttM
 
 			switch (msg.fixedHeader().messageType()) {
 			case DISCONNECT:
-				LiveSessions.SELF.dispose(session, false);
+				Sessions.SELF.dispose(session, false);
 				break;
 
 			case PINGREQ:
@@ -44,20 +44,20 @@ public class GenericMqttMessageHandler extends SimpleChannelInboundHandler<MqttM
 			// PINGRESP(13)// never incoming
 
 			default:
-				LiveSessions.SELF.dispose(session, true);
+				Sessions.SELF.dispose(session, true);
 			}
 		}
 	}
 
 	@Override
 	public void channelInactive(ChannelHandlerContext ctx) throws Exception {
-		Session session = LiveSessions.SELF.getByChannelId(ctx.channel().id());
+		Session session = Sessions.SELF.getByChannelId(ctx.channel().id());
 		if (session == null) {
 			logger.debug("session does not exist : [channelId={}]", ctx.channel().id());
 			return;
 		}
 		else {
-			LiveSessions.SELF.dispose(session, true); // abnormal disconnection
+			Sessions.SELF.dispose(session, true); // abnormal disconnection
 														// without DISCONNECT
 		}
 	}

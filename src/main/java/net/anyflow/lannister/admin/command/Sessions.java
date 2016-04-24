@@ -4,7 +4,6 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import net.anyflow.lannister.plugin.Plugin;
-import net.anyflow.lannister.session.LiveSessions;
 import net.anyflow.lannister.session.Repository;
 
 public class Sessions implements Plugin {
@@ -13,7 +12,7 @@ public class Sessions implements Plugin {
 
 	public byte[] live() {
 		try {
-			return (new ObjectMapper()).writeValueAsBytes(LiveSessions.SELF.clientIdMap());
+			return (new ObjectMapper()).writeValueAsBytes(net.anyflow.lannister.session.Sessions.SELF.clientIdMap());
 		}
 		catch (JsonProcessingException e) {
 			logger.error(e.getMessage(), e);

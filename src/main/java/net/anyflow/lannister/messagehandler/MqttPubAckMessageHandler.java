@@ -5,7 +5,7 @@ import java.util.Date;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
 import io.netty.handler.codec.mqtt.MqttPubAckMessage;
-import net.anyflow.lannister.session.LiveSessions;
+import net.anyflow.lannister.session.Sessions;
 import net.anyflow.lannister.session.Message;
 import net.anyflow.lannister.session.Session;
 
@@ -19,16 +19,16 @@ public class MqttPubAckMessageHandler extends SimpleChannelInboundHandler<MqttPu
 	protected void channelRead0(ChannelHandlerContext ctx, MqttPubAckMessage msg) throws Exception {
 		logger.debug("packet incoming : {}", msg.toString());
 
-		Session session = LiveSessions.SELF.getByChannelId(ctx.channel().id());
+		Session session = Sessions.SELF.getByChannelId(ctx.channel().id());
 		if (session == null) {
 			logger.error("None exist session message : {}", msg.toString());
-			LiveSessions.SELF.dispose(session, true);
+			Sessions.SELF.dispose(session, true);
 			return;
 		}
 
 		session.setLastIncomingTime(new Date());
 
-		Message message = session.messages().remove(msg.variableHeader().messageId());
+		Message message = session.removeMessage(msg.variableHeader().messageId());
 		if (message == null) {
 			logger.error("No message exist to ack : [clientId:{}, messageId:{}]", session.clientId(),
 					msg.variableHeader().messageId());
