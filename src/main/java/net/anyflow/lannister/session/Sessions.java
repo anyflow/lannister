@@ -40,7 +40,7 @@ public class Sessions {
 	public void put(Session session) {
 		synchronized (this) {
 			clientIdMap.put(session.clientId(), session);
-			channelIdMap.put(session.ctx().channel().id(), session);
+			channelIdMap.put(session.channelId(), session);
 
 			if (session.cleanSession()) { return; }
 
@@ -48,18 +48,15 @@ public class Sessions {
 		}
 	}
 
-	public void dispose(Session session, boolean sendWill) {
+	public void remove(Session session, boolean includePersisted) {
 		synchronized (this) {
 			clientIdMap.remove(session.clientId());
-			channelIdMap.remove(session.ctx().channel().id());
+			channelIdMap.remove(session.channelId());
 		}
 
-		if (sendWill == false) {
-			// TODO Check whether DISCONNECT means delete persistent session.
+		if (includePersisted) {
 			Repository.SELF.clientIdSessionMap().remove(session.clientId());
 		}
-
-		session.dispose(sendWill);
 	}
 
 	public ImmutableMap<String, Session> clientIdMap() {

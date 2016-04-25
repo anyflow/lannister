@@ -74,7 +74,7 @@ public class Session extends Jsonizable implements com.hazelcast.core.MessageLis
 		this.topicHandler = new TopicHandler(topics, messages, synchronizer);
 		this.messageSender = new MessageSender(ctx, topics, messages, synchronizer);
 		this.messageListener = new MessageListener(this, topics, messages, synchronizer, messageSender,
-				currentMessageId);
+				currentMessageId, ctx.executor());
 		this.sessionDisposer = new SessionDisposer(ctx, clientId, topics, will, messageSender);
 
 		// TODO Do I must add listener to Repository.broadcaster?
@@ -84,8 +84,8 @@ public class Session extends Jsonizable implements com.hazelcast.core.MessageLis
 		return clientId;
 	}
 
-	public ChannelHandlerContext ctx() {
-		return ctx;
+	public ChannelId channelId() {
+		return ctx.channel().id();
 	}
 
 	public Date createTime() {
@@ -155,6 +155,7 @@ public class Session extends Jsonizable implements com.hazelcast.core.MessageLis
 	}
 
 	public void dispose(boolean sendWill) {
+		SESSIONS.remove(this, !sendWill);
 		sessionDisposer.dispose(sendWill);
 	}
 
@@ -177,10 +178,6 @@ public class Session extends Jsonizable implements com.hazelcast.core.MessageLis
 
 	public static void put(Session session) {
 		SESSIONS.put(session);
-	}
-
-	public static void dispose(Session session, boolean sendWill) {
-		SESSIONS.dispose(session, sendWill);
 	}
 
 	public static ImmutableMap<String, Session> clientIdMap() {

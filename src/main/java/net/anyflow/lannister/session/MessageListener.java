@@ -2,13 +2,12 @@ package net.anyflow.lannister.session;
 
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
 import com.google.common.collect.Lists;
 
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelFutureListener;
+import io.netty.util.concurrent.EventExecutor;
 import net.anyflow.lannister.admin.command.MessageFilter;
 import net.anyflow.lannister.admin.command.SessionsFilter;
 import net.anyflow.lannister.messagehandler.MessageFactory;
@@ -16,8 +15,6 @@ import net.anyflow.lannister.messagehandler.MessageFactory;
 public class MessageListener {
 
 	private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(MessageListener.class);
-
-	private static ExecutorService SERVICE = Executors.newCachedThreadPool();
 
 	private static final int MAX_MESSAGE_ID_NUM = 0xffff;
 	private static final int MIN_MESSAGE_ID_NUM = 1;
@@ -28,17 +25,19 @@ public class MessageListener {
 	private final Synchronizer synchronizer;
 	private final List<MessageFilter> filters;
 	private final MessageSender messageSender;
+	private final EventExecutor eventExecutor;
 
 	private int currentMessageId;
 
 	public MessageListener(Session session, Map<String, Topic> topics, Map<Integer, Message> messages,
-			Synchronizer synchronizer, MessageSender messageSender, int currentMessageId) {
+			Synchronizer synchronizer, MessageSender messageSender, int currentMessageId, EventExecutor eventExecutor) {
 		this.session = session;
 		this.topics = topics;
 		this.messages = messages;
 		this.synchronizer = synchronizer;
 		this.messageSender = messageSender;
 		this.currentMessageId = currentMessageId;
+		this.eventExecutor = eventExecutor;
 
 		this.filters = Lists.newArrayList(new SessionsFilter());
 	}
@@ -46,7 +45,7 @@ public class MessageListener {
 	public void onMessage(com.hazelcast.core.Message<Message> rawMessage) {
 		final Message received = rawMessage.getMessageObject();
 
-		SERVICE.submit(new Runnable() {
+		eventExecutor.submit(new Runnable() {
 			@Override
 			public void run() {
 				logger.debug("event arrived : [clientId:{}/message:{}]", session.clientId(), received.toString());

@@ -35,8 +35,8 @@ public class SessionExpirationHandler extends ChannelInboundHandlerAdapter {
 					disposes.add(item);
 				}
 
-				for (Session item : disposes) {
-					Session.dispose(item, true); // [MQTT-3.1.2-24]
+				for (Session session : disposes) {
+					session.dispose(true); // [MQTT-3.1.2-24]
 				}
 
 				logger.debug("SessionExpirationHandler executed : [dispose count={}]", disposes.size());

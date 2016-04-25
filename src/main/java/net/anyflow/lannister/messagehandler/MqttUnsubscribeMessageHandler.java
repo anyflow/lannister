@@ -3,6 +3,7 @@ package net.anyflow.lannister.messagehandler;
 import java.util.Date;
 import java.util.List;
 
+import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
 import io.netty.handler.codec.mqtt.MqttUnsubscribeMessage;
@@ -20,7 +21,7 @@ public class MqttUnsubscribeMessageHandler extends SimpleChannelInboundHandler<M
 		Session session = Session.getByChannelId(ctx.channel().id());
 		if (session == null) {
 			logger.error("None exist session message : {}", msg.toString());
-			Session.dispose(session, true); // [MQTT-4.8.0-1]
+			ctx.disconnect().addListener(ChannelFutureListener.CLOSE); // [MQTT-4.8.0-1]
 			return;
 		}
 
@@ -29,7 +30,7 @@ public class MqttUnsubscribeMessageHandler extends SimpleChannelInboundHandler<M
 		List<String> topicNames = msg.payload().topics();
 
 		if (topicNames == null || topicNames.isEmpty()) {
-			Session.dispose(session, true); // [MQTT-4.8.0-1]
+			session.dispose(true); // [MQTT-4.8.0-1]
 			return;
 		}
 

@@ -2,6 +2,7 @@ package net.anyflow.lannister.messagehandler;
 
 import java.util.Date;
 
+import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
 import io.netty.handler.codec.mqtt.MqttPubAckMessage;
@@ -19,7 +20,7 @@ public class MqttPubAckMessageHandler extends SimpleChannelInboundHandler<MqttPu
 		Session session = Session.getByChannelId(ctx.channel().id());
 		if (session == null) {
 			logger.error("None exist session message : {}", msg.toString());
-			Session.dispose(session, true); // [MQTT-4.8.0-1]
+			ctx.disconnect().addListener(ChannelFutureListener.CLOSE); // [MQTT-4.8.0-1]
 			return;
 		}
 

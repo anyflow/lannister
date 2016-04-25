@@ -2,6 +2,7 @@ package net.anyflow.lannister.messagehandler;
 
 import java.util.Date;
 
+import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
 import io.netty.handler.codec.mqtt.MqttMessage;
@@ -22,7 +23,7 @@ public class GenericMqttMessageHandler extends SimpleChannelInboundHandler<MqttM
 			Session session = Session.getByChannelId(ctx.channel().id());
 			if (session == null) {
 				logger.error("None exist session message : {}", msg.toString());
-				Session.dispose(session, true); // [MQTT-4.8.0-1]
+				ctx.disconnect().addListener(ChannelFutureListener.CLOSE); // [MQTT-4.8.0-1]
 				return;
 			}
 
@@ -30,7 +31,9 @@ public class GenericMqttMessageHandler extends SimpleChannelInboundHandler<MqttM
 
 			switch (msg.fixedHeader().messageType()) {
 			case DISCONNECT:
-				Session.dispose(session, false); // [MQTT-3.14.4-1],[MQTT-3.14.4-2],[MQTT-3.14.4-3]
+				// TODO Check whether DISCONNECT means delete persistent
+				// session.
+				session.dispose(false); // [MQTT-3.14.4-1],[MQTT-3.14.4-2],[MQTT-3.14.4-3]
 				break;
 
 			case PINGREQ:
@@ -43,7 +46,7 @@ public class GenericMqttMessageHandler extends SimpleChannelInboundHandler<MqttM
 			// PINGRESP(13)// never incoming
 
 			default:
-				Session.dispose(session, true);
+				session.dispose(true); // [MQTT-4.8.0-1]
 			}
 		}
 	}
@@ -56,8 +59,8 @@ public class GenericMqttMessageHandler extends SimpleChannelInboundHandler<MqttM
 			return;
 		}
 		else {
-			Session.dispose(session, true); // abnormal disconnection without
-											// DISCONNECT [MQTT-4.8.0-1]
+			session.dispose(true); // abnormal disconnection without
+									// DISCONNECT [MQTT-4.8.0-1]
 		}
 	}
 }

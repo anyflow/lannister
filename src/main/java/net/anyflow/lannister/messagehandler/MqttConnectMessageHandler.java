@@ -37,7 +37,7 @@ public class MqttConnectMessageHandler extends SimpleChannelInboundHandler<MqttC
 
 		Session session = Session.getByChannelId(ctx.channel().id());
 		if (session != null) {
-			Session.dispose(session, true); // [MQTT-3.1.0-2]
+			session.dispose(true); // [MQTT-3.1.0-2]
 			return;
 		}
 
@@ -83,7 +83,7 @@ public class MqttConnectMessageHandler extends SimpleChannelInboundHandler<MqttC
 
 		session = Session.getByClientId(clientId, false);
 		if (session != null) {
-			Session.dispose(session, false); // [MQTT-3.1.4-2]
+			session.dispose(false); // [MQTT-3.1.4-2]
 		}
 
 		boolean sessionPresent = !cleanSession;
@@ -153,7 +153,7 @@ public class MqttConnectMessageHandler extends SimpleChannelInboundHandler<MqttC
 						Session session = Session.getByChannelId(ctx.channel().id());
 
 						if (session != null) {
-							Session.dispose(session, true); // [MQTT-3.2.2-5]
+							session.dispose(true); // [MQTT-3.2.2-5]
 						}
 						else {
 							ctx.channel().disconnect().addListener(ChannelFutureListener.CLOSE); // [MQTT-3.2.2-5]

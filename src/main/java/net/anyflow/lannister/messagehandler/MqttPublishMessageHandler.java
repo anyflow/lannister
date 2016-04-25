@@ -24,7 +24,7 @@ public class MqttPublishMessageHandler extends SimpleChannelInboundHandler<MqttP
 		Session session = Session.getByChannelId(ctx.channel().id());
 		if (session == null) {
 			logger.error("None exist session message : {}", msg.toString());
-			Session.dispose(session, true); // [MQTT-4.8.0-1]
+			ctx.disconnect().addListener(ChannelFutureListener.CLOSE); // [MQTT-4.8.0-1]
 			return;
 		}
 
@@ -48,7 +48,7 @@ public class MqttPublishMessageHandler extends SimpleChannelInboundHandler<MqttP
 			return;
 
 		default:
-			Session.dispose(session, true); // [MQTT-3.3.1-4]
+			session.dispose(true); // [MQTT-3.3.1-4]
 			return;
 		}
 	}
@@ -62,7 +62,7 @@ public class MqttPublishMessageHandler extends SimpleChannelInboundHandler<MqttP
 			Session session = Session.getByChannelId(ctx.channel().id());
 
 			if (session != null) {
-				Session.dispose(session, true); // [MQTT-3.3.1-4]
+				session.dispose(true); // [MQTT-3.3.1-4]
 			}
 			else {
 				ctx.channel().disconnect().addListener(ChannelFutureListener.CLOSE); // [MQTT-3.3.1-4]

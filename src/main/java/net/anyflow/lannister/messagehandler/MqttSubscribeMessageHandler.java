@@ -5,6 +5,7 @@ import java.util.List;
 
 import com.google.common.collect.Lists;
 
+import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
 import io.netty.handler.codec.mqtt.MqttQoS;
@@ -23,7 +24,7 @@ public class MqttSubscribeMessageHandler extends SimpleChannelInboundHandler<Mqt
 		Session session = Session.getByChannelId(ctx.channel().id());
 		if (session == null) {
 			logger.error("None exist session message : {}", msg.toString());
-			Session.dispose(session, true); // [MQTT-4.8.0-1]
+			ctx.disconnect().addListener(ChannelFutureListener.CLOSE); // [MQTT-4.8.0-1]
 			return;
 		}
 
@@ -32,7 +33,7 @@ public class MqttSubscribeMessageHandler extends SimpleChannelInboundHandler<Mqt
 		List<MqttTopicSubscription> topics = msg.payload().topicSubscriptions();
 
 		if (topics == null || topics.isEmpty()) {
-			Session.dispose(session, true); // [MQTT-4.8.0-1]
+			session.dispose(true); // [MQTT-4.8.0-1]
 			return;
 		}
 
