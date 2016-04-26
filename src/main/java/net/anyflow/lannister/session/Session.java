@@ -74,7 +74,7 @@ public class Session extends Jsonizable implements com.hazelcast.core.MessageLis
 		this.topicHandler = new TopicHandler(topics, messages, synchronizer);
 		this.messageSender = new MessageSender(ctx, topics, messages, synchronizer);
 		this.messageListener = new MessageListener(this, topics, messages, synchronizer, messageSender,
-				currentMessageId, ctx.executor());
+				currentMessageId, ctx == null ? null : ctx.executor());
 		this.sessionDisposer = new SessionDisposer(ctx, clientId, topics, will, messageSender);
 
 		// TODO Do I must add listener to Repository.broadcaster?
