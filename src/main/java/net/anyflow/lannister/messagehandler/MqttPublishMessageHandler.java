@@ -2,16 +2,14 @@ package net.anyflow.lannister.messagehandler;
 
 import java.util.Date;
 
-import com.hazelcast.core.ITopic;
-
 import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
 import io.netty.handler.codec.mqtt.MqttPublishMessage;
 import net.anyflow.lannister.NettyUtil;
 import net.anyflow.lannister.session.Message;
-import net.anyflow.lannister.session.Repository;
 import net.anyflow.lannister.session.Session;
+import net.anyflow.lannister.session.Topic;
 
 public class MqttPublishMessageHandler extends SimpleChannelInboundHandler<MqttPublishMessage> {
 
@@ -30,7 +28,11 @@ public class MqttPublishMessageHandler extends SimpleChannelInboundHandler<MqttP
 
 		session.setLastIncomingTime(new Date());
 
-		ITopic<Message> topic = Repository.SELF.broadcaster(msg.variableHeader().topicName());
+		Topic topic = Topic.get(msg.variableHeader().topicName());
+		if (topic == null) {
+			topic = new Topic(msg.variableHeader().topicName());
+			Topic.put(topic);
+		}
 
 		topic.publish(new Message(msg.variableHeader().messageId(), msg.variableHeader().topicName(),
 				NettyUtil.copy(msg.payload()), msg.fixedHeader().qosLevel(), msg.fixedHeader().isRetain()));

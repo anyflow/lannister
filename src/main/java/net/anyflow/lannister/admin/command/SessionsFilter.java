@@ -5,7 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 import io.netty.handler.codec.mqtt.MqttQoS;
 import net.anyflow.lannister.session.Message;
-import net.anyflow.lannister.session.Repository;
+import net.anyflow.lannister.session.Session;
 
 public class SessionsFilter implements MessageFilter {
 
@@ -13,7 +13,7 @@ public class SessionsFilter implements MessageFilter {
 
 	private byte[] live() {
 		try {
-			return (new ObjectMapper()).writeValueAsBytes(net.anyflow.lannister.session.Session.clientIdMap());
+			return (new ObjectMapper()).writeValueAsBytes(net.anyflow.lannister.session.Session.clientIdMap(false));
 		}
 		catch (JsonProcessingException e) {
 			logger.error(e.getMessage(), e);
@@ -23,7 +23,7 @@ public class SessionsFilter implements MessageFilter {
 
 	private byte[] persisted() {
 		try {
-			return (new ObjectMapper()).writeValueAsBytes(Repository.SELF.clientIdSessionMap());
+			return (new ObjectMapper()).writeValueAsBytes(Session.persistedClientIdMap());
 		}
 		catch (JsonProcessingException e) {
 			logger.error(e.getMessage(), e);

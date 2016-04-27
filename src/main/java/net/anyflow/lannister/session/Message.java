@@ -26,7 +26,7 @@ public class Message extends Jsonizable implements java.io.Serializable {
 	public Message(Integer id, String topicName, byte[] message, MqttQoS qos, boolean isRetain) {
 		this.id = id;
 		this.topicName = topicName;
-		this.message = message;
+		this.message = message != null ? message : new byte[] {};
 		this.qos = qos;
 		this.isRetain = isRetain;
 		this.sent = false;
@@ -45,7 +45,7 @@ public class Message extends Jsonizable implements java.io.Serializable {
 	}
 
 	public void setMessage(byte[] message) {
-		this.message = message;
+		this.message = message != null ? message : new byte[] {};
 	}
 
 	public MqttQoS qos() {

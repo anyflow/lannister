@@ -16,6 +16,12 @@ public class Application {
 		server = new Server();
 		server.Start();
 
+		// TODO handling immutable collection mutatations
+		// TODO Session independent Messages
+		// TODO dispose session
+		// TODO Dispose topic
+		// TODO Move live session maps to hazelcast's (for publish notify)
+		// TODO stream parellel
 		// TODO TEST revive persisted session
 		// TODO exception handling thrown by codec
 		// TODO Establish removing polishes of unused old persistent sessions,

@@ -9,8 +9,8 @@ public class Synchronizer {
 	}
 
 	public void execute() {
-		if (session.cleanSession()) { return; }
+		if (session.isCleanSession()) { return; }
 
-		Repository.SELF.clientIdSessionMap().put(session.clientId(), session);
+		session.persist();
 	}
 }

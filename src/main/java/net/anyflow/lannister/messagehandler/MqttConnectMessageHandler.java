@@ -18,8 +18,8 @@ import net.anyflow.lannister.plugin.EventListener;
 import net.anyflow.lannister.plugin.PluginFactory;
 import net.anyflow.lannister.plugin.ServiceStatus;
 import net.anyflow.lannister.session.Message;
-import net.anyflow.lannister.session.Repository;
 import net.anyflow.lannister.session.Session;
+import net.anyflow.lannister.session.Topic;
 
 public class MqttConnectMessageHandler extends SimpleChannelInboundHandler<MqttConnectMessage> {
 
@@ -110,7 +110,16 @@ public class MqttConnectMessageHandler extends SimpleChannelInboundHandler<MqttC
 		}
 
 		if (session.will() != null) {
-			Repository.SELF.broadcaster(session.will().topicName()).publish(session.will());
+			Topic topic = Topic.get(session.will().topicName());
+			if (topic == null) {
+				topic = new Topic(session.will().topicName());
+				Topic.put(topic);
+			}
+
+			if (session.will().isRetain()) { // [MQTT-3.1.2-16],[MQTT-3.1.2-17]
+				topic.setRetainedMessage(session.will().message().length > 0
+						? new Message(null, session.will().topicName(), session.will().message(), null, true) : null);
+			}
 		}
 
 		MqttConnAckMessage acceptMsg = MessageFactory.connack(returnCode, sessionPresent);
@@ -134,8 +143,7 @@ public class MqttConnectMessageHandler extends SimpleChannelInboundHandler<MqttC
 		if (conn.variableHeader().isWillFlag() == false) { return null; } // [MQTT-3.1.2-12]
 
 		return new Message(null, conn.payload().willTopic(), conn.payload().willMessage().getBytes(),
-				conn.variableHeader().willQos() == 0 ? MqttQoS.AT_MOST_ONCE : MqttQoS.AT_LEAST_ONCE,
-				conn.variableHeader().isWillRetain());
+				MqttQoS.valueOf(conn.variableHeader().willQos()), conn.variableHeader().isWillRetain());
 	}
 
 	private ChannelFuture sendNoneAcceptMessage(ChannelHandlerContext ctx, MqttConnectReturnCode returnCode,

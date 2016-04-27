@@ -1,7 +1,6 @@
 package net.anyflow.lannister.session;
 
 import java.util.Map;
-import java.util.function.Consumer;
 
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelFutureListener;
@@ -18,14 +17,14 @@ public class MessageSender {
 	private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(MessageSender.class);
 
 	private final ChannelHandlerContext ctx;
-	private final Map<String, Topic> topics;
+	private final TopicSubscriber topicSubscriber;
 	private final Map<Integer, Message> messages;
 	private final Synchronizer synchronizer;
 
-	public MessageSender(ChannelHandlerContext ctx, Map<String, Topic> topics, Map<Integer, Message> messages,
+	public MessageSender(ChannelHandlerContext ctx, TopicSubscriber topicSubscriber, Map<Integer, Message> messages,
 			Synchronizer synchronizer) {
 		this.ctx = ctx;
-		this.topics = topics;
+		this.topicSubscriber = topicSubscriber;
 		this.messages = messages;
 		this.synchronizer = synchronizer;
 	}
@@ -50,25 +49,20 @@ public class MessageSender {
 	}
 
 	public void publishUnackedMessages() {
-		for (String key : topics.keySet()) {
-			final Topic topic = topics.get(key);
+		messages.values().stream().forEach(message -> {
+			TopicSubscription[] tss = topicSubscriber.matches(message.topicName());
+			if (tss.length <= 0) { return; }
 
-			messages.keySet().stream().sorted().forEach(new Consumer<Integer>() {
+			message.setQos(adjustQoS(tss[0].qos(), message.qos()));
+
+			MessageSender.this.send(MessageFactory.publish(message)).addListener(new ChannelFutureListener() {
 				@Override
-				public void accept(Integer t) {
-					Message message = messages.get(t);
-
-					message.setQos(adjustQoS(topic.qos(), message.qos()));
-
-					MessageSender.this.send(MessageFactory.publish(message)).addListener(new ChannelFutureListener() {
-						@Override
-						public void operationComplete(ChannelFuture future) throws Exception {
-							message.setSent(true);
-							synchronizer.execute();
-						}
-					});
+				public void operationComplete(ChannelFuture future) throws Exception {
+					message.setSent(true);
+					synchronizer.execute();
 				}
 			});
-		}
+
+		});
 	}
 }

@@ -12,6 +12,7 @@ import io.netty.handler.codec.mqtt.MqttQoS;
 import io.netty.handler.codec.mqtt.MqttSubscribeMessage;
 import io.netty.handler.codec.mqtt.MqttTopicSubscription;
 import net.anyflow.lannister.session.Session;
+import net.anyflow.lannister.session.TopicSubscription;
 
 public class MqttSubscribeMessageHandler extends SimpleChannelInboundHandler<MqttSubscribeMessage> {
 
@@ -30,24 +31,29 @@ public class MqttSubscribeMessageHandler extends SimpleChannelInboundHandler<Mqt
 
 		session.setLastIncomingTime(new Date());
 
-		List<MqttTopicSubscription> topics = msg.payload().topicSubscriptions();
+		List<MqttTopicSubscription> topicSubs = msg.payload().topicSubscriptions();
 
-		if (topics == null || topics.isEmpty()) {
+		if (topicSubs == null || topicSubs.isEmpty()) {
 			session.dispose(true); // [MQTT-4.8.0-1]
 			return;
 		}
 
+		// TODO multiple sub checking (granted QoS)
 		List<Integer> grantedQoss = Lists.newArrayList();
 
-		for (MqttTopicSubscription item : topics) {
-			MqttQoS qos = item.qualityOfService();
+		topicSubs.stream().filter(topicSub -> {
+			if (TopicSubscription.isValid(topicSub.topicName())) { return true; }
 
-			if (session.putTopic(item.topicName(), item.qualityOfService()) == false) {
-				qos = MqttQoS.FAILURE;
-			}
+			grantedQoss.add(MqttQoS.FAILURE.value());
+			return false;
+		}).forEach(topicSub -> {
+			TopicSubscription topicSubscription = new TopicSubscription(topicSub.topicName(),
+					topicSub.qualityOfService());
 
-			grantedQoss.add(qos.value());
-		}
+			session.putTopicSubscription(topicSubscription);
+
+			grantedQoss.add(topicSubscription.qos().value());
+		});
 
 		session.send(MessageFactory.suback(msg.variableHeader().messageId(), grantedQoss)); // [MQTT-2.3.1-7],[MQTT-3.8.4-1],[MQTT-3.8.4-2]
 	}

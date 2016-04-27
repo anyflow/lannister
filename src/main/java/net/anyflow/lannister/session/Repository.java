@@ -3,8 +3,6 @@ package net.anyflow.lannister.session;
 import com.hazelcast.config.Config;
 import com.hazelcast.core.Hazelcast;
 import com.hazelcast.core.HazelcastInstance;
-import com.hazelcast.core.IMap;
-import com.hazelcast.core.ITopic;
 
 public class Repository {
 	@SuppressWarnings("unused")
@@ -16,21 +14,15 @@ public class Repository {
 		SELF = new Repository();
 	}
 
-	private HazelcastInstance hcInstance;
-	private IMap<String, Session> clientIdSessionMap;
+	private final HazelcastInstance generator;
 
 	private Repository() {
 		Config config = new Config();
 
-		hcInstance = Hazelcast.newHazelcastInstance(config);
-		clientIdSessionMap = hcInstance.getMap("clientIdSessionMap");
+		generator = Hazelcast.newHazelcastInstance(config);
 	}
 
-	public ITopic<Message> broadcaster(String topicFilter) {
-		return hcInstance.getTopic(topicFilter);
-	}
-
-	public IMap<String, Session> clientIdSessionMap() {
-		return clientIdSessionMap;
+	protected HazelcastInstance generator() {
+		return generator;
 	}
 }

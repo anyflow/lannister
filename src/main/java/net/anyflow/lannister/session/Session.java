@@ -12,11 +12,10 @@ import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelId;
 import io.netty.handler.codec.mqtt.MqttMessage;
-import io.netty.handler.codec.mqtt.MqttQoS;
 import net.anyflow.lannister.Jsonizable;
 import net.anyflow.lannister.Literals;
 
-public class Session extends Jsonizable implements com.hazelcast.core.MessageListener<Message>, java.io.Serializable {
+public class Session extends Jsonizable implements java.io.Serializable {
 
 	@SuppressWarnings("unused")
 	private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(Session.class);
@@ -27,7 +26,7 @@ public class Session extends Jsonizable implements com.hazelcast.core.MessageLis
 
 	private transient ChannelHandlerContext ctx;
 	private transient Synchronizer synchronizer;
-	private transient TopicHandler topicHandler;
+	private transient TopicSubscriber topicSubscriber;
 	private transient MessageSender messageSender;
 	private transient MessageListener messageListener;
 	private transient SessionDisposer sessionDisposer;
@@ -35,7 +34,7 @@ public class Session extends Jsonizable implements com.hazelcast.core.MessageLis
 	@JsonProperty
 	private final String clientId;
 	@JsonProperty
-	private final Map<String, Topic> topics;
+	private final Map<String, TopicSubscription> topicSubscriptions;
 	@JsonProperty
 	private final Map<Integer, Message> messages;
 	@JsonProperty
@@ -43,7 +42,7 @@ public class Session extends Jsonizable implements com.hazelcast.core.MessageLis
 	@JsonProperty
 	private Message will;
 	@JsonProperty
-	private boolean cleanSession;
+	private boolean isCleanSession;
 	@JsonProperty
 	private int keepAliveSeconds;
 	@JsonFormat(shape = JsonFormat.Shape.STRING, pattern = Literals.DATE_DEFAULT_FORMAT, timezone = Literals.DATE_DEFAULT_TIMEZONE)
@@ -57,12 +56,12 @@ public class Session extends Jsonizable implements com.hazelcast.core.MessageLis
 			Message will) {
 		this.clientId = clientId;
 		this.createTime = new Date();
-		this.topics = Maps.newConcurrentMap();
+		this.topicSubscriptions = Maps.newConcurrentMap();
 		this.messages = Maps.newConcurrentMap();
 		this.currentMessageId = 0;
 		this.keepAliveSeconds = keepAliveSeconds;
 		this.lastIncomingTime = new Date();
-		this.cleanSession = cleanSession;
+		this.isCleanSession = cleanSession;
 		this.will = will; // [MQTT-3.1.2-9]
 
 		revive(ctx);
@@ -71,11 +70,11 @@ public class Session extends Jsonizable implements com.hazelcast.core.MessageLis
 	public void revive(ChannelHandlerContext ctx) {
 		this.ctx = ctx;
 		this.synchronizer = new Synchronizer(this);
-		this.topicHandler = new TopicHandler(topics, messages, synchronizer);
-		this.messageSender = new MessageSender(ctx, topics, messages, synchronizer);
-		this.messageListener = new MessageListener(this, topics, messages, synchronizer, messageSender,
-				currentMessageId, ctx.executor());
-		this.sessionDisposer = new SessionDisposer(ctx, clientId, topics, will, messageSender);
+		this.topicSubscriber = new TopicSubscriber(clientId, topicSubscriptions, messages, synchronizer);
+		this.messageSender = new MessageSender(ctx, topicSubscriber, messages, synchronizer);
+		this.messageListener = new MessageListener(this, messages, synchronizer, messageSender, currentMessageId,
+				ctx.executor());
+		this.sessionDisposer = new SessionDisposer(ctx, clientId, will, messageSender);
 
 		// TODO Do I must add listener to Repository.broadcaster?
 	}
@@ -88,24 +87,12 @@ public class Session extends Jsonizable implements com.hazelcast.core.MessageLis
 		return ctx.channel().id();
 	}
 
-	public Date createTime() {
-		return createTime;
-	}
-
 	public Message will() {
 		return will;
 	}
 
-	public boolean cleanSession() {
-		return cleanSession;
-	}
-
-	public boolean shouldPersist() {
-		return cleanSession;
-	}
-
-	public Date lastIncomingTime() {
-		return lastIncomingTime;
+	public boolean isCleanSession() {
+		return isCleanSession;
 	}
 
 	public boolean isExpired() {
@@ -119,14 +106,6 @@ public class Session extends Jsonizable implements com.hazelcast.core.MessageLis
 		synchronizer.execute();
 	}
 
-	public int keepAliveSeconds() {
-		return keepAliveSeconds;
-	}
-
-	public ImmutableMap<Integer, Message> messages() {
-		return ImmutableMap.copyOf(messages);
-	}
-
 	public Message removeMessage(int messageId) {
 		Message ret = messages.remove(messageId);
 		synchronizer.execute();
@@ -134,24 +113,32 @@ public class Session extends Jsonizable implements com.hazelcast.core.MessageLis
 		return ret;
 	}
 
-	public ImmutableMap<String, Topic> topics() {
-		return ImmutableMap.copyOf(topics);
-	}
-
 	public boolean isConnected() {
 		return ctx != null && ctx.channel().isActive();
 	}
 
-	public boolean putTopic(String topicName, MqttQoS mqttQoS) {
-		return topicHandler.putTopic(topicName, mqttQoS, this);
+	public ImmutableMap<String, TopicSubscription> topicSubscriptions() {
+		return ImmutableMap.copyOf(topicSubscriptions);
 	}
 
-	public Topic removeTopic(final String topicName) {
-		return topicHandler.removeTopic(topicName);
+	public TopicSubscription[] matches(String topicName) {
+		return topicSubscriber.matches(topicName);
+	}
+
+	public TopicSubscription putTopicSubscription(TopicSubscription topicSubscription) {
+		return topicSubscriber.putTopicSubscription(topicSubscription);
+	}
+
+	public TopicSubscription removeTopicSubscription(final String topicFilter) {
+		return topicSubscriber.removeTopicSubscription(topicFilter);
 	}
 
 	public ChannelFuture send(MqttMessage message) {
 		return messageSender.send(message);
+	}
+
+	public Session persist() {
+		return SESSIONS.persist(this);
 	}
 
 	public void dispose(boolean sendWill) {
@@ -161,11 +148,6 @@ public class Session extends Jsonizable implements com.hazelcast.core.MessageLis
 
 	public void publishUnackedMessages() {
 		messageSender.publishUnackedMessages();
-	}
-
-	@Override
-	public void onMessage(com.hazelcast.core.Message<Message> rawMessage) {
-		messageListener.onMessage(rawMessage);
 	}
 
 	public static Session getByClientId(String clientId, boolean includePersisted) {
@@ -180,7 +162,19 @@ public class Session extends Jsonizable implements com.hazelcast.core.MessageLis
 		SESSIONS.put(session);
 	}
 
-	public static ImmutableMap<String, Session> clientIdMap() {
-		return SESSIONS.clientIdMap();
+	public static ImmutableMap<String, Session> clientIdMap(boolean includePersisted) {
+		return SESSIONS.clientIdMap(includePersisted);
+	}
+
+	public static ImmutableMap<String, Session> persistedClientIdMap() {
+		return SESSIONS.persistedClientIdMap();
+	}
+
+	protected void published(Message message) {
+		messageListener.published(message);
+	}
+
+	protected static void topicAdded(Topic topic) {
+		SESSIONS.topicAdded(topic);
 	}
 }

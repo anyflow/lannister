@@ -27,16 +27,14 @@ public class MqttUnsubscribeMessageHandler extends SimpleChannelInboundHandler<M
 
 		session.setLastIncomingTime(new Date());
 
-		List<String> topicNames = msg.payload().topics();
+		List<String> topicFilters = msg.payload().topics();
 
-		if (topicNames == null || topicNames.isEmpty()) {
+		if (topicFilters == null || topicFilters.isEmpty()) {
 			session.dispose(true); // [MQTT-4.8.0-1]
 			return;
 		}
 
-		for (String topicName : topicNames) {
-			session.removeTopic(topicName);
-		}
+		topicFilters.stream().forEach(tf -> session.removeTopicSubscription(tf));
 
 		session.send(MessageFactory.unsuback(msg.variableHeader().messageId())); // [MQTT-3.10.4-4],[MQTT-3.10.4-5]
 	}

@@ -20,7 +20,6 @@ public class MessageListener {
 	private static final int MIN_MESSAGE_ID_NUM = 1;
 
 	private final Session session;
-	private final Map<String, Topic> topics;
 	private final Map<Integer, Message> messages;
 	private final Synchronizer synchronizer;
 	private final List<MessageFilter> filters;
@@ -29,10 +28,9 @@ public class MessageListener {
 
 	private int currentMessageId;
 
-	public MessageListener(Session session, Map<String, Topic> topics, Map<Integer, Message> messages,
-			Synchronizer synchronizer, MessageSender messageSender, int currentMessageId, EventExecutor eventExecutor) {
+	protected MessageListener(Session session, Map<Integer, Message> messages, Synchronizer synchronizer,
+			MessageSender messageSender, int currentMessageId, EventExecutor eventExecutor) {
 		this.session = session;
-		this.topics = topics;
 		this.messages = messages;
 		this.synchronizer = synchronizer;
 		this.messageSender = messageSender;
@@ -42,9 +40,7 @@ public class MessageListener {
 		this.filters = Lists.newArrayList(new SessionsFilter());
 	}
 
-	public void onMessage(com.hazelcast.core.Message<Message> rawMessage) {
-		final Message received = rawMessage.getMessageObject();
-
+	protected void published(Message received) {
 		eventExecutor.submit(new Runnable() {
 			@Override
 			public void run() {
@@ -52,23 +48,26 @@ public class MessageListener {
 
 				executefilters(received);
 
-				Topic topic = topics.get(received.topicName());
+				// TODO what if returned topicSubscriptions are multiple?
 
-				if (received.isRetain()) {
-					if (received.message().length > 0) {
-						topic.setRetainedMessage(
-								new Message(nextMessageId(), received.topicName(), received.message(), null, true));
-					}
-					else {
-						topic.setRetainedMessage(null); // [MQTT-3.3.1-10],[MQTT-3.3.1-11]
-					}
+				TopicSubscription[] tss = session.matches(received.topicName());
+
+				if (tss == null || tss.length <= 0) {
+					logger.error("Topic Subscription could not be null [clientId={}, topicName={}]", session.clientId(),
+							received.topicName());
+					return;
 				}
-				else {
-					// do nothing [MQTT-3.3.1-12]
+
+				Topic topic = Topic.get(received.topicName());
+
+				if (topic == null) {
+					logger.error("Topic could not be null [clientId={}, topic={}]", session.clientId(),
+							received.topicName());
+					return;
 				}
 
 				Message toSend = new Message(nextMessageId(), received.topicName(), received.message(),
-						MessageSender.adjustQoS(topic.qos(), received.qos()), false);// [MQTT-3.3.1-9]
+						MessageSender.adjustQoS(tss[0].qos(), received.qos()), false);// [MQTT-3.3.1-9]
 
 				if (toSend.qos().value() > 0) {
 					messages.put(toSend.id(), toSend);

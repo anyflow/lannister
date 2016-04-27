@@ -60,11 +60,11 @@ public class MessageFactory {
 		return new MqttMessage(fixedHeader);
 	}
 
-	public static MqttSubAckMessage suback(int messageId, List<Integer> grantedQoss) {
+	public static MqttSubAckMessage suback(int messageId, List<Integer> grantedQoSLevels) {
 		MqttFixedHeader fixedHeader = new MqttFixedHeader(MqttMessageType.SUBACK, false, MqttQoS.AT_MOST_ONCE, false,
-				2 + grantedQoss.size());
+				2 + grantedQoSLevels.size());
 		MqttMessageIdVariableHeader variableHeader = MqttMessageIdVariableHeader.from(messageId);
-		MqttSubAckPayload payload = new MqttSubAckPayload(grantedQoss);
+		MqttSubAckPayload payload = new MqttSubAckPayload(grantedQoSLevels);
 
 		return new MqttSubAckMessage(fixedHeader, variableHeader, payload);
 	}
