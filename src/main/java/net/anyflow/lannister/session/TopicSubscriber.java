@@ -1,6 +1,5 @@
 package net.anyflow.lannister.session;
 
-import java.util.List;
 import java.util.Map;
 import java.util.function.Predicate;
 
@@ -40,10 +39,7 @@ public class TopicSubscriber {
 		TopicSubscription ret = topicSubscriptions.remove(topicFilter);
 		if (ret == null) { return null; }
 
-		List<Topic> topics = Topic.matches(topicFilter);
-		for (Topic topic : topics) {
-			topic.removeSubscriber(this.clientId, true);
-		}
+		Topic.matches(topicFilter).forEach(t -> t.removeSubscriber(clientId, true));
 
 		messages.entrySet().removeIf(entry -> {
 			if (ret.isMatch(entry.getValue().topicName()) == false) { return false; }

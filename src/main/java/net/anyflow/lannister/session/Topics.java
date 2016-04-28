@@ -1,10 +1,7 @@
 package net.anyflow.lannister.session;
 
-import java.util.List;
-
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.Lists;
 import com.hazelcast.core.IMap;
 
 public class Topics {
@@ -35,12 +32,8 @@ public class Topics {
 	}
 
 	protected ImmutableList<Topic> matches(String topicFilter) {
-		List<Topic> ret = Lists.newArrayList();
-
-		topics.values().stream().filter(topic -> TopicSubscription.isMatch(topicFilter, topic.name()))
-				.forEach(topic -> ret.add(topic));
-
-		return ImmutableList.copyOf(ret);
+		return ImmutableList.copyOf(topics.values().stream()
+				.filter(topic -> TopicSubscription.isMatch(topicFilter, topic.name())).toArray(Topic[]::new));
 	}
 
 	protected Topic remove(Topic topic) {

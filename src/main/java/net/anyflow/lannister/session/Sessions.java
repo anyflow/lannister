@@ -64,7 +64,7 @@ public class Sessions {
 	}
 
 	private Map<String, Session> mutableClientIdMap(boolean includePersisted) {
-		if (includePersisted == false) { return ImmutableMap.copyOf(clientIdMap); }
+		if (includePersisted == false) { return clientIdMap; }
 
 		Map<String, Session> ret = Maps.newHashMap(clientIdMap);
 
