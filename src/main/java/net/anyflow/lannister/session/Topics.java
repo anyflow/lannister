@@ -1,7 +1,9 @@
 package net.anyflow.lannister.session;
 
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableMap;
+import java.util.List;
+import java.util.stream.Stream;
+
+import com.google.common.collect.Lists;
 import com.hazelcast.core.IMap;
 
 public class Topics {
@@ -12,10 +14,6 @@ public class Topics {
 
 	protected Topics() {
 		this.topics = Repository.SELF.generator().getMap("topics");
-	}
-
-	protected ImmutableMap<String, Topic> topics() {
-		return ImmutableMap.copyOf(topics);
 	}
 
 	protected Topic get(String topicName) {
@@ -31,9 +29,9 @@ public class Topics {
 		return topics.put(topic.name(), topic);
 	}
 
-	protected ImmutableList<Topic> matches(String topicFilter) {
-		return ImmutableList.copyOf(topics.values().stream()
-				.filter(topic -> TopicSubscription.isMatch(topicFilter, topic.name())).toArray(Topic[]::new));
+	private Topic[] matches(String topicFilter) {
+		return topics.values().stream().filter(topic -> TopicSubscription.isMatch(topicFilter, topic.name()))
+				.toArray(Topic[]::new);
 	}
 
 	protected Topic remove(Topic topic) {
@@ -43,5 +41,16 @@ public class Topics {
 		}
 
 		return topics.remove(topic.name());
+	}
+
+	protected void removeSubscribers(String topicFilter, String clientId, boolean persist) {
+		List<Topic> changed = Lists.newArrayList();
+
+		Stream.of(matches(topicFilter)).forEach(t -> {
+			t.removeSubscriber(clientId, true);
+			changed.add(t);
+		});
+
+		changed.stream().forEach(t -> topics.put(t.name(), t)); // persist
 	}
 }

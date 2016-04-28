@@ -14,14 +14,14 @@ public class SessionDisposer {
 	private final Message will;
 	private final MessageSender messageSender;
 
-	public SessionDisposer(ChannelHandlerContext ctx, String clientId, Message will, MessageSender messageSender) {
+	protected SessionDisposer(ChannelHandlerContext ctx, String clientId, Message will, MessageSender messageSender) {
 		this.ctx = ctx;
 		this.clientId = clientId;
 		this.will = will;
 		this.messageSender = messageSender;
 	}
 
-	public void dispose(boolean sendWill) {
+	protected void dispose(boolean sendWill) {
 		// TODO after send will, what about ack message?(when Will QoS is 1,2)
 		// TODO if will should receive ack before disconnect, persistence should
 		// be performed.

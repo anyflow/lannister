@@ -16,7 +16,6 @@ public class Application {
 		server = new Server();
 		server.Start();
 
-		// TODO handling immutable collection mutatations
 		// TODO Session independent Messages
 		// TODO dispose session
 		// TODO Dispose topic

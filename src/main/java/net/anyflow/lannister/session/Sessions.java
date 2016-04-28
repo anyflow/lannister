@@ -24,7 +24,7 @@ public class Sessions {
 		persistedClientIdMap = Repository.SELF.generator().getMap("sessions");
 	}
 
-	public Session getByClientId(String clientId, boolean includePersisted) {
+	protected Session getByClientId(String clientId, boolean includePersisted) {
 		Session ret = clientIdMap.get(clientId);
 
 		if (ret == null) {
@@ -37,11 +37,11 @@ public class Sessions {
 		}
 	}
 
-	public Session getByChannelId(ChannelId channelId) {
+	protected Session getByChannelId(ChannelId channelId) {
 		return channelIdMap.get(channelId);
 	}
 
-	public void put(Session session) {
+	protected void put(Session session) {
 		synchronized (this) {
 			clientIdMap.put(session.clientId(), session);
 			channelIdMap.put(session.channelId(), session);
@@ -52,7 +52,7 @@ public class Sessions {
 		}
 	}
 
-	public void remove(Session session, boolean includePersisted) {
+	protected void remove(Session session, boolean includePersisted) {
 		synchronized (this) {
 			clientIdMap.remove(session.clientId());
 			channelIdMap.remove(session.channelId());
@@ -75,15 +75,15 @@ public class Sessions {
 		return ret;
 	}
 
-	public ImmutableMap<String, Session> clientIdMap(boolean includePersisted) {
+	protected ImmutableMap<String, Session> clientIdMap(boolean includePersisted) {
 		return ImmutableMap.copyOf(mutableClientIdMap(includePersisted));
 	}
 
-	public ImmutableMap<String, Session> persistedClientIdMap() {
+	protected ImmutableMap<String, Session> persistedClientIdMap() {
 		return ImmutableMap.copyOf(persistedClientIdMap);
 	}
 
-	public Session persist(Session session) {
+	protected Session persist(Session session) {
 		if (session == null) {
 			logger.error("Null session tried to be persisted.");
 			return null;

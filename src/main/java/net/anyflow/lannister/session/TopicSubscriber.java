@@ -39,7 +39,7 @@ public class TopicSubscriber {
 		TopicSubscription ret = topicSubscriptions.remove(topicFilter);
 		if (ret == null) { return null; }
 
-		Topic.matches(topicFilter).forEach(t -> t.removeSubscriber(clientId, true));
+		Topic.removeSubscribers(topicFilter, clientId, true);
 
 		messages.entrySet().removeIf(entry -> {
 			if (ret.isMatch(entry.getValue().topicName()) == false) { return false; }

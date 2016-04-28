@@ -4,11 +4,11 @@ public class Synchronizer {
 
 	final Session session;
 
-	public Synchronizer(Session session) {
+	protected Synchronizer(Session session) {
 		this.session = session;
 	}
 
-	public void execute() {
+	protected void execute() {
 		if (session.isCleanSession()) { return; }
 
 		session.persist();

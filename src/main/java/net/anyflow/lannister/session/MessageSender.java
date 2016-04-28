@@ -21,7 +21,7 @@ public class MessageSender {
 	private final Map<Integer, Message> messages;
 	private final Synchronizer synchronizer;
 
-	public MessageSender(ChannelHandlerContext ctx, TopicSubscriber topicSubscriber, Map<Integer, Message> messages,
+	protected MessageSender(ChannelHandlerContext ctx, TopicSubscriber topicSubscriber, Map<Integer, Message> messages,
 			Synchronizer synchronizer) {
 		this.ctx = ctx;
 		this.topicSubscriber = topicSubscriber;
@@ -33,7 +33,7 @@ public class MessageSender {
 		return topicQos.value() <= messageQos.value() ? topicQos : messageQos;
 	}
 
-	public ChannelFuture send(MqttMessage message) {
+	protected ChannelFuture send(MqttMessage message) {
 		if (ctx == null || ctx.channel().isActive() == false) {
 			logger.error("Message is not sent - Channel is inactive : {}", message);
 			return null;
@@ -48,7 +48,7 @@ public class MessageSender {
 		});
 	}
 
-	public void publishUnackedMessages() {
+	protected void publishUnackedMessages() {
 		messages.values().stream().forEach(message -> {
 			TopicSubscription[] tss = topicSubscriber.matches(message.topicName());
 			if (tss.length <= 0) { return; }

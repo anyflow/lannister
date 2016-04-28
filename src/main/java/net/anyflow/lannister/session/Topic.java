@@ -5,7 +5,6 @@ import java.util.Set;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.common.base.Strings;
-import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
 
@@ -99,7 +98,7 @@ public class Topic extends Jsonizable implements java.io.Serializable {
 		return TOPICS.put(topic);
 	}
 
-	public static ImmutableList<Topic> matches(String topicFilter) {
-		return TOPICS.matches(topicFilter);
+	public static void removeSubscribers(String topicFilter, String clientId, boolean persist) {
+		TOPICS.removeSubscribers(topicFilter, clientId, persist);
 	}
 }
