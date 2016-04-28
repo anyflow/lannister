@@ -1,4 +1,4 @@
-package net.anyflow.lannister.messagehandler;
+package net.anyflow.lannister.packetreceiver;
 
 import com.google.common.base.Strings;
 
@@ -13,17 +13,18 @@ import io.netty.handler.codec.mqtt.MqttIdentifierRejectedException;
 import io.netty.handler.codec.mqtt.MqttQoS;
 import io.netty.handler.codec.mqtt.MqttUnacceptableProtocolVersionException;
 import net.anyflow.lannister.Settings;
+import net.anyflow.lannister.message.Message;
+import net.anyflow.lannister.message.MessageFactory;
 import net.anyflow.lannister.plugin.Authorization;
 import net.anyflow.lannister.plugin.EventListener;
 import net.anyflow.lannister.plugin.PluginFactory;
 import net.anyflow.lannister.plugin.ServiceStatus;
-import net.anyflow.lannister.session.Message;
 import net.anyflow.lannister.session.Session;
-import net.anyflow.lannister.session.Topic;
+import net.anyflow.lannister.topic.Topic;
 
-public class MqttConnectMessageHandler extends SimpleChannelInboundHandler<MqttConnectMessage> {
+public class ConnectReceiver extends SimpleChannelInboundHandler<MqttConnectMessage> {
 
-	private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(MqttConnectMessageHandler.class);
+	private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(ConnectReceiver.class);
 
 	EventListener eventListener = (EventListener) (new PluginFactory()).create(EventListener.class);
 	ServiceStatus serviceStatus = (ServiceStatus) (new PluginFactory()).create(ServiceStatus.class);
@@ -88,7 +89,8 @@ public class MqttConnectMessageHandler extends SimpleChannelInboundHandler<MqttC
 
 		boolean sessionPresent = !cleanSession;
 		if (cleanSession) {
-			session = new Session(ctx, clientId, msg.variableHeader().keepAliveTimeSeconds(), true, will(msg)); // [MQTT-3.1.2-6]
+			session = new Session(ctx, clientId, msg.variableHeader().keepAliveTimeSeconds(), true,
+					will(clientId, msg)); // [MQTT-3.1.2-6]
 
 			Session.put(session);
 
@@ -98,7 +100,8 @@ public class MqttConnectMessageHandler extends SimpleChannelInboundHandler<MqttC
 			session = Session.getByClientId(clientId, true);
 
 			if (session == null) {
-				session = new Session(ctx, clientId, msg.variableHeader().keepAliveTimeSeconds(), false, will(msg));
+				session = new Session(ctx, clientId, msg.variableHeader().keepAliveTimeSeconds(), false,
+						will(clientId, msg));
 				sessionPresent = false; // [MQTT-3.2.2-3]
 			}
 			else {
@@ -117,8 +120,8 @@ public class MqttConnectMessageHandler extends SimpleChannelInboundHandler<MqttC
 			}
 
 			if (session.will().isRetain()) { // [MQTT-3.1.2-16],[MQTT-3.1.2-17]
-				topic.setRetainedMessage(session.will().message().length > 0
-						? new Message(null, session.will().topicName(), session.will().message(), null, true) : null);
+				topic.setRetainedMessage(session.will().message().length > 0 ? new Message(null,
+						session.will().topicName(), session.clientId(), session.will().message(), null, true) : null);
 			}
 		}
 
@@ -139,10 +142,10 @@ public class MqttConnectMessageHandler extends SimpleChannelInboundHandler<MqttC
 		});
 	}
 
-	private Message will(MqttConnectMessage conn) {
+	private Message will(String clientId, MqttConnectMessage conn) {
 		if (conn.variableHeader().isWillFlag() == false) { return null; } // [MQTT-3.1.2-12]
 
-		return new Message(null, conn.payload().willTopic(), conn.payload().willMessage().getBytes(),
+		return new Message(null, conn.payload().willTopic(), clientId, conn.payload().willMessage().getBytes(),
 				MqttQoS.valueOf(conn.variableHeader().willQos()), conn.variableHeader().isWillRetain());
 	}
 

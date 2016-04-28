@@ -1,4 +1,4 @@
-package net.anyflow.lannister.messagehandler;
+package net.anyflow.lannister.packetreceiver;
 
 import java.util.Collection;
 import java.util.List;
@@ -11,9 +11,9 @@ import io.netty.channel.ChannelInboundHandlerAdapter;
 import net.anyflow.lannister.Settings;
 import net.anyflow.lannister.session.Session;
 
-public class SessionExpirationHandler extends ChannelInboundHandlerAdapter {
+public class SessionExpirator extends ChannelInboundHandlerAdapter {
 
-	private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(SessionExpirationHandler.class);
+	private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(SessionExpirator.class);
 
 	@Override
 	public void handlerAdded(ChannelHandlerContext ctx) throws Exception {

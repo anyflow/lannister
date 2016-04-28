@@ -1,4 +1,4 @@
-package net.anyflow.lannister.session;
+package net.anyflow.lannister.topic;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.common.base.Strings;

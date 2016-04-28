@@ -1,4 +1,4 @@
-package net.anyflow.lannister.session;
+package net.anyflow.lannister.message;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
@@ -15,29 +15,37 @@ public class Message extends Jsonizable implements java.io.Serializable {
 	@JsonProperty
 	private String topicName;
 	@JsonProperty
+	private String publisherId;
+	@JsonProperty
 	private byte[] message;
 	@JsonProperty
 	private MqttQoS qos;
 	@JsonProperty
 	private boolean isRetain;
-	@JsonProperty
-	private boolean sent;
 
-	public Message(Integer id, String topicName, byte[] message, MqttQoS qos, boolean isRetain) {
+	public Message(Integer id, String topicName, String publisherId, byte[] message, MqttQoS qos, boolean isRetain) {
 		this.id = id;
 		this.topicName = topicName;
+		this.publisherId = publisherId;
 		this.message = message != null ? message : new byte[] {};
 		this.qos = qos;
 		this.isRetain = isRetain;
-		this.sent = false;
 	}
 
 	public int id() {
 		return id;
 	}
 
+	public void setId(int id) {
+		this.id = id;
+	}
+
 	public String topicName() {
 		return topicName;
+	}
+
+	public String publisherId() {
+		return publisherId;
 	}
 
 	public byte[] message() {
@@ -60,12 +68,8 @@ public class Message extends Jsonizable implements java.io.Serializable {
 		return isRetain;
 	}
 
-	public boolean isSent() {
-		return sent;
-	}
-
-	public void setSent(boolean sent) {
-		this.sent = sent;
+	public void setRetain(boolean isRetain) {
+		this.isRetain = isRetain;
 	}
 
 	@Override
@@ -73,5 +77,9 @@ public class Message extends Jsonizable implements java.io.Serializable {
 		return new StringBuilder(StringUtil.simpleClassName(this)).append('[').append("id=").append(id)
 				.append(", topeName=").append(topicName).append(", message=").append(new String(message))
 				.append(", QoS=").append(qos).append(", retain=").append(isRetain).append(']').toString();
+	}
+
+	public String key() {
+		return publisherId + "_" + Integer.toString(id);
 	}
 }

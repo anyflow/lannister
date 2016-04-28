@@ -8,7 +8,7 @@ public class Synchronizer {
 		this.session = session;
 	}
 
-	protected void execute() {
+	public void execute() {
 		if (session.isCleanSession()) { return; }
 
 		session.persist();

@@ -1,4 +1,4 @@
-package net.anyflow.lannister.messagehandler;
+package net.anyflow.lannister.message;
 
 import java.util.List;
 
@@ -17,7 +17,6 @@ import io.netty.handler.codec.mqtt.MqttQoS;
 import io.netty.handler.codec.mqtt.MqttSubAckMessage;
 import io.netty.handler.codec.mqtt.MqttSubAckPayload;
 import io.netty.handler.codec.mqtt.MqttUnsubAckMessage;
-import net.anyflow.lannister.session.Message;
 
 public class MessageFactory {
 	public static MqttConnAckMessage connack(MqttConnectReturnCode returnCode, boolean sessionPresent) {
@@ -28,8 +27,8 @@ public class MessageFactory {
 		return new MqttConnAckMessage(fixedHeader, variableHeader);
 	}
 
-	public static MqttPublishMessage publish(Message message) {
-		MqttFixedHeader fixedHeader = new MqttFixedHeader(MqttMessageType.PUBLISH, message.isSent(), message.qos(),
+	public static MqttPublishMessage publish(Message message, boolean isDup) {
+		MqttFixedHeader fixedHeader = new MqttFixedHeader(MqttMessageType.PUBLISH, isDup, message.qos(),
 				message.isRetain(), 7 + message.message().length);
 
 		MqttPublishVariableHeader variableHeader = new MqttPublishVariableHeader(message.topicName(), message.id());

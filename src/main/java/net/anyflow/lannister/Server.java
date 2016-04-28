@@ -11,13 +11,13 @@ import io.netty.handler.codec.mqtt.MqttEncoder;
 import io.netty.handler.logging.LogLevel;
 import io.netty.handler.logging.LoggingHandler;
 import io.netty.util.concurrent.DefaultThreadFactory;
-import net.anyflow.lannister.messagehandler.GenericMqttMessageHandler;
-import net.anyflow.lannister.messagehandler.MqttConnectMessageHandler;
-import net.anyflow.lannister.messagehandler.MqttPubAckMessageHandler;
-import net.anyflow.lannister.messagehandler.MqttPublishMessageHandler;
-import net.anyflow.lannister.messagehandler.MqttSubscribeMessageHandler;
-import net.anyflow.lannister.messagehandler.MqttUnsubscribeMessageHandler;
-import net.anyflow.lannister.messagehandler.SessionExpirationHandler;
+import net.anyflow.lannister.packetreceiver.ConnectReceiver;
+import net.anyflow.lannister.packetreceiver.GenericReceiver;
+import net.anyflow.lannister.packetreceiver.PubAckReceiver;
+import net.anyflow.lannister.packetreceiver.PublishReceiver;
+import net.anyflow.lannister.packetreceiver.SessionExpirator;
+import net.anyflow.lannister.packetreceiver.SubscribeReceiver;
+import net.anyflow.lannister.packetreceiver.UnsubscribeReceiver;
 
 public class Server {
 
@@ -41,7 +41,7 @@ public class Server {
 
 			bootstrap = bootstrap.group(bossGroup, workerGroup).channel(NioServerSocketChannel.class);
 
-			bootstrap.handler(new SessionExpirationHandler()).childHandler(new ChannelInitializer<SocketChannel>() {
+			bootstrap.handler(new SessionExpirator()).childHandler(new ChannelInitializer<SocketChannel>() {
 
 				@Override
 				protected void initChannel(SocketChannel ch) throws Exception {
@@ -54,14 +54,14 @@ public class Server {
 					ch.pipeline().addLast(MqttDecoder.class.getName(), new MqttDecoder());
 					ch.pipeline().addLast(MqttEncoder.class.getName(), MqttEncoder.INSTANCE);
 
-					ch.pipeline().addLast(MqttConnectMessageHandler.class.getName(), new MqttConnectMessageHandler());
-					ch.pipeline().addLast(MqttPubAckMessageHandler.class.getName(), new MqttPubAckMessageHandler());
-					ch.pipeline().addLast(MqttPublishMessageHandler.class.getName(), new MqttPublishMessageHandler());
-					ch.pipeline().addLast(MqttSubscribeMessageHandler.class.getName(),
-							new MqttSubscribeMessageHandler());
-					ch.pipeline().addLast(MqttUnsubscribeMessageHandler.class.getName(),
-							new MqttUnsubscribeMessageHandler());
-					ch.pipeline().addLast(GenericMqttMessageHandler.class.getName(), new GenericMqttMessageHandler());
+					ch.pipeline().addLast(ConnectReceiver.class.getName(), new ConnectReceiver());
+					ch.pipeline().addLast(PubAckReceiver.class.getName(), new PubAckReceiver());
+					ch.pipeline().addLast(PublishReceiver.class.getName(), new PublishReceiver());
+					ch.pipeline().addLast(SubscribeReceiver.class.getName(),
+							new SubscribeReceiver());
+					ch.pipeline().addLast(UnsubscribeReceiver.class.getName(),
+							new UnsubscribeReceiver());
+					ch.pipeline().addLast(GenericReceiver.class.getName(), new GenericReceiver());
 				}
 			});
 

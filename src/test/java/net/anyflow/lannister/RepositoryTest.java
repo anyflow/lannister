@@ -1,4 +1,4 @@
-package net.anyflow.lannister.session;
+package net.anyflow.lannister;
 
 import org.junit.AfterClass;
 import org.junit.BeforeClass;

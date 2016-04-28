@@ -1,4 +1,4 @@
-package net.anyflow.lannister.messagehandler;
+package net.anyflow.lannister.packetreceiver;
 
 import java.util.Date;
 import java.util.List;
@@ -7,12 +7,13 @@ import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
 import io.netty.handler.codec.mqtt.MqttUnsubscribeMessage;
+import net.anyflow.lannister.message.MessageFactory;
 import net.anyflow.lannister.session.Session;
 
-public class MqttUnsubscribeMessageHandler extends SimpleChannelInboundHandler<MqttUnsubscribeMessage> {
+public class UnsubscribeReceiver extends SimpleChannelInboundHandler<MqttUnsubscribeMessage> {
 
 	private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory
-			.getLogger(MqttUnsubscribeMessageHandler.class);
+			.getLogger(UnsubscribeReceiver.class);
 
 	@Override
 	protected void channelRead0(ChannelHandlerContext ctx, MqttUnsubscribeMessage msg) throws Exception {

@@ -1,4 +1,4 @@
-package net.anyflow.lannister.session;
+package net.anyflow.lannister;
 
 import com.hazelcast.config.Config;
 import com.hazelcast.core.Hazelcast;
@@ -22,7 +22,7 @@ public class Repository {
 		generator = Hazelcast.newHazelcastInstance(config);
 	}
 
-	protected HazelcastInstance generator() {
+	public HazelcastInstance generator() {
 		return generator;
 	}
 }

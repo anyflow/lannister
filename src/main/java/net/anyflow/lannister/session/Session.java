@@ -14,6 +14,12 @@ import io.netty.channel.ChannelId;
 import io.netty.handler.codec.mqtt.MqttMessage;
 import net.anyflow.lannister.Jsonizable;
 import net.anyflow.lannister.Literals;
+import net.anyflow.lannister.message.Message;
+import net.anyflow.lannister.message.MessageListener;
+import net.anyflow.lannister.message.MessageSender;
+import net.anyflow.lannister.topic.Topic;
+import net.anyflow.lannister.topic.TopicSubscription;
+import net.anyflow.lannister.topic.TopicSubscriptionHandler;
 
 public class Session extends Jsonizable implements java.io.Serializable {
 
@@ -26,7 +32,7 @@ public class Session extends Jsonizable implements java.io.Serializable {
 
 	private transient ChannelHandlerContext ctx;
 	private transient Synchronizer synchronizer;
-	private transient TopicSubscriber topicSubscriber;
+	private transient TopicSubscriptionHandler topicSubscriptionHandler;
 	private transient MessageSender messageSender;
 	private transient MessageListener messageListener;
 	private transient SessionDisposer sessionDisposer;
@@ -35,8 +41,6 @@ public class Session extends Jsonizable implements java.io.Serializable {
 	private final String clientId;
 	@JsonProperty
 	private final Map<String, TopicSubscription> topicSubscriptions;
-	@JsonProperty
-	private final Map<Integer, Message> messages;
 	@JsonProperty
 	private int currentMessageId;
 	@JsonProperty
@@ -57,7 +61,6 @@ public class Session extends Jsonizable implements java.io.Serializable {
 		this.clientId = clientId;
 		this.createTime = new Date();
 		this.topicSubscriptions = Maps.newConcurrentMap();
-		this.messages = Maps.newConcurrentMap();
 		this.currentMessageId = 0;
 		this.keepAliveSeconds = keepAliveSeconds;
 		this.lastIncomingTime = new Date();
@@ -70,10 +73,9 @@ public class Session extends Jsonizable implements java.io.Serializable {
 	public void revive(ChannelHandlerContext ctx) {
 		this.ctx = ctx;
 		this.synchronizer = new Synchronizer(this);
-		this.topicSubscriber = new TopicSubscriber(clientId, topicSubscriptions, messages, synchronizer);
-		this.messageSender = new MessageSender(ctx, topicSubscriber, messages, synchronizer);
-		this.messageListener = new MessageListener(this, messages, synchronizer, messageSender, currentMessageId,
-				ctx.executor());
+		this.topicSubscriptionHandler = new TopicSubscriptionHandler(clientId, topicSubscriptions);
+		this.messageSender = new MessageSender(ctx);
+		this.messageListener = new MessageListener(this, synchronizer, messageSender, currentMessageId, ctx.executor());
 		this.sessionDisposer = new SessionDisposer(ctx, clientId, will, messageSender);
 
 		// TODO Do I must add listener to Repository.broadcaster?
@@ -106,13 +108,6 @@ public class Session extends Jsonizable implements java.io.Serializable {
 		synchronizer.execute();
 	}
 
-	public Message removeMessage(int messageId) {
-		Message ret = messages.remove(messageId);
-		synchronizer.execute();
-
-		return ret;
-	}
-
 	public boolean isConnected() {
 		return ctx != null && ctx.channel().isActive();
 	}
@@ -122,19 +117,23 @@ public class Session extends Jsonizable implements java.io.Serializable {
 	}
 
 	public TopicSubscription[] matches(String topicName) {
-		return topicSubscriber.matches(topicName);
+		return topicSubscriptionHandler.matches(topicName);
 	}
 
 	public TopicSubscription putTopicSubscription(TopicSubscription topicSubscription) {
-		return topicSubscriber.putTopicSubscription(topicSubscription);
+		return topicSubscriptionHandler.putTopicSubscription(topicSubscription);
 	}
 
 	public TopicSubscription removeTopicSubscription(final String topicFilter) {
-		return topicSubscriber.removeTopicSubscription(topicFilter);
+		return topicSubscriptionHandler.removeTopicSubscription(topicFilter);
 	}
 
 	public ChannelFuture send(MqttMessage message) {
 		return messageSender.send(message);
+	}
+
+	public void publishUnackedMessages() {
+		// TODO publish Unacked Messages
 	}
 
 	public Session persist() {
@@ -144,10 +143,6 @@ public class Session extends Jsonizable implements java.io.Serializable {
 	public void dispose(boolean sendWill) {
 		SESSIONS.remove(this, !sendWill);
 		sessionDisposer.dispose(sendWill);
-	}
-
-	public void publishUnackedMessages() {
-		messageSender.publishUnackedMessages();
 	}
 
 	public static Session getByClientId(String clientId, boolean includePersisted) {
@@ -170,11 +165,11 @@ public class Session extends Jsonizable implements java.io.Serializable {
 		return SESSIONS.persistedClientIdMap();
 	}
 
-	protected void published(Message message) {
-		messageListener.published(message);
+	public void published(Topic topic, Message message) {
+		messageListener.published(topic, message);
 	}
 
-	protected static void topicAdded(Topic topic) {
+	public static void topicAdded(Topic topic) {
 		SESSIONS.topicAdded(topic);
 	}
 }

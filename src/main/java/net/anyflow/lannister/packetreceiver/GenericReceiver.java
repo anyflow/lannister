@@ -1,4 +1,4 @@
-package net.anyflow.lannister.messagehandler;
+package net.anyflow.lannister.packetreceiver;
 
 import java.util.Date;
 
@@ -6,11 +6,12 @@ import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
 import io.netty.handler.codec.mqtt.MqttMessage;
+import net.anyflow.lannister.message.MessageFactory;
 import net.anyflow.lannister.session.Session;
 
-public class GenericMqttMessageHandler extends SimpleChannelInboundHandler<MqttMessage> {
+public class GenericReceiver extends SimpleChannelInboundHandler<MqttMessage> {
 
-	private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(GenericMqttMessageHandler.class);
+	private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(GenericReceiver.class);
 
 	@Override
 	protected void channelRead0(ChannelHandlerContext ctx, MqttMessage msg) throws Exception {

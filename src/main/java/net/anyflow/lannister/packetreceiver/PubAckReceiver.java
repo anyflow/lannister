@@ -1,4 +1,4 @@
-package net.anyflow.lannister.messagehandler;
+package net.anyflow.lannister.packetreceiver;
 
 import java.util.Date;
 
@@ -6,12 +6,13 @@ import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
 import io.netty.handler.codec.mqtt.MqttPubAckMessage;
-import net.anyflow.lannister.session.Message;
+import net.anyflow.lannister.message.SentMessageStatus;
 import net.anyflow.lannister.session.Session;
+import net.anyflow.lannister.topic.Topic;
 
-public class MqttPubAckMessageHandler extends SimpleChannelInboundHandler<MqttPubAckMessage> {
+public class PubAckReceiver extends SimpleChannelInboundHandler<MqttPubAckMessage> {
 
-	private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(MqttPubAckMessageHandler.class);
+	private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(PubAckReceiver.class);
 
 	@Override
 	protected void channelRead0(ChannelHandlerContext ctx, MqttPubAckMessage msg) throws Exception {
@@ -26,8 +27,9 @@ public class MqttPubAckMessageHandler extends SimpleChannelInboundHandler<MqttPu
 
 		session.setLastIncomingTime(new Date());
 
-		Message message = session.removeMessage(msg.variableHeader().messageId());
-		if (message == null) {
+		SentMessageStatus status = Topic.messageAcked(session.clientId(), msg.variableHeader().messageId());
+
+		if (status == null) {
 			logger.error("No message exist to ack : [clientId:{}, messageId:{}]", session.clientId(),
 					msg.variableHeader().messageId());
 		}

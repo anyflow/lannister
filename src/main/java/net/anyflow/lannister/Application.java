@@ -16,10 +16,12 @@ public class Application {
 		server = new Server();
 		server.Start();
 
-		// TODO Session independent Messages
+		// TODO do ReceivedMessageStatus handling
+		// TODO Move live session maps to hazelcast's (for publish notify)
 		// TODO dispose session
 		// TODO Dispose topic
-		// TODO Move live session maps to hazelcast's (for publish notify)
+		// TODO dispose message
+
 		// TODO stream parellel
 		// TODO TEST revive persisted session
 		// TODO exception handling thrown by codec

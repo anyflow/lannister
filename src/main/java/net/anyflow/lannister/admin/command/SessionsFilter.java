@@ -4,7 +4,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import io.netty.handler.codec.mqtt.MqttQoS;
-import net.anyflow.lannister.session.Message;
+import net.anyflow.lannister.message.Message;
 import net.anyflow.lannister.session.Session;
 
 public class SessionsFilter implements MessageFilter {
