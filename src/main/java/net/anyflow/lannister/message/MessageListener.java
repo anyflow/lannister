@@ -40,7 +40,7 @@ public class MessageListener {
 		this.eventExecutor = eventExecutor;
 	}
 
-	public void published(Topic topic, Message message) {
+	public void onPublish(Topic topic, Message message) {
 		eventExecutor.submit(new Runnable() {
 			@Override
 			public void run() {

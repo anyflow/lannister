@@ -19,7 +19,6 @@ import net.anyflow.lannister.message.MessageListener;
 import net.anyflow.lannister.message.MessageSender;
 import net.anyflow.lannister.topic.Topic;
 import net.anyflow.lannister.topic.TopicSubscription;
-import net.anyflow.lannister.topic.TopicSubscriptionHandler;
 
 public class Session extends Jsonizable implements java.io.Serializable {
 
@@ -28,11 +27,10 @@ public class Session extends Jsonizable implements java.io.Serializable {
 
 	private static final long serialVersionUID = -1800874748722060393L;
 
-	private static Sessions SESSIONS = new Sessions();
+	public static Sessions NEXUS = new Sessions();
 
 	private transient ChannelHandlerContext ctx;
 	private transient Synchronizer synchronizer;
-	private transient TopicSubscriptionHandler topicSubscriptionHandler;
 	private transient MessageSender messageSender;
 	private transient MessageListener messageListener;
 	private transient SessionDisposer sessionDisposer;
@@ -60,7 +58,7 @@ public class Session extends Jsonizable implements java.io.Serializable {
 			Message will) {
 		this.clientId = clientId;
 		this.createTime = new Date();
-		this.topicSubscriptions = Maps.newConcurrentMap();
+		this.topicSubscriptions = Maps.newHashMap();
 		this.currentMessageId = 0;
 		this.keepAliveSeconds = keepAliveSeconds;
 		this.lastIncomingTime = new Date();
@@ -73,7 +71,6 @@ public class Session extends Jsonizable implements java.io.Serializable {
 	public void revive(ChannelHandlerContext ctx) {
 		this.ctx = ctx;
 		this.synchronizer = new Synchronizer(this);
-		this.topicSubscriptionHandler = new TopicSubscriptionHandler(clientId, topicSubscriptions);
 		this.messageSender = new MessageSender(ctx);
 		this.messageListener = new MessageListener(this, synchronizer, messageSender, currentMessageId, ctx.executor());
 		this.sessionDisposer = new SessionDisposer(ctx, clientId, will, messageSender);
@@ -117,15 +114,28 @@ public class Session extends Jsonizable implements java.io.Serializable {
 	}
 
 	public TopicSubscription[] matches(String topicName) {
-		return topicSubscriptionHandler.matches(topicName);
+		return topicSubscriptions.values().stream().filter(t -> t.isMatch(topicName)).toArray(TopicSubscription[]::new);
 	}
 
 	public TopicSubscription putTopicSubscription(TopicSubscription topicSubscription) {
-		return topicSubscriptionHandler.putTopicSubscription(topicSubscription);
+		TopicSubscription ret = topicSubscriptions.put(topicSubscription.topicFilter(), topicSubscription); // [MQTT-3.8.4-3]
+		synchronizer.execute();
+		return ret;
 	}
 
 	public TopicSubscription removeTopicSubscription(final String topicFilter) {
-		return topicSubscriptionHandler.removeTopicSubscription(topicFilter);
+		TopicSubscription ret = topicSubscriptions.remove(topicFilter);
+		if (ret == null) { return null; }
+
+		synchronizer.execute();
+
+		Topic.NEXUS.removeSubscribers(topicFilter, clientId, true);
+
+		// TODO [MQTT-3.10.4-3] If a Server deletes a Subscription It MUST
+		// complete the delivery of any QoS 1 or QoS 2 messages which it has
+		// started to send to the Client.
+
+		return ret;
 	}
 
 	public ChannelFuture send(MqttMessage message) {
@@ -137,35 +147,11 @@ public class Session extends Jsonizable implements java.io.Serializable {
 	}
 
 	public void dispose(boolean sendWill) {
-		SESSIONS.remove(this);
+		NEXUS.remove(this);
 		sessionDisposer.dispose(sendWill);
 	}
 
-	public static Session getByClientId(String clientId) {
-		return SESSIONS.clientIdMap().get(clientId);
-	}
-
-	public static Session getByChannelId(ChannelId channelId) {
-        return SESSIONS.channelIdMap().get(channelId);
-	}
-
-	public static void put(Session session) {
-		SESSIONS.put(session);
-	}
-
-    public static ImmutableMap<ChannelId, Session> channelIdMap() {
-        return SESSIONS.channelIdMap();
-    }
-    
-	public static ImmutableMap<String, Session> clientIdMap() {
-		return SESSIONS.clientIdMap();
-	}
-
-	public void published(Topic topic, Message message) {
-		messageListener.published(topic, message);
-	}
-
-	public static void topicAdded(Topic topic) {
-		SESSIONS.topicAdded(topic);
+	public void onPublish(Topic topic, Message message) {
+		messageListener.onPublish(topic, message);
 	}
 }

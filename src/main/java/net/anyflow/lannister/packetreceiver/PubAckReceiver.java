@@ -18,7 +18,7 @@ public class PubAckReceiver extends SimpleChannelInboundHandler<MqttPubAckMessag
 	protected void channelRead0(ChannelHandlerContext ctx, MqttPubAckMessage msg) throws Exception {
 		logger.debug("packet incoming : {}", msg.toString());
 
-		Session session = Session.getByChannelId(ctx.channel().id());
+		Session session = Session.NEXUS.lives().get(ctx.channel().id());
 		if (session == null) {
 			logger.error("None exist session message : {}", msg.toString());
 			ctx.disconnect().addListener(ChannelFutureListener.CLOSE); // [MQTT-4.8.0-1]
@@ -27,7 +27,7 @@ public class PubAckReceiver extends SimpleChannelInboundHandler<MqttPubAckMessag
 
 		session.setLastIncomingTime(new Date());
 
-		SentMessageStatus status = Topic.messageAcked(session.clientId(), msg.variableHeader().messageId());
+		SentMessageStatus status = Topic.NEXUS.messageAcked(session.clientId(), msg.variableHeader().messageId());
 
 		if (status == null) {
 			logger.error("No message exist to ack : [clientId:{}, messageId:{}]", session.clientId(),

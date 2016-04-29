@@ -9,6 +9,6 @@ public class Synchronizer {
 	}
 
 	public void execute() {
-	    Session.put(session);
+		Session.NEXUS.put(session);
 	}
 }

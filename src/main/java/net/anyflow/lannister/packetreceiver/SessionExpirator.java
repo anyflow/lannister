@@ -24,7 +24,7 @@ public class SessionExpirator extends ChannelInboundHandlerAdapter {
 
 			@Override
 			public void run() {
-				Collection<Session> sessions = Session.channelIdMap().values();
+				Collection<Session> sessions = Session.NEXUS.lives().values();
 				List<Session> disposes = Lists.newArrayList();
 
 				sessions.stream().filter(s -> s.isExpired()).forEach(s -> disposes.add(s));

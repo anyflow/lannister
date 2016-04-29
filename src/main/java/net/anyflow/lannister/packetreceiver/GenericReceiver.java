@@ -21,7 +21,7 @@ public class GenericReceiver extends SimpleChannelInboundHandler<MqttMessage> {
 		else {
 			logger.debug("packet incoming : {}", msg.toString());
 
-			Session session = Session.getByChannelId(ctx.channel().id());
+			Session session = Session.NEXUS.lives().get(ctx.channel().id());
 			if (session == null) {
 				logger.error("None exist session message : {}", msg.toString());
 				ctx.disconnect().addListener(ChannelFutureListener.CLOSE); // [MQTT-4.8.0-1]
@@ -54,7 +54,7 @@ public class GenericReceiver extends SimpleChannelInboundHandler<MqttMessage> {
 
 	@Override
 	public void channelInactive(ChannelHandlerContext ctx) throws Exception {
-		Session session = Session.getByChannelId(ctx.channel().id());
+		Session session = Session.NEXUS.lives().get(ctx.channel().id());
 		if (session == null) {
 			logger.debug("session does not exist : [channelId={}]", ctx.channel().id());
 			return;

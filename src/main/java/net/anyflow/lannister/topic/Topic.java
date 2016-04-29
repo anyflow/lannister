@@ -11,15 +11,16 @@ import net.anyflow.lannister.message.Message;
 import net.anyflow.lannister.message.MessageStatus;
 import net.anyflow.lannister.message.ReceivedMessageStatus;
 import net.anyflow.lannister.message.ReceiverTargetStatus;
-import net.anyflow.lannister.message.SentMessageStatus;
 import net.anyflow.lannister.session.Session;
 
 public class Topic extends Jsonizable implements java.io.Serializable {
 
-    private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(Topic.class);
+	@SuppressWarnings("unused")
+	private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(Topic.class);
+
 	private static final long serialVersionUID = -3335949846595801533L;
 
-	private static Topics TOPICS = new Topics();
+	public static Topics NEXUS = new Topics();
 
 	@JsonProperty
 	private String name;
@@ -52,7 +53,7 @@ public class Topic extends Jsonizable implements java.io.Serializable {
 
 	public void setRetainedMessage(Message message) {
 		this.retainedMessage = message;
-		TOPICS.put(this);
+		NEXUS.put(this);
 	}
 
 	public ImmutableMap<String, TopicSubscriber> subscribers() {
@@ -73,12 +74,8 @@ public class Topic extends Jsonizable implements java.io.Serializable {
 		receivedMessageStatuses.put(status.key(), status);
 	}
 
-	public void addSubscriber(String clientId, boolean persist) {
+	public void addSubscriber(String clientId) {
 		subscribers.put(clientId, new TopicSubscriber(clientId, name));
-
-		if (persist) {
-			TOPICS.put(this);
-		}
 	}
 
 	public void removeSubscriber(String clientId, boolean persist) {
@@ -87,7 +84,7 @@ public class Topic extends Jsonizable implements java.io.Serializable {
 		// TODO should be this topic remained in spite of no subscriber?
 
 		if (persist) {
-			TOPICS.put(this);
+			NEXUS.put(this);
 		}
 	}
 
@@ -97,19 +94,16 @@ public class Topic extends Jsonizable implements java.io.Serializable {
 		}
 
 		subscribers.keySet().stream().parallel().forEach(clientId -> {
-			Session session = Session.getByClientId(clientId);
-			if(session.isConnected()) {
-			    session.published(this, message);
+			Session session = Session.NEXUS.lives().values().stream().filter(s -> clientId.equals(s.channelId()))
+					.findFirst().get();
+
+			if (session != null) {
+				session.onPublish(this, message);
+			}
+			else {
+				NEXUS.notifier().publish(new Notification(clientId, this, message));
 			}
 		});
-	}
-
-	public static Topic get(String topicName) {
-		return TOPICS.get(topicName);
-	}
-
-	public static Topic get(String clientId, int brokerMessageId) {
-		return TOPICS.get(clientId, brokerMessageId);
 	}
 
 	public static boolean isValid(String topicName) {
@@ -118,17 +112,9 @@ public class Topic extends Jsonizable implements java.io.Serializable {
 	}
 
 	public static Topic put(Topic topic) {
-		Session.topicAdded(topic);
+		Session.NEXUS.topicAdded(topic);
 
 		// TODO should be added in case of no subscriber & no retained Message?
-		return TOPICS.put(topic);
-	}
-
-	public static void removeSubscribers(String topicFilter, String clientId, boolean persist) {
-		TOPICS.removeSubscribers(topicFilter, clientId, persist);
-	}
-
-	public static SentMessageStatus messageAcked(String clientId, int messageId) {
-		return TOPICS.messageAcked(clientId, messageId);
+		return NEXUS.put(topic);
 	}
 }

@@ -36,7 +36,7 @@ public class ConnectReceiver extends SimpleChannelInboundHandler<MqttConnectMess
 
 		eventListener.connectMessageReceived(msg);
 
-		Session session = Session.getByChannelId(ctx.channel().id());
+		Session session = Session.NEXUS.lives().get(ctx.channel().id());
 		if (session != null) {
 			session.dispose(true); // [MQTT-3.1.0-2]
 			return;
@@ -82,7 +82,9 @@ public class ConnectReceiver extends SimpleChannelInboundHandler<MqttConnectMess
 		// TODO [MQTT-3.1.2-3] handling Reserved Flag, but netty variable header
 		// doesn't have it
 
-		session = Session.getByClientId(clientId);
+		final String clientIdFinal = clientId;
+		session = Session.NEXUS.lives().values().stream().filter(s -> clientIdFinal.equals(s.clientId()))
+				.findFirst().get();
 		if (session != null && session.isConnected()) {
 			session.dispose(false); // [MQTT-3.1.4-2]
 		}
@@ -92,12 +94,12 @@ public class ConnectReceiver extends SimpleChannelInboundHandler<MqttConnectMess
 			session = new Session(ctx, clientId, msg.variableHeader().keepAliveTimeSeconds(), true,
 					will(clientId, msg)); // [MQTT-3.1.2-6]
 
-			Session.put(session);
+			Session.NEXUS.put(session);
 
 			sessionPresent = false; // [MQTT-3.2.2-1]
 		}
 		else {
-			session = Session.getByClientId(clientId);
+			session = Session.NEXUS.all().get(clientId);
 
 			if (session == null) {
 				session = new Session(ctx, clientId, msg.variableHeader().keepAliveTimeSeconds(), false,
@@ -109,11 +111,11 @@ public class ConnectReceiver extends SimpleChannelInboundHandler<MqttConnectMess
 				sessionPresent = true; // [MQTT-3.2.2-2]
 			}
 
-			Session.put(session);
+			Session.NEXUS.put(session);
 		}
 
 		if (session.will() != null) {
-			Topic topic = Topic.get(session.will().topicName());
+			Topic topic = Topic.NEXUS.get(session.will().topicName());
 			if (topic == null) {
 				topic = new Topic(session.will().topicName());
 				Topic.put(topic);
@@ -161,7 +163,7 @@ public class ConnectReceiver extends SimpleChannelInboundHandler<MqttConnectMess
 
 						eventListener.connAckMessageSent(msg);
 
-						Session session = Session.getByChannelId(ctx.channel().id());
+						Session session = Session.NEXUS.lives().get(ctx.channel().id());
 
 						if (session != null) {
 							session.dispose(true); // [MQTT-3.2.2-5]

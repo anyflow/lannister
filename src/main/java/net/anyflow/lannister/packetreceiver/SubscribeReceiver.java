@@ -23,7 +23,7 @@ public class SubscribeReceiver extends SimpleChannelInboundHandler<MqttSubscribe
 	protected void channelRead0(ChannelHandlerContext ctx, MqttSubscribeMessage msg) throws Exception {
 		logger.debug("packet incoming : {}", msg.toString());
 
-		Session session = Session.getByChannelId(ctx.channel().id());
+		Session session = Session.NEXUS.lives().get(ctx.channel().id());
 		if (session == null) {
 			logger.error("None exist session message : {}", msg.toString());
 			ctx.disconnect().addListener(ChannelFutureListener.CLOSE); // [MQTT-4.8.0-1]

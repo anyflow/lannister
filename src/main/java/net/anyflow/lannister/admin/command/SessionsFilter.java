@@ -13,7 +13,7 @@ public class SessionsFilter implements MessageFilter {
 
 	private byte[] live() {
 		try {
-			return (new ObjectMapper()).writeValueAsBytes(net.anyflow.lannister.session.Session.channelIdMap());
+			return (new ObjectMapper()).writeValueAsBytes(Session.NEXUS.lives());
 		}
 		catch (JsonProcessingException e) {
 			logger.error(e.getMessage(), e);
@@ -23,7 +23,7 @@ public class SessionsFilter implements MessageFilter {
 
 	private byte[] all() {
 		try {
-			return (new ObjectMapper()).writeValueAsBytes(Session.clientIdMap());
+			return (new ObjectMapper()).writeValueAsBytes(Session.NEXUS.all());
 		}
 		catch (JsonProcessingException e) {
 			logger.error(e.getMessage(), e);
