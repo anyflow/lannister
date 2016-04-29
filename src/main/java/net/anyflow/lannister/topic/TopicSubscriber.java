@@ -9,9 +9,11 @@ import net.anyflow.lannister.message.MessageStatus;
 import net.anyflow.lannister.message.SenderTargetStatus;
 import net.anyflow.lannister.message.SentMessageStatus;
 
-public class TopicSubscriber extends Jsonizable {
+public class TopicSubscriber extends Jsonizable implements java.io.Serializable {
 
-	@JsonProperty
+    private static final long serialVersionUID = 5957543847054029282L;
+
+    @JsonProperty
 	private final String clientId;
 	@JsonProperty
 	private IMap<Integer, SentMessageStatus> sentMessageStatuses; // KEY:messageId

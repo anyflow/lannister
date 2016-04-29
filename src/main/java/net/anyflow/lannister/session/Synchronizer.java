@@ -9,8 +9,6 @@ public class Synchronizer {
 	}
 
 	public void execute() {
-		if (session.isCleanSession()) { return; }
-
-		session.persist();
+	    Session.put(session);
 	}
 }

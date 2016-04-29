@@ -82,8 +82,8 @@ public class ConnectReceiver extends SimpleChannelInboundHandler<MqttConnectMess
 		// TODO [MQTT-3.1.2-3] handling Reserved Flag, but netty variable header
 		// doesn't have it
 
-		session = Session.getByClientId(clientId, false);
-		if (session != null) {
+		session = Session.getByClientId(clientId);
+		if (session != null && session.isConnected()) {
 			session.dispose(false); // [MQTT-3.1.4-2]
 		}
 
@@ -97,7 +97,7 @@ public class ConnectReceiver extends SimpleChannelInboundHandler<MqttConnectMess
 			sessionPresent = false; // [MQTT-3.2.2-1]
 		}
 		else {
-			session = Session.getByClientId(clientId, true);
+			session = Session.getByClientId(clientId);
 
 			if (session == null) {
 				session = new Session(ctx, clientId, msg.variableHeader().keepAliveTimeSeconds(), false,

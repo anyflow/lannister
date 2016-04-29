@@ -96,7 +96,7 @@ public class Topic extends Jsonizable implements java.io.Serializable {
 		}
 
 		subscribers.keySet().stream().parallel().forEach(item -> {
-			Session session = Session.getByClientId(item, true);
+			Session session = Session.getByClientId(item);
 			session.published(this, message);
 		});
 	}

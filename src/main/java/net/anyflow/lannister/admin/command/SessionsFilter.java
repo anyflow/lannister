@@ -13,7 +13,7 @@ public class SessionsFilter implements MessageFilter {
 
 	private byte[] live() {
 		try {
-			return (new ObjectMapper()).writeValueAsBytes(net.anyflow.lannister.session.Session.clientIdMap(false));
+			return (new ObjectMapper()).writeValueAsBytes(net.anyflow.lannister.session.Session.channelIdMap());
 		}
 		catch (JsonProcessingException e) {
 			logger.error(e.getMessage(), e);
@@ -21,9 +21,9 @@ public class SessionsFilter implements MessageFilter {
 		}
 	}
 
-	private byte[] persisted() {
+	private byte[] all() {
 		try {
-			return (new ObjectMapper()).writeValueAsBytes(Session.persistedClientIdMap());
+			return (new ObjectMapper()).writeValueAsBytes(Session.clientIdMap());
 		}
 		catch (JsonProcessingException e) {
 			logger.error(e.getMessage(), e);
@@ -43,8 +43,8 @@ public class SessionsFilter implements MessageFilter {
 		else if (message.topicName().equals("$COMMAND/GET/sessions?filter=live")) {
 			message.setMessage(live());
 		}
-		else if (message.topicName().equals("$COMMAND/GET/sessions?filter=persisted")) {
-			message.setMessage(persisted());
+		else if (message.topicName().equals("$COMMAND/GET/sessions?filter=all")) {
+			message.setMessage(all());
 		}
 	}
 }

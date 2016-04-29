@@ -136,33 +136,29 @@ public class Session extends Jsonizable implements java.io.Serializable {
 		// TODO publish Unacked Messages
 	}
 
-	public Session persist() {
-		return SESSIONS.persist(this);
-	}
-
 	public void dispose(boolean sendWill) {
-		SESSIONS.remove(this, !sendWill);
+		SESSIONS.remove(this);
 		sessionDisposer.dispose(sendWill);
 	}
 
-	public static Session getByClientId(String clientId, boolean includePersisted) {
-		return SESSIONS.getByClientId(clientId, includePersisted);
+	public static Session getByClientId(String clientId) {
+		return SESSIONS.clientIdMap().get(clientId);
 	}
 
 	public static Session getByChannelId(ChannelId channelId) {
-		return SESSIONS.getByChannelId(channelId);
+        return SESSIONS.channelIdMap().get(channelId);
 	}
 
 	public static void put(Session session) {
 		SESSIONS.put(session);
 	}
 
-	public static ImmutableMap<String, Session> clientIdMap(boolean includePersisted) {
-		return SESSIONS.clientIdMap(includePersisted);
-	}
-
-	public static ImmutableMap<String, Session> persistedClientIdMap() {
-		return SESSIONS.persistedClientIdMap();
+    public static ImmutableMap<ChannelId, Session> channelIdMap() {
+        return SESSIONS.channelIdMap();
+    }
+    
+	public static ImmutableMap<String, Session> clientIdMap() {
+		return SESSIONS.clientIdMap();
 	}
 
 	public void published(Topic topic, Message message) {
