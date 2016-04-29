@@ -11,20 +11,21 @@ import net.anyflow.lannister.message.SentMessageStatus;
 
 public class TopicSubscriber extends Jsonizable implements java.io.Serializable {
 
-    private static final long serialVersionUID = 5957543847054029282L;
+	private static final long serialVersionUID = 5957543847054029282L;
 
-    @JsonProperty
+	@JsonProperty
 	private final String clientId;
 	@JsonProperty
-	private IMap<Integer, SentMessageStatus> sentMessageStatuses; // KEY:messageId
+	private IMap<Integer, SentMessageStatus> messageStatuses; // KEY:messageId
 
 	protected TopicSubscriber(String topicName, String clientId) {
 		this.clientId = clientId;
-		this.sentMessageStatuses = Repository.SELF.generator().getMap("TOPIC(" + topicName + ")_sentMessageStatuses");
+		this.messageStatuses = Repository.SELF.generator()
+				.getMap("TOPIC(" + topicName + ")_CLIENT(" + clientId + ")_sentMessageStatuses");
 	}
 
 	protected IMap<Integer, SentMessageStatus> sentMessageStatuses() {
-		return sentMessageStatuses;
+		return messageStatuses;
 	}
 
 	public void addSentMessageStatus(int messageId, int originalMessageId, SenderTargetStatus targetStatus) {
@@ -32,20 +33,19 @@ public class TopicSubscriber extends Jsonizable implements java.io.Serializable 
 
 		status.targetStatus(targetStatus);
 
-		sentMessageStatuses.put(status.messageId(), status);
+		messageStatuses.put(status.messageId(), status);
+	}
+
+	public SentMessageStatus removeMessageStatus(int messageId) {
+		return messageStatuses.remove(messageId);
 	}
 
 	public void setSentMessageStatus(int messageId, SenderTargetStatus targetStatus) {
-		if (targetStatus == SenderTargetStatus.NOTHING) {
-			sentMessageStatuses.remove(messageId);
-			return;
-		}
-
-		SentMessageStatus status = sentMessageStatuses.get(MessageStatus.key(clientId, messageId));
+		SentMessageStatus status = messageStatuses.get(MessageStatus.key(clientId, messageId));
 		if (status == null) { return; }
 
 		status.targetStatus(targetStatus);
 
-		sentMessageStatuses.put(status.messageId(), status);
+		messageStatuses.put(status.messageId(), status);
 	}
 }

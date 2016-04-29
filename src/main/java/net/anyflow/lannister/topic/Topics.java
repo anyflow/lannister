@@ -9,7 +9,6 @@ import com.hazelcast.core.IMap;
 import com.hazelcast.core.ITopic;
 
 import net.anyflow.lannister.Repository;
-import net.anyflow.lannister.message.SenderTargetStatus;
 import net.anyflow.lannister.message.SentMessageStatus;
 import net.anyflow.lannister.session.Session;
 
@@ -84,7 +83,6 @@ public class Topics {
 		Topic topic = get(clientId, messageId);
 		if (topic == null) { return null; }
 
-		topic.subscribers().get(clientId).setSentMessageStatus(messageId, SenderTargetStatus.NOTHING);
-		return null;
+		return topic.subscribers().get(clientId).removeMessageStatus(messageId);
 	}
 }

@@ -16,8 +16,6 @@ public class Application {
 		server = new Server();
 		server.Start();
 
-		// TODO do ReceivedMessageStatus handling
-		// TODO Move live session maps to hazelcast's (for publish notify)
 		// TODO dispose session
 		// TODO Dispose topic
 		// TODO dispose message

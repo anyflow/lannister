@@ -11,24 +11,13 @@ public class TopicSubscription extends Jsonizable implements java.io.Serializabl
 	private static final long serialVersionUID = -3335949846595801533L;
 
 	@JsonProperty
-	private String registrationId;
-	@JsonProperty
 	private String topicFilter;
 	@JsonProperty
 	private MqttQoS qos;
 
 	public TopicSubscription(String topicFilter, MqttQoS qos) {
-		this.registrationId = null;
 		this.topicFilter = topicFilter;
 		this.qos = qos;
-	}
-
-	public String registrationId() {
-		return registrationId;
-	}
-
-	public void setRegistrationId(String registrationId) {
-		this.registrationId = registrationId;
 	}
 
 	public String topicFilter() {

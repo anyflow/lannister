@@ -20,20 +20,16 @@ public class SessionExpirator extends ChannelInboundHandlerAdapter {
 
 		int interval = Settings.SELF.getInt("lannister.sessionExpirationHandlerExecutionIntervalSeconds", 0);
 
-		ctx.executor().scheduleWithFixedDelay(new Runnable() {
+		ctx.executor().scheduleWithFixedDelay(() -> {
+			Collection<Session> sessions = Session.NEXUS.lives().values();
+			List<Session> disposes = Lists.newArrayList();
 
-			@Override
-			public void run() {
-				Collection<Session> sessions = Session.NEXUS.lives().values();
-				List<Session> disposes = Lists.newArrayList();
+			sessions.stream().filter(s -> s.isExpired()).forEach(s -> disposes.add(s));
 
-				sessions.stream().filter(s -> s.isExpired()).forEach(s -> disposes.add(s));
+			disposes.stream().forEach(s -> s.dispose(true)); // [MQTT-3.1.2-24]
 
-				disposes.stream().forEach(s -> s.dispose(true)); // [MQTT-3.1.2-24]
+			logger.debug("SessionExpirationHandler executed : [dispose count={}]", disposes.size());
 
-				logger.debug("SessionExpirationHandler executed : [dispose count={}]", disposes.size());
-			}
-
-		}, interval, interval, TimeUnit.SECONDS);
+		} , interval, interval, TimeUnit.SECONDS);
 	}
 }

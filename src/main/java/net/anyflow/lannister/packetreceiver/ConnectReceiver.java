@@ -83,8 +83,8 @@ public class ConnectReceiver extends SimpleChannelInboundHandler<MqttConnectMess
 		// doesn't have it
 
 		final String clientIdFinal = clientId;
-		session = Session.NEXUS.lives().values().stream().filter(s -> clientIdFinal.equals(s.clientId()))
-				.findFirst().get();
+		session = Session.NEXUS.lives().values().stream().filter(s -> clientIdFinal.equals(s.clientId())).findFirst()
+				.get();
 		if (session != null && session.isConnected()) {
 			session.dispose(false); // [MQTT-3.1.4-2]
 		}
@@ -132,14 +132,11 @@ public class ConnectReceiver extends SimpleChannelInboundHandler<MqttConnectMess
 		final boolean sendUnackedMessage = sessionPresent;
 		final Session sessionFinal = session;
 
-		session.send(acceptMsg).addListener(new ChannelFutureListener() {
-			@Override
-			public void operationComplete(ChannelFuture future) throws Exception {
-				eventListener.connAckMessageSent(acceptMsg);
+		session.send(acceptMsg).addListener(f -> {
+			eventListener.connAckMessageSent(acceptMsg);
 
-				if (sendUnackedMessage) {
-					sessionFinal.publishUnackedMessages();
-				}
+			if (sendUnackedMessage) {
+				sessionFinal.publishUnackedMessages();
 			}
 		});
 	}
@@ -156,21 +153,18 @@ public class ConnectReceiver extends SimpleChannelInboundHandler<MqttConnectMess
 		MqttConnAckMessage msg = MessageFactory.connack(returnCode, sessionPresent);
 
 		ChannelFuture ret = ctx.channel().writeAndFlush(MessageFactory.connack(returnCode, sessionPresent))
-				.addListener(new ChannelFutureListener() {
-					@Override
-					public void operationComplete(ChannelFuture future) throws Exception {
-						logger.debug("packet outgoing : {}", msg);
+				.addListener(f -> {
+					logger.debug("packet outgoing : {}", msg);
 
-						eventListener.connAckMessageSent(msg);
+					eventListener.connAckMessageSent(msg);
 
-						Session session = Session.NEXUS.lives().get(ctx.channel().id());
+					Session session = Session.NEXUS.lives().get(ctx.channel().id());
 
-						if (session != null) {
-							session.dispose(true); // [MQTT-3.2.2-5]
-						}
-						else {
-							ctx.channel().disconnect().addListener(ChannelFutureListener.CLOSE); // [MQTT-3.2.2-5]
-						}
+					if (session != null) {
+						session.dispose(true); // [MQTT-3.2.2-5]
+					}
+					else {
+						ctx.channel().disconnect().addListener(ChannelFutureListener.CLOSE); // [MQTT-3.2.2-5]
 					}
 				});
 

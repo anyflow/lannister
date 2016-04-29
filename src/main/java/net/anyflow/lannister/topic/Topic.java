@@ -5,6 +5,7 @@ import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableMap;
 import com.hazelcast.core.IMap;
 
+import io.netty.handler.codec.mqtt.MqttQoS;
 import net.anyflow.lannister.Jsonizable;
 import net.anyflow.lannister.Repository;
 import net.anyflow.lannister.message.Message;
@@ -31,7 +32,7 @@ public class Topic extends Jsonizable implements java.io.Serializable {
 	@JsonProperty
 	private IMap<String, Message> messages; // KEY:Message.key()
 	@JsonProperty
-	private IMap<String, ReceivedMessageStatus> receivedMessageStatuses; // KEY:clientId_messageId
+	private IMap<String, ReceivedMessageStatus> messageStatus; // KEY:clientId_messageId
 
 	public Topic(String name) {
 		this.name = name;
@@ -39,7 +40,7 @@ public class Topic extends Jsonizable implements java.io.Serializable {
 
 		this.subscribers = Repository.SELF.generator().getMap("TOPIC(" + name + ")_subscribers");
 		this.messages = Repository.SELF.generator().getMap("TOPIC(" + name + ")_messages");
-		this.receivedMessageStatuses = Repository.SELF.generator()
+		this.messageStatus = Repository.SELF.generator()
 				.getMap("TOPIC(" + name + ")_receivedMessageStatuses");
 	}
 
@@ -64,14 +65,18 @@ public class Topic extends Jsonizable implements java.io.Serializable {
 		return messages;
 	}
 
+	public void removeReceivedMessageStatus(String clientId, int messageId) {
+		messageStatus.remove(MessageStatus.key(clientId, messageId));
+	}
+
 	public void setReceivedMessageStatus(String clientId, int messageId, ReceiverTargetStatus targetStatus) {
-		ReceivedMessageStatus status = receivedMessageStatuses.get(MessageStatus.key(clientId, messageId));
+		ReceivedMessageStatus status = messageStatus.get(MessageStatus.key(clientId, messageId));
 		if (status == null) {
 			status = new ReceivedMessageStatus(clientId, messageId);
 		}
 		status.targetStatus(targetStatus);
 
-		receivedMessageStatuses.put(status.key(), status);
+		messageStatus.put(status.key(), status);
 	}
 
 	public void addSubscriber(String clientId) {
@@ -88,20 +93,23 @@ public class Topic extends Jsonizable implements java.io.Serializable {
 		}
 	}
 
-	public void publish(Message message) {
-		if (message.qos().value() > 0) {
+	public void publish(String clientId, Message message) {
+		if (message.qos() != MqttQoS.AT_MOST_ONCE) {
 			messages.put(message.key(), message);
+
+			setReceivedMessageStatus(clientId, message.id(),
+					message.qos() == MqttQoS.AT_LEAST_ONCE ? ReceiverTargetStatus.TO_ACK : ReceiverTargetStatus.TO_REC);
 		}
 
-		subscribers.keySet().stream().parallel().forEach(clientId -> {
-			Session session = Session.NEXUS.lives().values().stream().filter(s -> clientId.equals(s.channelId()))
-					.findFirst().get();
+		subscribers.keySet().stream().parallel().forEach(id -> {
+			Session session = Session.NEXUS.lives().values().stream().filter(s -> id.equals(s.channelId())).findFirst()
+					.get();
 
 			if (session != null) {
 				session.onPublish(this, message);
 			}
 			else {
-				NEXUS.notifier().publish(new Notification(clientId, this, message));
+				NEXUS.notifier().publish(new Notification(id, this, message));
 			}
 		});
 	}

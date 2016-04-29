@@ -3,7 +3,7 @@ package net.anyflow.lannister.message;
 public enum ReceiverTargetStatus {
 	TO_ACK((byte) 0), // RECEIVER acknowlegement
 	TO_REC((byte) 1), // RECEIVER received
-	TO_COMP((byte) 2);// RECEIVER complete
+	TO_COMP((byte) 2); // RECEIVER complete
 
 	private byte id;
 

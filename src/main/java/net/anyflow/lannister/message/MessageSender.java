@@ -1,7 +1,6 @@
 package net.anyflow.lannister.message;
 
 import io.netty.channel.ChannelFuture;
-import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.mqtt.MqttMessage;
 import io.netty.handler.codec.mqtt.MqttQoS;
@@ -30,11 +29,8 @@ public class MessageSender {
 		}
 
 		final String log = message.toString();
-		return ctx.writeAndFlush(message).addListener(new ChannelFutureListener() {
-			@Override
-			public void operationComplete(ChannelFuture future) throws Exception {
-				logger.debug("packet outgoing : {}", log);
-			}
+		return ctx.writeAndFlush(message).addListener(f -> {
+			logger.debug("packet outgoing : {}", log);
 		});
 	}
 }

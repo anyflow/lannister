@@ -25,7 +25,7 @@ public class SessionDisposer {
 		// TODO if will should receive ack before disconnect, persistence should
 		// be performed.
 		if (sendWill && will != null) { // [MQTT-3.1.2-10]
-			Topic.NEXUS.get(will.topicName()).publish(will);
+			Topic.NEXUS.get(will.topicName()).publish(clientId, will);
 		}
 		else {
 			ctx.disconnect().addListener(ChannelFutureListener.CLOSE);
