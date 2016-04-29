@@ -16,6 +16,7 @@ import net.anyflow.lannister.session.Session;
 
 public class Topic extends Jsonizable implements java.io.Serializable {
 
+    private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(Topic.class);
 	private static final long serialVersionUID = -3335949846595801533L;
 
 	private static Topics TOPICS = new Topics();
@@ -95,9 +96,11 @@ public class Topic extends Jsonizable implements java.io.Serializable {
 			messages.put(message.key(), message);
 		}
 
-		subscribers.keySet().stream().parallel().forEach(item -> {
-			Session session = Session.getByClientId(item);
-			session.published(this, message);
+		subscribers.keySet().stream().parallel().forEach(clientId -> {
+			Session session = Session.getByClientId(clientId);
+			if(session.isConnected()) {
+			    session.published(this, message);
+			}
 		});
 	}
 
