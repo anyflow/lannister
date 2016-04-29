@@ -3,7 +3,7 @@ package net.anyflow.lannister.topic;
 import java.util.List;
 import java.util.stream.Stream;
 
-import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import com.hazelcast.core.IMap;
 import com.hazelcast.core.ITopic;
@@ -24,8 +24,8 @@ public class Topics {
 		this.notifier.addMessageListener(Session.NEXUS);
 	}
 
-	protected ImmutableList<Topic> topics() {
-		return ImmutableList.copyOf(topics.values());
+	public ImmutableMap<String, Topic> map() {
+		return ImmutableMap.copyOf(topics);
 	}
 
 	public ITopic<Notification> notifier() {

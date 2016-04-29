@@ -1,7 +1,9 @@
 package net.anyflow.lannister.session;
 
+import java.util.Collection;
 import java.util.Date;
 import java.util.Map;
+import java.util.stream.Stream;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -15,8 +17,6 @@ import io.netty.handler.codec.mqtt.MqttMessage;
 import net.anyflow.lannister.Jsonizable;
 import net.anyflow.lannister.Literals;
 import net.anyflow.lannister.message.Message;
-import net.anyflow.lannister.message.MessageListener;
-import net.anyflow.lannister.message.MessageSender;
 import net.anyflow.lannister.topic.Topic;
 import net.anyflow.lannister.topic.TopicSubscription;
 
@@ -27,12 +27,14 @@ public class Session extends Jsonizable implements java.io.Serializable {
 
 	private static final long serialVersionUID = -1800874748722060393L;
 
+	private static final int MAX_MESSAGE_ID_NUM = 0xffff;
+	private static final int MIN_MESSAGE_ID_NUM = 1;
+
 	public static Sessions NEXUS = new Sessions();
 
 	private transient ChannelHandlerContext ctx;
 	private transient Synchronizer synchronizer;
 	private transient MessageSender messageSender;
-	private transient MessageListener messageListener;
 	private transient SessionDisposer sessionDisposer;
 
 	@JsonProperty
@@ -71,8 +73,7 @@ public class Session extends Jsonizable implements java.io.Serializable {
 	public void revive(ChannelHandlerContext ctx) {
 		this.ctx = ctx;
 		this.synchronizer = new Synchronizer(this);
-		this.messageSender = new MessageSender(ctx);
-		this.messageListener = new MessageListener(this, synchronizer, messageSender, currentMessageId, ctx.executor());
+		this.messageSender = new MessageSender(this, ctx);
 		this.sessionDisposer = new SessionDisposer(ctx, clientId, will, messageSender);
 
 		// TODO Do I must add listener to Repository.broadcaster?
@@ -113,8 +114,8 @@ public class Session extends Jsonizable implements java.io.Serializable {
 		return ImmutableMap.copyOf(topicSubscriptions);
 	}
 
-	public TopicSubscription[] matches(String topicName) {
-		return topicSubscriptions.values().stream().filter(t -> t.isMatch(topicName)).toArray(TopicSubscription[]::new);
+	public Stream<TopicSubscription> matches(String topicName) {
+		return topicSubscriptions.values().stream().filter(t -> t.isMatch(topicName));
 	}
 
 	public TopicSubscription putTopicSubscription(TopicSubscription topicSubscription) {
@@ -142,8 +143,8 @@ public class Session extends Jsonizable implements java.io.Serializable {
 		return messageSender.send(message);
 	}
 
-	public void publishUnackedMessages() {
-		// TODO publish Unacked Messages
+	public ChannelFuture sendPublish(Topic topic, Message message, boolean isRetain) {
+		return messageSender.sendPublish(topic, message, isRetain);
 	}
 
 	public void dispose(boolean sendWill) {
@@ -151,7 +152,27 @@ public class Session extends Jsonizable implements java.io.Serializable {
 		sessionDisposer.dispose(sendWill);
 	}
 
-	public void onPublish(Topic topic, Message message) {
-		messageListener.onPublish(topic, message);
+	public Stream<Topic> topics(Collection<TopicSubscription> topicSubscriptions) {
+		return Topic.NEXUS.map().values().parallelStream().filter(t -> this.matches(t.name()).count() > 0);
+	}
+
+	public Stream<Topic> topics() {
+		return topics(topicSubscriptions.values());
+	}
+
+	public int nextMessageId() {
+		currentMessageId = currentMessageId + 1;
+
+		if (currentMessageId > MAX_MESSAGE_ID_NUM) {
+			currentMessageId = MIN_MESSAGE_ID_NUM;
+		}
+
+		synchronizer.execute();
+
+		return currentMessageId;
+	}
+
+	public void publishUnackedMessages() {
+		// TODO publish Unacked Messages
 	}
 }

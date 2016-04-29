@@ -42,7 +42,6 @@ public class PubRecReceiver {
 
 		session.send(MessageFactory.pubrel(messageId)).addListener(f -> {
 			topicSubscriber.setSentMessageStatus(messageId, SenderTargetStatus.TO_BE_REMOVED);
-			logger.debug("message PUBRELeased : [clientId={}, messageId={}]", session.clientId(), messageId);
 		});
 	}
 }

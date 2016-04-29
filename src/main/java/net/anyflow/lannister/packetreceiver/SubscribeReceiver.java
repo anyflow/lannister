@@ -41,6 +41,7 @@ public class SubscribeReceiver extends SimpleChannelInboundHandler<MqttSubscribe
 
 		// TODO multiple sub checking (granted QoS)
 		List<Integer> grantedQoss = Lists.newArrayList();
+		List<TopicSubscription> topicSubscriptions = Lists.newArrayList();
 
 		topicSubs.stream().filter(topicSub -> {
 			if (TopicSubscription.isValid(topicSub.topicName())) { return true; }
@@ -54,8 +55,16 @@ public class SubscribeReceiver extends SimpleChannelInboundHandler<MqttSubscribe
 			session.putTopicSubscription(topicSubscription);
 
 			grantedQoss.add(topicSubscription.qos().value());
+			topicSubscriptions.add(topicSubscription);
 		});
 
 		session.send(MessageFactory.suback(msg.variableHeader().messageId(), grantedQoss)); // [MQTT-2.3.1-7],[MQTT-3.8.4-1],[MQTT-3.8.4-2]
+
+		session.topics(topicSubscriptions).forEach(topic -> {
+			topic.putMessage(topic.retainedMessage().publisherId(), topic.retainedMessage());
+			session.sendPublish(topic, topic.retainedMessage(), true); // [MQTT-3.3.1-6],[MQTT-3.3.1-8]
+		});
+
+		// TODO [MQTT-3.3.1-7]
 	}
 }

@@ -3,7 +3,6 @@ package net.anyflow.lannister.session;
 import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandlerContext;
 import net.anyflow.lannister.message.Message;
-import net.anyflow.lannister.message.MessageSender;
 import net.anyflow.lannister.topic.Topic;
 
 public class SessionDisposer {

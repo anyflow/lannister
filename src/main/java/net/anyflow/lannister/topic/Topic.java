@@ -96,25 +96,32 @@ public class Topic extends Jsonizable implements java.io.Serializable {
 		}
 	}
 
-	public void publish(String requesterId, Message message) {
-		if (message.qos() != MqttQoS.AT_MOST_ONCE) {
-			messages.put(message.key(), message);
+	public void putMessage(String requesterId, Message message) {
+		if (message.qos() == MqttQoS.AT_MOST_ONCE) { return; }
 
-			setReceivedMessageStatus(requesterId, message.id(),
-					message.qos() == MqttQoS.AT_LEAST_ONCE ? ReceiverTargetStatus.TO_ACK : ReceiverTargetStatus.TO_REC);
-		}
+		messages.put(message.key(), message);
 
+		setReceivedMessageStatus(requesterId, message.id(),
+				message.qos() == MqttQoS.AT_LEAST_ONCE ? ReceiverTargetStatus.TO_ACK : ReceiverTargetStatus.TO_REC);
+	}
+
+	public void broadcast(Message message) {
 		subscribers.keySet().stream().parallel().forEach(id -> {
 			Session session = Session.NEXUS.lives().values().stream().filter(s -> id.equals(s.channelId())).findFirst()
 					.orElse(null);
 
 			if (session != null) {
-				session.onPublish(this, message);
+				session.sendPublish(this, message, false);
 			}
 			else {
 				NEXUS.notifier().publish(new Notification(id, this, message));
 			}
 		});
+	}
+
+	public void publish(String requesterId, Message message) {
+		putMessage(requesterId, message);
+		broadcast(message);
 	}
 
 	public static boolean isValid(String topicName) {

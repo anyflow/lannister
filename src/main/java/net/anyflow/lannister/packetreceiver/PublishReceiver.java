@@ -40,9 +40,13 @@ public class PublishReceiver extends SimpleChannelInboundHandler<MqttPublishMess
 				session.clientId(), NettyUtil.copy(msg.payload()), msg.fixedHeader().qosLevel(),
 				msg.fixedHeader().isRetain());
 
-		// [MQTT-3.3.1-10],[MQTT-3.3.1-11]
-		if (message.isRetain() && message.message().length > 0) {
-			topic.setRetainedMessage(message);
+		if (message.isRetain()) {
+			if (message.message().length > 0) {
+				topic.setRetainedMessage(message); // [MQTT-3.3.1-5]
+			}
+			else {
+				topic.setRetainedMessage(null); // [MQTT-3.3.1-10],[MQTT-3.3.1-11]
+			}
 		}
 		else {
 			// do nothing [MQTT-3.3.1-12]
@@ -52,7 +56,9 @@ public class PublishReceiver extends SimpleChannelInboundHandler<MqttPublishMess
 
 		final Topic topicFinal = topic;
 
-		switch (msg.fixedHeader().qosLevel()) {
+		switch (msg.fixedHeader().qosLevel())
+
+		{
 		case AT_MOST_ONCE:
 			return; // QoS 0 do not send any acknowledge packet [MQTT-3.3.4-1]
 
@@ -71,6 +77,7 @@ public class PublishReceiver extends SimpleChannelInboundHandler<MqttPublishMess
 			session.dispose(true); // [MQTT-3.3.1-4]
 			return;
 		}
+
 	}
 
 	@Override

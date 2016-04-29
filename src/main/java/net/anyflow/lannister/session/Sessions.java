@@ -65,6 +65,6 @@ public class Sessions implements MessageListener<Notification> {
 		Session session = lives.get(notified.clientId());
 		if (session == null) { return; }
 
-		session.onPublish(notified.topic(), notified.message());
+		session.sendPublish(notified.topic(), notified.message(), false);
 	}
 }

@@ -8,7 +8,7 @@ public class Synchronizer {
 		this.session = session;
 	}
 
-	public void execute() {
+	protected void execute() {
 		Session.NEXUS.put(session);
 	}
 }
