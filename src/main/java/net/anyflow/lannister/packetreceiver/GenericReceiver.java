@@ -6,7 +6,7 @@ import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
 import io.netty.handler.codec.mqtt.MqttMessage;
-import net.anyflow.lannister.message.MessageFactory;
+import io.netty.handler.codec.mqtt.MqttMessageIdVariableHeader;
 import net.anyflow.lannister.session.Session;
 
 public class GenericReceiver extends SimpleChannelInboundHandler<MqttMessage> {
@@ -32,20 +32,29 @@ public class GenericReceiver extends SimpleChannelInboundHandler<MqttMessage> {
 
 			switch (msg.fixedHeader().messageType()) {
 			case DISCONNECT:
-				session.dispose(false); // [MQTT-3.14.4-1],[MQTT-3.14.4-2],[MQTT-3.14.4-3]
-				break;
+				DisconnectReceiver.SHARED.handle(session);
+				return;
 
 			case PINGREQ:
-				session.send(MessageFactory.pingresp()); // [MQTT-3.12.4-1]
-				break;
+				PingReqReceiver.SHARED.handle(session);
+				return;
 
-			// PUBREC(5),
-			// PUBREL(6),
-			// PUBCOMP(7),
-			// PINGRESP(13)// never incoming
+			case PUBREC:
+				PubRecReceiver.SHARED.handle(session, ((MqttMessageIdVariableHeader) msg.variableHeader()).messageId());
+				return;
+
+			case PUBREL:
+				PubRelReceiver.SHARED.handle(session, ((MqttMessageIdVariableHeader) msg.variableHeader()).messageId());
+				return;
+
+			case PUBCOMP:
+				PubCompReceiver.SHARED.handle(session,
+						((MqttMessageIdVariableHeader) msg.variableHeader()).messageId());
+				return;
 
 			default:
 				session.dispose(true); // [MQTT-4.8.0-1]
+				return;
 			}
 		}
 	}

@@ -9,7 +9,6 @@ import com.hazelcast.core.IMap;
 import com.hazelcast.core.ITopic;
 
 import net.anyflow.lannister.Repository;
-import net.anyflow.lannister.message.SentMessageStatus;
 import net.anyflow.lannister.session.Session;
 
 public class Topics {
@@ -37,7 +36,7 @@ public class Topics {
 		return topics.get(name);
 	}
 
-	protected Topic get(String clientId, int brokerMessageId) {
+	public Topic get(String clientId, int brokerMessageId) {
 		return topics.values().stream().filter(t -> {
 			TopicSubscriber ts = t.subscribers().get(clientId);
 
@@ -77,12 +76,5 @@ public class Topics {
 	private Topic[] matches(String topicFilter) {
 		return topics.values().stream().filter(topic -> TopicSubscription.isMatch(topicFilter, topic.name()))
 				.toArray(Topic[]::new);
-	}
-
-	public SentMessageStatus messageAcked(String clientId, int messageId) {
-		Topic topic = get(clientId, messageId);
-		if (topic == null) { return null; }
-
-		return topic.subscribers().get(clientId).removeMessageStatus(messageId);
 	}
 }

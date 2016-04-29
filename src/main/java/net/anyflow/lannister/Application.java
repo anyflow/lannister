@@ -29,7 +29,6 @@ public class Application {
 
 		// TODO $SYS
 		// TODO wildcard support
-		// TODO QoS2 support
 		// TODO WebSocket
 		// TODO SSL
 		// TODO importing menton => netty ver 4.1 upgrade

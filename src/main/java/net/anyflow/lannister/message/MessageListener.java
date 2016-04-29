@@ -71,7 +71,8 @@ public class MessageListener {
 					return;
 
 				case AT_LEAST_ONCE:
-					topic.subscribers().get(session.clientId()).removeMessageStatus(message.id());
+					topic.subscribers().get(session.clientId()).setSentMessageStatus(message.id(),
+							SenderTargetStatus.TO_BE_REMOVED);
 					return;
 
 				case EXACTLY_ONCE:

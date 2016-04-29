@@ -1,6 +1,7 @@
 package net.anyflow.lannister.topic;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.google.common.collect.ImmutableMap;
 import com.hazelcast.core.IMap;
 
 import net.anyflow.lannister.Jsonizable;
@@ -24,8 +25,8 @@ public class TopicSubscriber extends Jsonizable implements java.io.Serializable 
 				.getMap("TOPIC(" + topicName + ")_CLIENT(" + clientId + ")_sentMessageStatuses");
 	}
 
-	protected IMap<Integer, SentMessageStatus> sentMessageStatuses() {
-		return messageStatuses;
+	public ImmutableMap<Integer, SentMessageStatus> sentMessageStatuses() {
+		return ImmutableMap.copyOf(messageStatuses);
 	}
 
 	public void addSentMessageStatus(int messageId, int originalMessageId, SenderTargetStatus targetStatus) {
@@ -40,12 +41,12 @@ public class TopicSubscriber extends Jsonizable implements java.io.Serializable 
 		return messageStatuses.remove(messageId);
 	}
 
-	public void setSentMessageStatus(int messageId, SenderTargetStatus targetStatus) {
+	public SentMessageStatus setSentMessageStatus(int messageId, SenderTargetStatus targetStatus) {
 		SentMessageStatus status = messageStatuses.get(MessageStatus.key(clientId, messageId));
-		if (status == null) { return; }
+		if (status == null) { return null; }
 
 		status.targetStatus(targetStatus);
 
-		messageStatuses.put(status.messageId(), status);
+		return messageStatuses.put(status.messageId(), status);
 	}
 }

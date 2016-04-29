@@ -52,6 +52,22 @@ public class MessageFactory {
 		return new MqttMessage(fixedHeader, variableHeader);
 	}
 
+	public static MqttMessage pubrel(int messageId) {
+		MqttFixedHeader fixedHeader = new MqttFixedHeader(MqttMessageType.PUBREL, false, MqttQoS.AT_MOST_ONCE, false,
+				2);
+		MqttMessageIdVariableHeader variableHeader = MqttMessageIdVariableHeader.from(messageId);
+
+		return new MqttMessage(fixedHeader, variableHeader);
+	}
+
+	public static MqttMessage pubcomp(int messageId) {
+		MqttFixedHeader fixedHeader = new MqttFixedHeader(MqttMessageType.PUBCOMP, false, MqttQoS.AT_MOST_ONCE, false,
+				2);
+		MqttMessageIdVariableHeader variableHeader = MqttMessageIdVariableHeader.from(messageId);
+
+		return new MqttMessage(fixedHeader, variableHeader);
+	}
+
 	public static MqttMessage pingresp() {
 		MqttFixedHeader fixedHeader = new MqttFixedHeader(MqttMessageType.PINGRESP, false, MqttQoS.AT_MOST_ONCE, false,
 				0);

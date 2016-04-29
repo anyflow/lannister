@@ -32,7 +32,7 @@ public class Topic extends Jsonizable implements java.io.Serializable {
 	@JsonProperty
 	private IMap<String, Message> messages; // KEY:Message.key()
 	@JsonProperty
-	private IMap<String, ReceivedMessageStatus> messageStatus; // KEY:clientId_messageId
+	private IMap<String, ReceivedMessageStatus> receivedMessageStatus; // KEY:clientId_messageId
 
 	public Topic(String name) {
 		this.name = name;
@@ -40,7 +40,7 @@ public class Topic extends Jsonizable implements java.io.Serializable {
 
 		this.subscribers = Repository.SELF.generator().getMap("TOPIC(" + name + ")_subscribers");
 		this.messages = Repository.SELF.generator().getMap("TOPIC(" + name + ")_messages");
-		this.messageStatus = Repository.SELF.generator().getMap("TOPIC(" + name + ")_receivedMessageStatuses");
+		this.receivedMessageStatus = Repository.SELF.generator().getMap("TOPIC(" + name + ")_receivedMessageStatuses");
 	}
 
 	public String name() {
@@ -64,18 +64,22 @@ public class Topic extends Jsonizable implements java.io.Serializable {
 		return messages;
 	}
 
+	public ImmutableMap<String, ReceivedMessageStatus> receivedMessageStatuses() {
+		return ImmutableMap.copyOf(receivedMessageStatus);
+	}
+
 	public void removeReceivedMessageStatus(String clientId, int messageId) {
-		messageStatus.remove(MessageStatus.key(clientId, messageId));
+		receivedMessageStatus.remove(MessageStatus.key(clientId, messageId));
 	}
 
 	public void setReceivedMessageStatus(String clientId, int messageId, ReceiverTargetStatus targetStatus) {
-		ReceivedMessageStatus status = messageStatus.get(MessageStatus.key(clientId, messageId));
+		ReceivedMessageStatus status = receivedMessageStatus.get(MessageStatus.key(clientId, messageId));
 		if (status == null) {
 			status = new ReceivedMessageStatus(clientId, messageId);
 		}
 		status.targetStatus(targetStatus);
 
-		messageStatus.put(status.key(), status);
+		receivedMessageStatus.put(status.key(), status);
 	}
 
 	public void addSubscriber(String clientId) {
@@ -92,11 +96,11 @@ public class Topic extends Jsonizable implements java.io.Serializable {
 		}
 	}
 
-	public void publish(String clientId, Message message) {
+	public void publish(String requesterId, Message message) {
 		if (message.qos() != MqttQoS.AT_MOST_ONCE) {
 			messages.put(message.key(), message);
 
-			setReceivedMessageStatus(clientId, message.id(),
+			setReceivedMessageStatus(requesterId, message.id(),
 					message.qos() == MqttQoS.AT_LEAST_ONCE ? ReceiverTargetStatus.TO_ACK : ReceiverTargetStatus.TO_REC);
 		}
 
