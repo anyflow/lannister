@@ -42,7 +42,7 @@ public class Topics {
 			TopicSubscriber ts = t.subscribers().get(clientId);
 
 			return ts != null && ts.sentMessageStatuses().get(brokerMessageId) != null;
-		}).findAny().get();
+		}).findAny().orElse(null);
 	}
 
 	protected Topic put(Topic topic) {

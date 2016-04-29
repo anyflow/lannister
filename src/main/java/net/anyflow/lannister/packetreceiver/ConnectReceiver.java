@@ -84,7 +84,8 @@ public class ConnectReceiver extends SimpleChannelInboundHandler<MqttConnectMess
 
 		final String clientIdFinal = clientId;
 		session = Session.NEXUS.lives().values().stream().filter(s -> clientIdFinal.equals(s.clientId())).findFirst()
-				.get();
+				.orElse(null);
+
 		if (session != null && session.isConnected()) {
 			session.dispose(false); // [MQTT-3.1.4-2]
 		}

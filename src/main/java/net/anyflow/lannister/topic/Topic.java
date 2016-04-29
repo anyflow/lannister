@@ -40,8 +40,7 @@ public class Topic extends Jsonizable implements java.io.Serializable {
 
 		this.subscribers = Repository.SELF.generator().getMap("TOPIC(" + name + ")_subscribers");
 		this.messages = Repository.SELF.generator().getMap("TOPIC(" + name + ")_messages");
-		this.messageStatus = Repository.SELF.generator()
-				.getMap("TOPIC(" + name + ")_receivedMessageStatuses");
+		this.messageStatus = Repository.SELF.generator().getMap("TOPIC(" + name + ")_receivedMessageStatuses");
 	}
 
 	public String name() {
@@ -103,7 +102,7 @@ public class Topic extends Jsonizable implements java.io.Serializable {
 
 		subscribers.keySet().stream().parallel().forEach(id -> {
 			Session session = Session.NEXUS.lives().values().stream().filter(s -> id.equals(s.channelId())).findFirst()
-					.get();
+					.orElse(null);
 
 			if (session != null) {
 				session.onPublish(this, message);

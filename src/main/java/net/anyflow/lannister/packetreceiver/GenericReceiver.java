@@ -32,8 +32,6 @@ public class GenericReceiver extends SimpleChannelInboundHandler<MqttMessage> {
 
 			switch (msg.fixedHeader().messageType()) {
 			case DISCONNECT:
-				// TODO Check whether DISCONNECT means delete persistent
-				// session.
 				session.dispose(false); // [MQTT-3.14.4-1],[MQTT-3.14.4-2],[MQTT-3.14.4-3]
 				break;
 
