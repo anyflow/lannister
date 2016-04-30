@@ -35,11 +35,11 @@ public class Topic extends Jsonizable implements com.hazelcast.nio.serialization
 	@JsonProperty
 	private Message retainedMessage;
 	@JsonProperty
-	private transient IMap<String, TopicSubscriber> subscribers; // clientIds
+	private IMap<String, TopicSubscriber> subscribers; // clientIds
 	@JsonProperty
-	private transient IMap<String, Message> messages; // KEY:Message.key()
+	private IMap<String, Message> messages; // KEY:Message.key()
 	@JsonProperty
-	private transient IMap<String, ReceivedMessageStatus> receivedMessageStatuses; // KEY:clientId_messageId
+	private IMap<String, ReceivedMessageStatus> receivedMessageStatuses; // KEY:clientId_messageId
 
 	public Topic() { // just for Serialization
 	}

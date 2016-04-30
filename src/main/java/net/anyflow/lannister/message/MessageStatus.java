@@ -2,6 +2,7 @@ package net.anyflow.lannister.message;
 
 import java.io.IOException;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.hazelcast.nio.serialization.PortableReader;
 import com.hazelcast.nio.serialization.PortableWriter;
 
@@ -9,7 +10,9 @@ import net.anyflow.lannister.Jsonizable;
 
 public abstract class MessageStatus extends Jsonizable implements com.hazelcast.nio.serialization.Portable {
 
+	@JsonProperty
 	private String clientId;
+	@JsonProperty
 	private int messageId;
 
 	public MessageStatus() { // just for Serialization

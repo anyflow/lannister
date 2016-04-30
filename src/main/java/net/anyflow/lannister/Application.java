@@ -31,7 +31,8 @@ public class Application {
 		// TODO stream parallel
 		// TODO exception handling thrown by codec
 		// TODO Removing polishes of unused old persistent sessions/topics.
-		// TODO TEST will sending
+		// TODO TEST will
+		// TODO TEST clustering
 
 		// TODO specification TEST
 		// TODO $SYS

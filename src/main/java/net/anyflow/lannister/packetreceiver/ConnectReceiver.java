@@ -123,8 +123,7 @@ public class ConnectReceiver extends SimpleChannelInboundHandler<MqttConnectMess
 			}
 
 			if (session.will().isRetain()) { // [MQTT-3.1.2-16],[MQTT-3.1.2-17]
-				topic.setRetainedMessage(session.will().message().length > 0 ? new Message(null,
-						session.will().topicName(), session.clientId(), session.will().message(), null, true) : null);
+				topic.setRetainedMessage(session.will().message().length > 0 ? session.will() : null);
 			}
 		}
 
@@ -143,7 +142,7 @@ public class ConnectReceiver extends SimpleChannelInboundHandler<MqttConnectMess
 	private Message will(String clientId, MqttConnectMessage conn) {
 		if (conn.variableHeader().isWillFlag() == false) { return null; } // [MQTT-3.1.2-12]
 
-		return new Message(null, conn.payload().willTopic(), clientId, conn.payload().willMessage().getBytes(),
+		return new Message(-1, conn.payload().willTopic(), clientId, conn.payload().willMessage().getBytes(),
 				MqttQoS.valueOf(conn.variableHeader().willQos()), conn.variableHeader().isWillRetain());
 	}
 

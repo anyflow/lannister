@@ -3,6 +3,7 @@ package net.anyflow.lannister.message;
 import java.io.IOException;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.hazelcast.nio.serialization.ClassDefinition;
 import com.hazelcast.nio.serialization.ClassDefinitionBuilder;
 import com.hazelcast.nio.serialization.PortableReader;
@@ -14,6 +15,7 @@ public class ReceivedMessageStatus extends MessageStatus {
 
 	public static final int ID = 2;
 
+	@JsonProperty
 	private ReceiverTargetStatus targetStatus;
 
 	public ReceivedMessageStatus() { // just for Serialization

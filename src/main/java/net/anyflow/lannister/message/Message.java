@@ -18,7 +18,7 @@ public class Message extends Jsonizable implements com.hazelcast.nio.serializati
 	public final static int ID = 1;
 
 	@JsonProperty
-	private Integer id;
+	private int id;
 	@JsonProperty
 	private String topicName;
 	@JsonProperty
@@ -33,7 +33,7 @@ public class Message extends Jsonizable implements com.hazelcast.nio.serializati
 	public Message() { // just for Serialization
 	}
 
-	public Message(Integer id, String topicName, String publisherId, byte[] message, MqttQoS qos, boolean isRetain) {
+	public Message(int id, String topicName, String publisherId, byte[] message, MqttQoS qos, boolean isRetain) {
 		this.id = id;
 		this.topicName = topicName;
 		this.publisherId = publisherId;

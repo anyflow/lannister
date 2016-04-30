@@ -10,6 +10,7 @@ import io.netty.handler.codec.mqtt.MqttMessage;
 import io.netty.handler.codec.mqtt.MqttQoS;
 import net.anyflow.lannister.admin.command.MessageFilter;
 import net.anyflow.lannister.admin.command.SessionsFilter;
+import net.anyflow.lannister.admin.command.TopicsFilter;
 import net.anyflow.lannister.message.Message;
 import net.anyflow.lannister.message.MessageFactory;
 import net.anyflow.lannister.message.SenderTargetStatus;
@@ -19,7 +20,7 @@ public class MessageSender {
 
 	private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(MessageSender.class);
 
-	private final static List<MessageFilter> FILTERS = Lists.newArrayList(new SessionsFilter());
+	private final static List<MessageFilter> FILTERS = Lists.newArrayList(new SessionsFilter(), new TopicsFilter());
 
 	private final Session session;
 	private final ChannelHandlerContext ctx;
