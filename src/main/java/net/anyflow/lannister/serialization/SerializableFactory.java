@@ -4,8 +4,8 @@ import com.hazelcast.nio.serialization.Portable;
 import com.hazelcast.nio.serialization.PortableFactory;
 
 import net.anyflow.lannister.message.Message;
-import net.anyflow.lannister.message.ReceivedMessageStatus;
-import net.anyflow.lannister.message.SentMessageStatus;
+import net.anyflow.lannister.message.InboundMessageStatus;
+import net.anyflow.lannister.message.OutboundMessageStatus;
 import net.anyflow.lannister.session.Session;
 import net.anyflow.lannister.topic.Notification;
 import net.anyflow.lannister.topic.Topic;
@@ -21,11 +21,11 @@ public class SerializableFactory implements PortableFactory {
 		case Message.ID:
 			return new Message();
 
-		case ReceivedMessageStatus.ID:
-			return new ReceivedMessageStatus();
+		case InboundMessageStatus.ID:
+			return new InboundMessageStatus();
 
-		case SentMessageStatus.ID:
-			return new SentMessageStatus();
+		case OutboundMessageStatus.ID:
+			return new OutboundMessageStatus();
 
 		case Session.ID:
 			return new Session();

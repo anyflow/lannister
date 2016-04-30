@@ -6,11 +6,11 @@ import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
 import io.netty.handler.codec.mqtt.MqttPubAckMessage;
-import net.anyflow.lannister.message.SenderTargetStatus;
-import net.anyflow.lannister.message.SentMessageStatus;
+import net.anyflow.lannister.message.OutboundMessageStatus;
 import net.anyflow.lannister.session.Session;
 import net.anyflow.lannister.topic.Topic;
 import net.anyflow.lannister.topic.TopicSubscriber;
+import net.anyflow.lannister.topic.Topics.ClientType;
 
 public class PubAckReceiver extends SimpleChannelInboundHandler<MqttPubAckMessage> {
 
@@ -29,7 +29,7 @@ public class PubAckReceiver extends SimpleChannelInboundHandler<MqttPubAckMessag
 
 		session.setLastIncomingTime(new Date());
 
-		Topic topic = Topic.NEXUS.get(session.clientId(), msg.variableHeader().messageId());
+		Topic topic = Topic.NEXUS.get(session.clientId(), msg.variableHeader().messageId(), ClientType.SUBSCRIBER);
 		if (topic == null) {
 			logger.error("Topic does not exist : [clientId={}, messageId={}]", session.clientId(),
 					msg.variableHeader().messageId());
@@ -39,7 +39,8 @@ public class PubAckReceiver extends SimpleChannelInboundHandler<MqttPubAckMessag
 
 		final TopicSubscriber topicSubscriber = topic.subscribers().get(session.clientId());
 
-		SentMessageStatus status = topicSubscriber.sentMessageStatuses().get(msg.variableHeader().messageId());
+		OutboundMessageStatus status = topicSubscriber.sentOutboundMessageStatuses()
+				.get(msg.variableHeader().messageId());
 
 		if (status == null) {
 			logger.error("No message status to REMOVE(QoS1) : [clientId={}, messageId={}]", session.clientId(),
@@ -47,14 +48,14 @@ public class PubAckReceiver extends SimpleChannelInboundHandler<MqttPubAckMessag
 			session.dispose(true); // [MQTT-3.3.5-2]
 			return;
 		}
-		if (status.targetStatus() != SenderTargetStatus.TO_BE_REMOVED) {
+		if (status.targetStatus() != OutboundMessageStatus.Status.TO_BE_REMOVED) {
 			logger.error("Invalid status to REMOVE(QoS1) : [clientId={}, messageId={}, status={}]", session.clientId(),
 					msg.variableHeader().messageId(), status);
 			session.dispose(true); // [MQTT-3.3.5-2]
 			return;
 		}
 
-		topicSubscriber.removeMessageStatus(msg.variableHeader().messageId());
+		topicSubscriber.removeOutboundMessageStatus(msg.variableHeader().messageId());
 		logger.debug("message status REMOVED : [clientId={}, messageId={}]", session.clientId(),
 				msg.variableHeader().messageId());
 	}

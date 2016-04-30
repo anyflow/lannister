@@ -36,11 +36,34 @@ public class Topics {
 		return topics.get(name);
 	}
 
-	public Topic get(String clientId, int brokerMessageId) {
-		return topics.values().stream().filter(t -> {
-			TopicSubscriber ts = t.subscribers().get(clientId);
+	public enum ClientType {
+		SUBSCRIBER,
+		PUBLISHER
+	}
 
-			return ts != null && ts.sentMessageStatuses().get(brokerMessageId) != null;
+	public Topic get(String clientId, int brokerMessageId, ClientType clientType) {
+		switch (clientType) {
+		case SUBSCRIBER:
+			return getFromSubscriber(clientId, brokerMessageId);
+
+		case PUBLISHER:
+			return getFromPublisher(clientId, brokerMessageId);
+
+		default:
+			throw new IllegalArgumentException();
+		}
+	}
+
+	private Topic getFromPublisher(String publisherId, int publisherMessageId) {
+		return topics.values().parallelStream()
+				.filter(t -> t.getInboundMessageStatus(publisherId, publisherMessageId) != null).findAny().orElse(null);
+	}
+
+	private Topic getFromSubscriber(String subscriberId, int brokerMessageId) {
+		return topics.values().stream().filter(t -> {
+			TopicSubscriber ts = t.subscribers().get(subscriberId);
+
+			return ts != null && ts.sentOutboundMessageStatuses().get(brokerMessageId) != null;
 		}).findAny().orElse(null);
 	}
 

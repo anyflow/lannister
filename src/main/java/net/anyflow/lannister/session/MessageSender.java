@@ -13,7 +13,7 @@ import net.anyflow.lannister.admin.command.SessionsFilter;
 import net.anyflow.lannister.admin.command.TopicsFilter;
 import net.anyflow.lannister.message.Message;
 import net.anyflow.lannister.message.MessageFactory;
-import net.anyflow.lannister.message.SenderTargetStatus;
+import net.anyflow.lannister.message.OutboundMessageStatus;
 import net.anyflow.lannister.topic.Topic;
 
 public class MessageSender {
@@ -69,8 +69,8 @@ public class MessageSender {
 		message.setRetain(isRetain);// [MQTT-3.3.1-8],[MQTT-3.3.1-9]
 
 		if (message.qos() != MqttQoS.AT_MOST_ONCE) {
-			topic.subscribers().get(session.clientId()).addSentMessageStatus(message.id(), originalMessageId,
-					SenderTargetStatus.TO_PUB);
+			topic.subscribers().get(session.clientId()).addOutboundMessageStatus(message.id(), originalMessageId,
+					OutboundMessageStatus.Status.TO_PUBLISH);
 		}
 
 		return send(MessageFactory.publish(message, false)).addListener(f -> {
@@ -79,13 +79,13 @@ public class MessageSender {
 				return;
 
 			case AT_LEAST_ONCE:
-				topic.subscribers().get(session.clientId()).setSentMessageStatus(message.id(),
-						SenderTargetStatus.TO_BE_REMOVED);
+				topic.subscribers().get(session.clientId()).setOutboundMessageStatus(message.id(),
+						OutboundMessageStatus.Status.TO_BE_REMOVED);
 				return;
 
 			case EXACTLY_ONCE:
-				topic.subscribers().get(session.clientId()).setSentMessageStatus(message.id(),
-						SenderTargetStatus.TO_REL);
+				topic.subscribers().get(session.clientId()).setOutboundMessageStatus(message.id(),
+						OutboundMessageStatus.Status.TO_PUBREL);
 				return;
 
 			default:

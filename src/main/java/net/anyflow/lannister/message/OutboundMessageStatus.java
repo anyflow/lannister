@@ -11,34 +11,34 @@ import com.hazelcast.nio.serialization.PortableWriter;
 
 import net.anyflow.lannister.serialization.SerializableFactory;
 
-public class SentMessageStatus extends MessageStatus {
+public class OutboundMessageStatus extends MessageStatus {
 
 	public static final int ID = 3;
 
 	@JsonProperty
-	private int originalMessageId;
+	private int inboundMessageId;
 	@JsonProperty
-	private SenderTargetStatus targetStatus;
+	private Status targetStatus;
 
-	public SentMessageStatus() { // just for Serialization
+	public OutboundMessageStatus() { // just for Serialization
 	}
 
-	public SentMessageStatus(String clientId, int messageId, int originalMessageId) {
+	public OutboundMessageStatus(String clientId, int messageId, int inboundMessageId) {
 		super(clientId, messageId);
 
-		this.originalMessageId = originalMessageId;
-		this.targetStatus = SenderTargetStatus.TO_PUB;
+		this.inboundMessageId = inboundMessageId;
+		this.targetStatus = Status.TO_PUBLISH;
 	}
 
-	public int originalMessageId() {
-		return originalMessageId;
+	public int inboundMessageId() {
+		return inboundMessageId;
 	}
 
-	public SenderTargetStatus targetStatus() {
+	public Status targetStatus() {
 		return targetStatus;
 	}
 
-	public void targetStatus(SenderTargetStatus targetStatus) {
+	public void targetStatus(Status targetStatus) {
 		this.targetStatus = targetStatus;
 	}
 
@@ -65,7 +65,7 @@ public class SentMessageStatus extends MessageStatus {
 	public void readPortable(PortableReader reader) throws IOException {
 		super.readPortable(reader);
 
-		targetStatus = SenderTargetStatus.valueOf(reader.readByte("targetStatus"));
+		targetStatus = Status.valueOf(reader.readByte("targetStatus"));
 	}
 
 	public static ClassDefinition classDefinition() {
@@ -73,4 +73,26 @@ public class SentMessageStatus extends MessageStatus {
 				.addByteField("targetStatus").build();
 	}
 
+	public enum Status {
+		TO_PUBLISH((byte) 0),
+		TO_PUBREL((byte) 1),
+		TO_BE_REMOVED((byte) 2);
+
+		private byte value;
+
+		private Status(byte value) {
+			this.value = value;
+		}
+
+		public byte value() {
+			return value;
+		}
+
+		public static Status valueOf(byte value) {
+			for (Status q : values()) {
+				if (q.value == value) { return q; }
+			}
+			throw new IllegalArgumentException("invalid SenderTargetStatus: " + value);
+		}
+	}
 }

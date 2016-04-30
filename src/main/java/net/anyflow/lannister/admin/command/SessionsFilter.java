@@ -42,7 +42,7 @@ public class SessionsFilter implements MessageFilter {
 		message.setQos(MqttQoS.AT_MOST_ONCE);
 
 		if (message.topicName().equals("$COMMAND/GET/sessions")) {
-			message.setMessage(live());
+			message.setMessage(all());
 		}
 		else if (message.topicName().equals("$COMMAND/GET/sessions?filter=live")) {
 			message.setMessage(live());

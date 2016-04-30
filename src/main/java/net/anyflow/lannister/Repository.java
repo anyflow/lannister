@@ -8,8 +8,8 @@ import com.hazelcast.core.Hazelcast;
 import com.hazelcast.core.HazelcastInstance;
 
 import net.anyflow.lannister.message.Message;
-import net.anyflow.lannister.message.ReceivedMessageStatus;
-import net.anyflow.lannister.message.SentMessageStatus;
+import net.anyflow.lannister.message.InboundMessageStatus;
+import net.anyflow.lannister.message.OutboundMessageStatus;
 import net.anyflow.lannister.serialization.JsonSerializer;
 import net.anyflow.lannister.serialization.SerializableFactory;
 import net.anyflow.lannister.session.Session;
@@ -36,8 +36,8 @@ public class Repository {
 		config.getSerializationConfig().addPortableFactory(SerializableFactory.ID, new SerializableFactory());
 
 		config.getSerializationConfig()
-				.setClassDefinitions(Sets.newHashSet(Message.classDefinition(), ReceivedMessageStatus.classDefinition(),
-						SentMessageStatus.classDefinition(), Session.classDefinition(), Notification.classDefinition(),
+				.setClassDefinitions(Sets.newHashSet(Message.classDefinition(), InboundMessageStatus.classDefinition(),
+						OutboundMessageStatus.classDefinition(), Session.classDefinition(), Notification.classDefinition(),
 						Topic.classDefinition(), TopicSubscriber.classDefinition(),
 						TopicSubscription.classDefinition()));
 

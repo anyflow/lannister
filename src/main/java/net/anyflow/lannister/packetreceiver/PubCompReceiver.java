@@ -1,10 +1,10 @@
 package net.anyflow.lannister.packetreceiver;
 
-import net.anyflow.lannister.message.SenderTargetStatus;
-import net.anyflow.lannister.message.SentMessageStatus;
+import net.anyflow.lannister.message.OutboundMessageStatus;
 import net.anyflow.lannister.session.Session;
 import net.anyflow.lannister.topic.Topic;
 import net.anyflow.lannister.topic.TopicSubscriber;
+import net.anyflow.lannister.topic.Topics.ClientType;
 
 public class PubCompReceiver {
 
@@ -16,7 +16,7 @@ public class PubCompReceiver {
 	}
 
 	protected void handle(Session session, int messageId) {
-		Topic topic = Topic.NEXUS.get(session.clientId(), messageId);
+		Topic topic = Topic.NEXUS.get(session.clientId(), messageId, ClientType.SUBSCRIBER);
 		if (topic == null) {
 			logger.error("Topic does not exist : [clientId={}, messageId={}]", session.clientId(), messageId);
 			session.dispose(true); // [MQTT-3.3.5-2]
@@ -25,7 +25,7 @@ public class PubCompReceiver {
 
 		final TopicSubscriber topicSubscriber = topic.subscribers().get(session.clientId());
 
-		SentMessageStatus status = topicSubscriber.sentMessageStatuses().get(messageId);
+		OutboundMessageStatus status = topicSubscriber.sentOutboundMessageStatuses().get(messageId);
 
 		if (status == null) {
 			logger.error("No message status to REMOVE(QoS2) : [clientId={}, messageId={}]", session.clientId(),
@@ -33,14 +33,14 @@ public class PubCompReceiver {
 			session.dispose(true); // [MQTT-3.3.5-2]
 			return;
 		}
-		if (status.targetStatus() != SenderTargetStatus.TO_BE_REMOVED) {
+		if (status.targetStatus() != OutboundMessageStatus.Status.TO_BE_REMOVED) {
 			logger.error("Invalid status to REMOVE(QoS2) : [clientId={}, messageId={}, status={}]", session.clientId(),
 					messageId, status);
 			session.dispose(true); // [MQTT-3.3.5-2]
 			return;
 		}
 
-		topicSubscriber.removeMessageStatus(messageId);
+		topicSubscriber.removeOutboundMessageStatus(messageId);
 		logger.debug("message status REMOVED : [clientId={}, messageId={}]", session.clientId(), messageId);
 	}
 }

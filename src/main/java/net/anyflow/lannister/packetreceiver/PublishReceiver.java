@@ -7,9 +7,9 @@ import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
 import io.netty.handler.codec.mqtt.MqttPublishMessage;
 import net.anyflow.lannister.NettyUtil;
+import net.anyflow.lannister.message.InboundMessageStatus;
 import net.anyflow.lannister.message.Message;
 import net.anyflow.lannister.message.MessageFactory;
-import net.anyflow.lannister.message.ReceiverTargetStatus;
 import net.anyflow.lannister.session.Session;
 import net.anyflow.lannister.topic.Topic;
 
@@ -64,13 +64,13 @@ public class PublishReceiver extends SimpleChannelInboundHandler<MqttPublishMess
 
 		case AT_LEAST_ONCE:
 			session.send(MessageFactory.puback(msg.variableHeader().messageId())).addListener(
-					f -> topicFinal.removeReceivedMessageStatus(session.clientId(), msg.variableHeader().messageId())); // [MQTT-3.3.4-1],[MQTT-2.3.1-6]
+					f -> topicFinal.removeInboundMessageStatus(session.clientId(), msg.variableHeader().messageId())); // [MQTT-3.3.4-1],[MQTT-2.3.1-6]
 			return;
 
 		case EXACTLY_ONCE:
 			session.send(MessageFactory.pubrec(msg.variableHeader().messageId()))
-					.addListener(f -> topicFinal.setReceivedMessageStatus(session.clientId(),
-							msg.variableHeader().messageId(), ReceiverTargetStatus.TO_COMP)); // [MQTT-3.3.4-1],[MQTT-2.3.1-6]
+					.addListener(f -> topicFinal.setInboundMessageStatus(session.clientId(),
+							msg.variableHeader().messageId(), InboundMessageStatus.Status.TO_PUBCOMP)); // [MQTT-3.3.4-1],[MQTT-2.3.1-6]
 			return;
 
 		default:

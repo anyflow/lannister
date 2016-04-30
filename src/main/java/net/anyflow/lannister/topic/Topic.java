@@ -14,10 +14,10 @@ import com.hazelcast.nio.serialization.PortableWriter;
 
 import io.netty.handler.codec.mqtt.MqttQoS;
 import net.anyflow.lannister.Repository;
+import net.anyflow.lannister.message.InboundMessageStatus;
+import net.anyflow.lannister.message.InboundMessageStatus.Status;
 import net.anyflow.lannister.message.Message;
 import net.anyflow.lannister.message.MessageStatus;
-import net.anyflow.lannister.message.ReceivedMessageStatus;
-import net.anyflow.lannister.message.ReceiverTargetStatus;
 import net.anyflow.lannister.serialization.Jsonizable;
 import net.anyflow.lannister.serialization.SerializableFactory;
 import net.anyflow.lannister.session.Session;
@@ -39,7 +39,7 @@ public class Topic extends Jsonizable implements com.hazelcast.nio.serialization
 	@JsonProperty
 	private IMap<String, Message> messages; // KEY:Message.key()
 	@JsonProperty
-	private IMap<String, ReceivedMessageStatus> receivedMessageStatuses; // KEY:clientId_messageId
+	private IMap<String, InboundMessageStatus> inboundMessageStatuses; // KEY:clientId_messageId
 
 	public Topic() { // just for Serialization
 	}
@@ -49,7 +49,7 @@ public class Topic extends Jsonizable implements com.hazelcast.nio.serialization
 		this.retainedMessage = null;
 		this.subscribers = Repository.SELF.generator().getMap(subscribersName());
 		this.messages = Repository.SELF.generator().getMap(messagesName());
-		this.receivedMessageStatuses = Repository.SELF.generator().getMap(receivedMessageStatusesName());
+		this.inboundMessageStatuses = Repository.SELF.generator().getMap(inboundMessageStatusesName());
 	}
 
 	private String subscribersName() {
@@ -60,8 +60,8 @@ public class Topic extends Jsonizable implements com.hazelcast.nio.serialization
 		return "TOPIC(" + name + ")_messages";
 	}
 
-	private String receivedMessageStatusesName() {
-		return "TOPIC(" + name + ")_receivedMessageStatuses";
+	private String inboundMessageStatusesName() {
+		return "TOPIC(" + name + ")_inboundMessageStatuses";
 	}
 
 	public String name() {
@@ -85,22 +85,26 @@ public class Topic extends Jsonizable implements com.hazelcast.nio.serialization
 		return messages;
 	}
 
-	public ImmutableMap<String, ReceivedMessageStatus> receivedMessageStatuses() {
-		return ImmutableMap.copyOf(receivedMessageStatuses);
+	public ImmutableMap<String, InboundMessageStatus> inboundMessageStatuses() {
+		return ImmutableMap.copyOf(inboundMessageStatuses);
 	}
 
-	public void removeReceivedMessageStatus(String clientId, int messageId) {
-		receivedMessageStatuses.remove(MessageStatus.key(clientId, messageId));
+	public InboundMessageStatus getInboundMessageStatus(String clientId, int messageId) {
+		return inboundMessageStatuses.get(MessageStatus.key(clientId, messageId));
 	}
 
-	public void setReceivedMessageStatus(String clientId, int messageId, ReceiverTargetStatus targetStatus) {
-		ReceivedMessageStatus status = receivedMessageStatuses.get(MessageStatus.key(clientId, messageId));
+	public void removeInboundMessageStatus(String clientId, int messageId) {
+		inboundMessageStatuses.remove(MessageStatus.key(clientId, messageId));
+	}
+
+	public void setInboundMessageStatus(String clientId, int messageId, Status targetStatus) {
+		InboundMessageStatus status = inboundMessageStatuses.get(MessageStatus.key(clientId, messageId));
 		if (status == null) {
-			status = new ReceivedMessageStatus(clientId, messageId);
+			status = new InboundMessageStatus(clientId, messageId);
 		}
 		status.targetStatus(targetStatus);
 
-		receivedMessageStatuses.put(status.key(), status);
+		inboundMessageStatuses.put(status.key(), status);
 	}
 
 	public void addSubscriber(String clientId) {
@@ -118,8 +122,8 @@ public class Topic extends Jsonizable implements com.hazelcast.nio.serialization
 
 		messages.put(message.key(), message);
 
-		setReceivedMessageStatus(requesterId, message.id(),
-				message.qos() == MqttQoS.AT_LEAST_ONCE ? ReceiverTargetStatus.TO_ACK : ReceiverTargetStatus.TO_REC);
+		setInboundMessageStatus(requesterId, message.id(),
+				message.qos() == MqttQoS.AT_LEAST_ONCE ? Status.TO_ACK : Status.TO_PUBREC);
 	}
 
 	public void broadcast(Message message) {
@@ -184,7 +188,7 @@ public class Topic extends Jsonizable implements com.hazelcast.nio.serialization
 
 		subscribers = Repository.SELF.generator().getMap(subscribersName());
 		messages = Repository.SELF.generator().getMap(messagesName());
-		receivedMessageStatuses = Repository.SELF.generator().getMap(receivedMessageStatusesName());
+		inboundMessageStatuses = Repository.SELF.generator().getMap(inboundMessageStatusesName());
 	}
 
 	public static ClassDefinition classDefinition() {
