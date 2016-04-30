@@ -21,7 +21,7 @@ public class Sessions implements MessageListener<Notification> {
 	private final Map<ChannelId, Session> lives;
 	private final IMap<String, Session> all;
 
-	protected Sessions() {
+	public Sessions() {
 		lives = Maps.newHashMap();
 		all = Repository.SELF.generator().getMap("sessions");
 	}

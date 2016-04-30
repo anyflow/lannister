@@ -5,13 +5,20 @@ public enum ReceiverTargetStatus {
 	TO_REC((byte) 1), // RECEIVER received
 	TO_COMP((byte) 2); // RECEIVER complete
 
-	private byte id;
+	private byte value;
 
-	private ReceiverTargetStatus(byte id) {
-		this.id = id;
+	private ReceiverTargetStatus(byte value) {
+		this.value = value;
 	}
 
-	public byte id() {
-		return id;
+	public byte value() {
+		return value;
+	}
+
+	public static ReceiverTargetStatus valueOf(byte value) {
+		for (ReceiverTargetStatus q : values()) {
+			if (q.value == value) { return q; }
+		}
+		throw new IllegalArgumentException("invalid ReceiverTargetStatus: " + value);
 	}
 }

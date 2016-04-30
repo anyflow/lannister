@@ -1,14 +1,19 @@
 package net.anyflow.lannister.session;
 
+import java.io.IOException;
 import java.util.Collection;
 import java.util.Date;
 import java.util.Map;
 import java.util.stream.Stream;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.Maps;
+import com.hazelcast.nio.serialization.ClassDefinition;
+import com.hazelcast.nio.serialization.ClassDefinitionBuilder;
+import com.hazelcast.nio.serialization.PortableReader;
+import com.hazelcast.nio.serialization.PortableWriter;
 
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelHandlerContext;
@@ -16,21 +21,22 @@ import io.netty.channel.ChannelId;
 import io.netty.handler.codec.mqtt.MqttMessage;
 import net.anyflow.lannister.Jsonizable;
 import net.anyflow.lannister.Literals;
+import net.anyflow.lannister.Repository;
+import net.anyflow.lannister.SerializableFactory;
 import net.anyflow.lannister.message.Message;
 import net.anyflow.lannister.topic.Topic;
 import net.anyflow.lannister.topic.TopicSubscription;
 
-public class Session extends Jsonizable implements java.io.Serializable {
+public class Session extends Jsonizable implements com.hazelcast.nio.serialization.Portable {
 
 	@SuppressWarnings("unused")
 	private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(Session.class);
 
-	private static final long serialVersionUID = -1800874748722060393L;
-
 	private static final int MAX_MESSAGE_ID_NUM = 0xffff;
 	private static final int MIN_MESSAGE_ID_NUM = 1;
 
-	public static Sessions NEXUS = new Sessions();
+	public static Sessions NEXUS;
+	public static final int ID = 4;
 
 	private transient ChannelHandlerContext ctx;
 	private transient Synchronizer synchronizer;
@@ -38,9 +44,9 @@ public class Session extends Jsonizable implements java.io.Serializable {
 	private transient SessionDisposer sessionDisposer;
 
 	@JsonProperty
-	private final String clientId;
+	private String clientId;
 	@JsonProperty
-	private final Map<String, TopicSubscription> topicSubscriptions;
+	private Map<String, TopicSubscription> topicSubscriptions;
 	@JsonProperty
 	private int currentMessageId;
 	@JsonProperty
@@ -51,23 +57,30 @@ public class Session extends Jsonizable implements java.io.Serializable {
 	private int keepAliveSeconds;
 	@JsonFormat(shape = JsonFormat.Shape.STRING, pattern = Literals.DATE_DEFAULT_FORMAT, timezone = Literals.DATE_DEFAULT_TIMEZONE)
 	@JsonProperty
-	private final Date createTime;
+	private Date createTime;
 	@JsonFormat(shape = JsonFormat.Shape.STRING, pattern = Literals.DATE_DEFAULT_FORMAT, timezone = Literals.DATE_DEFAULT_TIMEZONE)
 	@JsonProperty
 	private Date lastIncomingTime;
+
+	public Session() { // just for serialization
+	}
 
 	public Session(ChannelHandlerContext ctx, String clientId, int keepAliveSeconds, boolean cleanSession,
 			Message will) {
 		this.clientId = clientId;
 		this.createTime = new Date();
-		this.topicSubscriptions = Maps.newHashMap();
 		this.currentMessageId = 0;
 		this.keepAliveSeconds = keepAliveSeconds;
 		this.lastIncomingTime = new Date();
 		this.isCleanSession = cleanSession;
 		this.will = will; // [MQTT-3.1.2-9]
+		this.topicSubscriptions = Repository.SELF.generator().getMap(topicSubscriptionsName());
 
 		revive(ctx);
+	}
+
+	private String topicSubscriptionsName() {
+		return "CLIENTID(" + clientId + ")_topicSubscriptions";
 	}
 
 	public void revive(ChannelHandlerContext ctx) {
@@ -120,7 +133,6 @@ public class Session extends Jsonizable implements java.io.Serializable {
 
 	public TopicSubscription putTopicSubscription(TopicSubscription topicSubscription) {
 		TopicSubscription ret = topicSubscriptions.put(topicSubscription.topicFilter(), topicSubscription); // [MQTT-3.8.4-3]
-		synchronizer.execute();
 		return ret;
 	}
 
@@ -128,9 +140,7 @@ public class Session extends Jsonizable implements java.io.Serializable {
 		TopicSubscription ret = topicSubscriptions.remove(topicFilter);
 		if (ret == null) { return null; }
 
-		synchronizer.execute();
-
-		Topic.NEXUS.removeSubscribers(topicFilter, clientId, true);
+		Topic.NEXUS.removeSubscribers(topicFilter, clientId);
 
 		// TODO [MQTT-3.10.4-3] If a Server deletes a Subscription It MUST
 		// complete the delivery of any QoS 1 or QoS 2 messages which it has
@@ -172,7 +182,55 @@ public class Session extends Jsonizable implements java.io.Serializable {
 		return currentMessageId;
 	}
 
-	public void publishUnackedMessages() {
+	public void completeRemainedMessages() {
 		// TODO publish Unacked Messages
+	}
+
+	@JsonIgnore
+	@Override
+	public int getFactoryId() {
+		return SerializableFactory.ID;
+	}
+
+	@JsonIgnore
+	@Override
+	public int getClassId() {
+		return ID;
+	}
+
+	@Override
+	public void writePortable(PortableWriter writer) throws IOException {
+		writer.writeUTF("clientId", clientId);
+		writer.writeInt("currentMessageId", currentMessageId);
+		if (will != null) {
+			writer.writePortable("will", will);
+		}
+		else {
+			writer.writeNullPortable("will", SerializableFactory.ID, Message.ID);
+		}
+		writer.writeBoolean("isCleanSession", isCleanSession);
+		writer.writeInt("keepAliveSeconds", keepAliveSeconds);
+		writer.writeLong("createTime", createTime.getTime());
+		writer.writeLong("lastIncomingTime", lastIncomingTime.getTime());
+	}
+
+	@Override
+	public void readPortable(PortableReader reader) throws IOException {
+		clientId = reader.readUTF("clientId");
+		currentMessageId = reader.readInt("currentMessageId");
+		will = reader.readPortable("will");
+		isCleanSession = reader.readBoolean("isCleanSession");
+		keepAliveSeconds = reader.readInt("keepAliveSeconds");
+		createTime = new Date(reader.readLong("createTime"));
+		lastIncomingTime = new Date(reader.readLong("lastIncomingTime"));
+
+		topicSubscriptions = Repository.SELF.generator().getMap(topicSubscriptionsName());
+	}
+
+	public static ClassDefinition classDefinition() {
+		return new ClassDefinitionBuilder(SerializableFactory.ID, ID).addUTFField("clientId")
+				.addIntField("currentMessageId").addPortableField("will", Message.classDefinition())
+				.addBooleanField("isCleanSession").addIntField("keepAliveSeconds").addLongField("createTime")
+				.addLongField("lastIncomingTime").build();
 	}
 }

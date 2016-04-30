@@ -1,46 +1,67 @@
 package net.anyflow.lannister.topic;
 
+import java.io.IOException;
+
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableMap;
 import com.hazelcast.core.IMap;
+import com.hazelcast.nio.serialization.ClassDefinition;
+import com.hazelcast.nio.serialization.ClassDefinitionBuilder;
+import com.hazelcast.nio.serialization.PortableReader;
+import com.hazelcast.nio.serialization.PortableWriter;
 
 import io.netty.handler.codec.mqtt.MqttQoS;
 import net.anyflow.lannister.Jsonizable;
 import net.anyflow.lannister.Repository;
+import net.anyflow.lannister.SerializableFactory;
 import net.anyflow.lannister.message.Message;
 import net.anyflow.lannister.message.MessageStatus;
 import net.anyflow.lannister.message.ReceivedMessageStatus;
 import net.anyflow.lannister.message.ReceiverTargetStatus;
 import net.anyflow.lannister.session.Session;
 
-public class Topic extends Jsonizable implements java.io.Serializable {
+public class Topic extends Jsonizable implements com.hazelcast.nio.serialization.Portable {
 
 	@SuppressWarnings("unused")
 	private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(Topic.class);
 
-	private static final long serialVersionUID = -3335949846595801533L;
-
-	public static Topics NEXUS = new Topics();
+	public static Topics NEXUS;
+	public static final int ID = 6;
 
 	@JsonProperty
 	private String name;
 	@JsonProperty
 	private Message retainedMessage;
 	@JsonProperty
-	private IMap<String, TopicSubscriber> subscribers; // clientIds
+	private transient IMap<String, TopicSubscriber> subscribers; // clientIds
 	@JsonProperty
-	private IMap<String, Message> messages; // KEY:Message.key()
+	private transient IMap<String, Message> messages; // KEY:Message.key()
 	@JsonProperty
-	private IMap<String, ReceivedMessageStatus> receivedMessageStatus; // KEY:clientId_messageId
+	private transient IMap<String, ReceivedMessageStatus> receivedMessageStatuses; // KEY:clientId_messageId
+
+	public Topic() { // just for Serialization
+	}
 
 	public Topic(String name) {
 		this.name = name;
 		this.retainedMessage = null;
+		this.subscribers = Repository.SELF.generator().getMap(subscribersName());
+		this.messages = Repository.SELF.generator().getMap(messagesName());
+		this.receivedMessageStatuses = Repository.SELF.generator().getMap(receivedMessageStatusesName());
+	}
 
-		this.subscribers = Repository.SELF.generator().getMap("TOPIC(" + name + ")_subscribers");
-		this.messages = Repository.SELF.generator().getMap("TOPIC(" + name + ")_messages");
-		this.receivedMessageStatus = Repository.SELF.generator().getMap("TOPIC(" + name + ")_receivedMessageStatuses");
+	private String subscribersName() {
+		return "TOPIC(" + name + ")_subscribers";
+	}
+
+	private String messagesName() {
+		return "TOPIC(" + name + ")_messages";
+	}
+
+	private String receivedMessageStatusesName() {
+		return "TOPIC(" + name + ")_receivedMessageStatuses";
 	}
 
 	public String name() {
@@ -65,35 +86,31 @@ public class Topic extends Jsonizable implements java.io.Serializable {
 	}
 
 	public ImmutableMap<String, ReceivedMessageStatus> receivedMessageStatuses() {
-		return ImmutableMap.copyOf(receivedMessageStatus);
+		return ImmutableMap.copyOf(receivedMessageStatuses);
 	}
 
 	public void removeReceivedMessageStatus(String clientId, int messageId) {
-		receivedMessageStatus.remove(MessageStatus.key(clientId, messageId));
+		receivedMessageStatuses.remove(MessageStatus.key(clientId, messageId));
 	}
 
 	public void setReceivedMessageStatus(String clientId, int messageId, ReceiverTargetStatus targetStatus) {
-		ReceivedMessageStatus status = receivedMessageStatus.get(MessageStatus.key(clientId, messageId));
+		ReceivedMessageStatus status = receivedMessageStatuses.get(MessageStatus.key(clientId, messageId));
 		if (status == null) {
 			status = new ReceivedMessageStatus(clientId, messageId);
 		}
 		status.targetStatus(targetStatus);
 
-		receivedMessageStatus.put(status.key(), status);
+		receivedMessageStatuses.put(status.key(), status);
 	}
 
 	public void addSubscriber(String clientId) {
 		subscribers.put(clientId, new TopicSubscriber(clientId, name));
 	}
 
-	public void removeSubscriber(String clientId, boolean persist) {
+	public void removeSubscriber(String clientId) {
 		subscribers.remove(clientId);
 
 		// TODO should be this topic remained in spite of no subscriber?
-
-		if (persist) {
-			NEXUS.put(this);
-		}
 	}
 
 	public void putMessage(String requesterId, Message message) {
@@ -107,7 +124,7 @@ public class Topic extends Jsonizable implements java.io.Serializable {
 
 	public void broadcast(Message message) {
 		subscribers.keySet().stream().parallel().forEach(id -> {
-			Session session = Session.NEXUS.lives().values().stream().filter(s -> id.equals(s.channelId())).findFirst()
+			Session session = Session.NEXUS.lives().values().stream().filter(s -> id.equals(s.clientId())).findFirst()
 					.orElse(null);
 
 			if (session != null) {
@@ -134,5 +151,44 @@ public class Topic extends Jsonizable implements java.io.Serializable {
 
 		// TODO should be added in case of no subscriber & no retained Message?
 		return NEXUS.put(topic);
+	}
+
+	@JsonIgnore
+	@Override
+	public int getFactoryId() {
+		return SerializableFactory.ID;
+	}
+
+	@JsonIgnore
+	@Override
+	public int getClassId() {
+		return ID;
+	}
+
+	@Override
+	public void writePortable(PortableWriter writer) throws IOException {
+		writer.writeUTF("name", name);
+
+		if (retainedMessage != null) {
+			writer.writePortable("retainedMessage", retainedMessage);
+		}
+		else {
+			writer.writeNullPortable("retainedMessage", SerializableFactory.ID, Message.ID);
+		}
+	}
+
+	@Override
+	public void readPortable(PortableReader reader) throws IOException {
+		name = reader.readUTF("name");
+		retainedMessage = reader.readPortable("retainedMessage");
+
+		subscribers = Repository.SELF.generator().getMap(subscribersName());
+		messages = Repository.SELF.generator().getMap(messagesName());
+		receivedMessageStatuses = Repository.SELF.generator().getMap(receivedMessageStatusesName());
+	}
+
+	public static ClassDefinition classDefinition() {
+		return new ClassDefinitionBuilder(SerializableFactory.ID, ID).addUTFField("name")
+				.addPortableField("retainedMessage", Message.classDefinition()).build();
 	}
 }

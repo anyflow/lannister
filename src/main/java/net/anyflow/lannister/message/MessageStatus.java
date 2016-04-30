@@ -1,12 +1,19 @@
 package net.anyflow.lannister.message;
 
+import java.io.IOException;
+
+import com.hazelcast.nio.serialization.PortableReader;
+import com.hazelcast.nio.serialization.PortableWriter;
+
 import net.anyflow.lannister.Jsonizable;
 
-public abstract class MessageStatus extends Jsonizable implements java.io.Serializable {
-	private static final long serialVersionUID = 2335555073274982604L;
+public abstract class MessageStatus extends Jsonizable implements com.hazelcast.nio.serialization.Portable {
 
 	private String clientId;
 	private int messageId;
+
+	public MessageStatus() { // just for Serialization
+	}
 
 	protected MessageStatus(String clientId, int messageId) {
 		this.clientId = clientId;
@@ -27,5 +34,17 @@ public abstract class MessageStatus extends Jsonizable implements java.io.Serial
 
 	public static String key(String clientId, int messageId) {
 		return clientId + "_" + Integer.toString(messageId);
+	}
+
+	@Override
+	public void writePortable(PortableWriter writer) throws IOException {
+		writer.writeUTF("clientId", clientId);
+		writer.writeInt("messageId", messageId);
+	}
+
+	@Override
+	public void readPortable(PortableReader reader) throws IOException {
+		clientId = reader.readUTF("clientId");
+		messageId = reader.readInt("messageId");
 	}
 }

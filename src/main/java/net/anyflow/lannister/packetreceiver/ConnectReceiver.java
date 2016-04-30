@@ -128,16 +128,14 @@ public class ConnectReceiver extends SimpleChannelInboundHandler<MqttConnectMess
 			}
 		}
 
-		MqttConnAckMessage acceptMsg = MessageFactory.connack(returnCode, sessionPresent);
-
-		final boolean sendUnackedMessage = sessionPresent;
 		final Session sessionFinal = session;
+		final MqttConnAckMessage acceptMsg = MessageFactory.connack(returnCode, sessionPresent);
 
 		session.send(acceptMsg).addListener(f -> {
 			eventListener.connAckMessageSent(acceptMsg);
 
-			if (sendUnackedMessage) {
-				sessionFinal.publishUnackedMessages();
+			if (sessionFinal.isCleanSession() == false) {
+				sessionFinal.completeRemainedMessages();
 			}
 		});
 	}

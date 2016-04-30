@@ -1,14 +1,21 @@
 package net.anyflow.lannister.message;
 
+import java.io.IOException;
+
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.hazelcast.nio.serialization.ClassDefinition;
+import com.hazelcast.nio.serialization.ClassDefinitionBuilder;
+import com.hazelcast.nio.serialization.PortableReader;
+import com.hazelcast.nio.serialization.PortableWriter;
 
 import io.netty.handler.codec.mqtt.MqttQoS;
 import io.netty.util.internal.StringUtil;
 import net.anyflow.lannister.Jsonizable;
+import net.anyflow.lannister.SerializableFactory;
 
-public class Message extends Jsonizable implements java.io.Serializable {
-
-	private static final long serialVersionUID = -3661073065729414035L;
+public class Message extends Jsonizable implements com.hazelcast.nio.serialization.Portable {
+	public final static int ID = 1;
 
 	@JsonProperty
 	private Integer id;
@@ -22,6 +29,9 @@ public class Message extends Jsonizable implements java.io.Serializable {
 	private MqttQoS qos;
 	@JsonProperty
 	private boolean isRetain;
+
+	public Message() { // just for Serialization
+	}
 
 	public Message(Integer id, String topicName, String publisherId, byte[] message, MqttQoS qos, boolean isRetain) {
 		this.id = id;
@@ -81,5 +91,43 @@ public class Message extends Jsonizable implements java.io.Serializable {
 
 	public String key() {
 		return publisherId + "_" + Integer.toString(id);
+	}
+
+	@JsonIgnore
+	@Override
+	public int getFactoryId() {
+		return SerializableFactory.ID;
+	}
+
+	@JsonIgnore
+	@Override
+	public int getClassId() {
+		return ID;
+	}
+
+	@Override
+	public void writePortable(PortableWriter writer) throws IOException {
+		writer.writeInt("id", id);
+		writer.writeUTF("topicName", topicName);
+		writer.writeUTF("publisherId", publisherId);
+		writer.writeByteArray("message", message);
+		writer.writeInt("qos", qos.value());
+		writer.writeBoolean("isRetain", isRetain);
+	}
+
+	@Override
+	public void readPortable(PortableReader reader) throws IOException {
+		id = reader.readInt("id");
+		topicName = reader.readUTF("topicName");
+		publisherId = reader.readUTF("publisherId");
+		message = reader.readByteArray("message");
+		qos = MqttQoS.valueOf(reader.readInt("qos"));
+		isRetain = reader.readBoolean("isRetain");
+	}
+
+	public static ClassDefinition classDefinition() {
+		return new ClassDefinitionBuilder(SerializableFactory.ID, ID).addIntField("id").addUTFField("topicName")
+				.addUTFField("publisherId").addByteArrayField("message").addIntField("qos").addBooleanField("isRetain")
+				.build();
 	}
 }

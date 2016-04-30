@@ -9,7 +9,7 @@ import com.hazelcast.core.IMap;
 import com.hazelcast.core.ITopic;
 
 import net.anyflow.lannister.Repository;
-import net.anyflow.lannister.session.Session;
+import net.anyflow.lannister.session.Sessions;
 
 public class Topics {
 
@@ -18,10 +18,10 @@ public class Topics {
 	private final IMap<String, Topic> topics;
 	private final ITopic<Notification> notifier;
 
-	protected Topics() {
+	public Topics(Sessions sessions) {
 		this.topics = Repository.SELF.generator().getMap("topics");
 		this.notifier = Repository.SELF.generator().getTopic("publishNotifier");
-		this.notifier.addMessageListener(Session.NEXUS);
+		this.notifier.addMessageListener(sessions);
 	}
 
 	public ImmutableMap<String, Topic> map() {
@@ -62,11 +62,11 @@ public class Topics {
 		return topics.remove(topic.name());
 	}
 
-	public void removeSubscribers(String topicFilter, String clientId, boolean persist) {
+	public void removeSubscribers(String topicFilter, String clientId) {
 		List<Topic> changed = Lists.newArrayList();
 
 		Stream.of(matches(topicFilter)).forEach(t -> {
-			t.removeSubscriber(clientId, true);
+			t.removeSubscriber(clientId);
 			changed.add(t);
 		});
 

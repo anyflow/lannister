@@ -1,28 +1,45 @@
 package net.anyflow.lannister.topic;
 
+import java.io.IOException;
+
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.common.collect.ImmutableMap;
 import com.hazelcast.core.IMap;
+import com.hazelcast.nio.serialization.ClassDefinition;
+import com.hazelcast.nio.serialization.ClassDefinitionBuilder;
+import com.hazelcast.nio.serialization.PortableReader;
+import com.hazelcast.nio.serialization.PortableWriter;
 
 import net.anyflow.lannister.Jsonizable;
 import net.anyflow.lannister.Repository;
+import net.anyflow.lannister.SerializableFactory;
 import net.anyflow.lannister.message.MessageStatus;
 import net.anyflow.lannister.message.SenderTargetStatus;
 import net.anyflow.lannister.message.SentMessageStatus;
 
-public class TopicSubscriber extends Jsonizable implements java.io.Serializable {
+public class TopicSubscriber extends Jsonizable implements com.hazelcast.nio.serialization.Portable {
 
-	private static final long serialVersionUID = 5957543847054029282L;
+	public final static int ID = 7;
 
 	@JsonProperty
-	private final String clientId;
+	private String topicName;
 	@JsonProperty
-	private IMap<Integer, SentMessageStatus> messageStatuses; // KEY:messageId
+	private String clientId;
+	@JsonProperty
+	private transient IMap<Integer, SentMessageStatus> messageStatuses; // KEY:messageId
+
+	public TopicSubscriber() { // just for Serialization
+	}
 
 	protected TopicSubscriber(String topicName, String clientId) {
+		this.topicName = topicName;
 		this.clientId = clientId;
-		this.messageStatuses = Repository.SELF.generator()
-				.getMap("TOPIC(" + topicName + ")_CLIENT(" + clientId + ")_sentMessageStatuses");
+		this.messageStatuses = Repository.SELF.generator().getMap(messageStatusesName());
+	}
+
+	private String messageStatusesName() {
+		return "TOPIC(" + topicName + ")_CLIENT(" + clientId + ")_sentMessageStatuses";
 	}
 
 	public ImmutableMap<Integer, SentMessageStatus> sentMessageStatuses() {
@@ -48,5 +65,36 @@ public class TopicSubscriber extends Jsonizable implements java.io.Serializable 
 		status.targetStatus(targetStatus);
 
 		return messageStatuses.put(status.messageId(), status);
+	}
+
+	@JsonIgnore
+	@Override
+	public int getFactoryId() {
+		return SerializableFactory.ID;
+	}
+
+	@JsonIgnore
+	@Override
+	public int getClassId() {
+		return ID;
+	}
+
+	@Override
+	public void writePortable(PortableWriter writer) throws IOException {
+		writer.writeUTF("topicName", topicName);
+		writer.writeUTF("clientId", clientId);
+	}
+
+	@Override
+	public void readPortable(PortableReader reader) throws IOException {
+		topicName = reader.readUTF("topicName");
+		clientId = reader.readUTF("clientId");
+
+		messageStatuses = Repository.SELF.generator().getMap(messageStatusesName());
+	}
+
+	public static ClassDefinition classDefinition() {
+		return new ClassDefinitionBuilder(SerializableFactory.ID, ID).addUTFField("topicName").addUTFField("clientId")
+				.build();
 	}
 }
