@@ -1,4 +1,4 @@
-package net.anyflow.lannister;
+package net.anyflow.lannister.serialization;
 
 import com.hazelcast.nio.serialization.Portable;
 import com.hazelcast.nio.serialization.PortableFactory;

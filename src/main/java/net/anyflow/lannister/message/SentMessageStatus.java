@@ -9,7 +9,7 @@ import com.hazelcast.nio.serialization.ClassDefinitionBuilder;
 import com.hazelcast.nio.serialization.PortableReader;
 import com.hazelcast.nio.serialization.PortableWriter;
 
-import net.anyflow.lannister.SerializableFactory;
+import net.anyflow.lannister.serialization.SerializableFactory;
 
 public class SentMessageStatus extends MessageStatus {
 

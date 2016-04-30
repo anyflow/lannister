@@ -19,11 +19,11 @@ import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelId;
 import io.netty.handler.codec.mqtt.MqttMessage;
-import net.anyflow.lannister.Jsonizable;
 import net.anyflow.lannister.Literals;
 import net.anyflow.lannister.Repository;
-import net.anyflow.lannister.SerializableFactory;
 import net.anyflow.lannister.message.Message;
+import net.anyflow.lannister.serialization.Jsonizable;
+import net.anyflow.lannister.serialization.SerializableFactory;
 import net.anyflow.lannister.topic.Topic;
 import net.anyflow.lannister.topic.TopicSubscription;
 

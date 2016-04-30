@@ -11,8 +11,8 @@ import com.hazelcast.nio.serialization.PortableReader;
 import com.hazelcast.nio.serialization.PortableWriter;
 
 import io.netty.handler.codec.mqtt.MqttQoS;
-import net.anyflow.lannister.Jsonizable;
-import net.anyflow.lannister.SerializableFactory;
+import net.anyflow.lannister.serialization.Jsonizable;
+import net.anyflow.lannister.serialization.SerializableFactory;
 
 public class TopicSubscription extends Jsonizable implements com.hazelcast.nio.serialization.Portable {
 

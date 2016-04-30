@@ -13,13 +13,13 @@ import com.hazelcast.nio.serialization.PortableReader;
 import com.hazelcast.nio.serialization.PortableWriter;
 
 import io.netty.handler.codec.mqtt.MqttQoS;
-import net.anyflow.lannister.Jsonizable;
 import net.anyflow.lannister.Repository;
-import net.anyflow.lannister.SerializableFactory;
 import net.anyflow.lannister.message.Message;
 import net.anyflow.lannister.message.MessageStatus;
 import net.anyflow.lannister.message.ReceivedMessageStatus;
 import net.anyflow.lannister.message.ReceiverTargetStatus;
+import net.anyflow.lannister.serialization.Jsonizable;
+import net.anyflow.lannister.serialization.SerializableFactory;
 import net.anyflow.lannister.session.Session;
 
 public class Topic extends Jsonizable implements com.hazelcast.nio.serialization.Portable {

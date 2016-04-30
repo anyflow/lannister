@@ -11,12 +11,12 @@ import com.hazelcast.nio.serialization.ClassDefinitionBuilder;
 import com.hazelcast.nio.serialization.PortableReader;
 import com.hazelcast.nio.serialization.PortableWriter;
 
-import net.anyflow.lannister.Jsonizable;
 import net.anyflow.lannister.Repository;
-import net.anyflow.lannister.SerializableFactory;
 import net.anyflow.lannister.message.MessageStatus;
 import net.anyflow.lannister.message.SenderTargetStatus;
 import net.anyflow.lannister.message.SentMessageStatus;
+import net.anyflow.lannister.serialization.Jsonizable;
+import net.anyflow.lannister.serialization.SerializableFactory;
 
 public class TopicSubscriber extends Jsonizable implements com.hazelcast.nio.serialization.Portable {
 

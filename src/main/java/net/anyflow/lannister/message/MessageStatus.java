@@ -6,7 +6,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.hazelcast.nio.serialization.PortableReader;
 import com.hazelcast.nio.serialization.PortableWriter;
 
-import net.anyflow.lannister.Jsonizable;
+import net.anyflow.lannister.serialization.Jsonizable;
 
 public abstract class MessageStatus extends Jsonizable implements com.hazelcast.nio.serialization.Portable {
 

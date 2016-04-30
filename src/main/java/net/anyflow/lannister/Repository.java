@@ -1,13 +1,17 @@
 package net.anyflow.lannister;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.collect.Sets;
 import com.hazelcast.config.Config;
+import com.hazelcast.config.SerializerConfig;
 import com.hazelcast.core.Hazelcast;
 import com.hazelcast.core.HazelcastInstance;
 
 import net.anyflow.lannister.message.Message;
 import net.anyflow.lannister.message.ReceivedMessageStatus;
 import net.anyflow.lannister.message.SentMessageStatus;
+import net.anyflow.lannister.serialization.JsonSerializer;
+import net.anyflow.lannister.serialization.SerializableFactory;
 import net.anyflow.lannister.session.Session;
 import net.anyflow.lannister.topic.Notification;
 import net.anyflow.lannister.topic.Topic;
@@ -36,6 +40,9 @@ public class Repository {
 						SentMessageStatus.classDefinition(), Session.classDefinition(), Notification.classDefinition(),
 						Topic.classDefinition(), TopicSubscriber.classDefinition(),
 						TopicSubscription.classDefinition()));
+
+		config.getSerializationConfig().getSerializerConfigs().add(new SerializerConfig().setTypeClass(JsonNode.class)
+				.setImplementation(JsonSerializer.makePlain(JsonNode.class)));
 
 		generator = Hazelcast.newHazelcastInstance(config);
 	}

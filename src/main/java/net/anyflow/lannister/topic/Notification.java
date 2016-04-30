@@ -7,8 +7,8 @@ import com.hazelcast.nio.serialization.ClassDefinitionBuilder;
 import com.hazelcast.nio.serialization.PortableReader;
 import com.hazelcast.nio.serialization.PortableWriter;
 
-import net.anyflow.lannister.SerializableFactory;
 import net.anyflow.lannister.message.Message;
+import net.anyflow.lannister.serialization.SerializableFactory;
 
 public class Notification implements com.hazelcast.nio.serialization.Portable {
 	public final static int ID = 5;

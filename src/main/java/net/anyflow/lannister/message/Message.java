@@ -11,8 +11,8 @@ import com.hazelcast.nio.serialization.PortableWriter;
 
 import io.netty.handler.codec.mqtt.MqttQoS;
 import io.netty.util.internal.StringUtil;
-import net.anyflow.lannister.Jsonizable;
-import net.anyflow.lannister.SerializableFactory;
+import net.anyflow.lannister.serialization.Jsonizable;
+import net.anyflow.lannister.serialization.SerializableFactory;
 
 public class Message extends Jsonizable implements com.hazelcast.nio.serialization.Portable {
 	public final static int ID = 1;

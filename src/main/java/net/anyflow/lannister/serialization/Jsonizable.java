@@ -1,4 +1,4 @@
-package net.anyflow.lannister;
+package net.anyflow.lannister.serialization;
 
 import java.io.IOException;
 
@@ -33,7 +33,7 @@ public class Jsonizable {
 	public static <T> T read(String json, TypeReference<T> typeReference, ObjectMapper mapper) {
 
 		try {
-			return mapper.reader().withType(typeReference).readValue(json);
+			return mapper.reader().forType(typeReference).readValue(json);
 		}
 		catch (IOException e) {
 			logger.error(e.getMessage(), e);
@@ -44,7 +44,7 @@ public class Jsonizable {
 	public static <T> T read(String json, Class<T> returnClass, ObjectMapper mapper) {
 
 		try {
-			return mapper.reader().withType(returnClass).readValue(json);
+			return mapper.reader().forType(returnClass).readValue(json);
 		}
 		catch (IOException e) {
 			logger.error(e.getMessage(), e);
@@ -55,7 +55,7 @@ public class Jsonizable {
 	public static <T> T read(byte[] json, Class<T> returnClass, ObjectMapper mapper) {
 
 		try {
-			return mapper.reader().withType(returnClass).readValue(json);
+			return mapper.reader().forType(returnClass).readValue(json);
 		}
 		catch (IOException e) {
 			logger.error(e.getMessage(), e);
