@@ -9,6 +9,7 @@ import java.util.stream.Stream;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.google.common.collect.ImmutableMap;
 import com.hazelcast.nio.serialization.ClassDefinition;
 import com.hazelcast.nio.serialization.ClassDefinitionBuilder;
@@ -22,6 +23,7 @@ import io.netty.handler.codec.mqtt.MqttMessage;
 import net.anyflow.lannister.Literals;
 import net.anyflow.lannister.Repository;
 import net.anyflow.lannister.message.Message;
+import net.anyflow.lannister.serialization.ChannelIdSerializer;
 import net.anyflow.lannister.serialization.Jsonizable;
 import net.anyflow.lannister.serialization.SerializableFactory;
 import net.anyflow.lannister.topic.Topic;
@@ -37,11 +39,6 @@ public class Session extends Jsonizable implements com.hazelcast.nio.serializati
 
 	public static Sessions NEXUS;
 	public static final int ID = 4;
-
-	private transient ChannelHandlerContext ctx;
-	private transient Synchronizer synchronizer;
-	private transient MessageSender messageSender;
-	private transient SessionDisposer sessionDisposer;
 
 	@JsonProperty
 	private String clientId;
@@ -62,11 +59,14 @@ public class Session extends Jsonizable implements com.hazelcast.nio.serializati
 	@JsonProperty
 	private Date lastIncomingTime;
 
+	private Synchronizer synchronizer;
+	private MessageSender messageSender;
+	private SessionDisposer sessionDisposer;
+
 	public Session() { // just for serialization
 	}
 
-	public Session(ChannelHandlerContext ctx, String clientId, int keepAliveSeconds, boolean cleanSession,
-			Message will) {
+	public Session(String clientId, int keepAliveSeconds, boolean cleanSession, Message will) {
 		this.clientId = clientId;
 		this.createTime = new Date();
 		this.currentMessageId = 0;
@@ -76,7 +76,7 @@ public class Session extends Jsonizable implements com.hazelcast.nio.serializati
 		this.will = will; // [MQTT-3.1.2-9]
 		this.topicSubscriptions = Repository.SELF.generator().getMap(topicSubscriptionsName());
 
-		revive(ctx);
+		revive(null);
 	}
 
 	private String topicSubscriptionsName() {
@@ -84,7 +84,12 @@ public class Session extends Jsonizable implements com.hazelcast.nio.serializati
 	}
 
 	public void revive(ChannelHandlerContext ctx) {
-		this.ctx = ctx;
+		if (ctx == null) {
+			ctx = NEXUS.channelHandlerContext(clientId);
+		}
+
+		if (ctx == null) { return; }
+
 		this.synchronizer = new Synchronizer(this);
 		this.messageSender = new MessageSender(this, ctx);
 		this.sessionDisposer = new SessionDisposer(ctx, clientId, will, messageSender);
@@ -92,12 +97,25 @@ public class Session extends Jsonizable implements com.hazelcast.nio.serializati
 		// TODO Do I must add listener to Repository.broadcaster?
 	}
 
-	public String clientId() {
-		return clientId;
+	@JsonSerialize(using = ChannelIdSerializer.class)
+	@JsonProperty
+	public ChannelId channelId() {
+		ChannelHandlerContext ctx = NEXUS.channelHandlerContext(clientId);
+		if (ctx == null) { return null; }
+
+		return ctx.channel().id();
 	}
 
-	public ChannelId channelId() {
-		return ctx.channel().id();
+	@JsonProperty
+	public boolean isConnected() {
+		ChannelHandlerContext ctx = NEXUS.channelHandlerContext(clientId);
+		if (ctx == null) { return false; }
+
+		return ctx.channel().isActive();
+	}
+
+	public String clientId() {
+		return clientId;
 	}
 
 	public Message will() {
@@ -117,10 +135,6 @@ public class Session extends Jsonizable implements com.hazelcast.nio.serializati
 	public void setLastIncomingTime(Date lastIncomingTime) {
 		this.lastIncomingTime = lastIncomingTime;
 		synchronizer.execute();
-	}
-
-	public boolean isConnected() {
-		return ctx != null && ctx.channel().isActive();
 	}
 
 	public ImmutableMap<String, TopicSubscription> topicSubscriptions() {
@@ -225,6 +239,8 @@ public class Session extends Jsonizable implements com.hazelcast.nio.serializati
 		lastIncomingTime = new Date(reader.readLong("lastIncomingTime"));
 
 		topicSubscriptions = Repository.SELF.generator().getMap(topicSubscriptionsName());
+
+		revive(null);
 	}
 
 	public static ClassDefinition classDefinition() {

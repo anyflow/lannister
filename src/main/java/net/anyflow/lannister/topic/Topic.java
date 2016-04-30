@@ -124,8 +124,8 @@ public class Topic extends Jsonizable implements com.hazelcast.nio.serialization
 
 	public void broadcast(Message message) {
 		subscribers.keySet().stream().parallel().forEach(id -> {
-			Session session = Session.NEXUS.lives().values().stream().filter(s -> id.equals(s.clientId())).findFirst()
-					.orElse(null);
+			Session session = Session.NEXUS.map().values().stream()
+					.filter(s -> id.equals(s.clientId()) && s.isConnected()).findFirst().orElse(null);
 
 			if (session != null) {
 				session.sendPublish(this, message, false);

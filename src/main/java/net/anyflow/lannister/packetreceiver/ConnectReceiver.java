@@ -36,7 +36,7 @@ public class ConnectReceiver extends SimpleChannelInboundHandler<MqttConnectMess
 
 		eventListener.connectMessageReceived(msg);
 
-		Session session = Session.NEXUS.lives().get(ctx.channel().id());
+		Session session = Session.NEXUS.get(ctx.channel().id());
 		if (session != null) {
 			session.dispose(true); // [MQTT-3.1.0-2]
 			return;
@@ -83,8 +83,8 @@ public class ConnectReceiver extends SimpleChannelInboundHandler<MqttConnectMess
 		// doesn't have it
 
 		final String clientIdFinal = clientId;
-		session = Session.NEXUS.lives().values().stream().filter(s -> clientIdFinal.equals(s.clientId())).findFirst()
-				.orElse(null);
+		session = Session.NEXUS.map().values().parallelStream()
+				.filter(s -> s.isConnected() && clientIdFinal.equals(s.clientId())).findFirst().orElse(null);
 
 		if (session != null && session.isConnected()) {
 			session.dispose(false); // [MQTT-3.1.4-2]
@@ -92,27 +92,25 @@ public class ConnectReceiver extends SimpleChannelInboundHandler<MqttConnectMess
 
 		boolean sessionPresent = !cleanSession;
 		if (cleanSession) {
-			session = new Session(ctx, clientId, msg.variableHeader().keepAliveTimeSeconds(), true,
-					will(clientId, msg)); // [MQTT-3.1.2-6]
+			session = new Session(clientId, msg.variableHeader().keepAliveTimeSeconds(), true, will(clientId, msg)); // [MQTT-3.1.2-6]
 
-			Session.NEXUS.put(session);
+			Session.NEXUS.put(session, ctx);
 
 			sessionPresent = false; // [MQTT-3.2.2-1]
 		}
 		else {
-			session = Session.NEXUS.all().get(clientId);
+			session = Session.NEXUS.get(clientId);
 
 			if (session == null) {
-				session = new Session(ctx, clientId, msg.variableHeader().keepAliveTimeSeconds(), false,
+				session = new Session(clientId, msg.variableHeader().keepAliveTimeSeconds(), false,
 						will(clientId, msg));
 				sessionPresent = false; // [MQTT-3.2.2-3]
 			}
 			else {
-				session.revive(ctx);
 				sessionPresent = true; // [MQTT-3.2.2-2]
 			}
 
-			Session.NEXUS.put(session);
+			Session.NEXUS.put(session, ctx);
 		}
 
 		if (session.will() != null) {
@@ -156,7 +154,7 @@ public class ConnectReceiver extends SimpleChannelInboundHandler<MqttConnectMess
 
 					eventListener.connAckMessageSent(msg);
 
-					Session session = Session.NEXUS.lives().get(ctx.channel().id());
+					Session session = Session.NEXUS.get(ctx.channel().id());
 
 					if (session != null) {
 						session.dispose(true); // [MQTT-3.2.2-5]

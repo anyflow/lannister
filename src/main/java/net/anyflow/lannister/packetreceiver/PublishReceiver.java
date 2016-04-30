@@ -21,7 +21,7 @@ public class PublishReceiver extends SimpleChannelInboundHandler<MqttPublishMess
 	protected void channelRead0(ChannelHandlerContext ctx, MqttPublishMessage msg) throws Exception {
 		logger.debug("packet incoming : {}", msg.toString());
 
-		Session session = Session.NEXUS.lives().get(ctx.channel().id());
+		Session session = Session.NEXUS.get(ctx.channel().id());
 		if (session == null) {
 			logger.error("None exist session message : {}", msg.toString());
 			ctx.disconnect().addListener(ChannelFutureListener.CLOSE); // [MQTT-4.8.0-1]
@@ -86,7 +86,7 @@ public class PublishReceiver extends SimpleChannelInboundHandler<MqttPublishMess
 
 		if (IllegalArgumentException.class.getName().equals(cause.getClass().getName())
 				&& cause.getMessage().contains("invalid QoS")) {
-			Session session = Session.NEXUS.lives().get(ctx.channel().id());
+			Session session = Session.NEXUS.get(ctx.channel().id());
 
 			if (session != null) {
 				session.dispose(true); // [MQTT-3.3.1-4]
