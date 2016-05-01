@@ -19,16 +19,16 @@ import net.anyflow.lannister.packetreceiver.SessionExpirator;
 import net.anyflow.lannister.packetreceiver.SubscribeReceiver;
 import net.anyflow.lannister.packetreceiver.UnsubscribeReceiver;
 
-public class Server {
+public class MqttServer {
 
-	private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(Server.class);
+	private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(MqttServer.class);
 
 	private final EventLoopGroup bossGroup;
 	private final EventLoopGroup workerGroup;
 
 	private static final int PORT = Settings.SELF.getInt("lannister.port", 1883);
 
-	public Server() {
+	public MqttServer() {
 		bossGroup = new NioEventLoopGroup(Settings.SELF.getInt("lannister.system.bossThreadCount", 0),
 				new DefaultThreadFactory("server/boss"));
 		workerGroup = new NioEventLoopGroup(Settings.SELF.getInt("lannister.system.workerThreadCount", 0),
@@ -57,17 +57,15 @@ public class Server {
 					ch.pipeline().addLast(ConnectReceiver.class.getName(), new ConnectReceiver());
 					ch.pipeline().addLast(PubAckReceiver.class.getName(), new PubAckReceiver());
 					ch.pipeline().addLast(PublishReceiver.class.getName(), new PublishReceiver());
-					ch.pipeline().addLast(SubscribeReceiver.class.getName(),
-							new SubscribeReceiver());
-					ch.pipeline().addLast(UnsubscribeReceiver.class.getName(),
-							new UnsubscribeReceiver());
+					ch.pipeline().addLast(SubscribeReceiver.class.getName(), new SubscribeReceiver());
+					ch.pipeline().addLast(UnsubscribeReceiver.class.getName(), new UnsubscribeReceiver());
 					ch.pipeline().addLast(GenericReceiver.class.getName(), new GenericReceiver());
 				}
 			});
 
 			bootstrap.bind(PORT).sync();
 
-			logger.info("Lannister server started: Port:{}", PORT);
+			logger.info("Lannister server started: [MQTT port={}]", PORT);
 		}
 		catch (Exception e) {
 			logger.error("Lannister failed to start...", e);

@@ -7,8 +7,8 @@ import com.hazelcast.config.SerializerConfig;
 import com.hazelcast.core.Hazelcast;
 import com.hazelcast.core.HazelcastInstance;
 
-import net.anyflow.lannister.message.Message;
 import net.anyflow.lannister.message.InboundMessageStatus;
+import net.anyflow.lannister.message.Message;
 import net.anyflow.lannister.message.OutboundMessageStatus;
 import net.anyflow.lannister.serialization.JsonSerializer;
 import net.anyflow.lannister.serialization.SerializableFactory;

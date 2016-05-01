@@ -3,8 +3,8 @@ package net.anyflow.lannister.serialization;
 import com.hazelcast.nio.serialization.Portable;
 import com.hazelcast.nio.serialization.PortableFactory;
 
-import net.anyflow.lannister.message.Message;
 import net.anyflow.lannister.message.InboundMessageStatus;
+import net.anyflow.lannister.message.Message;
 import net.anyflow.lannister.message.OutboundMessageStatus;
 import net.anyflow.lannister.session.Session;
 import net.anyflow.lannister.topic.Notification;
