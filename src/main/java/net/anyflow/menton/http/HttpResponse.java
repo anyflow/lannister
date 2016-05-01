@@ -8,6 +8,7 @@ import java.util.Set;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.common.base.Strings;
 import com.google.common.primitives.Ints;
 
 import io.netty.buffer.ByteBuf;
@@ -68,11 +69,7 @@ public class HttpResponse extends DefaultFullHttpResponse {
 	}
 
 	public void setContent(String content) {
-		if (content == null) {
-			content = "";
-		}
-
-		content().writeBytes(content.getBytes(CharsetUtil.UTF_8));
+		content().writeBytes(Strings.nullToEmpty(content).getBytes(CharsetUtil.UTF_8));
 		logger.debug(content().toString(CharsetUtil.UTF_8));
 	}
 

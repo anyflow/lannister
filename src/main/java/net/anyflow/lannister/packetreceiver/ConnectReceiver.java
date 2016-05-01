@@ -26,9 +26,9 @@ public class ConnectReceiver extends SimpleChannelInboundHandler<MqttConnectMess
 
 	private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(ConnectReceiver.class);
 
-	EventListener eventListener = (EventListener) (new PluginFactory()).create(EventListener.class);
-	ServiceStatus serviceStatus = (ServiceStatus) (new PluginFactory()).create(ServiceStatus.class);
-	Authorization auth = (Authorization) (new PluginFactory()).create(Authorization.class);
+	private EventListener eventListener = (EventListener) (new PluginFactory()).create(EventListener.class);
+	private ServiceStatus serviceStatus = (ServiceStatus) (new PluginFactory()).create(ServiceStatus.class);
+	private Authorization auth = (Authorization) (new PluginFactory()).create(Authorization.class);
 
 	@Override
 	protected void channelRead0(ChannelHandlerContext ctx, MqttConnectMessage msg) throws Exception {

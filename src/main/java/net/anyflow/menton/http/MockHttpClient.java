@@ -14,7 +14,7 @@ import io.netty.handler.codec.http.HttpVersion;
 
 public class MockHttpClient implements IHttpClient {
 
-	static final Logger logger = LoggerFactory.getLogger(MockHttpClient.class);
+	private static final Logger logger = LoggerFactory.getLogger(MockHttpClient.class);
 
 	private final HttpRequest httpRequest;
 	private final MockHttpServer mockServer;

@@ -16,8 +16,8 @@ class WebServerChannelInitializer extends ChannelInitializer<SocketChannel> {
 
 	private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(WebServerChannelInitializer.class);
 
-	final boolean useSsl;
-	final Class<? extends WebsocketFrameHandler> websocketFrameHandlerClass;
+	private final boolean useSsl;
+	private final Class<? extends WebsocketFrameHandler> websocketFrameHandlerClass;
 
 	public WebServerChannelInitializer(boolean useSsl,
 			Class<? extends WebsocketFrameHandler> websocketFrameHandlerClass) {

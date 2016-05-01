@@ -217,11 +217,11 @@ public class HttpRequest extends DefaultFullHttpRequest {
 	}
 
 	public void setContent(String content) {
-		content = Strings.nullToEmpty(content);
+		byte[] contentByte = Strings.nullToEmpty(content).getBytes(CharsetUtil.UTF_8);
 
-		byte[] contentByte = content.getBytes(CharsetUtil.UTF_8);
 		headers().set(HttpHeaderNames.CONTENT_LENGTH, contentByte.length);
 		content().writeBytes(contentByte);
+
 		logger.debug(content().toString(CharsetUtil.UTF_8));
 	}
 

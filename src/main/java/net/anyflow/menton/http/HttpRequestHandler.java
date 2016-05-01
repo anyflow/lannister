@@ -95,8 +95,8 @@ public abstract class HttpRequestHandler {
 					.getSubTypesOf(HttpRequestHandler.class);
 		}
 
+		MatchedCriterion ret = null;
 		for (Class<? extends HttpRequestHandler> item : requestHandlerClasses) {
-
 			HttpRequestHandler.Handles annotation = item.getAnnotation(HttpRequestHandler.Handles.class);
 
 			if (annotation == null) {
@@ -109,24 +109,23 @@ public abstract class HttpRequestHandler {
 				}
 
 				for (String rawPath : annotation.paths()) {
-
 					String path = (rawPath.charAt(0) == '/') ? rawPath : Settings.SELF.httpContextRoot() + rawPath;
 					String criterion = path + "/" + method;
 
 					MatchedCriterion mc = match(requestedPath, method, criterion);
-					if (mc.result == false) {
-						continue;
+
+					if (mc.result == true) {
+						handlerClassMap.put(criterion, item);
+						mc.requestHandlerClass = item;
+
+						ret = mc;
+						break;
 					}
-
-					handlerClassMap.put(criterion, item);
-					mc.requestHandlerClass = item;
-
-					return mc;
 				}
 			}
 		}
 
-		return new MatchedCriterion();
+		return ret == null ? new MatchedCriterion() : ret;
 	}
 
 	protected static class MatchedCriterion {

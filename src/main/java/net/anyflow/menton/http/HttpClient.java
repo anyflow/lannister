@@ -41,9 +41,9 @@ import net.anyflow.lannister.Settings;
  */
 public class HttpClient implements IHttpClient {
 
-	static final Logger logger = LoggerFactory.getLogger(HttpClient.class);
+	private static final Logger logger = LoggerFactory.getLogger(HttpClient.class);
 
-	final Bootstrap bootstrap;
+	private final Bootstrap bootstrap;
 	private final HttpRequest httpRequest;
 	private final TrustManagerFactory trustManagerFactory;
 

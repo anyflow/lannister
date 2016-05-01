@@ -14,9 +14,9 @@ import io.netty.handler.codec.http.HttpResponseStatus;
 
 public class HtmlGenerator {
 
-	static final Logger logger = LoggerFactory.getLogger(HtmlGenerator.class);
+	private static final Logger logger = LoggerFactory.getLogger(HtmlGenerator.class);
 
-	static String html_error;
+	private static String html_error;
 
 	static {
 		html_error = tidy(Thread.currentThread().getContextClassLoader().getResourceAsStream("html/error.htm"));
@@ -33,11 +33,13 @@ public class HtmlGenerator {
 		String openMarker = "${";
 		String closeMarker = "}";
 
+		String ret = htmlTemplate;
+
 		for (String key : values.keySet()) {
-			htmlTemplate = htmlTemplate.replace(openMarker + key + closeMarker, values.get(key));
+			ret = ret.replace(openMarker + key + closeMarker, values.get(key));
 		}
 
-		return htmlTemplate;
+		return ret;
 	}
 
 	public static String error(String message, HttpResponseStatus status) {

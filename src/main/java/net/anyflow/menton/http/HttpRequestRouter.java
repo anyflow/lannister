@@ -1,7 +1,5 @@
 package net.anyflow.menton.http;
 
-import static io.netty.handler.codec.http.HttpVersion.HTTP_1_1;
-
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
@@ -36,14 +34,7 @@ public class HttpRequestRouter extends SimpleChannelInboundHandler<FullHttpReque
 	}
 
 	private boolean isWebResourcePath(String path) {
-		for (String ext : Settings.SELF.webResourceExtensionToMimes().keySet()) {
-			if (path.endsWith("." + ext) == false) {
-				continue;
-			}
-			return true;
-		}
-
-		return false;
+		return Settings.SELF.webResourceExtensionToMimes().keySet().stream().anyMatch(s -> path.endsWith("." + s));
 	}
 
 	/*
@@ -61,7 +52,8 @@ public class HttpRequestRouter extends SimpleChannelInboundHandler<FullHttpReque
 			if (ctx.pipeline().get(WebsocketFrameHandler.class) == null) {
 				logger.error("No WebSocket Handler available.");
 
-				ctx.channel().writeAndFlush(new DefaultFullHttpResponse(HTTP_1_1, HttpResponseStatus.FORBIDDEN))
+				ctx.channel()
+						.writeAndFlush(new DefaultFullHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.FORBIDDEN))
 						.addListener(ChannelFutureListener.CLOSE);
 				return;
 			}

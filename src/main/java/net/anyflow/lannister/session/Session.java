@@ -84,15 +84,17 @@ public class Session extends Jsonizable implements com.hazelcast.nio.serializati
 	}
 
 	public void revive(ChannelHandlerContext ctx) {
-		if (ctx == null) {
-			ctx = NEXUS.channelHandlerContext(clientId);
+		ChannelHandlerContext ctxLocal = ctx;
+
+		if (ctxLocal == null) {
+			ctxLocal = NEXUS.channelHandlerContext(clientId);
 		}
 
-		if (ctx == null) { return; }
+		if (ctxLocal == null) { return; }
 
 		this.synchronizer = new Synchronizer(this);
-		this.messageSender = new MessageSender(this, ctx);
-		this.sessionDisposer = new SessionDisposer(ctx, clientId, will);
+		this.messageSender = new MessageSender(this, ctxLocal);
+		this.sessionDisposer = new SessionDisposer(ctxLocal, clientId, will);
 
 		// TODO Do I must add listener to Repository.broadcaster?
 	}

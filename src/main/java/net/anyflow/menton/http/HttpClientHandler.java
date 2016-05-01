@@ -15,7 +15,7 @@ import io.netty.handler.codec.http.FullHttpResponse;
  */
 public class HttpClientHandler extends SimpleChannelInboundHandler<FullHttpResponse> {
 
-	static final Logger logger = LoggerFactory.getLogger(HttpClientHandler.class);
+	private static final Logger logger = LoggerFactory.getLogger(HttpClientHandler.class);
 
 	private final MessageReceiver receiver;
 	private final HttpRequest request;
