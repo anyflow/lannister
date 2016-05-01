@@ -12,7 +12,6 @@ import com.hazelcast.nio.serialization.PortableReader;
 import com.hazelcast.nio.serialization.PortableWriter;
 
 import net.anyflow.lannister.Repository;
-import net.anyflow.lannister.message.MessageStatus;
 import net.anyflow.lannister.message.OutboundMessageStatus;
 import net.anyflow.lannister.serialization.Jsonizable;
 import net.anyflow.lannister.serialization.SerializableFactory;
@@ -59,7 +58,7 @@ public class TopicSubscriber extends Jsonizable implements com.hazelcast.nio.ser
 	}
 
 	public OutboundMessageStatus setOutboundMessageStatus(int messageId, OutboundMessageStatus.Status targetStatus) {
-		OutboundMessageStatus status = outboundMessageStatuses.get(MessageStatus.key(clientId, messageId));
+		OutboundMessageStatus status = outboundMessageStatuses.get(messageId);
 		if (status == null) { return null; }
 
 		status.targetStatus(targetStatus);

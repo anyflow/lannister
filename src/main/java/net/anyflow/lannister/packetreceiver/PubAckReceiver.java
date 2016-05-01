@@ -56,7 +56,7 @@ public class PubAckReceiver extends SimpleChannelInboundHandler<MqttPubAckMessag
 		}
 
 		topicSubscriber.removeOutboundMessageStatus(msg.variableHeader().messageId());
-		logger.debug("message status REMOVED : [clientId={}, messageId={}]", session.clientId(),
+		logger.debug("Outbound message status REMOVED : [clientId={}, messageId={}]", session.clientId(),
 				msg.variableHeader().messageId());
 	}
 }

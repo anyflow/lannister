@@ -62,6 +62,8 @@ public class PublishReceiver extends SimpleChannelInboundHandler<MqttPublishMess
 		case AT_LEAST_ONCE:
 			session.send(MessageFactory.puback(msg.variableHeader().messageId())).addListener(
 					f -> topicFinal.removeInboundMessageStatus(session.clientId(), msg.variableHeader().messageId())); // [MQTT-3.3.4-1],[MQTT-2.3.1-6]
+			logger.debug("Inbound message status REMOVED : [clientId={}, messageId={}]", session.clientId(),
+					msg.variableHeader().messageId());
 			return;
 
 		case EXACTLY_ONCE:
