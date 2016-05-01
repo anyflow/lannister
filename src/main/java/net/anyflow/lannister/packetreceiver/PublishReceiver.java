@@ -65,13 +65,20 @@ public class PublishReceiver extends SimpleChannelInboundHandler<MqttPublishMess
 			}
 		}
 
+		// TODO What to do when sender re-publish message corrensponds to
+		// unacked status?
+
+		// TODO Until it has received the corresponding PUBREL packet, the
+		// Receiver MUST acknowledge any subsequent PUBLISH packet with the same
+		// Packet Identifier by sending a PUBREC. It MUST NOT cause duplicate
+		// messages to be delivered to any onward recipients in this
+		// case.[MQTT-4.3.3-2].
+
 		topic.publish(session.clientId(), message);
 
 		final Topic topicFinal = topic;
 
-		switch (msg.fixedHeader().qosLevel())
-
-		{
+		switch (msg.fixedHeader().qosLevel()) {
 		case AT_MOST_ONCE:
 			return; // QoS 0 do not send any acknowledge packet [MQTT-3.3.4-1]
 
@@ -85,7 +92,7 @@ public class PublishReceiver extends SimpleChannelInboundHandler<MqttPublishMess
 		case EXACTLY_ONCE:
 			session.send(MessageFactory.pubrec(msg.variableHeader().messageId()))
 					.addListener(f -> topicFinal.setInboundMessageStatus(session.clientId(),
-							msg.variableHeader().messageId(), InboundMessageStatus.Status.TO_PUBCOMP)); // [MQTT-3.3.4-1],[MQTT-2.3.1-6]
+							msg.variableHeader().messageId(), InboundMessageStatus.Status.PUBRECED)); // [MQTT-3.3.4-1],[MQTT-2.3.1-6]
 			return;
 
 		default:

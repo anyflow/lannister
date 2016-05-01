@@ -17,6 +17,7 @@
 package net.anyflow.lannister.message;
 
 import java.io.IOException;
+import java.util.Date;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -34,7 +35,7 @@ public class OutboundMessageStatus extends MessageStatus {
 	@JsonProperty
 	private int inboundMessageId;
 	@JsonProperty
-	private Status targetStatus;
+	private Status status;
 
 	public OutboundMessageStatus() { // just for Serialization
 	}
@@ -43,19 +44,20 @@ public class OutboundMessageStatus extends MessageStatus {
 		super(clientId, messageId);
 
 		this.inboundMessageId = inboundMessageId;
-		this.targetStatus = Status.TO_PUBLISH;
+		this.status = Status.TO_PUBLISH;
 	}
 
 	public int inboundMessageId() {
 		return inboundMessageId;
 	}
 
-	public Status targetStatus() {
-		return targetStatus;
+	public Status status() {
+		return status;
 	}
 
-	public void targetStatus(Status targetStatus) {
-		this.targetStatus = targetStatus;
+	public void status(Status status) {
+		this.status = status;
+		super.updateTime = new Date();
 	}
 
 	@JsonIgnore
@@ -74,25 +76,25 @@ public class OutboundMessageStatus extends MessageStatus {
 	public void writePortable(PortableWriter writer) throws IOException {
 		super.writePortable(writer);
 
-		writer.writeByte("targetStatus", targetStatus.value());
+		writer.writeByte("targetStatus", status.value());
 	}
 
 	@Override
 	public void readPortable(PortableReader reader) throws IOException {
 		super.readPortable(reader);
 
-		targetStatus = Status.valueOf(reader.readByte("targetStatus"));
+		status = Status.valueOf(reader.readByte("targetStatus"));
 	}
 
 	public static ClassDefinition classDefinition() {
 		return new ClassDefinitionBuilder(SerializableFactory.ID, ID).addUTFField("clientId").addIntField("messageId")
-				.addByteField("targetStatus").build();
+				.addByteField("targetStatus").addLongField("createTime").addLongField("updateTime").build();
 	}
 
 	public enum Status {
 		TO_PUBLISH((byte) 0),
-		TO_PUBREL((byte) 1),
-		TO_BE_REMOVED((byte) 2);
+		PUBLISHED((byte) 1),
+		PUBRECED((byte) 2);
 
 		private byte value;
 
@@ -108,7 +110,7 @@ public class OutboundMessageStatus extends MessageStatus {
 			for (Status q : values()) {
 				if (q.value == value) { return q; }
 			}
-			throw new IllegalArgumentException("invalid SenderTargetStatus: " + value);
+			throw new IllegalArgumentException("Invalid SenderTargetStatus: " + value);
 		}
 	}
 }

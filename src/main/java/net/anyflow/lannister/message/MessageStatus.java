@@ -17,11 +17,14 @@
 package net.anyflow.lannister.message;
 
 import java.io.IOException;
+import java.util.Date;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.hazelcast.nio.serialization.PortableReader;
 import com.hazelcast.nio.serialization.PortableWriter;
 
+import net.anyflow.lannister.Literals;
 import net.anyflow.lannister.serialization.Jsonizable;
 
 public abstract class MessageStatus extends Jsonizable implements com.hazelcast.nio.serialization.Portable {
@@ -30,6 +33,12 @@ public abstract class MessageStatus extends Jsonizable implements com.hazelcast.
 	private String clientId;
 	@JsonProperty
 	private int messageId;
+	@JsonFormat(shape = JsonFormat.Shape.STRING, pattern = Literals.DATE_DEFAULT_FORMAT, timezone = Literals.DATE_DEFAULT_TIMEZONE)
+	@JsonProperty
+	private Date createTime;
+	@JsonFormat(shape = JsonFormat.Shape.STRING, pattern = Literals.DATE_DEFAULT_FORMAT, timezone = Literals.DATE_DEFAULT_TIMEZONE)
+	@JsonProperty
+	protected Date updateTime;
 
 	public MessageStatus() { // just for Serialization
 	}
@@ -37,18 +46,28 @@ public abstract class MessageStatus extends Jsonizable implements com.hazelcast.
 	protected MessageStatus(String clientId, int messageId) {
 		this.clientId = clientId;
 		this.messageId = messageId;
+		this.createTime = new Date();
+		this.updateTime = createTime;
 	}
 
 	public String key() {
 		return key(clientId, messageId);
 	}
 
-	protected String clientId() {
+	public String clientId() {
 		return clientId;
 	}
 
 	public int messageId() {
 		return messageId;
+	}
+
+	public Date createTime() {
+		return createTime;
+	}
+
+	public Date updateTime() {
+		return updateTime;
 	}
 
 	public static String key(String clientId, int messageId) {
@@ -59,11 +78,15 @@ public abstract class MessageStatus extends Jsonizable implements com.hazelcast.
 	public void writePortable(PortableWriter writer) throws IOException {
 		writer.writeUTF("clientId", clientId);
 		writer.writeInt("messageId", messageId);
+		writer.writeLong("createTime", createTime.getTime());
+		writer.writeLong("updateTime", updateTime.getTime());
 	}
 
 	@Override
 	public void readPortable(PortableReader reader) throws IOException {
 		clientId = reader.readUTF("clientId");
 		messageId = reader.readInt("messageId");
+		createTime = new Date(reader.readLong("createTime"));
+		updateTime = new Date(reader.readLong("updateTime"));
 	}
 }

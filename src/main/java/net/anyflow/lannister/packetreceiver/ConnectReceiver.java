@@ -103,7 +103,7 @@ public class ConnectReceiver extends SimpleChannelInboundHandler<MqttConnectMess
 		session = Session.NEXUS.map().values().parallelStream()
 				.filter(s -> s.isConnected() && clientIdFinal.equals(s.clientId())).findFirst().orElse(null);
 
-		if (session != null && session.isConnected()) {
+		if (session != null) {
 			session.dispose(false); // [MQTT-3.1.4-2]
 		}
 
@@ -148,8 +148,8 @@ public class ConnectReceiver extends SimpleChannelInboundHandler<MqttConnectMess
 		session.send(acceptMsg).addListener(f -> {
 			eventListener.connAckMessageSent(acceptMsg);
 
-			if (sessionFinal.cleanSession() == false) {
-				sessionFinal.completeRemainedMessages();
+			if (!sessionFinal.cleanSession()) {
+				sessionFinal.completeRemainedMessages(); // [MQTT-4.4.0-1]
 			}
 		});
 	}

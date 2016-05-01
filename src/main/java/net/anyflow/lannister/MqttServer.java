@@ -46,9 +46,9 @@ public class MqttServer {
 
 	public MqttServer() {
 		bossGroup = new NioEventLoopGroup(Settings.SELF.getInt("lannister.system.bossThreadCount", 0),
-				new DefaultThreadFactory("server/boss"));
+				new DefaultThreadFactory("lannister/boss"));
 		workerGroup = new NioEventLoopGroup(Settings.SELF.getInt("lannister.system.workerThreadCount", 0),
-				new DefaultThreadFactory("server/worker"));
+				new DefaultThreadFactory("lannister/worker"));
 	}
 
 	public void Start() {

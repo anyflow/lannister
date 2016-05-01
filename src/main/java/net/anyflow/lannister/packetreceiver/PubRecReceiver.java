@@ -41,23 +41,8 @@ public class PubRecReceiver {
 		}
 
 		final TopicSubscriber topicSubscriber = topic.subscribers().get(session.clientId());
+		topicSubscriber.setOutboundMessageStatus(messageId, OutboundMessageStatus.Status.PUBRECED);
 
-		OutboundMessageStatus status = topicSubscriber.sentOutboundMessageStatuses().get(messageId);
-
-		if (status == null) {
-			logger.error("No message status to PUBREL : [clientId={}, messageId={}]", session.clientId(), messageId);
-			session.dispose(true); // [MQTT-3.3.5-2]
-			return;
-		}
-		if (status.targetStatus() != OutboundMessageStatus.Status.TO_PUBREL) {
-			logger.error("Invalid status to PUBREL : [clientId={}, messageId={}, status={}]", session.clientId(),
-					messageId, status);
-			session.dispose(true); // [MQTT-3.3.5-2]
-			return;
-		}
-
-		session.send(MessageFactory.pubrel(messageId)).addListener(f -> {
-			topicSubscriber.setOutboundMessageStatus(messageId, OutboundMessageStatus.Status.TO_BE_REMOVED);
-		});
+		session.send(MessageFactory.pubrel(messageId));
 	}
 }

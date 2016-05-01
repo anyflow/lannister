@@ -17,6 +17,7 @@
 package net.anyflow.lannister.message;
 
 import java.io.IOException;
+import java.util.Date;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -32,7 +33,7 @@ public class InboundMessageStatus extends MessageStatus {
 	public static final int ID = 2;
 
 	@JsonProperty
-	private Status targetStatus;
+	private Status status;
 
 	public InboundMessageStatus() { // just for Serialization
 	}
@@ -40,15 +41,16 @@ public class InboundMessageStatus extends MessageStatus {
 	public InboundMessageStatus(String clientId, int messageId) {
 		super(clientId, messageId);
 
-		targetStatus = Status.TO_ACK;
+		status = Status.RECEIVED;
 	}
 
-	public Status targetStatus() {
-		return targetStatus;
+	public Status status() {
+		return status;
 	}
 
-	public void targetStatus(Status targetStatus) {
-		this.targetStatus = targetStatus;
+	public void status(Status status) {
+		this.status = status;
+		super.updateTime = new Date();
 	}
 
 	@JsonIgnore
@@ -67,25 +69,24 @@ public class InboundMessageStatus extends MessageStatus {
 	public void writePortable(PortableWriter writer) throws IOException {
 		super.writePortable(writer);
 
-		writer.writeByte("targetStatus", targetStatus.value());
+		writer.writeByte("targetStatus", status.value());
 	}
 
 	@Override
 	public void readPortable(PortableReader reader) throws IOException {
 		super.readPortable(reader);
 
-		targetStatus = Status.valueOf(reader.readByte("targetStatus"));
+		status = Status.valueOf(reader.readByte("targetStatus"));
 	}
 
 	public static ClassDefinition classDefinition() {
 		return new ClassDefinitionBuilder(SerializableFactory.ID, ID).addUTFField("clientId").addIntField("messageId")
-				.addByteField("targetStatus").build();
+				.addByteField("targetStatus").addLongField("createTime").addLongField("updateTime").build();
 	}
 
 	public enum Status {
-		TO_ACK((byte) 0), // RECEIVER acknowlegement
-		TO_PUBREC((byte) 1), // RECEIVER received
-		TO_PUBCOMP((byte) 2); // RECEIVER complete
+		RECEIVED((byte) 0),
+		PUBRECED((byte) 1);
 
 		private byte value;
 
@@ -101,7 +102,7 @@ public class InboundMessageStatus extends MessageStatus {
 			for (Status q : values()) {
 				if (q.value == value) { return q; }
 			}
-			throw new IllegalArgumentException("invalid ReceiverTargetStatus: " + value);
+			throw new IllegalArgumentException("Invalid ReceiverTargetStatus: " + value);
 		}
 	}
 }

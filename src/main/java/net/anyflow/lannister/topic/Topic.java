@@ -118,7 +118,7 @@ public class Topic extends Jsonizable implements com.hazelcast.nio.serialization
 		if (status == null) {
 			status = new InboundMessageStatus(clientId, messageId);
 		}
-		status.targetStatus(targetStatus);
+		status.status(targetStatus);
 
 		inboundMessageStatuses.put(status.key(), status);
 	}
@@ -138,8 +138,7 @@ public class Topic extends Jsonizable implements com.hazelcast.nio.serialization
 
 		messages.put(message.key(), message);
 
-		setInboundMessageStatus(requesterId, message.id(),
-				message.qos() == MqttQoS.AT_LEAST_ONCE ? Status.TO_ACK : Status.TO_PUBREC);
+		setInboundMessageStatus(requesterId, message.id(), Status.RECEIVED);
 	}
 
 	public void broadcast(Message message) {

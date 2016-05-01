@@ -172,6 +172,10 @@ public class Session extends Jsonizable implements com.hazelcast.nio.serializati
 		return messageSender.sendPublish(topic, message, isRetain);
 	}
 
+	public void completeRemainedMessages() {
+		messageSender.completeRemainedMessages();
+	}
+
 	public Stream<Topic> topics(Collection<TopicSubscription> topicSubscriptions) {
 		return Topic.NEXUS.map().values().parallelStream().filter(t -> this.matches(t.name()).count() > 0);
 	}
@@ -200,14 +204,10 @@ public class Session extends Jsonizable implements com.hazelcast.nio.serializati
 			ChannelHandlerContext ctx = NEXUS.channelHandlerContext(clientId);
 
 			ctx.disconnect().addListener(ChannelFutureListener.CLOSE);
-			logger.debug("Session disposed. [clientId={}/channelId={}]", clientId, ctx.channel().id());
+			logger.debug("Session disposed [clientId={}/channelId={}]", clientId, ctx.channel().id());
 		}
 
 		NEXUS.remove(this);
-	}
-
-	public void completeRemainedMessages() {
-		// TODO publish Unacked Messages
 	}
 
 	@JsonIgnore

@@ -46,9 +46,9 @@ public class WebServer implements TaskCompletionInformer {
 		taskCompletionListeners = Lists.newArrayList();
 
 		bossGroup = new NioEventLoopGroup(Settings.SELF.getInt("menton.system.bossThreadCount", 0),
-				new DefaultThreadFactory("server/boss"));
+				new DefaultThreadFactory("menton/boss"));
 		workerGroup = new NioEventLoopGroup(Settings.SELF.getInt("menton.system.workerThreadCount", 0),
-				new DefaultThreadFactory("server/worker"));
+				new DefaultThreadFactory("menton/worker"));
 	}
 
 	public EventLoopGroup bossGroup() {

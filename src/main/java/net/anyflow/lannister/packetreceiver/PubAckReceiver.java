@@ -22,7 +22,6 @@ import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
 import io.netty.handler.codec.mqtt.MqttPubAckMessage;
-import net.anyflow.lannister.message.OutboundMessageStatus;
 import net.anyflow.lannister.session.Session;
 import net.anyflow.lannister.topic.Topic;
 import net.anyflow.lannister.topic.TopicSubscriber;
@@ -54,22 +53,6 @@ public class PubAckReceiver extends SimpleChannelInboundHandler<MqttPubAckMessag
 		}
 
 		final TopicSubscriber topicSubscriber = topic.subscribers().get(session.clientId());
-
-		OutboundMessageStatus status = topicSubscriber.sentOutboundMessageStatuses()
-				.get(msg.variableHeader().messageId());
-
-		if (status == null) {
-			logger.error("No message status to REMOVE(QoS1) : [clientId={}, messageId={}]", session.clientId(),
-					msg.variableHeader().messageId());
-			session.dispose(true); // [MQTT-3.3.5-2]
-			return;
-		}
-		if (status.targetStatus() != OutboundMessageStatus.Status.TO_BE_REMOVED) {
-			logger.error("Invalid status to REMOVE(QoS1) : [clientId={}, messageId={}, status={}]", session.clientId(),
-					msg.variableHeader().messageId(), status);
-			session.dispose(true); // [MQTT-3.3.5-2]
-			return;
-		}
 
 		topicSubscriber.removeOutboundMessageStatus(msg.variableHeader().messageId());
 		logger.debug("Outbound message status REMOVED : [clientId={}, messageId={}]", session.clientId(),

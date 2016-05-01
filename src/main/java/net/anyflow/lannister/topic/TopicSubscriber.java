@@ -56,7 +56,7 @@ public class TopicSubscriber extends Jsonizable implements com.hazelcast.nio.ser
 		return "TOPIC(" + topicName + ")_CLIENT(" + clientId + ")_outboundMessageStatuses";
 	}
 
-	public ImmutableMap<Integer, OutboundMessageStatus> sentOutboundMessageStatuses() {
+	public ImmutableMap<Integer, OutboundMessageStatus> outboundMessageStatuses() {
 		return ImmutableMap.copyOf(outboundMessageStatuses);
 	}
 
@@ -64,7 +64,7 @@ public class TopicSubscriber extends Jsonizable implements com.hazelcast.nio.ser
 			OutboundMessageStatus.Status targetStatus) {
 		OutboundMessageStatus status = new OutboundMessageStatus(clientId, messageId, inboundMessageId);
 
-		status.targetStatus(targetStatus);
+		status.status(targetStatus);
 
 		outboundMessageStatuses.put(status.messageId(), status);
 	}
@@ -77,7 +77,7 @@ public class TopicSubscriber extends Jsonizable implements com.hazelcast.nio.ser
 		OutboundMessageStatus status = outboundMessageStatuses.get(messageId);
 		if (status == null) { return null; }
 
-		status.targetStatus(targetStatus);
+		status.status(targetStatus);
 
 		return outboundMessageStatuses.put(status.messageId(), status);
 	}
