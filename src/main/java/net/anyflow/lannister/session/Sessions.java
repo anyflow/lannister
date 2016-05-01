@@ -63,7 +63,7 @@ public class Sessions implements MessageListener<Notification> {
 		if (session == null) { return; }
 
 		synchronized (this) {
-			if (session.isCleanSession()) {
+			if (session.cleanSession()) {
 				sessions.remove(session.clientId());
 			}
 

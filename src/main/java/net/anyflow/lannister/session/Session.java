@@ -49,7 +49,7 @@ public class Session extends Jsonizable implements com.hazelcast.nio.serializati
 	@JsonProperty
 	private Message will;
 	@JsonProperty
-	private boolean isCleanSession;
+	private boolean cleanSession;
 	@JsonProperty
 	private int keepAliveSeconds;
 	@JsonFormat(shape = JsonFormat.Shape.STRING, pattern = Literals.DATE_DEFAULT_FORMAT, timezone = Literals.DATE_DEFAULT_TIMEZONE)
@@ -72,7 +72,7 @@ public class Session extends Jsonizable implements com.hazelcast.nio.serializati
 		this.currentMessageId = 0;
 		this.keepAliveSeconds = keepAliveSeconds;
 		this.lastIncomingTime = new Date();
-		this.isCleanSession = cleanSession;
+		this.cleanSession = cleanSession;
 		this.will = will; // [MQTT-3.1.2-9]
 		this.topicSubscriptions = Repository.SELF.generator().getMap(topicSubscriptionsName());
 
@@ -122,8 +122,8 @@ public class Session extends Jsonizable implements com.hazelcast.nio.serializati
 		return will;
 	}
 
-	public boolean isCleanSession() {
-		return isCleanSession;
+	public boolean cleanSession() {
+		return cleanSession;
 	}
 
 	public boolean isExpired() {
@@ -222,7 +222,7 @@ public class Session extends Jsonizable implements com.hazelcast.nio.serializati
 		else {
 			writer.writeNullPortable("will", SerializableFactory.ID, Message.ID);
 		}
-		writer.writeBoolean("isCleanSession", isCleanSession);
+		writer.writeBoolean("isCleanSession", cleanSession);
 		writer.writeInt("keepAliveSeconds", keepAliveSeconds);
 		writer.writeLong("createTime", createTime.getTime());
 		writer.writeLong("lastIncomingTime", lastIncomingTime.getTime());
@@ -233,7 +233,7 @@ public class Session extends Jsonizable implements com.hazelcast.nio.serializati
 		clientId = reader.readUTF("clientId");
 		currentMessageId = reader.readInt("currentMessageId");
 		will = reader.readPortable("will");
-		isCleanSession = reader.readBoolean("isCleanSession");
+		cleanSession = reader.readBoolean("isCleanSession");
 		keepAliveSeconds = reader.readInt("keepAliveSeconds");
 		createTime = new Date(reader.readLong("createTime"));
 		lastIncomingTime = new Date(reader.readLong("lastIncomingTime"));

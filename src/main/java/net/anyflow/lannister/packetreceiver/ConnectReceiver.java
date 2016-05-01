@@ -131,7 +131,7 @@ public class ConnectReceiver extends SimpleChannelInboundHandler<MqttConnectMess
 		session.send(acceptMsg).addListener(f -> {
 			eventListener.connAckMessageSent(acceptMsg);
 
-			if (sessionFinal.isCleanSession() == false) {
+			if (sessionFinal.cleanSession() == false) {
 				sessionFinal.completeRemainedMessages();
 			}
 		});

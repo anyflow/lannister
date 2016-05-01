@@ -28,24 +28,5 @@ public class Application {
 
 		webServer = new WebServer();
 		webServer.start("net.anyflow");
-
-		// TODO dispose session
-		// TODO Dispose topic
-		// TODO dispose message
-
-		// TODO stream parallel
-		// TODO exception handling thrown by codec
-		// TODO Removing polishes of unused old persistent sessions/topics.
-		// TODO TEST will
-		// TODO TEST clustering
-
-		// TODO specification TEST
-		// TODO $SYS
-		// TODO wildcard support
-		// TODO WebSocket
-		// TODO SSL
-		// TODO importing menton => netty ver 4.1 upgrade
-		// TODO JMX?
-		// TODO discard QoS0 retained message (server decision [MQTT-3.3.1-7])
 	}
 }
