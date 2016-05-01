@@ -1,3 +1,19 @@
+/*
+ * Copyright 2016 The Lannister Project
+ * 
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ * 
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package net.anyflow.lannister.session;
 
 import java.io.IOException;
@@ -17,6 +33,7 @@ import com.hazelcast.nio.serialization.PortableReader;
 import com.hazelcast.nio.serialization.PortableWriter;
 
 import io.netty.channel.ChannelFuture;
+import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelId;
 import io.netty.handler.codec.mqtt.MqttMessage;
@@ -31,7 +48,6 @@ import net.anyflow.lannister.topic.TopicSubscription;
 
 public class Session extends Jsonizable implements com.hazelcast.nio.serialization.Portable {
 
-	@SuppressWarnings("unused")
 	private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(Session.class);
 
 	private static final int MAX_MESSAGE_ID_NUM = 0xffff;
@@ -59,9 +75,7 @@ public class Session extends Jsonizable implements com.hazelcast.nio.serializati
 	@JsonProperty
 	private Date lastIncomingTime;
 
-	private Synchronizer synchronizer;
 	private MessageSender messageSender;
-	private SessionDisposer sessionDisposer;
 
 	public Session() { // just for serialization
 	}
@@ -76,27 +90,11 @@ public class Session extends Jsonizable implements com.hazelcast.nio.serializati
 		this.will = will; // [MQTT-3.1.2-9]
 		this.topicSubscriptions = Repository.SELF.generator().getMap(topicSubscriptionsName());
 
-		revive(null);
+		this.messageSender = new MessageSender(this);
 	}
 
 	private String topicSubscriptionsName() {
 		return "CLIENTID(" + clientId + ")_topicSubscriptions";
-	}
-
-	public void revive(ChannelHandlerContext ctx) {
-		ChannelHandlerContext ctxLocal = ctx;
-
-		if (ctxLocal == null) {
-			ctxLocal = NEXUS.channelHandlerContext(clientId);
-		}
-
-		if (ctxLocal == null) { return; }
-
-		this.synchronizer = new Synchronizer(this);
-		this.messageSender = new MessageSender(this, ctxLocal);
-		this.sessionDisposer = new SessionDisposer(ctxLocal, clientId, will);
-
-		// TODO Do I must add listener to Repository.broadcaster?
 	}
 
 	@JsonSerialize(using = ChannelIdSerializer.class)
@@ -136,7 +134,8 @@ public class Session extends Jsonizable implements com.hazelcast.nio.serializati
 
 	public void setLastIncomingTime(Date lastIncomingTime) {
 		this.lastIncomingTime = lastIncomingTime;
-		synchronizer.execute();
+
+		Session.NEXUS.persist(this);
 	}
 
 	public ImmutableMap<String, TopicSubscription> topicSubscriptions() {
@@ -173,11 +172,6 @@ public class Session extends Jsonizable implements com.hazelcast.nio.serializati
 		return messageSender.sendPublish(topic, message, isRetain);
 	}
 
-	public void dispose(boolean sendWill) {
-		NEXUS.remove(this);
-		sessionDisposer.dispose(sendWill);
-	}
-
 	public Stream<Topic> topics(Collection<TopicSubscription> topicSubscriptions) {
 		return Topic.NEXUS.map().values().parallelStream().filter(t -> this.matches(t.name()).count() > 0);
 	}
@@ -193,9 +187,23 @@ public class Session extends Jsonizable implements com.hazelcast.nio.serializati
 			currentMessageId = MIN_MESSAGE_ID_NUM;
 		}
 
-		synchronizer.execute();
+		Session.NEXUS.persist(this);
 
 		return currentMessageId;
+	}
+
+	public void dispose(boolean sendWill) {
+		if (sendWill && will != null) { // [MQTT-3.1.2-10]
+			Topic.NEXUS.get(will.topicName()).publish(clientId, will);
+		}
+		else {
+			ChannelHandlerContext ctx = NEXUS.channelHandlerContext(clientId);
+
+			ctx.disconnect().addListener(ChannelFutureListener.CLOSE);
+			logger.debug("Session disposed. [clientId={}/channelId={}]", clientId, ctx.channel().id());
+		}
+
+		NEXUS.remove(this);
 	}
 
 	public void completeRemainedMessages() {
@@ -242,7 +250,7 @@ public class Session extends Jsonizable implements com.hazelcast.nio.serializati
 
 		topicSubscriptions = Repository.SELF.generator().getMap(topicSubscriptionsName());
 
-		revive(null);
+		messageSender = new MessageSender(this);
 	}
 
 	public static ClassDefinition classDefinition() {
