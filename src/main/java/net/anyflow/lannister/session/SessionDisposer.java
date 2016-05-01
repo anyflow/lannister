@@ -13,7 +13,7 @@ public class SessionDisposer {
 	private final String clientId;
 	private final Message will;
 
-	protected SessionDisposer(ChannelHandlerContext ctx, String clientId, Message will, MessageSender messageSender) {
+	protected SessionDisposer(ChannelHandlerContext ctx, String clientId, Message will) {
 		this.ctx = ctx;
 		this.clientId = clientId;
 		this.will = will;

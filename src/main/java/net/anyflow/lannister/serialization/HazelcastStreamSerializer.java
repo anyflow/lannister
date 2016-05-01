@@ -46,6 +46,7 @@ public class HazelcastStreamSerializer<T, S> extends HazelcastSerializer<T, S> i
 	}
 
 	protected void streamedWrite(OutputStream outputStream, T object) throws IOException {
+		// Did nothing in original Source(escape from code inspection error)
 	}
 
 	protected T streamedRead(InputStream inputStream) throws IOException {

@@ -42,6 +42,7 @@ public class HazelcastSerializer<T, S> implements Serializer, Supplier<S> {
 
 	@Override
 	public void destroy() {
+		// Did nothing in original Source(escape from code inspection error)
 	}
 
 	public Class<T> getType() {

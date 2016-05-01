@@ -268,15 +268,15 @@ public class HttpRequest extends DefaultFullHttpRequest {
 			String parameters = convertParametersToString();
 			address += Strings.isNullOrEmpty(parameters) ? "" : "?" + parameters;
 		}
-		else if (HttpMethod.POST.equals(method()) || HttpMethod.PUT.equals(method())) {
-			if (headers().contains(HttpHeaderNames.CONTENT_TYPE) == false || headers().get(HttpHeaderNames.CONTENT_TYPE)
-					.startsWith(HttpHeaderValues.APPLICATION_X_WWW_FORM_URLENCODED.toString())) {
-				ByteBuf content = Unpooled.copiedBuffer(convertParametersToString(), CharsetUtil.UTF_8);
+		else if ((HttpMethod.POST.equals(method()) || HttpMethod.PUT.equals(method()))
+				&& (headers().contains(HttpHeaderNames.CONTENT_TYPE) == false
+						|| headers().get(HttpHeaderNames.CONTENT_TYPE)
+								.startsWith(HttpHeaderValues.APPLICATION_X_WWW_FORM_URLENCODED.toString()))) {
+			ByteBuf content = Unpooled.copiedBuffer(convertParametersToString(), CharsetUtil.UTF_8);
 
-				headers().set(HttpHeaderNames.CONTENT_LENGTH, content.readableBytes());
-				content().clear();
-				content().writeBytes(content);
-			}
+			headers().set(HttpHeaderNames.CONTENT_LENGTH, content.readableBytes());
+			content().clear();
+			content().writeBytes(content);
 		}
 
 		setUri(address);

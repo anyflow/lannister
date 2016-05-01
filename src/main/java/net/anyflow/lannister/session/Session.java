@@ -92,7 +92,7 @@ public class Session extends Jsonizable implements com.hazelcast.nio.serializati
 
 		this.synchronizer = new Synchronizer(this);
 		this.messageSender = new MessageSender(this, ctx);
-		this.sessionDisposer = new SessionDisposer(ctx, clientId, will, messageSender);
+		this.sessionDisposer = new SessionDisposer(ctx, clientId, will);
 
 		// TODO Do I must add listener to Repository.broadcaster?
 	}

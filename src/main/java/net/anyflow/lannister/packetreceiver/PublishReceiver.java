@@ -40,16 +40,13 @@ public class PublishReceiver extends SimpleChannelInboundHandler<MqttPublishMess
 				session.clientId(), NettyUtil.copy(msg.payload()), msg.fixedHeader().qosLevel(),
 				msg.fixedHeader().isRetain());
 
-		if (message.isRetain()) {
+		if (message.isRetain()) { // else do nothing [MQTT-3.3.1-12]
 			if (message.message().length > 0) {
 				topic.setRetainedMessage(message); // [MQTT-3.3.1-5]
 			}
 			else {
 				topic.setRetainedMessage(null); // [MQTT-3.3.1-10],[MQTT-3.3.1-11]
 			}
-		}
-		else {
-			// do nothing [MQTT-3.3.1-12]
 		}
 
 		topic.publish(session.clientId(), message);

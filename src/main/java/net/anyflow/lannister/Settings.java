@@ -132,7 +132,7 @@ public class Settings extends java.util.Properties {
 		return ret;
 	}
 
-	public String WebResourcePhysicalRootPath() {
+	public String webResourcePhysicalRootPath() {
 		return this.getProperty("menton.httpServer.webResourcePhysicalRootPath", null);
 	}
 

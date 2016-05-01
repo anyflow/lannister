@@ -4,8 +4,6 @@ import io.netty.handler.codec.mqtt.MqttConnAckMessage;
 import io.netty.handler.codec.mqtt.MqttConnectMessage;
 
 public class PluginFactory {
-	public PluginFactory() {
-	}
 
 	public Plugin create(Class<? extends Plugin> pluginType) {
 		// TODO Retrieve client object's plugin
@@ -15,10 +13,12 @@ public class PluginFactory {
 			return new EventListener() {
 				@Override
 				public void connectMessageReceived(MqttConnectMessage msg) {
+					return;
 				}
 
 				@Override
 				public void connAckMessageSent(MqttConnAckMessage msg) {
+					return;
 				}
 			};
 		}

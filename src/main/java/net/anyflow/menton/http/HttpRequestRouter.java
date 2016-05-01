@@ -107,7 +107,7 @@ public class HttpRequestRouter extends SimpleChannelInboundHandler<FullHttpReque
 		InputStream is = Thread.currentThread().getContextClassLoader().getResourceAsStream(webResourceRequestPath);
 
 		if (is == null) {
-			String rootPath = (new File(Settings.SELF.WebResourcePhysicalRootPath(), webResourceRequestPath)).getPath();
+			String rootPath = (new File(Settings.SELF.webResourcePhysicalRootPath(), webResourceRequestPath)).getPath();
 			try {
 				is = new FileInputStream(rootPath);
 			}
