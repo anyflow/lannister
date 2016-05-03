@@ -35,6 +35,7 @@ import net.anyflow.lannister.message.Message;
 import net.anyflow.lannister.message.MessageFactory;
 import net.anyflow.lannister.message.OutboundMessageStatus;
 import net.anyflow.lannister.topic.Topic;
+import net.anyflow.lannister.topic.TopicSubscription;
 import net.anyflow.lannister.topic.Topics;
 
 public class MessageSender {
@@ -50,8 +51,8 @@ public class MessageSender {
 		this.session = session;
 	}
 
-	protected static MqttQoS adjustQoS(MqttQoS topicQos, MqttQoS messageQos) {
-		return topicQos.value() <= messageQos.value() ? topicQos : messageQos;
+	protected static MqttQoS adjustQoS(MqttQoS subscriptionQos, MqttQoS publishQos) {
+		return subscriptionQos.value() <= publishQos.value() ? subscriptionQos : publishQos;
 	}
 
 	protected ChannelFuture send(MqttMessage message) {
@@ -68,49 +69,52 @@ public class MessageSender {
 		});
 	}
 
-	protected ChannelFuture sendPublish(Topic topic, Message message, boolean isRetain) {
+	protected void sendPublish(Topic topic, Message message, boolean isRetain) {
 		logger.debug("event arrived : [clientId:{}/message:{}]", session.clientId(), message.toString());
 
-		// TODO what if returned topicSubscriptions are multiple?
+		ChannelHandlerContext ctx = Session.NEXUS.channelHandlerContext(session.clientId());
+		ctx.executor().submit(() -> {
+			// TODO what if returned topicSubscriptions are multiple?
+			TopicSubscription subscription = session.matches(message.topicName()).findAny().orElse(null);
 
-		long tsCount = session.matches(message.topicName()).count();
-
-		if (tsCount <= 0) {
-			logger.error("Topic Subscription should exist but none! [clientId={}, topicName={}]", session.clientId(),
-					message.topicName());
-			return null;
-		}
-
-		if (session.isConnected() == false) { return null; }
-
-		executefilters(message);
-
-		final int originalMessageId = message.id();
-
-		message.setId(session.nextMessageId());
-		message.setRetain(isRetain);// [MQTT-3.3.1-8],[MQTT-3.3.1-9]
-
-		if (message.qos() != MqttQoS.AT_MOST_ONCE) {
-			topic.subscribers().get(session.clientId()).addOutboundMessageStatus(message.id(), originalMessageId,
-					OutboundMessageStatus.Status.TO_PUBLISH);
-		}
-
-		return send(MessageFactory.publish(message, false)).addListener(f -> {
-			switch (message.qos()) {
-			case AT_MOST_ONCE:
-				break;
-
-			case AT_LEAST_ONCE:
-			case EXACTLY_ONCE:
-				topic.subscribers().get(session.clientId()).setOutboundMessageStatus(message.id(),
-						OutboundMessageStatus.Status.PUBLISHED);
-				break;
-
-			default:
-				logger.error("Invalid QoS [QoS={}, clientId={}, topic={}]", message.qos(), session.clientId(),
-						message.topicName());
-				break;
+			if (subscription == null) {
+				logger.error("Topic Subscription should exist but none! [clientId={}, topicName={}]",
+						session.clientId(), message.topicName());
+				return;
 			}
+
+			if (session.isConnected() == false) { return; }
+
+			executefilters(message);
+
+			final int originalMessageId = message.id();
+
+			message.setId(session.nextMessageId());
+			message.setRetain(isRetain);// [MQTT-3.3.1-8],[MQTT-3.3.1-9]
+			message.setQos(adjustQoS(subscription.qos(), message.qos()));
+
+			if (message.qos() != MqttQoS.AT_MOST_ONCE) {
+				topic.subscribers().get(session.clientId()).addOutboundMessageStatus(message.id(), originalMessageId,
+						OutboundMessageStatus.Status.TO_PUBLISH, message.qos());
+			}
+
+			send(MessageFactory.publish(message, false)).addListener(f -> {
+				switch (message.qos()) {
+				case AT_MOST_ONCE:
+					break;
+
+				case AT_LEAST_ONCE:
+				case EXACTLY_ONCE:
+					topic.subscribers().get(session.clientId()).setOutboundMessageStatus(message.id(),
+							OutboundMessageStatus.Status.PUBLISHED);
+					break;
+
+				default:
+					logger.error("Invalid QoS [QoS={}, clientId={}, topic={}]", message.qos(), session.clientId(),
+							message.topicName());
+					break;
+				}
+			});
 		});
 	}
 
@@ -185,8 +189,12 @@ public class MessageSender {
 				long intervalSeconds = (now.getTime() - s.updateTime().getTime()) * 1000;
 				if (intervalSeconds < RESPONSE_TIMEOUT_SECONDS) { return; }
 
-				Topic topic = Topic.NEXUS.get(s.clientId(), s.messageId(), Topics.ClientType.SUBSCRIBER);
-				Message message = topic.messages().get(s.messageId());
+				Topic topic = Topic.NEXUS.get(s.clientId(), s.inboundMessageId(), Topics.ClientType.SUBSCRIBER);
+				Message message = topic.messages().get(s.inboundMessageId());
+
+				message.setQos(s.qos());
+				message.setId(s.messageId());
+				message.setRetain(false); // [MQTT-3.3.1-9]
 
 				switch (s.status()) {
 				case TO_PUBLISH:

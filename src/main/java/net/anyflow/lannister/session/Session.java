@@ -157,24 +157,17 @@ public class Session extends Jsonizable implements com.hazelcast.nio.serializati
 	}
 
 	public TopicSubscription removeTopicSubscription(final String topicFilter) {
-		TopicSubscription ret = topicSubscriptions.remove(topicFilter);
-		if (ret == null) { return null; }
+		Topic.NEXUS.removeSubscriber(topicFilter, clientId);
 
-		Topic.NEXUS.removeSubscribers(topicFilter, clientId);
-
-		// TODO [MQTT-3.10.4-3] If a Server deletes a Subscription It MUST
-		// complete the delivery of any QoS 1 or QoS 2 messages which it has
-		// started to send to the Client.
-
-		return ret;
+		return topicSubscriptions.remove(topicFilter);
 	}
 
 	public ChannelFuture send(MqttMessage message) {
 		return messageSender.send(message);
 	}
 
-	public ChannelFuture sendPublish(Topic topic, Message message, boolean isRetain) {
-		return messageSender.sendPublish(topic, message, isRetain);
+	public void sendPublish(Topic topic, Message message, boolean isRetain) {
+		messageSender.sendPublish(topic, message, isRetain);
 	}
 
 	public void completeRemainedMessages() {

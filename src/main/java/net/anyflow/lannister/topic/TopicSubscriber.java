@@ -27,6 +27,7 @@ import com.hazelcast.nio.serialization.ClassDefinitionBuilder;
 import com.hazelcast.nio.serialization.PortableReader;
 import com.hazelcast.nio.serialization.PortableWriter;
 
+import io.netty.handler.codec.mqtt.MqttQoS;
 import net.anyflow.lannister.Repository;
 import net.anyflow.lannister.message.OutboundMessageStatus;
 import net.anyflow.lannister.serialization.Jsonizable;
@@ -60,13 +61,12 @@ public class TopicSubscriber extends Jsonizable implements com.hazelcast.nio.ser
 		return ImmutableMap.copyOf(outboundMessageStatuses);
 	}
 
-	public void addOutboundMessageStatus(int messageId, int inboundMessageId,
-			OutboundMessageStatus.Status targetStatus) {
-		OutboundMessageStatus status = new OutboundMessageStatus(clientId, messageId, inboundMessageId);
+	public void addOutboundMessageStatus(int messageId, int inboundMessageId, OutboundMessageStatus.Status status,
+			MqttQoS qos) {
+		OutboundMessageStatus messageStatus = new OutboundMessageStatus(clientId, messageId, inboundMessageId, status,
+				qos);
 
-		status.status(targetStatus);
-
-		outboundMessageStatuses.put(status.messageId(), status);
+		outboundMessageStatuses.put(messageStatus.messageId(), messageStatus);
 	}
 
 	public OutboundMessageStatus removeOutboundMessageStatus(int messageId) {

@@ -17,7 +17,6 @@
 package net.anyflow.lannister.topic;
 
 import java.util.List;
-import java.util.stream.Stream;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
@@ -101,19 +100,12 @@ public class Topics {
 		return topics.remove(topic.name());
 	}
 
-	public void removeSubscribers(String topicFilter, String clientId) {
+	public void removeSubscriber(String topicFilter, String clientId) {
 		List<Topic> changed = Lists.newArrayList();
 
-		Stream.of(matches(topicFilter)).forEach(t -> {
+		topics.values().stream().filter(topic -> TopicMatcher.match(topicFilter, topic.name())).forEach(t -> {
 			t.removeSubscriber(clientId);
 			changed.add(t);
 		});
-
-		changed.stream().forEach(t -> topics.put(t.name(), t)); // persist
-	}
-
-	private Topic[] matches(String topicFilter) {
-		return topics.values().stream().filter(topic -> TopicMatcher.match(topicFilter, topic.name()))
-				.toArray(Topic[]::new);
 	}
 }

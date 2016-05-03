@@ -26,6 +26,7 @@ import com.hazelcast.nio.serialization.ClassDefinitionBuilder;
 import com.hazelcast.nio.serialization.PortableReader;
 import com.hazelcast.nio.serialization.PortableWriter;
 
+import io.netty.handler.codec.mqtt.MqttQoS;
 import net.anyflow.lannister.serialization.SerializableFactory;
 
 public class OutboundMessageStatus extends MessageStatus {
@@ -36,15 +37,18 @@ public class OutboundMessageStatus extends MessageStatus {
 	private int inboundMessageId;
 	@JsonProperty
 	private Status status;
+	@JsonProperty
+	private MqttQoS qos;
 
 	public OutboundMessageStatus() { // just for Serialization
 	}
 
-	public OutboundMessageStatus(String clientId, int messageId, int inboundMessageId) {
+	public OutboundMessageStatus(String clientId, int messageId, int inboundMessageId, Status status, MqttQoS qos) {
 		super(clientId, messageId);
 
 		this.inboundMessageId = inboundMessageId;
-		this.status = Status.TO_PUBLISH;
+		this.status = status;
+		this.qos = qos;
 	}
 
 	public int inboundMessageId() {
@@ -58,6 +62,10 @@ public class OutboundMessageStatus extends MessageStatus {
 	public void status(Status status) {
 		this.status = status;
 		super.updateTime = new Date();
+	}
+
+	public MqttQoS qos() {
+		return qos;
 	}
 
 	@JsonIgnore
@@ -76,19 +84,22 @@ public class OutboundMessageStatus extends MessageStatus {
 	public void writePortable(PortableWriter writer) throws IOException {
 		super.writePortable(writer);
 
-		writer.writeByte("targetStatus", status.value());
+		writer.writeByte("status", status.value());
+		writer.writeInt("qos", qos.value());
 	}
 
 	@Override
 	public void readPortable(PortableReader reader) throws IOException {
 		super.readPortable(reader);
 
-		status = Status.valueOf(reader.readByte("targetStatus"));
+		status = Status.valueOf(reader.readByte("status"));
+		qos = MqttQoS.valueOf(reader.readInt("qos"));
 	}
 
 	public static ClassDefinition classDefinition() {
 		return new ClassDefinitionBuilder(SerializableFactory.ID, ID).addUTFField("clientId").addIntField("messageId")
-				.addByteField("targetStatus").addLongField("createTime").addLongField("updateTime").build();
+				.addLongField("createTime").addLongField("updateTime").addByteField("status").addIntField("qos")
+				.build();
 	}
 
 	public enum Status {

@@ -109,6 +109,11 @@ public class Message extends Jsonizable implements com.hazelcast.nio.serializati
 		return publisherId + "_" + Integer.toString(id);
 	}
 
+	@Override
+	public Message clone() {
+		return new Message(id, topicName, publisherId, message, qos, isRetain);
+	}
+
 	@JsonIgnore
 	@Override
 	public int getFactoryId() {

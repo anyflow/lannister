@@ -146,10 +146,10 @@ public class Topic extends Jsonizable implements com.hazelcast.nio.serialization
 					.filter(s -> id.equals(s.clientId()) && s.isConnected()).findFirst().orElse(null);
 
 			if (session != null) {
-				session.sendPublish(this, message, false);
+				session.sendPublish(this, message.clone(), false);
 			}
 			else {
-				NEXUS.notifier().publish(new Notification(id, this, message));
+				NEXUS.notifier().publish(new Notification(id, this, message.clone()));
 			}
 		});
 	}
