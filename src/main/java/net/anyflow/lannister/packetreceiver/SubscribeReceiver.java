@@ -29,6 +29,7 @@ import io.netty.handler.codec.mqtt.MqttSubscribeMessage;
 import io.netty.handler.codec.mqtt.MqttTopicSubscription;
 import net.anyflow.lannister.message.MessageFactory;
 import net.anyflow.lannister.session.Session;
+import net.anyflow.lannister.topic.TopicValidator;
 import net.anyflow.lannister.topic.TopicSubscription;
 
 public class SubscribeReceiver extends SimpleChannelInboundHandler<MqttSubscribeMessage> {
@@ -60,7 +61,7 @@ public class SubscribeReceiver extends SimpleChannelInboundHandler<MqttSubscribe
 		List<TopicSubscription> topicSubscriptions = Lists.newArrayList();
 
 		topicSubs.stream().filter(topicSub -> {
-			if (TopicSubscription.isValid(topicSub.topicName())) { return true; }
+			if (TopicValidator.isValidFilter(topicSub.topicName())) { return true; }
 
 			grantedQoss.add(MqttQoS.FAILURE.value());
 			return false;

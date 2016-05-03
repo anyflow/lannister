@@ -20,7 +20,6 @@ import java.io.IOException;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.google.common.base.Strings;
 import com.hazelcast.nio.serialization.ClassDefinition;
 import com.hazelcast.nio.serialization.ClassDefinitionBuilder;
 import com.hazelcast.nio.serialization.PortableReader;
@@ -53,23 +52,6 @@ public class TopicSubscription extends Jsonizable implements com.hazelcast.nio.s
 
 	public MqttQoS qos() {
 		return qos;
-	}
-
-	public static boolean isValid(String topicFilter) {
-		// TODO topic filter validation
-		return Strings.isNullOrEmpty(topicFilter) == false;
-	}
-
-	public boolean isMatch(String topicName) {
-		return isMatch(topicFilter, topicName);
-	}
-
-	public static boolean isMatch(String topicFilter, String topicName) {
-		if (Strings.isNullOrEmpty(topicFilter) || Strings.isNullOrEmpty(topicName)) { return false; }
-
-		// TODO topic wildcard filtering
-
-		return topicFilter.equals(topicName);
 	}
 
 	@JsonIgnore

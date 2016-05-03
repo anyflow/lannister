@@ -71,8 +71,8 @@ public class Topics {
 	}
 
 	private Topic getFromPublisher(String publisherId, int messageId) {
-		return topics.values().parallelStream()
-				.filter(t -> t.getInboundMessageStatus(publisherId, messageId) != null).findAny().orElse(null);
+		return topics.values().parallelStream().filter(t -> t.getInboundMessageStatus(publisherId, messageId) != null)
+				.findAny().orElse(null);
 	}
 
 	private Topic getFromSubscriber(String subscriberId, int messageId) {
@@ -113,7 +113,7 @@ public class Topics {
 	}
 
 	private Topic[] matches(String topicFilter) {
-		return topics.values().stream().filter(topic -> TopicSubscription.isMatch(topicFilter, topic.name()))
+		return topics.values().stream().filter(topic -> TopicMatcher.match(topicFilter, topic.name()))
 				.toArray(Topic[]::new);
 	}
 }

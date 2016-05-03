@@ -29,6 +29,7 @@ import io.netty.channel.ChannelId;
 import net.anyflow.lannister.Repository;
 import net.anyflow.lannister.topic.Notification;
 import net.anyflow.lannister.topic.Topic;
+import net.anyflow.lannister.topic.TopicMatcher;
 
 public class Sessions implements MessageListener<Notification> {
 
@@ -96,7 +97,7 @@ public class Sessions implements MessageListener<Notification> {
 	public void topicAdded(Topic topic) {
 		sessions.values().stream().parallel()
 				.filter(session -> session.topicSubscriptions().values().stream()
-						.anyMatch(ts -> ts.isMatch(topic.name())))
+						.anyMatch(ts -> TopicMatcher.match(ts.topicFilter(), topic.name())))
 				.forEach(session -> topic.addSubscriber(session.clientId()));
 	}
 

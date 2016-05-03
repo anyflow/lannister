@@ -44,6 +44,7 @@ import net.anyflow.lannister.serialization.ChannelIdSerializer;
 import net.anyflow.lannister.serialization.Jsonizable;
 import net.anyflow.lannister.serialization.SerializableFactory;
 import net.anyflow.lannister.topic.Topic;
+import net.anyflow.lannister.topic.TopicMatcher;
 import net.anyflow.lannister.topic.TopicSubscription;
 
 public class Session extends Jsonizable implements com.hazelcast.nio.serialization.Portable {
@@ -143,7 +144,7 @@ public class Session extends Jsonizable implements com.hazelcast.nio.serializati
 	}
 
 	public Stream<TopicSubscription> matches(String topicName) {
-		return topicSubscriptions.values().stream().filter(t -> t.isMatch(topicName));
+		return topicSubscriptions.values().stream().filter(t -> TopicMatcher.match(t.topicFilter(), topicName));
 	}
 
 	public TopicSubscription putTopicSubscription(TopicSubscription topicSubscription) {

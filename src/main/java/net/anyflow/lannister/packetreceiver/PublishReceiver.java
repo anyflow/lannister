@@ -28,6 +28,7 @@ import net.anyflow.lannister.message.Message;
 import net.anyflow.lannister.message.MessageFactory;
 import net.anyflow.lannister.session.Session;
 import net.anyflow.lannister.topic.Topic;
+import net.anyflow.lannister.topic.TopicValidator;
 
 public class PublishReceiver extends SimpleChannelInboundHandler<MqttPublishMessage> {
 
@@ -45,6 +46,11 @@ public class PublishReceiver extends SimpleChannelInboundHandler<MqttPublishMess
 		}
 
 		session.setLastIncomingTime(new Date());
+
+		if (!TopicValidator.isValidName(msg.variableHeader().topicName())) {
+			session.dispose(true);
+			return;
+		}
 
 		Topic topic = Topic.NEXUS.get(msg.variableHeader().topicName());
 		if (topic == null) {

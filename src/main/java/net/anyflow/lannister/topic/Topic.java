@@ -20,7 +20,6 @@ import java.io.IOException;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableMap;
 import com.hazelcast.core.IMap;
 import com.hazelcast.nio.serialization.ClassDefinition;
@@ -158,11 +157,6 @@ public class Topic extends Jsonizable implements com.hazelcast.nio.serialization
 	public void publish(String requesterId, Message message) {
 		putMessage(requesterId, message);
 		broadcast(message);
-	}
-
-	public static boolean isValid(String topicName) {
-		// TODO topic name validation
-		return Strings.isNullOrEmpty(topicName) == false;
 	}
 
 	public static Topic put(Topic topic) {
