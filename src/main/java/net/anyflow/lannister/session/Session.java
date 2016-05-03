@@ -149,6 +149,10 @@ public class Session extends Jsonizable implements com.hazelcast.nio.serializati
 
 	public TopicSubscription putTopicSubscription(TopicSubscription topicSubscription) {
 		TopicSubscription ret = topicSubscriptions.put(topicSubscription.topicFilter(), topicSubscription); // [MQTT-3.8.4-3]
+
+		Topic.NEXUS.map().values().stream().filter(t -> TopicMatcher.match(topicSubscription.topicFilter(), t.name()))
+				.forEach(t -> t.addSubscriber(clientId));
+
 		return ret;
 	}
 
