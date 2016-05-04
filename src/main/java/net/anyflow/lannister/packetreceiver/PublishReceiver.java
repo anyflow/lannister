@@ -28,7 +28,7 @@ import net.anyflow.lannister.message.Message;
 import net.anyflow.lannister.message.MessageFactory;
 import net.anyflow.lannister.session.Session;
 import net.anyflow.lannister.topic.Topic;
-import net.anyflow.lannister.topic.TopicValidator;
+import net.anyflow.lannister.topic.TopicMatcher;
 
 public class PublishReceiver extends SimpleChannelInboundHandler<MqttPublishMessage> {
 
@@ -47,7 +47,7 @@ public class PublishReceiver extends SimpleChannelInboundHandler<MqttPublishMess
 
 		session.setLastIncomingTime(new Date());
 
-		if (!TopicValidator.isValidName(msg.variableHeader().topicName())) {
+		if (!TopicMatcher.isValid(msg.variableHeader().topicName(), false)) {
 			session.dispose(true);
 			return;
 		}
