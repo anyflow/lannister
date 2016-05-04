@@ -21,6 +21,7 @@ import java.io.IOException;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.common.collect.ImmutableMap;
+import com.hazelcast.core.ILock;
 import com.hazelcast.core.IMap;
 import com.hazelcast.nio.serialization.ClassDefinition;
 import com.hazelcast.nio.serialization.ClassDefinitionBuilder;
@@ -28,18 +29,15 @@ import com.hazelcast.nio.serialization.PortableReader;
 import com.hazelcast.nio.serialization.PortableWriter;
 
 import io.netty.handler.codec.mqtt.MqttQoS;
-import net.anyflow.lannister.Repository;
+import net.anyflow.lannister.Hazelcast;
 import net.anyflow.lannister.message.InboundMessageStatus;
 import net.anyflow.lannister.message.InboundMessageStatus.Status;
 import net.anyflow.lannister.message.Message;
-import net.anyflow.lannister.message.MessageStatus;
-import net.anyflow.lannister.serialization.Jsonizable;
 import net.anyflow.lannister.serialization.SerializableFactory;
 import net.anyflow.lannister.session.Session;
 
-public class Topic extends Jsonizable implements com.hazelcast.nio.serialization.Portable {
+public class Topic implements com.hazelcast.nio.serialization.Portable {
 
-	@SuppressWarnings("unused")
 	private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(Topic.class);
 
 	public static Topics NEXUS;
@@ -54,7 +52,12 @@ public class Topic extends Jsonizable implements com.hazelcast.nio.serialization
 	@JsonProperty
 	private IMap<String, Message> messages; // KEY:Message.key()
 	@JsonProperty
-	private IMap<String, InboundMessageStatus> inboundMessageStatuses; // KEY:clientId_messageId
+	private IMap<String, InboundMessageStatus> inboundMessageStatuses; // KEY:Message.key()
+	@JsonProperty
+	private IMap<String, Integer> messageReferenceCounts; // KEY:Message.key()
+
+	@JsonIgnore
+	private ILock messageReferenceCountsLock;
 
 	public Topic() { // just for Serialization
 	}
@@ -62,9 +65,12 @@ public class Topic extends Jsonizable implements com.hazelcast.nio.serialization
 	public Topic(String name) {
 		this.name = name;
 		this.retainedMessage = null;
-		this.subscribers = Repository.SELF.generator().getMap(subscribersName());
-		this.messages = Repository.SELF.generator().getMap(messagesName());
-		this.inboundMessageStatuses = Repository.SELF.generator().getMap(inboundMessageStatusesName());
+		this.subscribers = Hazelcast.SELF.generator().getMap(subscribersName());
+		this.messages = Hazelcast.SELF.generator().getMap(messagesName());
+		this.inboundMessageStatuses = Hazelcast.SELF.generator().getMap(inboundMessageStatusesName());
+		this.messageReferenceCounts = Hazelcast.SELF.generator().getMap(inboundMessageReferenceCountsName());
+
+		this.messageReferenceCountsLock = Hazelcast.SELF.generator().getLock(messageReferenceCountsLockName());
 	}
 
 	private String subscribersName() {
@@ -77,6 +83,14 @@ public class Topic extends Jsonizable implements com.hazelcast.nio.serialization
 
 	private String inboundMessageStatusesName() {
 		return "TOPIC(" + name + ")_inboundMessageStatuses";
+	}
+
+	private String inboundMessageReferenceCountsName() {
+		return "TOPIC(" + name + ")_inboundMessageReferenceCounts";
+	}
+
+	private String messageReferenceCountsLockName() {
+		return "TOPIC(" + name + ")_messageReferneceCount_Lock";
 	}
 
 	public String name() {
@@ -105,21 +119,33 @@ public class Topic extends Jsonizable implements com.hazelcast.nio.serialization
 	}
 
 	public InboundMessageStatus getInboundMessageStatus(String clientId, int messageId) {
-		return inboundMessageStatuses.get(MessageStatus.key(clientId, messageId));
+		return inboundMessageStatuses.get(Message.key(clientId, messageId));
 	}
 
 	public void removeInboundMessageStatus(String clientId, int messageId) {
-		inboundMessageStatuses.remove(MessageStatus.key(clientId, messageId));
+		String messageKey = Message.key(clientId, messageId);
+		inboundMessageStatuses.remove(messageKey);
+		releaseMessageRef(messageKey);
 	}
 
-	public void setInboundMessageStatus(String clientId, int messageId, Status targetStatus) {
-		InboundMessageStatus status = inboundMessageStatuses.get(MessageStatus.key(clientId, messageId));
-		if (status == null) {
-			status = new InboundMessageStatus(clientId, messageId);
-		}
-		status.status(targetStatus);
+	public void addInboundMessageStatus(String clientId, int messageId, Status status) {
+		InboundMessageStatus messageStatus = new InboundMessageStatus(clientId, messageId, status);
+		addMessageRef(messageStatus.key());
 
-		inboundMessageStatuses.put(status.key(), status);
+		inboundMessageStatuses.put(messageStatus.key(), messageStatus);
+	}
+
+	public void setInboundMessageStatus(String clientId, int messageId, Status status) {
+		InboundMessageStatus messageStatus = inboundMessageStatuses.get(Message.key(clientId, messageId));
+		if (status == null) {
+			logger.error("Inbound message status does not exist [clientId={}, messageId={}, status={}", clientId,
+					messageId, status);
+			throw new IllegalArgumentException();
+		}
+
+		messageStatus.status(status);
+
+		inboundMessageStatuses.put(messageStatus.key(), messageStatus);
 	}
 
 	public void addSubscriber(String clientId) {
@@ -137,16 +163,19 @@ public class Topic extends Jsonizable implements com.hazelcast.nio.serialization
 
 		messages.put(message.key(), message);
 
-		setInboundMessageStatus(requesterId, message.id(), Status.RECEIVED);
+		addInboundMessageStatus(requesterId, message.id(), Status.RECEIVED);
+	}
+
+	protected static MqttQoS adjustQoS(MqttQoS subscriptionQos, MqttQoS publishQos) {
+		return subscriptionQos.value() <= publishQos.value() ? subscriptionQos : publishQos;
 	}
 
 	public void broadcast(Message message) {
-		subscribers.keySet().stream().parallel().forEach(id -> {
-			Session session = Session.NEXUS.map().values().stream()
-					.filter(s -> id.equals(s.clientId()) && s.isConnected()).findFirst().orElse(null);
+		subscribers.keySet().stream().filter(id -> Session.NEXUS.get(id) != null).forEach(id -> {
+			Session session = Session.NEXUS.get(id);
 
-			if (session != null) {
-				session.sendPublish(this, message.clone(), false);
+			if (session.isConnected()) {
+				session.sendPublish(this, message.clone(), false); // [MQTT-3.3.1-8],[MQTT-3.3.1-9]
 			}
 			else {
 				NEXUS.notifier().publish(new Notification(id, this, message.clone()));
@@ -164,6 +193,55 @@ public class Topic extends Jsonizable implements com.hazelcast.nio.serialization
 
 		// TODO should be added in case of no subscriber & no retained Message?
 		return NEXUS.put(topic);
+	}
+
+	public void addMessageRef(String messageKey) {
+		messageReferenceCountsLock.lock();
+
+		try {
+			Integer count = messageReferenceCounts.get(messageKey);
+			if (count == null) {
+				count = 0;
+			}
+
+			messageReferenceCounts.put(messageKey, ++count);
+			logger.debug("message reference added [count={}, messageKey={}]", count, messageKey);
+		}
+		finally {
+			messageReferenceCountsLock.unlock();
+		}
+	}
+
+	public void releaseMessageRef(String messageKey) {
+		messageReferenceCountsLock.lock();
+
+		try {
+			Integer count = messageReferenceCounts.get(messageKey);
+			if (count <= 0) {
+				logger.error("Message reference count error [key={}, count={}]", messageKey, count);
+				return;
+			}
+			else if (count == 1) {
+				messageReferenceCounts.remove(messageKey);
+				messages.remove(messageKey);
+				logger.debug("message removed [messageKey={}]", messageKey);
+			}
+			else {
+				messageReferenceCounts.put(messageKey, --count);
+				logger.debug("message rereference released [count={}, messageKey={}]", count, messageKey);
+			}
+		}
+		finally {
+			messageReferenceCountsLock.unlock();
+		}
+	}
+
+	public void dispose() {
+		subscribers.destroy();
+		messages.destroy();
+		inboundMessageStatuses.destroy();
+		messageReferenceCounts.destroy();
+		messageReferenceCountsLock.destroy();
 	}
 
 	@JsonIgnore
@@ -195,9 +273,11 @@ public class Topic extends Jsonizable implements com.hazelcast.nio.serialization
 		name = reader.readUTF("name");
 		retainedMessage = reader.readPortable("retainedMessage");
 
-		subscribers = Repository.SELF.generator().getMap(subscribersName());
-		messages = Repository.SELF.generator().getMap(messagesName());
-		inboundMessageStatuses = Repository.SELF.generator().getMap(inboundMessageStatusesName());
+		subscribers = Hazelcast.SELF.generator().getMap(subscribersName());
+		messages = Hazelcast.SELF.generator().getMap(messagesName());
+		inboundMessageStatuses = Hazelcast.SELF.generator().getMap(inboundMessageStatusesName());
+		messageReferenceCounts = Hazelcast.SELF.generator().getMap(inboundMessageReferenceCountsName());
+		messageReferenceCountsLock = Hazelcast.SELF.generator().getLock(messageReferenceCountsLockName());
 	}
 
 	public static ClassDefinition classDefinition() {

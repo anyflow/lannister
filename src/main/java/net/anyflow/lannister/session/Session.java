@@ -38,16 +38,15 @@ import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelId;
 import io.netty.handler.codec.mqtt.MqttMessage;
 import net.anyflow.lannister.Literals;
-import net.anyflow.lannister.Repository;
+import net.anyflow.lannister.Hazelcast;
 import net.anyflow.lannister.message.Message;
 import net.anyflow.lannister.serialization.ChannelIdSerializer;
-import net.anyflow.lannister.serialization.Jsonizable;
 import net.anyflow.lannister.serialization.SerializableFactory;
 import net.anyflow.lannister.topic.Topic;
 import net.anyflow.lannister.topic.TopicMatcher;
 import net.anyflow.lannister.topic.TopicSubscription;
 
-public class Session extends Jsonizable implements com.hazelcast.nio.serialization.Portable {
+public class Session implements com.hazelcast.nio.serialization.Portable {
 
 	private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(Session.class);
 
@@ -89,7 +88,7 @@ public class Session extends Jsonizable implements com.hazelcast.nio.serializati
 		this.lastIncomingTime = new Date();
 		this.cleanSession = cleanSession;
 		this.will = will; // [MQTT-3.1.2-9]
-		this.topicSubscriptions = Repository.SELF.generator().getMap(topicSubscriptionsName());
+		this.topicSubscriptions = Hazelcast.SELF.generator().getMap(topicSubscriptionsName());
 
 		this.messageSender = new MessageSender(this);
 	}
@@ -246,7 +245,7 @@ public class Session extends Jsonizable implements com.hazelcast.nio.serializati
 		createTime = new Date(reader.readLong("createTime"));
 		lastIncomingTime = new Date(reader.readLong("lastIncomingTime"));
 
-		topicSubscriptions = Repository.SELF.generator().getMap(topicSubscriptionsName());
+		topicSubscriptions = Hazelcast.SELF.generator().getMap(topicSubscriptionsName());
 
 		messageSender = new MessageSender(this);
 	}

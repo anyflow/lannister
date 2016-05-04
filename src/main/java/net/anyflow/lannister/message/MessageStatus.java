@@ -25,9 +25,8 @@ import com.hazelcast.nio.serialization.PortableReader;
 import com.hazelcast.nio.serialization.PortableWriter;
 
 import net.anyflow.lannister.Literals;
-import net.anyflow.lannister.serialization.Jsonizable;
 
-public abstract class MessageStatus extends Jsonizable implements com.hazelcast.nio.serialization.Portable {
+public abstract class MessageStatus implements com.hazelcast.nio.serialization.Portable {
 
 	@JsonProperty
 	private String clientId;
@@ -51,7 +50,7 @@ public abstract class MessageStatus extends Jsonizable implements com.hazelcast.
 	}
 
 	public String key() {
-		return key(clientId, messageId);
+		return Message.key(clientId, messageId);
 	}
 
 	public String clientId() {
@@ -68,10 +67,6 @@ public abstract class MessageStatus extends Jsonizable implements com.hazelcast.
 
 	public Date updateTime() {
 		return updateTime;
-	}
-
-	public static String key(String clientId, int messageId) {
-		return clientId + "_" + Integer.toString(messageId);
 	}
 
 	@Override

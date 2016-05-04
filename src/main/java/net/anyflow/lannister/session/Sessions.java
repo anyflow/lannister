@@ -26,7 +26,7 @@ import com.hazelcast.core.MessageListener;
 
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelId;
-import net.anyflow.lannister.Repository;
+import net.anyflow.lannister.Hazelcast;
 import net.anyflow.lannister.topic.Notification;
 import net.anyflow.lannister.topic.Topic;
 import net.anyflow.lannister.topic.TopicMatcher;
@@ -41,7 +41,7 @@ public class Sessions implements MessageListener<Notification> {
 	private final Map<String, ChannelHandlerContext> ctxs; // KEY:clientlId
 
 	public Sessions() {
-		sessions = Repository.SELF.generator().getMap("sessions");
+		sessions = Hazelcast.SELF.generator().getMap("sessions");
 		clientIds = Maps.newHashMap();
 		ctxs = Maps.newHashMap();
 	}
@@ -108,6 +108,6 @@ public class Sessions implements MessageListener<Notification> {
 		Session session = get(notified.clientId());
 		if (session == null || session.isConnected() == false) { return; }
 
-		session.sendPublish(notified.topic(), notified.message(), false);
+		session.sendPublish(notified.topic(), notified.message(), false);// [MQTT-3.3.1-8],[MQTT-3.3.1-9]
 	}
 }

@@ -72,49 +72,37 @@ public class MessageSender {
 	protected void sendPublish(Topic topic, Message message, boolean isRetain) {
 		logger.debug("event arrived : [clientId:{}/message:{}]", session.clientId(), message.toString());
 
-		ChannelHandlerContext ctx = Session.NEXUS.channelHandlerContext(session.clientId());
-		ctx.executor().submit(() -> {
-			// TODO what if returned topicSubscriptions are multiple?
-			TopicSubscription subscription = session.matches(message.topicName()).findAny().orElse(null);
+		// TODO what if returned topicSubscriptions are multiple?
+		TopicSubscription subscription = session.matches(message.topicName()).findAny().orElse(null);
+		assert subscription != null;
 
-			if (subscription == null) {
-				logger.error("Topic Subscription should exist but none! [clientId={}, topicName={}]",
-						session.clientId(), message.topicName());
-				return;
+		message.setId(session.nextMessageId());
+		message.setRetain(isRetain);
+		message.setQos(adjustQoS(subscription.qos(), message.qos()));
+
+		if (message.qos() != MqttQoS.AT_MOST_ONCE) {
+			Topic.NEXUS.get(message.topicName()).subscribers().get(session.clientId()).addOutboundMessageStatus(
+					message.id(), message.key(), OutboundMessageStatus.Status.TO_PUBLISH, message.qos());
+		}
+
+		executefilters(message);
+
+		send(MessageFactory.publish(message, false)).addListener(f -> {
+			switch (message.qos()) {
+			case AT_MOST_ONCE:
+				break;
+
+			case AT_LEAST_ONCE:
+			case EXACTLY_ONCE:
+				topic.subscribers().get(session.clientId()).setOutboundMessageStatus(message.id(),
+						OutboundMessageStatus.Status.PUBLISHED);
+				break;
+
+			default:
+				logger.error("Invalid QoS [QoS={}, clientId={}, topic={}]", message.qos(), session.clientId(),
+						message.topicName());
+				break;
 			}
-
-			if (session.isConnected() == false) { return; }
-
-			executefilters(message);
-
-			final int originalMessageId = message.id();
-
-			message.setId(session.nextMessageId());
-			message.setRetain(isRetain);// [MQTT-3.3.1-8],[MQTT-3.3.1-9]
-			message.setQos(adjustQoS(subscription.qos(), message.qos()));
-
-			if (message.qos() != MqttQoS.AT_MOST_ONCE) {
-				topic.subscribers().get(session.clientId()).addOutboundMessageStatus(message.id(), originalMessageId,
-						OutboundMessageStatus.Status.TO_PUBLISH, message.qos());
-			}
-
-			send(MessageFactory.publish(message, false)).addListener(f -> {
-				switch (message.qos()) {
-				case AT_MOST_ONCE:
-					break;
-
-				case AT_LEAST_ONCE:
-				case EXACTLY_ONCE:
-					topic.subscribers().get(session.clientId()).setOutboundMessageStatus(message.id(),
-							OutboundMessageStatus.Status.PUBLISHED);
-					break;
-
-				default:
-					logger.error("Invalid QoS [QoS={}, clientId={}, topic={}]", message.qos(), session.clientId(),
-							message.topicName());
-					break;
-				}
-			});
 		});
 	}
 
@@ -189,8 +177,8 @@ public class MessageSender {
 				long intervalSeconds = (now.getTime() - s.updateTime().getTime()) * 1000;
 				if (intervalSeconds < RESPONSE_TIMEOUT_SECONDS) { return; }
 
-				Topic topic = Topic.NEXUS.get(s.clientId(), s.inboundMessageId(), Topics.ClientType.SUBSCRIBER);
-				Message message = topic.messages().get(s.inboundMessageId());
+				Topic topic = Topic.NEXUS.get(s.clientId(), s.messageId(), Topics.ClientType.SUBSCRIBER);
+				Message message = topic.messages().get(s.inboundMessageKey());
 
 				message.setQos(s.qos());
 				message.setId(s.messageId());

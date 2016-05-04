@@ -38,10 +38,10 @@ public class InboundMessageStatus extends MessageStatus {
 	public InboundMessageStatus() { // just for Serialization
 	}
 
-	public InboundMessageStatus(String clientId, int messageId) {
+	public InboundMessageStatus(String clientId, int messageId, Status status) {
 		super(clientId, messageId);
 
-		status = Status.RECEIVED;
+		this.status = status;
 	}
 
 	public Status status() {

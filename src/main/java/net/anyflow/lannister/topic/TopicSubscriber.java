@@ -28,12 +28,11 @@ import com.hazelcast.nio.serialization.PortableReader;
 import com.hazelcast.nio.serialization.PortableWriter;
 
 import io.netty.handler.codec.mqtt.MqttQoS;
-import net.anyflow.lannister.Repository;
+import net.anyflow.lannister.Hazelcast;
 import net.anyflow.lannister.message.OutboundMessageStatus;
-import net.anyflow.lannister.serialization.Jsonizable;
 import net.anyflow.lannister.serialization.SerializableFactory;
 
-public class TopicSubscriber extends Jsonizable implements com.hazelcast.nio.serialization.Portable {
+public class TopicSubscriber implements com.hazelcast.nio.serialization.Portable {
 
 	public final static int ID = 7;
 
@@ -50,7 +49,7 @@ public class TopicSubscriber extends Jsonizable implements com.hazelcast.nio.ser
 	protected TopicSubscriber(String clientId, String topicName) {
 		this.clientId = clientId;
 		this.topicName = topicName;
-		this.outboundMessageStatuses = Repository.SELF.generator().getMap(messageStatusesName());
+		this.outboundMessageStatuses = Hazelcast.SELF.generator().getMap(messageStatusesName());
 	}
 
 	private String messageStatusesName() {
@@ -61,16 +60,23 @@ public class TopicSubscriber extends Jsonizable implements com.hazelcast.nio.ser
 		return ImmutableMap.copyOf(outboundMessageStatuses);
 	}
 
-	public void addOutboundMessageStatus(int messageId, int inboundMessageId, OutboundMessageStatus.Status status,
+	public void addOutboundMessageStatus(int messageId, String inboundMessageKey, OutboundMessageStatus.Status status,
 			MqttQoS qos) {
-		OutboundMessageStatus messageStatus = new OutboundMessageStatus(clientId, messageId, inboundMessageId, status,
+		OutboundMessageStatus messageStatus = new OutboundMessageStatus(clientId, messageId, inboundMessageKey, status,
 				qos);
 
 		outboundMessageStatuses.put(messageStatus.messageId(), messageStatus);
+
+		Topic.NEXUS.get(topicName).addMessageRef(messageStatus.inboundMessageKey());
 	}
 
 	public OutboundMessageStatus removeOutboundMessageStatus(int messageId) {
-		return outboundMessageStatuses.remove(messageId);
+		OutboundMessageStatus ret = outboundMessageStatuses.remove(messageId);
+		if (ret == null) { return null; }
+
+		Topic.NEXUS.get(topicName).releaseMessageRef(ret.inboundMessageKey());
+
+		return ret;
 	}
 
 	public OutboundMessageStatus setOutboundMessageStatus(int messageId, OutboundMessageStatus.Status targetStatus) {
@@ -105,7 +111,7 @@ public class TopicSubscriber extends Jsonizable implements com.hazelcast.nio.ser
 		topicName = reader.readUTF("topicName");
 		clientId = reader.readUTF("clientId");
 
-		outboundMessageStatuses = Repository.SELF.generator().getMap(messageStatusesName());
+		outboundMessageStatuses = Hazelcast.SELF.generator().getMap(messageStatusesName());
 	}
 
 	public static ClassDefinition classDefinition() {

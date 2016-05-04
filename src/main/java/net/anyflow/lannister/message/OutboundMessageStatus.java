@@ -34,7 +34,7 @@ public class OutboundMessageStatus extends MessageStatus {
 	public static final int ID = 3;
 
 	@JsonProperty
-	private int inboundMessageId;
+	private String inboundMessageKey;
 	@JsonProperty
 	private Status status;
 	@JsonProperty
@@ -43,16 +43,16 @@ public class OutboundMessageStatus extends MessageStatus {
 	public OutboundMessageStatus() { // just for Serialization
 	}
 
-	public OutboundMessageStatus(String clientId, int messageId, int inboundMessageId, Status status, MqttQoS qos) {
+	public OutboundMessageStatus(String clientId, int messageId, String inboundMessageKey, Status status, MqttQoS qos) {
 		super(clientId, messageId);
 
-		this.inboundMessageId = inboundMessageId;
+		this.inboundMessageKey = inboundMessageKey;
 		this.status = status;
 		this.qos = qos;
 	}
 
-	public int inboundMessageId() {
-		return inboundMessageId;
+	public String inboundMessageKey() {
+		return inboundMessageKey;
 	}
 
 	public Status status() {
@@ -84,6 +84,7 @@ public class OutboundMessageStatus extends MessageStatus {
 	public void writePortable(PortableWriter writer) throws IOException {
 		super.writePortable(writer);
 
+		writer.writeUTF("inboundMessageKey", inboundMessageKey);
 		writer.writeByte("status", status.value());
 		writer.writeInt("qos", qos.value());
 	}
@@ -92,14 +93,15 @@ public class OutboundMessageStatus extends MessageStatus {
 	public void readPortable(PortableReader reader) throws IOException {
 		super.readPortable(reader);
 
+		inboundMessageKey = reader.readUTF("inboundMessageKey");
 		status = Status.valueOf(reader.readByte("status"));
 		qos = MqttQoS.valueOf(reader.readInt("qos"));
 	}
 
 	public static ClassDefinition classDefinition() {
 		return new ClassDefinitionBuilder(SerializableFactory.ID, ID).addUTFField("clientId").addIntField("messageId")
-				.addLongField("createTime").addLongField("updateTime").addByteField("status").addIntField("qos")
-				.build();
+				.addLongField("createTime").addLongField("updateTime").addUTFField("inboundMessageKey")
+				.addByteField("status").addIntField("qos").build();
 	}
 
 	public enum Status {

@@ -49,7 +49,7 @@ public class TopicMatcher {
 		return isValidSingleLevelWildcard(token);
 	}
 
-	public static int countMatches(String str, String sub) {
+	private static int countMatches(String str, String sub) {
 		if (Strings.isNullOrEmpty(str) || Strings.isNullOrEmpty(sub)) { return 0; }
 
 		int count = 0;
@@ -68,7 +68,8 @@ public class TopicMatcher {
 
 		char[] chars = topicString.toCharArray();
 		int length = chars.length;
-		char prev = NULL, next = NULL;
+		char prev = NULL;
+		char next = NULL;
 
 		for (int i = 0; i < length; i++) {
 			prev = (i - 1 >= 0) ? chars[i - 1] : NULL;
@@ -87,20 +88,20 @@ public class TopicMatcher {
 	public static boolean match(String topicFilter, String topicName) {
 		if (!TopicMatcher.isValid(topicFilter, true) || !TopicMatcher.isValid(topicName, false)) { return false; }
 
-		String[] fts = topicFilter.split("/");
-		String[] nts = topicName.split("/");
+		String[] tfs = topicFilter.split("/");
+		String[] tns = topicName.split("/");
 
-		for (int i = 0; i < nts.length; ++i) {
-			if (i >= fts.length) {
+		for (int i = 0; i < tns.length; ++i) {
+			if (i >= tfs.length) {
 				return false;
 			}
-			else if (fts[i].equals(MULTI_LEVEL_WILDCARD)) {
+			else if (tfs[i].equals(MULTI_LEVEL_WILDCARD)) {
 				return true;
 			}
-			else if (fts[i].equals(SINGLE_LEVEL_WILDCARD)) {
+			else if (tfs[i].equals(SINGLE_LEVEL_WILDCARD)) {
 				continue;
 			}
-			else if (fts[i].equals(nts[i])) {
+			else if (tfs[i].equals(tns[i])) {
 				continue;
 			}
 			else {

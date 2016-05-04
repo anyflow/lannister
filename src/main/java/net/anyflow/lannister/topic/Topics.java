@@ -23,7 +23,7 @@ import com.google.common.collect.Lists;
 import com.hazelcast.core.IMap;
 import com.hazelcast.core.ITopic;
 
-import net.anyflow.lannister.Repository;
+import net.anyflow.lannister.Hazelcast;
 import net.anyflow.lannister.session.Sessions;
 
 public class Topics {
@@ -34,8 +34,8 @@ public class Topics {
 	private final ITopic<Notification> notifier;
 
 	public Topics(Sessions sessions) {
-		this.topics = Repository.SELF.generator().getMap("topics");
-		this.notifier = Repository.SELF.generator().getTopic("publishNotifier");
+		this.topics = Hazelcast.SELF.generator().getMap("topics");
+		this.notifier = Hazelcast.SELF.generator().getTopic("publishNotifier");
 		this.notifier.addMessageListener(sessions);
 	}
 
@@ -96,6 +96,8 @@ public class Topics {
 			logger.error("Null topic tried to be removed.");
 			return null;
 		}
+
+		topic.dispose();
 
 		return topics.remove(topic.name());
 	}

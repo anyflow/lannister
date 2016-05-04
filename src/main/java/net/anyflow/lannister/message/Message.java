@@ -27,10 +27,9 @@ import com.hazelcast.nio.serialization.PortableWriter;
 
 import io.netty.handler.codec.mqtt.MqttQoS;
 import io.netty.util.internal.StringUtil;
-import net.anyflow.lannister.serialization.Jsonizable;
 import net.anyflow.lannister.serialization.SerializableFactory;
 
-public class Message extends Jsonizable implements com.hazelcast.nio.serialization.Portable {
+public class Message implements com.hazelcast.nio.serialization.Portable {
 	public final static int ID = 1;
 
 	@JsonProperty
@@ -106,12 +105,16 @@ public class Message extends Jsonizable implements com.hazelcast.nio.serializati
 	}
 
 	public String key() {
-		return publisherId + "_" + Integer.toString(id);
+		return key(publisherId, id);
 	}
 
 	@Override
 	public Message clone() {
 		return new Message(id, topicName, publisherId, message, qos, isRetain);
+	}
+
+	public static String key(String clientId, int messageId) {
+		return clientId + "_" + Integer.toString(messageId);
 	}
 
 	@JsonIgnore

@@ -20,7 +20,6 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.collect.Sets;
 import com.hazelcast.config.Config;
 import com.hazelcast.config.SerializerConfig;
-import com.hazelcast.core.Hazelcast;
 import com.hazelcast.core.HazelcastInstance;
 
 import net.anyflow.lannister.message.InboundMessageStatus;
@@ -34,19 +33,19 @@ import net.anyflow.lannister.topic.Topic;
 import net.anyflow.lannister.topic.TopicSubscriber;
 import net.anyflow.lannister.topic.TopicSubscription;
 
-public class Repository {
+public class Hazelcast {
 	@SuppressWarnings("unused")
-	private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(Repository.class);
+	private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(Hazelcast.class);
 
-	public static Repository SELF;
+	public static Hazelcast SELF;
 
 	static {
-		SELF = new Repository();
+		SELF = new Hazelcast();
 	}
 
 	private final HazelcastInstance generator;
 
-	private Repository() {
+	private Hazelcast() {
 		Config config = new Config();
 
 		config.getSerializationConfig().addPortableFactory(SerializableFactory.ID, new SerializableFactory());
@@ -60,7 +59,7 @@ public class Repository {
 		config.getSerializationConfig().getSerializerConfigs().add(new SerializerConfig().setTypeClass(JsonNode.class)
 				.setImplementation(JsonSerializer.makePlain(JsonNode.class)));
 
-		generator = Hazelcast.newHazelcastInstance(config);
+		generator = com.hazelcast.core.Hazelcast.newHazelcastInstance(config);
 	}
 
 	public HazelcastInstance generator() {

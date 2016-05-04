@@ -19,7 +19,7 @@ package net.anyflow.lannister;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 
-public class RepositoryTest {
+public class HazelcastTest {
 
 	@BeforeClass
 	public static void setUpBeforeClass() throws Exception {
