@@ -30,7 +30,6 @@ public class Application {
 	private static WebServer webServer;
 
 	public static void main(String[] args) {
-
 		org.apache.log4j.xml.DOMConfigurator
 				.configure(Application.class.getClassLoader().getResource("META-INF/log4j.xml"));
 
@@ -44,5 +43,10 @@ public class Application {
 
 		webServer = new WebServer();
 		webServer.start("net.anyflow");
+	}
+
+	public static void configureLog4j() {
+		org.apache.log4j.xml.DOMConfigurator
+				.configure(Application.class.getClassLoader().getResource("META-INF/log4j.xml"));
 	}
 }

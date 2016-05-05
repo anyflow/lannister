@@ -23,7 +23,7 @@ public class HazelcastTest {
 
 	@BeforeClass
 	public static void setUpBeforeClass() throws Exception {
-		// Currently do nothing
+		Application.configureLog4j();
 	}
 
 	@AfterClass

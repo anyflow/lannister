@@ -126,7 +126,7 @@ public class MessageSender {
 		ctx.executor().submit(() -> {
 			Date now = new Date();
 
-			Stream<InboundMessageStatus> statuses = Topic.NEXUS.map().values().parallelStream()
+			Stream<InboundMessageStatus> statuses = Topic.NEXUS.map().values().stream()
 					.map(t -> t.inboundMessageStatuses()).flatMap(t -> t.values().stream());
 
 			statuses.forEach(s -> {
@@ -140,10 +140,11 @@ public class MessageSender {
 				case RECEIVED:
 				case PUBRECED:
 					if (message.qos() == MqttQoS.AT_LEAST_ONCE) {
-						session.send(MessageFactory.puback(message.id()))
-								.addListener(f -> topic.removeInboundMessageStatus(session.clientId(), message.id()));
-						logger.debug("Inbound message status REMOVED : [clientId={}, messageId={}]", session.clientId(),
-								message.id());
+						session.send(MessageFactory.puback(message.id())).addListener(f -> {
+							topic.removeInboundMessageStatus(session.clientId(), message.id());
+							logger.debug("Inbound message status REMOVED : [clientId={}, messageId={}]",
+									session.clientId(), message.id());
+						});
 					}
 					else {
 						session.send(MessageFactory.pubrec(message.id()))

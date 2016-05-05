@@ -16,10 +16,7 @@
 
 package net.anyflow.lannister.topic;
 
-import java.util.List;
-
 import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.Lists;
 import com.hazelcast.core.IMap;
 import com.hazelcast.core.ITopic;
 
@@ -100,14 +97,5 @@ public class Topics {
 		topic.dispose();
 
 		return topics.remove(topic.name());
-	}
-
-	public void removeSubscriber(String topicFilter, String clientId) {
-		List<Topic> changed = Lists.newArrayList();
-
-		topics.values().stream().filter(topic -> TopicMatcher.match(topicFilter, topic.name())).forEach(t -> {
-			t.removeSubscriber(clientId);
-			changed.add(t);
-		});
 	}
 }

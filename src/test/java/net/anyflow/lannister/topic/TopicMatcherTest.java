@@ -6,11 +6,13 @@ import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
+import net.anyflow.lannister.Application;
+
 public class TopicMatcherTest {
 
 	@BeforeClass
 	public static void setUpBeforeClass() throws Exception {
-		// Do nothing
+		Application.configureLog4j();
 	}
 
 	@AfterClass

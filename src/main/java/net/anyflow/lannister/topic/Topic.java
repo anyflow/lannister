@@ -106,8 +106,8 @@ public class Topic implements com.hazelcast.nio.serialization.Portable {
 		NEXUS.put(this);
 	}
 
-	public ImmutableMap<String, TopicSubscriber> subscribers() {
-		return ImmutableMap.copyOf(subscribers);
+	public IMap<String, TopicSubscriber> subscribers() {
+		return subscribers;
 	}
 
 	public IMap<String, Message> messages() {
@@ -146,16 +146,6 @@ public class Topic implements com.hazelcast.nio.serialization.Portable {
 		messageStatus.status(status);
 
 		inboundMessageStatuses.put(messageStatus.key(), messageStatus);
-	}
-
-	public void addSubscriber(String clientId) {
-		subscribers.put(clientId, new TopicSubscriber(clientId, name));
-	}
-
-	public void removeSubscriber(String clientId) {
-		subscribers.remove(clientId);
-
-		// TODO should be this topic remained in spite of no subscriber?
 	}
 
 	public void putMessage(String requesterId, Message message) {

@@ -19,14 +19,13 @@ package net.anyflow.lannister.session;
 import java.io.IOException;
 import java.util.Collection;
 import java.util.Date;
-import java.util.Map;
 import java.util.stream.Stream;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
-import com.google.common.collect.ImmutableMap;
+import com.hazelcast.core.IMap;
 import com.hazelcast.nio.serialization.ClassDefinition;
 import com.hazelcast.nio.serialization.ClassDefinitionBuilder;
 import com.hazelcast.nio.serialization.PortableReader;
@@ -37,8 +36,8 @@ import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelId;
 import io.netty.handler.codec.mqtt.MqttMessage;
-import net.anyflow.lannister.Literals;
 import net.anyflow.lannister.Hazelcast;
+import net.anyflow.lannister.Literals;
 import net.anyflow.lannister.message.Message;
 import net.anyflow.lannister.serialization.ChannelIdSerializer;
 import net.anyflow.lannister.serialization.SerializableFactory;
@@ -59,7 +58,7 @@ public class Session implements com.hazelcast.nio.serialization.Portable {
 	@JsonProperty
 	private String clientId;
 	@JsonProperty
-	private Map<String, TopicSubscription> topicSubscriptions;
+	private IMap<String, TopicSubscription> topicSubscriptions;
 	@JsonProperty
 	private int currentMessageId;
 	@JsonProperty
@@ -89,6 +88,7 @@ public class Session implements com.hazelcast.nio.serialization.Portable {
 		this.cleanSession = cleanSession;
 		this.will = will; // [MQTT-3.1.2-9]
 		this.topicSubscriptions = Hazelcast.SELF.generator().getMap(topicSubscriptionsName());
+		this.topicSubscriptions.addInterceptor(new TopicSubscriptionInterceptor(clientId));
 
 		this.messageSender = new MessageSender(this);
 	}
@@ -138,27 +138,12 @@ public class Session implements com.hazelcast.nio.serialization.Portable {
 		Session.NEXUS.persist(this);
 	}
 
-	public ImmutableMap<String, TopicSubscription> topicSubscriptions() {
-		return ImmutableMap.copyOf(topicSubscriptions);
+	public IMap<String, TopicSubscription> topicSubscriptions() {
+		return topicSubscriptions;
 	}
 
 	public Stream<TopicSubscription> matches(String topicName) {
 		return topicSubscriptions.values().stream().filter(t -> TopicMatcher.match(t.topicFilter(), topicName));
-	}
-
-	public TopicSubscription putTopicSubscription(TopicSubscription topicSubscription) {
-		TopicSubscription ret = topicSubscriptions.put(topicSubscription.topicFilter(), topicSubscription); // [MQTT-3.8.4-3]
-
-		Topic.NEXUS.map().values().stream().filter(t -> TopicMatcher.match(topicSubscription.topicFilter(), t.name()))
-				.forEach(t -> t.addSubscriber(clientId));
-
-		return ret;
-	}
-
-	public TopicSubscription removeTopicSubscription(final String topicFilter) {
-		Topic.NEXUS.removeSubscriber(topicFilter, clientId);
-
-		return topicSubscriptions.remove(topicFilter);
 	}
 
 	public ChannelFuture send(MqttMessage message) {

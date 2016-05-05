@@ -155,27 +155,6 @@ public class HttpRequestRouter extends SimpleChannelInboundHandler<FullHttpReque
 		ctx.write(response);
 	}
 
-	private void setDefaultHeaders(FullHttpRequest request, HttpResponse response) {
-
-		response.headers().add(HttpHeaderNames.SERVER,
-
-				net.anyflow.lannister.Settings.SELF.getProperty("menton.version"));
-
-		boolean keepAlive = request.headers().get(HttpHeaderNames.CONNECTION) == HttpHeaderValues.KEEP_ALIVE.toString();
-		if (keepAlive) {
-			response.headers().set(HttpHeaderNames.CONNECTION, HttpHeaderValues.KEEP_ALIVE);
-		}
-
-		if (Settings.SELF.getProperty("menton.httpServer.allowCrossDomain", "false").equalsIgnoreCase("true")) {
-			response.headers().add(HttpHeaderNames.ACCESS_CONTROL_ALLOW_ORIGIN, "*");
-			response.headers().add(HttpHeaderNames.ACCESS_CONTROL_ALLOW_METHODS, "POST, GET, PUT, DELETE");
-			response.headers().add(HttpHeaderNames.ACCESS_CONTROL_ALLOW_HEADERS, "X-PINGARUNER");
-			response.headers().add(HttpHeaderNames.ACCESS_CONTROL_MAX_AGE, "1728000");
-		}
-
-		response.headers().set(HttpHeaderNames.CONTENT_LENGTH, response.content().readableBytes());
-	}
-
 	private void processRequest(ChannelHandlerContext ctx, FullHttpRequest rawRequest, HttpResponse response)
 			throws InstantiationException, IllegalAccessException, IOException, URISyntaxException {
 
@@ -229,5 +208,25 @@ public class HttpRequestRouter extends SimpleChannelInboundHandler<FullHttpReque
 	public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
 		logger.error(cause.getMessage(), cause);
 		ctx.close();
+	}
+
+	protected static void setDefaultHeaders(FullHttpRequest request, HttpResponse response) {
+		response.headers().add(HttpHeaderNames.SERVER,
+
+				net.anyflow.lannister.Settings.SELF.getProperty("menton.version"));
+
+		boolean keepAlive = request.headers().get(HttpHeaderNames.CONNECTION) == HttpHeaderValues.KEEP_ALIVE.toString();
+		if (keepAlive) {
+			response.headers().set(HttpHeaderNames.CONNECTION, HttpHeaderValues.KEEP_ALIVE);
+		}
+
+		if (Settings.SELF.getProperty("menton.httpServer.allowCrossDomain", "false").equalsIgnoreCase("true")) {
+			response.headers().add(HttpHeaderNames.ACCESS_CONTROL_ALLOW_ORIGIN, "*");
+			response.headers().add(HttpHeaderNames.ACCESS_CONTROL_ALLOW_METHODS, "POST, GET, PUT, DELETE");
+			response.headers().add(HttpHeaderNames.ACCESS_CONTROL_ALLOW_HEADERS, "X-PINGARUNER");
+			response.headers().add(HttpHeaderNames.ACCESS_CONTROL_MAX_AGE, "1728000");
+		}
+
+		response.headers().set(HttpHeaderNames.CONTENT_LENGTH, response.content().readableBytes());
 	}
 }

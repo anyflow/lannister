@@ -29,8 +29,8 @@ import io.netty.handler.codec.mqtt.MqttSubscribeMessage;
 import io.netty.handler.codec.mqtt.MqttTopicSubscription;
 import net.anyflow.lannister.message.MessageFactory;
 import net.anyflow.lannister.session.Session;
-import net.anyflow.lannister.topic.TopicSubscription;
 import net.anyflow.lannister.topic.TopicMatcher;
+import net.anyflow.lannister.topic.TopicSubscription;
 
 public class SubscribeReceiver extends SimpleChannelInboundHandler<MqttSubscribeMessage> {
 
@@ -69,7 +69,7 @@ public class SubscribeReceiver extends SimpleChannelInboundHandler<MqttSubscribe
 			TopicSubscription topicSubscription = new TopicSubscription(topicSub.topicName(),
 					topicSub.qualityOfService());
 
-			session.putTopicSubscription(topicSubscription);
+			session.topicSubscriptions().put(topicSubscription.topicFilter(), topicSubscription);
 
 			grantedQoss.add(topicSubscription.qos().value());
 			topicSubscriptions.add(topicSubscription);

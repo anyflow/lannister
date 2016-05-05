@@ -46,7 +46,7 @@ public class TopicSubscriber implements com.hazelcast.nio.serialization.Portable
 	public TopicSubscriber() { // just for Serialization
 	}
 
-	protected TopicSubscriber(String clientId, String topicName) {
+	public TopicSubscriber(String clientId, String topicName) {
 		this.clientId = clientId;
 		this.topicName = topicName;
 		this.outboundMessageStatuses = Hazelcast.SELF.generator().getMap(messageStatusesName());

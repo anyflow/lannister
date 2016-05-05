@@ -19,13 +19,9 @@ package net.anyflow.lannister;
 import java.io.File;
 import java.io.IOException;
 import java.security.cert.CertificateException;
-import java.util.Iterator;
 import java.util.Map;
 
-import org.json.JSONException;
-import org.json.JSONObject;
-
-import com.google.common.collect.Maps;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 import io.netty.handler.ssl.util.SelfSignedCertificate;
 
@@ -44,6 +40,7 @@ public class Settings extends java.util.Properties {
 	private Map<String, String> webResourceExtensionToMimes;
 	private SelfSignedCertificate ssc;
 
+	@SuppressWarnings("unchecked")
 	private Settings() {
 		try {
 			load(Application.class.getClassLoader().getResourceAsStream("META-INF/application.properties"));
@@ -56,19 +53,11 @@ public class Settings extends java.util.Properties {
 			logger.error(e.getMessage(), e);
 		}
 
-		webResourceExtensionToMimes = Maps.newHashMap();
-
 		try {
-			JSONObject obj = new JSONObject(getProperty("menton.httpServer.MIME"));
-			@SuppressWarnings("unchecked")
-			Iterator<String> keys = obj.keys();
-
-			while (keys.hasNext()) {
-				String key = keys.next();
-				webResourceExtensionToMimes.put(key, obj.get(key).toString());
-			}
+			webResourceExtensionToMimes = (new ObjectMapper()).readValue(getProperty("menton.httpServer.MIME"),
+					Map.class);
 		}
-		catch (JSONException e) {
+		catch (IOException e) {
 			logger.error(e.getMessage(), e);
 		}
 	}

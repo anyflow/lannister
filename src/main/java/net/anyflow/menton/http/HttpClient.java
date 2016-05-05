@@ -205,7 +205,7 @@ public class HttpClient implements IHttpClient {
 	private HttpResponse request(final MessageReceiver receiver) {
 
 		httpRequest().normalize();
-		setDefaultHeaders();
+		setDefaultHeaders(httpRequest());
 
 		if (logger.isDebugEnabled()) {
 			logger.debug(httpRequest().toString());
@@ -268,23 +268,22 @@ public class HttpClient implements IHttpClient {
 
 	}
 
-	private void setDefaultHeaders() {
-		if (httpRequest().headers().contains(HttpHeaderNames.HOST) == false) {
-			httpRequest().headers().set(HttpHeaderNames.HOST, httpRequest().uriObject().getHost());
+	protected static void setDefaultHeaders(HttpRequest httpRequest) {
+		if (httpRequest.headers().contains(HttpHeaderNames.HOST) == false) {
+			httpRequest.headers().set(HttpHeaderNames.HOST, httpRequest.uriObject().getHost());
 		}
-		if (httpRequest().headers().contains(HttpHeaderNames.CONNECTION) == false) {
-			httpRequest().headers().set(HttpHeaderNames.CONNECTION, HttpHeaderValues.KEEP_ALIVE);
+		if (httpRequest.headers().contains(HttpHeaderNames.CONNECTION) == false) {
+			httpRequest.headers().set(HttpHeaderNames.CONNECTION, HttpHeaderValues.KEEP_ALIVE);
 		}
-		if (httpRequest().headers().contains(HttpHeaderNames.ACCEPT_ENCODING) == false) {
-			httpRequest().headers().set(HttpHeaderNames.ACCEPT_ENCODING,
+		if (httpRequest.headers().contains(HttpHeaderNames.ACCEPT_ENCODING) == false) {
+			httpRequest.headers().set(HttpHeaderNames.ACCEPT_ENCODING,
 					HttpHeaderValues.GZIP + ", " + HttpHeaderValues.DEFLATE);
 		}
-		if (httpRequest().headers().contains(HttpHeaderNames.ACCEPT_CHARSET) == false) {
-			httpRequest().headers().set(HttpHeaderNames.ACCEPT_CHARSET, "utf-8");
+		if (httpRequest.headers().contains(HttpHeaderNames.ACCEPT_CHARSET) == false) {
+			httpRequest.headers().set(HttpHeaderNames.ACCEPT_CHARSET, "utf-8");
 		}
-		if (httpRequest().headers().contains(HttpHeaderNames.CONTENT_TYPE) == false) {
-			httpRequest().headers().set(HttpHeaderNames.CONTENT_TYPE,
-					HttpHeaderValues.APPLICATION_X_WWW_FORM_URLENCODED);
+		if (httpRequest.headers().contains(HttpHeaderNames.CONTENT_TYPE) == false) {
+			httpRequest.headers().set(HttpHeaderNames.CONTENT_TYPE, HttpHeaderValues.APPLICATION_X_WWW_FORM_URLENCODED);
 		}
 	}
 }

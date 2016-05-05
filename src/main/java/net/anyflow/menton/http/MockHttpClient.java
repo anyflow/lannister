@@ -23,8 +23,6 @@ import org.slf4j.LoggerFactory;
 
 import io.netty.channel.ChannelOption;
 import io.netty.handler.codec.http.DefaultFullHttpRequest;
-import io.netty.handler.codec.http.HttpHeaderNames;
-import io.netty.handler.codec.http.HttpHeaderValues;
 import io.netty.handler.codec.http.HttpMethod;
 import io.netty.handler.codec.http.HttpVersion;
 
@@ -164,7 +162,7 @@ public class MockHttpClient implements IHttpClient {
 	private HttpResponse request(final MessageReceiver receiver) {
 
 		httpRequest().normalize();
-		setDefaultHeaders();
+		HttpClient.setDefaultHeaders(httpRequest());
 
 		if (logger.isDebugEnabled()) {
 			logger.debug(httpRequest().toString());
@@ -177,26 +175,6 @@ public class MockHttpClient implements IHttpClient {
 		}
 		else {
 			return response;
-		}
-	}
-
-	private void setDefaultHeaders() {
-		if (httpRequest().headers().contains(HttpHeaderNames.HOST) == false) {
-			httpRequest().headers().set(HttpHeaderNames.HOST, httpRequest().uriObject().getHost());
-		}
-		if (httpRequest().headers().contains(HttpHeaderNames.CONNECTION) == false) {
-			httpRequest().headers().set(HttpHeaderNames.CONNECTION, HttpHeaderValues.KEEP_ALIVE);
-		}
-		if (httpRequest().headers().contains(HttpHeaderNames.ACCEPT_ENCODING) == false) {
-			httpRequest().headers().set(HttpHeaderNames.ACCEPT_ENCODING,
-					HttpHeaderValues.GZIP + ", " + HttpHeaderValues.DEFLATE);
-		}
-		if (httpRequest().headers().contains(HttpHeaderNames.ACCEPT_CHARSET) == false) {
-			httpRequest().headers().set(HttpHeaderNames.ACCEPT_CHARSET, "utf-8");
-		}
-		if (httpRequest().headers().contains(HttpHeaderNames.CONTENT_TYPE) == false) {
-			httpRequest().headers().set(HttpHeaderNames.CONTENT_TYPE,
-					HttpHeaderValues.APPLICATION_X_WWW_FORM_URLENCODED);
 		}
 	}
 }

@@ -21,9 +21,7 @@ import java.net.URISyntaxException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import io.netty.handler.codec.http.FullHttpRequest;
 import io.netty.handler.codec.http.HttpHeaderNames;
-import io.netty.handler.codec.http.HttpHeaderValues;
 import io.netty.handler.codec.http.HttpResponseStatus;
 import net.anyflow.lannister.Settings;
 
@@ -81,31 +79,12 @@ public class MockHttpServer {
 			}
 		}
 
-		setDefaultHeaders(httpRequest, response);
+		HttpRequestRouter.setDefaultHeaders(httpRequest, response);
 
 		if ("true".equalsIgnoreCase(Settings.SELF.getProperty("menton.logging.writeHttpResponse"))) {
 			logger.info(response.toString());
 		}
 
 		return response;
-	}
-
-	private void setDefaultHeaders(FullHttpRequest request, HttpResponse response) {
-
-		response.headers().add(HttpHeaderNames.SERVER, Settings.SELF.getProperty("menton.versoin"));
-
-		boolean keepAlive = request.headers().get(HttpHeaderNames.CONNECTION) == HttpHeaderValues.KEEP_ALIVE.toString();
-		if (keepAlive) {
-			response.headers().set(HttpHeaderNames.CONNECTION, HttpHeaderValues.KEEP_ALIVE);
-		}
-
-		if (Settings.SELF.getProperty("menton.httpServer.allowCrossDomain", "false").equalsIgnoreCase("true")) {
-			response.headers().add(HttpHeaderNames.ACCESS_CONTROL_ALLOW_ORIGIN, "*");
-			response.headers().add(HttpHeaderNames.ACCESS_CONTROL_ALLOW_METHODS, "POST, GET, PUT, DELETE");
-			response.headers().add(HttpHeaderNames.ACCESS_CONTROL_ALLOW_HEADERS, "X-PINGARUNER");
-			response.headers().add(HttpHeaderNames.ACCESS_CONTROL_MAX_AGE, "1728000");
-		}
-
-		response.headers().set(HttpHeaderNames.CONTENT_LENGTH, response.content().readableBytes());
 	}
 }
