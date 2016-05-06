@@ -75,6 +75,10 @@ public class Sessions implements MessageListener<Notification> {
 		return sessions.get(clientId);
 	}
 
+	public Map<String, ChannelHandlerContext> ctxs() {
+		return ctxs;
+	}
+
 	protected void remove(Session session) {
 		if (session == null) { return; }
 

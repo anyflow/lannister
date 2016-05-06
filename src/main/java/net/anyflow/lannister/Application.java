@@ -30,8 +30,7 @@ public class Application {
 	private static WebServer webServer;
 
 	public static void main(String[] args) {
-		org.apache.log4j.xml.DOMConfigurator
-				.configure(Application.class.getClassLoader().getResource("META-INF/log4j.xml"));
+		configureLog4j();
 
 		logger.info("Lannister bootstrapping started.");
 

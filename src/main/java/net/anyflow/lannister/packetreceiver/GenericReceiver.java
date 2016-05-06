@@ -17,12 +17,18 @@
 package net.anyflow.lannister.packetreceiver;
 
 import java.util.Date;
+import java.util.List;
+
+import com.google.common.collect.Lists;
 
 import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
+import io.netty.handler.codec.DecoderException;
+import io.netty.handler.codec.mqtt.MqttIdentifierRejectedException;
 import io.netty.handler.codec.mqtt.MqttMessage;
 import io.netty.handler.codec.mqtt.MqttMessageIdVariableHeader;
+import io.netty.handler.codec.mqtt.MqttUnacceptableProtocolVersionException;
 import net.anyflow.lannister.session.Session;
 
 public class GenericReceiver extends SimpleChannelInboundHandler<MqttMessage> {
@@ -85,6 +91,38 @@ public class GenericReceiver extends SimpleChannelInboundHandler<MqttMessage> {
 		else {
 			session.dispose(true); // abnormal disconnection without
 									// DISCONNECT [MQTT-4.8.0-1]
+		}
+	}
+
+	private static final String INVALID_QOS = "invalid QoS";
+	private static final String UNKNOWN_VERSION = "is unknown mqtt version";
+	private static final String UNKNOWN_RETURN_CODE = "unknown connect return code:";
+	private static final String UNKNOWN_RETURN_TYPE = "Unknown message type: ";
+
+	private static boolean contains(String message) {
+		List<String> messages = Lists.newArrayList(INVALID_QOS, UNKNOWN_VERSION, UNKNOWN_RETURN_CODE,
+				UNKNOWN_RETURN_TYPE);
+
+		return messages.stream().anyMatch(s -> s.contains(message));
+	}
+
+	@Override
+	public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
+		logger.error(cause.getMessage(), cause);
+
+		if (cause instanceof DecoderException || cause instanceof MqttIdentifierRejectedException
+				|| cause instanceof MqttUnacceptableProtocolVersionException
+				|| (cause instanceof IllegalArgumentException && contains(cause.getMessage()))) {
+			Session session = Session.NEXUS.get(ctx.channel().id());
+			if (session != null) {
+				session.dispose(true);
+			}
+			else {
+				ctx.channel().disconnect().addListener(ChannelFutureListener.CLOSE);
+			}
+		}
+		else {
+			super.exceptionCaught(ctx, cause);
 		}
 	}
 }

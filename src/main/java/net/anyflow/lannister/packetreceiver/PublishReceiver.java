@@ -106,24 +106,4 @@ public class PublishReceiver extends SimpleChannelInboundHandler<MqttPublishMess
 			return;
 		}
 	}
-
-	@Override
-	public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
-		logger.error(cause.getMessage(), cause);
-
-		if (IllegalArgumentException.class.getName().equals(cause.getClass().getName())
-				&& cause.getMessage().contains("invalid QoS")) {
-			Session session = Session.NEXUS.get(ctx.channel().id());
-
-			if (session != null) {
-				session.dispose(true); // [MQTT-3.3.1-4]
-			}
-			else {
-				ctx.channel().disconnect().addListener(ChannelFutureListener.CLOSE); // [MQTT-3.3.1-4]
-			}
-		}
-		else {
-			super.exceptionCaught(ctx, cause);
-		}
-	}
 }

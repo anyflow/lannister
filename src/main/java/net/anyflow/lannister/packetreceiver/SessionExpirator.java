@@ -16,10 +16,8 @@
 
 package net.anyflow.lannister.packetreceiver;
 
-import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
-import java.util.stream.Collectors;
 
 import com.google.common.collect.Lists;
 
@@ -38,12 +36,12 @@ public class SessionExpirator extends ChannelInboundHandlerAdapter {
 		int interval = Settings.SELF.getInt("lannister.sessionExpirationHandlerExecutionIntervalSeconds", 0);
 
 		ctx.executor().scheduleWithFixedDelay(() -> {
-			Collection<Session> sessions = Session.NEXUS.map().values().parallelStream().filter(s -> s.isConnected())
-					.collect(Collectors.toList());
-
 			List<Session> disposes = Lists.newArrayList();
 
-			sessions.stream().filter(s -> s.isExpired()).forEach(s -> disposes.add(s));
+			Session.NEXUS.ctxs().keySet().stream().filter(id -> {
+				Session s = Session.NEXUS.get(id);
+				return s.isExpired();
+			}).forEach(id -> disposes.add(Session.NEXUS.get(id)));
 
 			disposes.stream().forEach(s -> s.dispose(true)); // [MQTT-3.1.2-24]
 
