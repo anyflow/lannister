@@ -63,8 +63,9 @@ public class WebServer implements TaskCompletionInformer {
 	 * @param requestHandlerPakcageRoot
 	 *            root package prefix of request handlers.
 	 * @return the HTTP channel
+	 * @throws Exception
 	 */
-	public void start(String requestHandlerPakcageRoot) {
+	public void start(String requestHandlerPakcageRoot) throws Exception {
 		start(requestHandlerPakcageRoot, null);
 	}
 
@@ -74,9 +75,10 @@ public class WebServer implements TaskCompletionInformer {
 	 * @param webSocketFrameHandler
 	 *            websocket handler
 	 * @return the HTTP channel
+	 * @throws Exception
 	 */
 	public void start(String requestHandlerPakcageRoot,
-			final Class<? extends WebsocketFrameHandler> websocketFrameHandlerClass) {
+			final Class<? extends WebsocketFrameHandler> websocketFrameHandlerClass) throws Exception {
 		HttpRequestHandler.setRequestHandlerPakcageRoot(requestHandlerPakcageRoot);
 		try {
 			if (Settings.SELF.httpPort() != null) {
@@ -102,7 +104,10 @@ public class WebServer implements TaskCompletionInformer {
 		}
 		catch (Exception e) {
 			logger.error("Menton server failed to start...", e);
+
 			shutdown();
+
+			throw e;
 		}
 	}
 

@@ -65,4 +65,8 @@ public class Hazelcast {
 	public HazelcastInstance generator() {
 		return generator;
 	}
+
+	public void shutdown() {
+		generator.shutdown();
+	}
 }

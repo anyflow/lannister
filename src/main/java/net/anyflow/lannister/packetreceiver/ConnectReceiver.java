@@ -58,39 +58,19 @@ public class ConnectReceiver extends SimpleChannelInboundHandler<MqttConnectMess
 			return;
 		}
 
-		MqttConnectReturnCode returnCode = MqttConnectReturnCode.CONNECTION_ACCEPTED;
-
 		boolean cleanSession = msg.variableHeader().isCleanSession();
-
 		String clientId = msg.payload().clientIdentifier();
 
 		if (Strings.isNullOrEmpty(clientId)) {
-			if (cleanSession == false) {
-				returnCode = MqttConnectReturnCode.CONNECTION_REFUSED_IDENTIFIER_REJECTED; // [MQTT-3.1.3-8]
-			}
-			else if (Settings.SELF.getBoolean("mqtt.acceptEmptyClientId", false)) { // [MQTT-3.1.3-6]
-				clientId = Settings.SELF.getProperty("mqtt.defaultClientId", "lannisterDefaultClientId");
-				cleanSession = true; // [MQTT-3.1.3-7]
+			if (cleanSession) {
+				clientId = Settings.SELF.getProperty("mqtt.defaultClientId", "lannisterDefaultClientId"); // [MQTT-3.1.3-6],[MQTT-3.1.3-7]
 			}
 			else {
-				returnCode = MqttConnectReturnCode.CONNECTION_REFUSED_IDENTIFIER_REJECTED;
+				sendNoneAcceptMessage(ctx, MqttConnectReturnCode.CONNECTION_REFUSED_IDENTIFIER_REJECTED, false); // [MQTT-3.1.3-8],[MQTT-3.2.2-4]
 			}
 		}
 
-		if (serviceStatus.isServiceAvailable() == false) {
-			returnCode = MqttConnectReturnCode.CONNECTION_REFUSED_SERVER_UNAVAILABLE;
-		}
-		else if (auth.isValid(msg.payload().clientIdentifier()) == false) {
-			returnCode = MqttConnectReturnCode.CONNECTION_REFUSED_IDENTIFIER_REJECTED; // [MQTT-3.1.3-9]
-		}
-		else if (auth.isValid(msg.variableHeader().hasUserName(), msg.variableHeader().hasPassword(),
-				msg.payload().userName(), msg.payload().password()) == false) {
-			returnCode = MqttConnectReturnCode.CONNECTION_REFUSED_BAD_USER_NAME_OR_PASSWORD;
-		}
-		else if (auth.isAuthorized(msg.variableHeader().hasUserName(), msg.payload().userName()) == false) {
-			returnCode = MqttConnectReturnCode.CONNECTION_REFUSED_NOT_AUTHORIZED;
-		}
-
+		MqttConnectReturnCode returnCode = filterPlugins(msg);
 		if (returnCode != MqttConnectReturnCode.CONNECTION_ACCEPTED) {
 			sendNoneAcceptMessage(ctx, returnCode, false); // [MQTT-3.2.2-4]
 			return;
@@ -99,36 +79,16 @@ public class ConnectReceiver extends SimpleChannelInboundHandler<MqttConnectMess
 		// TODO [MQTT-3.1.2-3] handling Reserved Flag, but netty variable header
 		// doesn't have it
 
-		final String clientIdFinal = clientId;
-		session = Session.NEXUS.map().values().parallelStream()
-				.filter(s -> s.isConnected() && clientIdFinal.equals(s.clientId())).findFirst().orElse(null);
-
-		if (session != null) {
+		session = Session.NEXUS.get(clientId);
+		if (session != null && session.isConnected()) {
 			session.dispose(false); // [MQTT-3.1.4-2]
 		}
 
-		boolean sessionPresent = !cleanSession;
-		if (cleanSession) {
-			session = new Session(clientId, msg.variableHeader().keepAliveTimeSeconds(), true, will(clientId, msg)); // [MQTT-3.1.2-6]
+		boolean sessionPresent = !cleanSession && session != null; // [MQTT-3.2.2-1],[MQTT-3.2.2-2],[MQTT-3.2.2-3]
 
-			Session.NEXUS.put(session, ctx);
+		session = new Session(clientId, msg.variableHeader().keepAliveTimeSeconds(), cleanSession, will(clientId, msg)); // [MQTT-3.1.2-6]
 
-			sessionPresent = false; // [MQTT-3.2.2-1]
-		}
-		else {
-			session = Session.NEXUS.get(clientId);
-
-			if (session == null) {
-				session = new Session(clientId, msg.variableHeader().keepAliveTimeSeconds(), false,
-						will(clientId, msg));
-				sessionPresent = false; // [MQTT-3.2.2-3]
-			}
-			else {
-				sessionPresent = true; // [MQTT-3.2.2-2]
-			}
-
-			Session.NEXUS.put(session, ctx);
-		}
+		Session.NEXUS.put(session, ctx);
 
 		if (session.will() != null) {
 			Topic topic = Topic.NEXUS.get(session.will().topicName());
@@ -152,6 +112,23 @@ public class ConnectReceiver extends SimpleChannelInboundHandler<MqttConnectMess
 				sessionFinal.completeRemainedMessages(); // [MQTT-4.4.0-1]
 			}
 		});
+	}
+
+	private MqttConnectReturnCode filterPlugins(MqttConnectMessage msg) {
+		if (serviceStatus.isServiceAvailable() == false) {
+			return MqttConnectReturnCode.CONNECTION_REFUSED_SERVER_UNAVAILABLE;
+		}
+		else if (auth.isValid(msg.payload().clientIdentifier()) == false) {
+			return MqttConnectReturnCode.CONNECTION_REFUSED_IDENTIFIER_REJECTED; // [MQTT-3.1.3-9]
+		}
+		else if (auth.isValid(msg.variableHeader().hasUserName(), msg.variableHeader().hasPassword(),
+				msg.payload().userName(), msg.payload().password()) == false) {
+			return MqttConnectReturnCode.CONNECTION_REFUSED_BAD_USER_NAME_OR_PASSWORD;
+		}
+		else if (auth.isAuthorized(msg.variableHeader().hasUserName(),
+				msg.payload().userName()) == false) { return MqttConnectReturnCode.CONNECTION_REFUSED_NOT_AUTHORIZED; }
+
+		return MqttConnectReturnCode.CONNECTION_ACCEPTED;
 	}
 
 	private Message will(String clientId, MqttConnectMessage conn) {

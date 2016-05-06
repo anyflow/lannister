@@ -26,22 +26,75 @@ public class Application {
 
 	private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(Application.class);
 
-	private static MqttServer mqttServer;
-	private static WebServer webServer;
+	private static Application INSTANCE;
+
+	private MqttServer mqttServer;
+	private WebServer webServer;
+
+	public static Application instance() {
+		return INSTANCE;
+	}
+
+	private Application() {
+		// Do nothing
+	}
+
+	public boolean start() {
+		try {
+			configureLog4j();
+
+			logger.info("Lannister bootstrapping started");
+
+			Session.NEXUS = new Sessions();
+			Topic.NEXUS = new Topics(Session.NEXUS);
+
+			mqttServer = new MqttServer();
+			mqttServer.Start();
+
+			webServer = new WebServer();
+			webServer.start("net.anyflow");
+
+			Runtime.getRuntime().addShutdownHook(new Thread() {
+				@Override
+				public void run() {
+					shutdown();
+				}
+			});
+
+			logger.info("Lannister bootstrapped successfully");
+			return true;
+		}
+		catch (Exception e) {
+			logger.error(e.getMessage(), e);
+			return false;
+		}
+	}
+
+	public void shutdown() {
+		logger.info("Lannister shutting down...");
+
+		try {
+			Hazelcast.SELF.generator().shutdown();
+			mqttServer.shutdown();
+			webServer.shutdown();
+		}
+		catch (Exception e) {
+			logger.error(e.getMessage(), e);
+		}
+
+		Application.INSTANCE = null;
+
+		logger.info("Lannister shutdowned gracefully");
+	}
 
 	public static void main(String[] args) {
-		configureLog4j();
+		Thread.currentThread().setName("main thread");
 
-		logger.info("Lannister bootstrapping started.");
+		INSTANCE = new Application();
 
-		Session.NEXUS = new Sessions();
-		Topic.NEXUS = new Topics(Session.NEXUS);
-
-		mqttServer = new MqttServer();
-		mqttServer.Start();
-
-		webServer = new WebServer();
-		webServer.start("net.anyflow");
+		if (!INSTANCE.start()) {
+			System.exit(-1);
+		}
 	}
 
 	public static void configureLog4j() {

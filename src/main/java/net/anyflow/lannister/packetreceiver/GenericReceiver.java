@@ -35,6 +35,11 @@ public class GenericReceiver extends SimpleChannelInboundHandler<MqttMessage> {
 
 	private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(GenericReceiver.class);
 
+	private static final String INVALID_QOS = "invalid QoS";
+	private static final String UNKNOWN_VERSION = "is unknown mqtt version";
+	private static final String UNKNOWN_RETURN_CODE = "unknown connect return code:";
+	private static final String UNKNOWN_RETURN_TYPE = "Unknown message type: ";
+
 	@Override
 	protected void channelRead0(ChannelHandlerContext ctx, MqttMessage msg) throws Exception {
 		if (msg.decoderResult().isSuccess() == false) {
@@ -94,18 +99,6 @@ public class GenericReceiver extends SimpleChannelInboundHandler<MqttMessage> {
 		}
 	}
 
-	private static final String INVALID_QOS = "invalid QoS";
-	private static final String UNKNOWN_VERSION = "is unknown mqtt version";
-	private static final String UNKNOWN_RETURN_CODE = "unknown connect return code:";
-	private static final String UNKNOWN_RETURN_TYPE = "Unknown message type: ";
-
-	private static boolean contains(String message) {
-		List<String> messages = Lists.newArrayList(INVALID_QOS, UNKNOWN_VERSION, UNKNOWN_RETURN_CODE,
-				UNKNOWN_RETURN_TYPE);
-
-		return messages.stream().anyMatch(s -> s.contains(message));
-	}
-
 	@Override
 	public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
 		logger.error(cause.getMessage(), cause);
@@ -124,5 +117,12 @@ public class GenericReceiver extends SimpleChannelInboundHandler<MqttMessage> {
 		else {
 			super.exceptionCaught(ctx, cause);
 		}
+	}
+
+	private static boolean contains(String message) {
+		List<String> messages = Lists.newArrayList(INVALID_QOS, UNKNOWN_VERSION, UNKNOWN_RETURN_CODE,
+				UNKNOWN_RETURN_TYPE);
+
+		return messages.stream().anyMatch(s -> s.contains(message));
 	}
 }

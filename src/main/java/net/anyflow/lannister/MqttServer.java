@@ -51,7 +51,7 @@ public class MqttServer {
 				new DefaultThreadFactory("lannister/worker"));
 	}
 
-	public void Start() {
+	public void Start() throws Exception {
 		try {
 			ServerBootstrap bootstrap = new ServerBootstrap();
 
@@ -84,22 +84,25 @@ public class MqttServer {
 			logger.info("Lannister server started: [MQTT port={}]", PORT);
 		}
 		catch (Exception e) {
-			logger.error("Lannister failed to start...", e);
+			logger.error("Lannister failed to start", e);
+
 			shutdown();
+
+			throw e;
 		}
 	}
 
 	public void shutdown() {
 		if (bossGroup != null) {
 			bossGroup.shutdownGracefully().awaitUninterruptibly();
-			logger.info("Boss event loop group shutdowned.");
+			logger.info("Boss event loop group shutdowned");
 		}
 
 		if (workerGroup != null) {
 			workerGroup.shutdownGracefully().awaitUninterruptibly();
-			logger.info("Worker event loop group shutdowned.");
+			logger.info("Worker event loop group shutdowned");
 		}
 
-		logger.info("Lannister server stopped.");
+		logger.info("Lannister server shutdowned");
 	}
 }
