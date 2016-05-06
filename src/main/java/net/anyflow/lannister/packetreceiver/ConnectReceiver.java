@@ -18,7 +18,6 @@ package net.anyflow.lannister.packetreceiver;
 
 import com.google.common.base.Strings;
 
-import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
@@ -61,13 +60,8 @@ public class ConnectReceiver extends SimpleChannelInboundHandler<MqttConnectMess
 		boolean cleanSession = msg.variableHeader().isCleanSession();
 		String clientId = msg.payload().clientIdentifier();
 
-		if (Strings.isNullOrEmpty(clientId)) {
-			if (cleanSession) {
-				clientId = Settings.SELF.getProperty("mqtt.defaultClientId", "lannisterDefaultClientId"); // [MQTT-3.1.3-6],[MQTT-3.1.3-7]
-			}
-			else {
-				sendNoneAcceptMessage(ctx, MqttConnectReturnCode.CONNECTION_REFUSED_IDENTIFIER_REJECTED, false); // [MQTT-3.1.3-8],[MQTT-3.2.2-4]
-			}
+		if (Strings.isNullOrEmpty(clientId) && cleanSession) {
+			clientId = Settings.SELF.getProperty("mqtt.defaultClientId", "lannisterDefaultClientId"); // [MQTT-3.1.3-6],[MQTT-3.1.3-7]
 		}
 
 		MqttConnectReturnCode returnCode = filterPlugins(msg);
@@ -138,27 +132,16 @@ public class ConnectReceiver extends SimpleChannelInboundHandler<MqttConnectMess
 				MqttQoS.valueOf(conn.variableHeader().willQos()), conn.variableHeader().isWillRetain());
 	}
 
-	private ChannelFuture sendNoneAcceptMessage(ChannelHandlerContext ctx, MqttConnectReturnCode returnCode,
+	private void sendNoneAcceptMessage(ChannelHandlerContext ctx, MqttConnectReturnCode returnCode,
 			boolean sessionPresent) {
 		MqttConnAckMessage msg = MessageFactory.connack(returnCode, sessionPresent);
 
-		ChannelFuture ret = ctx.channel().writeAndFlush(MessageFactory.connack(returnCode, sessionPresent))
-				.addListener(f -> {
-					logger.debug("packet outgoing : {}", msg);
+		ctx.channel().writeAndFlush(msg).addListener(f -> {
+			logger.debug("packet outgoing [{}]", msg);
 
-					eventListener.connAckMessageSent(msg);
-
-					Session session = Session.NEXUS.get(ctx.channel().id());
-
-					if (session != null) {
-						session.dispose(true); // [MQTT-3.2.2-5]
-					}
-					else {
-						ctx.channel().disconnect().addListener(ChannelFutureListener.CLOSE); // [MQTT-3.2.2-5]
-					}
-				});
-
-		return ret;
+			eventListener.connAckMessageSent(msg);
+			ctx.channel().disconnect().addListener(ChannelFutureListener.CLOSE); // [MQTT-3.2.2-5]
+		});
 	}
 
 	@Override
@@ -167,20 +150,18 @@ public class ConnectReceiver extends SimpleChannelInboundHandler<MqttConnectMess
 
 		MqttConnectReturnCode returnCode;
 
-		if (MqttIdentifierRejectedException.class.getName().equals(cause.getClass().getName())) {
+		if (cause instanceof MqttIdentifierRejectedException) {
 			returnCode = MqttConnectReturnCode.CONNECTION_REFUSED_IDENTIFIER_REJECTED;
 		}
-		else if (IllegalArgumentException.class.getName().equals(cause.getClass().getName())
-				&& cause.getMessage().contains("invalid QoS")) {
+		else if (cause instanceof IllegalArgumentException && cause.getMessage().contains("invalid QoS")) {
 			// [MQTT-3.1.2-2]
 			returnCode = MqttConnectReturnCode.CONNECTION_REFUSED_UNACCEPTABLE_PROTOCOL_VERSION;
 		}
-		else if (IllegalArgumentException.class.getName().equals(cause.getClass().getName())
-				&& cause.getMessage().contains(" is unknown mqtt version")) {
+		else if (cause instanceof IllegalArgumentException && cause.getMessage().contains(" is unknown mqtt version")) {
 			// [MQTT-3.1.2-2]
 			returnCode = MqttConnectReturnCode.CONNECTION_REFUSED_UNACCEPTABLE_PROTOCOL_VERSION;
 		}
-		else if (MqttUnacceptableProtocolVersionException.class.getName().equals(cause.getClass().getName())) {
+		else if (cause instanceof MqttUnacceptableProtocolVersionException) {
 			// [MQTT-3.1.2-2]
 			returnCode = MqttConnectReturnCode.CONNECTION_REFUSED_UNACCEPTABLE_PROTOCOL_VERSION;
 		}
@@ -189,6 +170,6 @@ public class ConnectReceiver extends SimpleChannelInboundHandler<MqttConnectMess
 			return;
 		}
 
-		sendNoneAcceptMessage(ctx, returnCode, false); // [MQTT-3.2.2-4]
+		sendNoneAcceptMessage(ctx, returnCode, true); // [MQTT-3.2.2-4]
 	}
 }

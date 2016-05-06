@@ -57,20 +57,19 @@ public class MessageSender {
 
 	protected ChannelFuture send(MqttMessage message) {
 		if (session.isConnected() == false) {
-			logger.error("Message is not sent - Channel is inactive : {}", message);
+			logger.error("Message is not sent - Channel is inactive [{}]", message);
 			return null;
 		}
 
 		ChannelHandlerContext ctx = Session.NEXUS.channelHandlerContext(session.clientId());
 
-		final String log = message.toString();
 		return ctx.writeAndFlush(message).addListener(f -> {
-			logger.debug("packet outgoing : {}", log);
+			logger.debug("packet outgoing [{}]", message);
 		});
 	}
 
 	protected void sendPublish(Topic topic, Message message, boolean isRetain) {
-		logger.debug("event arrived : [clientId:{}/message:{}]", session.clientId(), message.toString());
+		logger.debug("event arrived [clientId={}, message={}, isRetain={}]", session.clientId(), message, isRetain);
 
 		// TODO what if returned topicSubscriptions are multiple?
 		TopicSubscription subscription = session.matches(message.topicName()).findAny().orElse(null);
@@ -142,7 +141,7 @@ public class MessageSender {
 					if (message.qos() == MqttQoS.AT_LEAST_ONCE) {
 						session.send(MessageFactory.puback(message.id())).addListener(f -> {
 							topic.removeInboundMessageStatus(session.clientId(), message.id());
-							logger.debug("Inbound message status REMOVED : [clientId={}, messageId={}]",
+							logger.debug("Inbound message status REMOVED [clientId={}, messageId={}]",
 									session.clientId(), message.id());
 						});
 					}

@@ -1,7 +1,6 @@
 package net.anyflow.lannister;
 
 import org.hamcrest.Matchers;
-import org.junit.AfterClass;
 import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -15,11 +14,6 @@ public class NettyUtilTest {
 	@BeforeClass
 	public static void setUpBeforeClass() throws Exception {
 		Application.configureLog4j();
-	}
-
-	@AfterClass
-	public static void tearDownAfterClass() throws Exception {
-		// Do nothing
 	}
 
 	@Test

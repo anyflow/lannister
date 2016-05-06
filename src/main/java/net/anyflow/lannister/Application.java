@@ -32,6 +32,9 @@ public class Application {
 	private WebServer webServer;
 
 	public static Application instance() {
+		if (INSTANCE == null) {
+			INSTANCE = new Application();
+		}
 		return INSTANCE;
 	}
 
@@ -74,9 +77,9 @@ public class Application {
 		logger.info("Lannister shutting down...");
 
 		try {
-			Hazelcast.SELF.generator().shutdown();
-			mqttServer.shutdown();
 			webServer.shutdown();
+			mqttServer.shutdown();
+			Hazelcast.SELF.shutdown();
 		}
 		catch (Exception e) {
 			logger.error(e.getMessage(), e);
@@ -90,9 +93,7 @@ public class Application {
 	public static void main(String[] args) {
 		Thread.currentThread().setName("main thread");
 
-		INSTANCE = new Application();
-
-		if (!INSTANCE.start()) {
+		if (!instance().start()) {
 			System.exit(-1);
 		}
 	}
