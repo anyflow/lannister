@@ -108,28 +108,16 @@
 			<version>0.9.10</version>
 		</dependency>
 
-		<!-- For support openssl based Netty. Refer http://netty.io/wiki/forked-tomcat-native.html -->
-		<!-- classifier should be changed in different OS platform. values are 
-			: windows-x86_64, osx-x86_64, linux-x86_64, linux-x86_64-fedora -->
-		<!-- classifier can be ${os.detected.classifier} thanks to os-maven-plugin. 
-			But it causes compile time error on pom.xml -->
 		<dependency>
 			<groupId>io.netty</groupId>
-			<artifactId>netty-tcnative</artifactId>
+			<artifactId>netty-tcnative-boringssl-static</artifactId>
 			<version>1.1.33.Fork15</version>
-			<classifier>${os.detected.classifier}</classifier>
 		</dependency>
 
 		<dependency>
 			<groupId>org.javassist</groupId>
 			<artifactId>javassist</artifactId>
 			<version>3.19.0-GA</version>
-		</dependency>
-
-		<dependency>
-			<groupId>org.eclipse.paho</groupId>
-			<artifactId>org.eclipse.paho.client.mqttv3</artifactId>
-			<version>1.0.2</version>
 		</dependency>
 	</dependencies>
 

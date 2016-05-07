@@ -63,8 +63,9 @@ public class MessageSender {
 
 		ChannelHandlerContext ctx = Session.NEXUS.channelHandlerContext(session.clientId());
 
+		String log = message.toString();
 		return ctx.writeAndFlush(message).addListener(f -> {
-			logger.debug("packet outgoing [{}]", message);
+			logger.debug("packet outgoing [{}]", log);
 		});
 	}
 

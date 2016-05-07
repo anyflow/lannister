@@ -46,7 +46,6 @@ public class HttpResponse extends DefaultFullHttpResponse {
 	private static final Logger logger = LoggerFactory.getLogger(HttpResponse.class);
 
 	public static HttpResponse createServerDefault(String requestCookie) {
-
 		HttpResponse ret = new HttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.OK, Unpooled.buffer());
 
 		ret.headers().set(HttpHeaderNames.CONTENT_TYPE, "application/json; charset=UTF-8");

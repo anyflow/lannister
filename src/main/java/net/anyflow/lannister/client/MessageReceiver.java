@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 The Lannister Project
+ * Copyright 2016 The Menton Project
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,22 +14,11 @@
  * limitations under the License.
  */
 
-package net.anyflow.lannister;
+package net.anyflow.lannister.client;
 
-import org.junit.rules.ExternalResource;
+import io.netty.handler.codec.mqtt.MqttMessage;
 
-public class Server extends ExternalResource {
+public interface MessageReceiver {
 
-	@SuppressWarnings("unused")
-	private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(Server.class);
-
-	@Override
-	protected void before() throws Throwable {
-		Application.main(null);
-	}
-
-	@Override
-	protected void after() {
-		Application.instance().shutdown();
-	}
+	void messageReceived(MqttMessage message);
 }

@@ -166,16 +166,13 @@ public class ConnectReceiver extends SimpleChannelInboundHandler<MqttConnectMess
 			returnCode = MqttConnectReturnCode.CONNECTION_REFUSED_IDENTIFIER_REJECTED;
 		}
 		else if (cause instanceof IllegalArgumentException && cause.getMessage().contains("invalid QoS")) {
-			// [MQTT-3.1.2-2]
-			returnCode = MqttConnectReturnCode.CONNECTION_REFUSED_UNACCEPTABLE_PROTOCOL_VERSION;
+			returnCode = MqttConnectReturnCode.CONNECTION_REFUSED_UNACCEPTABLE_PROTOCOL_VERSION; // [MQTT-3.1.2-2]
 		}
 		else if (cause instanceof IllegalArgumentException && cause.getMessage().contains(" is unknown mqtt version")) {
-			// [MQTT-3.1.2-2]
-			returnCode = MqttConnectReturnCode.CONNECTION_REFUSED_UNACCEPTABLE_PROTOCOL_VERSION;
+			returnCode = MqttConnectReturnCode.CONNECTION_REFUSED_UNACCEPTABLE_PROTOCOL_VERSION; // [MQTT-3.1.2-2]
 		}
 		else if (cause instanceof MqttUnacceptableProtocolVersionException) {
-			// [MQTT-3.1.2-2]
-			returnCode = MqttConnectReturnCode.CONNECTION_REFUSED_UNACCEPTABLE_PROTOCOL_VERSION;
+			returnCode = MqttConnectReturnCode.CONNECTION_REFUSED_UNACCEPTABLE_PROTOCOL_VERSION; // [MQTT-3.1.2-2]
 		}
 		else {
 			super.exceptionCaught(ctx, cause);

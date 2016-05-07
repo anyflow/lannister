@@ -18,10 +18,15 @@ package net.anyflow.lannister.message;
 
 import java.util.List;
 
+import com.google.common.base.Strings;
+
 import io.netty.buffer.Unpooled;
 import io.netty.handler.codec.mqtt.MqttConnAckMessage;
 import io.netty.handler.codec.mqtt.MqttConnAckVariableHeader;
+import io.netty.handler.codec.mqtt.MqttConnectMessage;
+import io.netty.handler.codec.mqtt.MqttConnectPayload;
 import io.netty.handler.codec.mqtt.MqttConnectReturnCode;
+import io.netty.handler.codec.mqtt.MqttConnectVariableHeader;
 import io.netty.handler.codec.mqtt.MqttFixedHeader;
 import io.netty.handler.codec.mqtt.MqttMessage;
 import io.netty.handler.codec.mqtt.MqttMessageIdVariableHeader;
@@ -35,6 +40,23 @@ import io.netty.handler.codec.mqtt.MqttSubAckPayload;
 import io.netty.handler.codec.mqtt.MqttUnsubAckMessage;
 
 public class MessageFactory {
+	public static MqttConnectMessage connect(ConnectOptions options) {
+		MqttFixedHeader fixedHeader = new MqttFixedHeader(MqttMessageType.CONNECT, false, MqttQoS.AT_MOST_ONCE, false,
+				10);
+		MqttConnectVariableHeader variableHeader = new MqttConnectVariableHeader(options.version().protocolName(),
+				options.version().protocolLevel(), options.userName() != null, options.password() != null,
+				options.will() == null ? false : options.will().isRetain(),
+				options.will() == null ? 0 : options.will().qos().value(), options.will() != null,
+				options.cleanSession(), options.keepAliveTimeSeconds());
+
+		MqttConnectPayload payload = new MqttConnectPayload(Strings.nullToEmpty(options.clientId()),
+				options.will() == null ? "" : options.will().topicName(),
+				options.will() == null ? "" : new String(options.will().message()),
+				Strings.nullToEmpty(options.userName()), Strings.nullToEmpty(options.password()));
+
+		return new MqttConnectMessage(fixedHeader, variableHeader, payload);
+	}
+
 	public static MqttConnAckMessage connack(MqttConnectReturnCode returnCode, boolean sessionPresent) {
 		MqttFixedHeader fixedHeader = new MqttFixedHeader(MqttMessageType.CONNACK, false, MqttQoS.AT_MOST_ONCE, false,
 				2);
@@ -106,5 +128,12 @@ public class MessageFactory {
 		MqttMessageIdVariableHeader variableHeader = MqttMessageIdVariableHeader.from(messageId);
 
 		return new MqttUnsubAckMessage(fixedHeader, variableHeader);
+	}
+
+	public static MqttMessage disconnect() {
+		MqttFixedHeader fixedHeader = new MqttFixedHeader(MqttMessageType.DISCONNECT, false, MqttQoS.AT_MOST_ONCE,
+				false, 2);
+
+		return new MqttMessage(fixedHeader);
 	}
 }

@@ -203,7 +203,6 @@ public class HttpClient implements IHttpClient {
 	 *         returns HttpResponse instance, otherwise null.
 	 */
 	private HttpResponse request(final MessageReceiver receiver) {
-
 		httpRequest().normalize();
 		setDefaultHeaders(httpRequest());
 

@@ -28,14 +28,11 @@ import net.anyflow.lannister.packetreceiver.ConnectReceiverTest;
 import net.anyflow.lannister.topic.TopicMatcherTest;
 
 @RunWith(Suite.class)
-@SuiteClasses({ SessionsFilterTest.class, ConnectReceiverTest.class, TopicMatcherTest.class, TopicsFilterTest.class })
+@SuiteClasses({ SessionsFilterTest.class, ConnectReceiverTest.class, TopicMatcherTest.class, TopicsFilterTest.class,
+		CodecTest.class, MqttServerTest.class })
 public class TestSuite {
 
 	private static boolean SETUP_CALLED = false;
-
-	public static boolean setupCalled() {
-		return SETUP_CALLED;
-	}
 
 	@BeforeClass
 	public static void setUp() {

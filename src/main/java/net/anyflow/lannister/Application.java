@@ -52,7 +52,7 @@ public class Application {
 			Topic.NEXUS = new Topics(Session.NEXUS);
 
 			mqttServer = new MqttServer();
-			mqttServer.Start();
+			mqttServer.start();
 
 			webServer = new WebServer();
 			webServer.start("net.anyflow");

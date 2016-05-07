@@ -1,0 +1,140 @@
+/*
+ * Copyright 2016 The Menton Project
+ * 
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ * 
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package net.anyflow.lannister.client;
+
+import java.net.URI;
+import java.net.URISyntaxException;
+
+import javax.net.ssl.TrustManagerFactory;
+
+import io.netty.bootstrap.Bootstrap;
+import io.netty.channel.Channel;
+import io.netty.channel.ChannelFuture;
+import io.netty.channel.ChannelFutureListener;
+import io.netty.channel.ChannelInitializer;
+import io.netty.channel.EventLoopGroup;
+import io.netty.channel.nio.NioEventLoopGroup;
+import io.netty.channel.socket.SocketChannel;
+import io.netty.channel.socket.nio.NioSocketChannel;
+import io.netty.handler.codec.mqtt.MqttConnAckMessage;
+import io.netty.handler.codec.mqtt.MqttDecoder;
+import io.netty.handler.codec.mqtt.MqttEncoder;
+import io.netty.handler.codec.mqtt.MqttMessage;
+import io.netty.handler.ssl.SslContext;
+import io.netty.handler.ssl.SslContextBuilder;
+import io.netty.handler.ssl.util.InsecureTrustManagerFactory;
+import io.netty.util.concurrent.DefaultThreadFactory;
+import net.anyflow.lannister.Settings;
+import net.anyflow.lannister.message.ConnectOptions;
+import net.anyflow.lannister.message.MessageFactory;
+
+public class MqttClient {
+	private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(MqttClient.class);
+
+	private final Bootstrap bootstrap;
+	private final TrustManagerFactory trustManagerFactory;
+	private final SharedObject sharedObject;
+
+	private Channel channel;
+	private EventLoopGroup group;
+	private MessageReceiver receiver;
+
+	private URI uri;
+	private ConnectOptions options;
+
+	public MqttClient(String uri) throws URISyntaxException {
+		this(uri, false);
+	}
+
+	public MqttClient(String uri, boolean useInsecureTrustManagerFactory) throws URISyntaxException {
+		this.bootstrap = new Bootstrap();
+		this.uri = new URI(uri);
+		this.trustManagerFactory = useInsecureTrustManagerFactory ? InsecureTrustManagerFactory.INSTANCE : null;
+		this.sharedObject = new SharedObject();
+		this.options = new ConnectOptions();
+	}
+
+	public MqttConnAckMessage connect() throws InterruptedException {
+		group = new NioEventLoopGroup(1, new DefaultThreadFactory("lannister/client"));
+
+		bootstrap.group(group).channel(NioSocketChannel.class).handler(new ChannelInitializer<SocketChannel>() {
+			@Override
+			protected void initChannel(SocketChannel ch) throws Exception {
+				if ("mqtts".equalsIgnoreCase(uri.getScheme())) {
+					SslContext sslCtx = SslContextBuilder.forClient().trustManager(trustManagerFactory).build();
+
+					ch.pipeline().addLast(sslCtx.newHandler(ch.alloc(), uri.getHost(), uri.getPort()));
+				}
+
+				ch.pipeline().addLast(MqttDecoder.class.getName(), new MqttDecoder());
+				ch.pipeline().addLast(MqttEncoder.class.getName(), MqttEncoder.INSTANCE);
+				ch.pipeline().addLast(MqttPacketReceiver.class.getName(),
+						new MqttPacketReceiver(receiver, sharedObject));
+			}
+		});
+
+		channel = bootstrap.connect(uri.getHost(), uri.getPort()).sync().channel();
+
+		send(MessageFactory.connect(options));
+
+		synchronized (sharedObject.locker()) {
+			int timeout = Settings.SELF.getInt("lannister.client.responseTimeoutSeconds", 15);
+
+			sharedObject.locker().wait(timeout * 1000);
+		}
+		if (sharedObject.receivedMessage() == null) { return null; }
+
+		return (MqttConnAckMessage) sharedObject.receivedMessage();
+	}
+
+	public boolean isConnected() {
+		return channel != null && channel.isActive();
+	}
+
+	public void disconnect() {
+		if (!isConnected()) { return; }
+
+		send(MessageFactory.disconnect());
+
+		channel.disconnect().addListener(ChannelFutureListener.CLOSE);
+		group.shutdownGracefully();
+
+		channel = null;
+		group = null;
+	}
+
+	public ChannelFuture send(MqttMessage message) {
+		if (!isConnected()) {
+			logger.error("Channel is not active");
+			return null;
+		}
+
+		return channel.writeAndFlush(message);
+	}
+
+	public MqttClient receiver(MessageReceiver receiver) {
+		this.receiver = receiver;
+
+		return this;
+	}
+
+	public MqttClient connectOptions(ConnectOptions connectOptions) {
+		this.options = connectOptions;
+
+		return this;
+	}
+}

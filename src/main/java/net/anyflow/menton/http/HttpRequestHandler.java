@@ -96,7 +96,6 @@ public abstract class HttpRequestHandler {
 	 * @return
 	 */
 	protected static MatchedCriterion findRequestHandler(String requestedPath, String httpMethod) {
-
 		for (String criterion : handlerClassMap.keySet()) {
 			MatchedCriterion mc = match(requestedPath, httpMethod, criterion);
 
@@ -145,7 +144,6 @@ public abstract class HttpRequestHandler {
 	}
 
 	protected static class MatchedCriterion {
-
 		private boolean result;
 		private Class<? extends HttpRequestHandler> requestHandlerClass;
 		private String criterionPath;
@@ -170,7 +168,6 @@ public abstract class HttpRequestHandler {
 	}
 
 	private static MatchedCriterion match(String requestedPath, String httpMethod, String criterion) {
-
 		MatchedCriterion ret = new MatchedCriterion();
 
 		String testTarget = requestedPath + "/" + httpMethod;

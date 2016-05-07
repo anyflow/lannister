@@ -182,12 +182,11 @@ public class Session implements com.hazelcast.nio.serialization.Portable {
 		if (sendWill && will != null) { // [MQTT-3.1.2-10]
 			Topic.NEXUS.get(will.topicName()).publish(clientId, will);
 		}
-		else {
-			ChannelHandlerContext ctx = NEXUS.channelHandlerContext(clientId);
 
-			ctx.disconnect().addListener(ChannelFutureListener.CLOSE);
-			logger.debug("Session disposed [clientId={}/channelId={}]", clientId, ctx.channel().id());
-		}
+		ChannelHandlerContext ctx = NEXUS.channelHandlerContext(clientId);
+
+		ctx.disconnect().addListener(ChannelFutureListener.CLOSE);
+		logger.debug("Session disposed [clientId={}/channelId={}]", clientId, ctx.channel().id());
 
 		NEXUS.remove(this);
 	}

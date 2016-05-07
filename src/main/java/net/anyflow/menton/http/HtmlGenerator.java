@@ -39,13 +39,11 @@ public class HtmlGenerator {
 	}
 
 	public static String generate(Map<String, String> values, String htmlPath) throws IOException {
-
 		return replace(values,
 				tidy(Thread.currentThread().getContextClassLoader().getResourceAsStream("html/error.htm")));
 	}
 
 	private static String replace(Map<String, String> values, String htmlTemplate) {
-
 		String openMarker = "${";
 		String closeMarker = "}";
 
@@ -59,7 +57,6 @@ public class HtmlGenerator {
 	}
 
 	public static String error(String message, HttpResponseStatus status) {
-
 		HashMap<String, String> values = new HashMap<String, String>();
 
 		values.put("ERROR_CODE", status.toString());
@@ -69,7 +66,6 @@ public class HtmlGenerator {
 	}
 
 	private static String tidy(InputStream is) {
-
 		Tidy tidy = new Tidy();
 
 		tidy.setQuiet(true);

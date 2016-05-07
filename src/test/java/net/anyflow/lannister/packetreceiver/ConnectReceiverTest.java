@@ -16,10 +16,6 @@
 
 package net.anyflow.lannister.packetreceiver;
 
-import org.eclipse.paho.client.mqttv3.MqttClient;
-import org.eclipse.paho.client.mqttv3.MqttConnectOptions;
-import org.eclipse.paho.client.mqttv3.MqttException;
-import org.eclipse.paho.client.mqttv3.persist.MemoryPersistence;
 import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -37,13 +33,17 @@ import io.netty.handler.codec.mqtt.MqttMessageType;
 import io.netty.handler.codec.mqtt.MqttQoS;
 import net.anyflow.lannister.TestSuite;
 import net.anyflow.lannister.TestUtil;
+import net.anyflow.lannister.client.MqttClient;
+import net.anyflow.lannister.message.ConnectOptions;
 import net.anyflow.lannister.plugin.Authorization;
 import net.anyflow.lannister.plugin.Plugin;
 import net.anyflow.lannister.plugin.PluginFactory;
 import net.anyflow.lannister.plugin.ServiceStatus;
 import net.anyflow.lannister.session.Session;
 
+//TODO invalid version(e.g. 2) mqtt connect, server seems process nothing
 public class ConnectReceiverTest {
+	@SuppressWarnings("unused")
 	private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(ConnectReceiverTest.class);
 
 	@BeforeClass
@@ -56,21 +56,15 @@ public class ConnectReceiverTest {
 		// TODO Remove phantom CONNECT message right after CONACK(sent but not
 		// received the below client)
 
-		Exception result = null;
-		final MqttClient client = new MqttClient("tcp://localhost:1883", "", new MemoryPersistence());
+		ConnectOptions options = new ConnectOptions();
+		options.cleanSession(false);
 
-		MqttConnectOptions connOpts = new MqttConnectOptions();
-		connOpts.setCleanSession(false);
+		MqttClient client = new MqttClient("mqtt://localhost:1883");
+		MqttConnAckMessage ret = client.connectOptions(options).receiver(m -> {
+		}).connect();
 
-		try {
-			client.connect(connOpts);
-		}
-		catch (MqttException e) {
-			logger.error(e.getMessage(), e);
-			result = e;
-		}
-
-		Assert.assertNotNull(result);
+		Assert.assertEquals(MqttConnectReturnCode.CONNECTION_REFUSED_IDENTIFIER_REJECTED,
+				ret.variableHeader().connectReturnCode());
 	}
 
 	@Test

@@ -62,7 +62,7 @@ public class Settings extends java.util.Properties {
 		}
 	}
 
-	public int getInt(String key, int defaultValue) {
+	public Integer getInt(String key, Integer defaultValue) {
 		String valueString = this.getProperty(key.trim());
 
 		if (valueString == null) { return defaultValue; }

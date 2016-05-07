@@ -17,23 +17,11 @@
 package net.anyflow.lannister;
 
 import io.netty.bootstrap.ServerBootstrap;
-import io.netty.channel.ChannelInitializer;
 import io.netty.channel.EventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
-import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
-import io.netty.handler.codec.mqtt.MqttDecoder;
-import io.netty.handler.codec.mqtt.MqttEncoder;
-import io.netty.handler.logging.LogLevel;
-import io.netty.handler.logging.LoggingHandler;
 import io.netty.util.concurrent.DefaultThreadFactory;
-import net.anyflow.lannister.packetreceiver.ConnectReceiver;
-import net.anyflow.lannister.packetreceiver.GenericReceiver;
-import net.anyflow.lannister.packetreceiver.PubAckReceiver;
-import net.anyflow.lannister.packetreceiver.PublishReceiver;
 import net.anyflow.lannister.packetreceiver.SessionExpirator;
-import net.anyflow.lannister.packetreceiver.SubscribeReceiver;
-import net.anyflow.lannister.packetreceiver.UnsubscribeReceiver;
 
 public class MqttServer {
 
@@ -42,7 +30,8 @@ public class MqttServer {
 	private final EventLoopGroup bossGroup;
 	private final EventLoopGroup workerGroup;
 
-	private static final int PORT = Settings.SELF.getInt("lannister.port", 1883);
+	private static final Integer TCP_PORT = Settings.SELF.getInt("lannister.tcp.port", null);
+	private static final Integer TCP_SSL_PORT = Settings.SELF.getInt("lannister.tcp.ssl.port", null);
 
 	public MqttServer() {
 		bossGroup = new NioEventLoopGroup(Settings.SELF.getInt("lannister.system.bossThreadCount", 0),
@@ -51,39 +40,32 @@ public class MqttServer {
 				new DefaultThreadFactory("lannister/worker"));
 	}
 
-	public void Start() throws Exception {
+	public void start() throws Exception {
+		if (TCP_PORT == null && TCP_SSL_PORT == null) {
+			logger.info("No MQTT port(s) arranged");
+			shutdown();
+			return;
+		}
+
 		try {
-			ServerBootstrap bootstrap = new ServerBootstrap();
+			if (TCP_PORT != null) {
+				ServerBootstrap bootstrap = new ServerBootstrap();
 
-			bootstrap = bootstrap.group(bossGroup, workerGroup).channel(NioServerSocketChannel.class);
+				bootstrap = bootstrap.group(bossGroup, workerGroup).channel(NioServerSocketChannel.class);
 
-			bootstrap.handler(new SessionExpirator()).childHandler(new ChannelInitializer<SocketChannel>() {
+				bootstrap.handler(new SessionExpirator()).childHandler(new MqttChannelInitializer(false));
+				bootstrap.bind(TCP_PORT).sync();
+			}
+			if (TCP_SSL_PORT != null) {
+				ServerBootstrap bootstrap = new ServerBootstrap();
 
-				@Override
-				protected void initChannel(SocketChannel ch) throws Exception {
-					logger.debug("Initializaing channels...");
+				bootstrap = bootstrap.group(bossGroup, workerGroup).channel(NioServerSocketChannel.class);
 
-					if ("true".equalsIgnoreCase(Settings.SELF.getProperty("netty.logger"))) {
-						ch.pipeline().addLast(LoggingHandler.class.getName(), new LoggingHandler(LogLevel.DEBUG));
-					}
+				bootstrap.handler(new SessionExpirator()).childHandler(new MqttChannelInitializer(true));
+				bootstrap.bind(TCP_SSL_PORT).sync();
+			}
 
-					int maxBytesInMessage = Settings.SELF.getInt("lannister.maxBytesInMessage", 8092);
-
-					ch.pipeline().addLast(MqttDecoder.class.getName(), new MqttDecoder(maxBytesInMessage));
-					ch.pipeline().addLast(MqttEncoder.class.getName(), MqttEncoder.INSTANCE);
-
-					ch.pipeline().addLast(ConnectReceiver.class.getName(), new ConnectReceiver());
-					ch.pipeline().addLast(PubAckReceiver.class.getName(), new PubAckReceiver());
-					ch.pipeline().addLast(PublishReceiver.class.getName(), new PublishReceiver());
-					ch.pipeline().addLast(SubscribeReceiver.class.getName(), new SubscribeReceiver());
-					ch.pipeline().addLast(UnsubscribeReceiver.class.getName(), new UnsubscribeReceiver());
-					ch.pipeline().addLast(GenericReceiver.class.getName(), new GenericReceiver());
-				}
-			});
-
-			bootstrap.bind(PORT).sync();
-
-			logger.info("Lannister server started: [MQTT port={}]", PORT);
+			logger.info("Lannister server started: [MQTT tcp.port={}, tcp.ssl.port={}]", TCP_PORT, TCP_SSL_PORT);
 		}
 		catch (Exception e) {
 			logger.error("Lannister failed to start", e);
