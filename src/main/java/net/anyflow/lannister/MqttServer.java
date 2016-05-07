@@ -67,7 +67,9 @@ public class MqttServer {
 						ch.pipeline().addLast(LoggingHandler.class.getName(), new LoggingHandler(LogLevel.DEBUG));
 					}
 
-					ch.pipeline().addLast(MqttDecoder.class.getName(), new MqttDecoder());
+					int maxBytesInMessage = Settings.SELF.getInt("lannister.maxBytesInMessage", 8092);
+
+					ch.pipeline().addLast(MqttDecoder.class.getName(), new MqttDecoder(maxBytesInMessage));
 					ch.pipeline().addLast(MqttEncoder.class.getName(), MqttEncoder.INSTANCE);
 
 					ch.pipeline().addLast(ConnectReceiver.class.getName(), new ConnectReceiver());

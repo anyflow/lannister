@@ -75,7 +75,7 @@ public class MessageSender {
 		TopicSubscription subscription = session.matches(message.topicName()).findAny().orElse(null);
 		assert subscription != null;
 
-		message.setId(session.nextMessageId());
+		message.setId(session.nextMessageId()); // [MQTT-2.3.1-2]
 		message.setRetain(isRetain);
 		message.setQos(adjustQoS(subscription.qos(), message.qos()));
 
@@ -139,14 +139,14 @@ public class MessageSender {
 				case RECEIVED:
 				case PUBRECED:
 					if (message.qos() == MqttQoS.AT_LEAST_ONCE) {
-						session.send(MessageFactory.puback(message.id())).addListener(f -> {
+						session.send(MessageFactory.puback(message.id())).addListener(f -> { // [MQTT-2.3.1-6]
 							topic.removeInboundMessageStatus(session.clientId(), message.id());
 							logger.debug("Inbound message status REMOVED [clientId={}, messageId={}]",
 									session.clientId(), message.id());
 						});
 					}
 					else {
-						session.send(MessageFactory.pubrec(message.id()))
+						session.send(MessageFactory.pubrec(message.id())) // [MQTT-2.3.1-6]
 								.addListener(f -> topic.setInboundMessageStatus(session.clientId(), message.id(),
 										InboundMessageStatus.Status.PUBRECED));
 					}
@@ -181,7 +181,7 @@ public class MessageSender {
 				Message message = topic.messages().get(s.inboundMessageKey());
 
 				message.setQos(s.qos());
-				message.setId(s.messageId());
+				message.setId(s.messageId()); // [MQTT-2.3.1-4]
 				message.setRetain(false); // [MQTT-3.3.1-9]
 
 				switch (s.status()) {

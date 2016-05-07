@@ -79,15 +79,21 @@ public class ConnectReceiver extends SimpleChannelInboundHandler<MqttConnectMess
 		// TODO [MQTT-3.1.2-3] handling Reserved Flag, but netty variable header
 		// doesn't have it
 
-		session = Session.NEXUS.get(clientId);
-		if (session != null && session.isConnected()) {
-			session.dispose(false); // [MQTT-3.1.4-2]
-		}
-
+		session = Session.NEXUS.get(clientId); // [MQTT-3.1.2-4]
 		boolean sessionPresent = !cleanSession && session != null; // [MQTT-3.2.2-1],[MQTT-3.2.2-2],[MQTT-3.2.2-3]
 
-		session = new Session(clientId, msg.variableHeader().keepAliveTimeSeconds(), cleanSession, will(clientId, msg)); // [MQTT-3.1.2-6]
+		if (cleanSession) {
+			if (session != null) {
+				session.dispose(false);
+			}
+			session = new Session(clientId, msg.variableHeader().keepAliveTimeSeconds(), cleanSession,
+					newWill(clientId, msg)); // [MQTT-3.1.2-6]
+		}
+		else if (session == null) { // [MQTT-3.1.2-4]
+			session = new Session(clientId, msg.variableHeader().keepAliveTimeSeconds(), cleanSession,
+					newWill(clientId, msg)); // [MQTT-3.1.2-6]
 
+		}
 		Session.NEXUS.put(session, ctx);
 
 		if (session.will() != null) {
@@ -114,7 +120,7 @@ public class ConnectReceiver extends SimpleChannelInboundHandler<MqttConnectMess
 		});
 	}
 
-	private Message will(String clientId, MqttConnectMessage conn) {
+	private Message newWill(String clientId, MqttConnectMessage conn) {
 		if (conn.variableHeader().isWillFlag() == false) { return null; } // [MQTT-3.1.2-12]
 
 		return new Message(-1, conn.payload().willTopic(), clientId, conn.payload().willMessage().getBytes(),

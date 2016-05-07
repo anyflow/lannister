@@ -24,6 +24,7 @@ import org.junit.Assert;
 import org.junit.ClassRule;
 import org.junit.Test;
 
+import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelId;
 import io.netty.channel.embedded.EmbeddedChannel;
 import io.netty.handler.codec.mqtt.MqttConnAckMessage;
@@ -35,26 +36,18 @@ import io.netty.handler.codec.mqtt.MqttFixedHeader;
 import io.netty.handler.codec.mqtt.MqttMessageType;
 import io.netty.handler.codec.mqtt.MqttQoS;
 import net.anyflow.lannister.Server;
+import net.anyflow.lannister.TestUtil;
 import net.anyflow.lannister.plugin.Authorization;
 import net.anyflow.lannister.plugin.Plugin;
 import net.anyflow.lannister.plugin.PluginFactory;
 import net.anyflow.lannister.plugin.ServiceStatus;
+import net.anyflow.lannister.session.Session;
 
 public class ConnectReceiverTest {
 	private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(ConnectReceiverTest.class);
 
 	@ClassRule
 	public static Server server = new Server();
-
-	private int clientIdNo = 0;
-
-	private String newClientId() {
-		String clientIdPrefix = "testClientId";
-
-		synchronized (clientIdPrefix) {
-			return clientIdPrefix + Integer.toString(clientIdNo++);
-		}
-	}
 
 	@Test
 	public void testNonCleanSessionWithoutClientId() throws Exception {
@@ -80,14 +73,14 @@ public class ConnectReceiverTest {
 
 	@Test
 	public void testDefaultChannelRead0() throws Exception {
-		MqttConnAckMessage ret = executeNormalChannelRead0(newClientId());
+		MqttConnAckMessage ret = executeNormalChannelRead0(TestUtil.newClientId(), true, null);
 
 		Assert.assertEquals(ret.variableHeader().connectReturnCode(), MqttConnectReturnCode.CONNECTION_ACCEPTED);
 	}
 
 	@Test
 	public void testCleanSessionWithoutClientId() throws Exception {
-		MqttConnAckMessage ret = executeNormalChannelRead0("");
+		MqttConnAckMessage ret = executeNormalChannelRead0("", true, null);
 
 		Assert.assertEquals(ret.variableHeader().connectReturnCode(), MqttConnectReturnCode.CONNECTION_ACCEPTED);
 	}
@@ -106,7 +99,7 @@ public class ConnectReceiverTest {
 			}
 		});
 
-		MqttConnAckMessage ret = executeNormalChannelRead0(newClientId());
+		MqttConnAckMessage ret = executeNormalChannelRead0(TestUtil.newClientId(), true, null);
 
 		Assert.assertEquals(ret.variableHeader().connectReturnCode(),
 				MqttConnectReturnCode.CONNECTION_REFUSED_SERVER_UNAVAILABLE);
@@ -138,7 +131,7 @@ public class ConnectReceiverTest {
 			}
 		});
 
-		MqttConnAckMessage ret = executeNormalChannelRead0(newClientId());
+		MqttConnAckMessage ret = executeNormalChannelRead0(TestUtil.newClientId(), true, null);
 
 		Assert.assertEquals(ret.variableHeader().connectReturnCode(),
 				MqttConnectReturnCode.CONNECTION_REFUSED_IDENTIFIER_REJECTED);
@@ -170,7 +163,7 @@ public class ConnectReceiverTest {
 			}
 		});
 
-		MqttConnAckMessage ret = executeNormalChannelRead0(newClientId());
+		MqttConnAckMessage ret = executeNormalChannelRead0(TestUtil.newClientId(), true, null);
 
 		Assert.assertEquals(ret.variableHeader().connectReturnCode(),
 				MqttConnectReturnCode.CONNECTION_REFUSED_BAD_USER_NAME_OR_PASSWORD);
@@ -202,7 +195,7 @@ public class ConnectReceiverTest {
 			}
 		});
 
-		MqttConnAckMessage ret = executeNormalChannelRead0(newClientId());
+		MqttConnAckMessage ret = executeNormalChannelRead0(TestUtil.newClientId(), true, null);
 
 		Assert.assertEquals(ret.variableHeader().connectReturnCode(),
 				MqttConnectReturnCode.CONNECTION_REFUSED_NOT_AUTHORIZED);
@@ -210,34 +203,55 @@ public class ConnectReceiverTest {
 		PluginFactory.authorization(prev);
 	}
 
-	private MqttConnAckMessage executeNormalChannelRead0(String clientId) throws Exception {
+	@Test
+	public void cleanSessionOnExistConnectedSession() throws Exception {
+		String clientId = TestUtil.newClientId();
+
+		executeNormalChannelRead0(clientId, true, null);
+
+		ChannelHandlerContext ctx = Session.NEXUS.ctxs().values().stream().findAny().orElse(null);
+		Assert.assertNotNull(ctx);
+
+		MqttConnAckMessage ret = executeNormalChannelRead0(clientId, true, ctx.channel().id());
+
+		Assert.assertNull(ret);
+		Assert.assertNull(Session.NEXUS.get(clientId));
+	}
+
+	@Test
+	public void cleanSessionOnSameClientIdSession() throws Exception {
+		String clientId = TestUtil.newClientId();
+
+		executeNormalChannelRead0(clientId, true, null);
+
+		MqttConnAckMessage ret = executeNormalChannelRead0(clientId, true, null);
+
+		Assert.assertEquals(ret.variableHeader().connectReturnCode(), MqttConnectReturnCode.CONNECTION_ACCEPTED);
+	}
+
+	@Test
+	public void nonCleanSession() throws Exception {
+		String clientId = TestUtil.newClientId();
+
+		MqttConnAckMessage ret = executeNormalChannelRead0(clientId, false, null);
+
+		Assert.assertEquals(ret.variableHeader().connectReturnCode(), MqttConnectReturnCode.CONNECTION_ACCEPTED);
+	}
+
+	private MqttConnAckMessage executeNormalChannelRead0(String clientId, boolean cleanSession, ChannelId channelId)
+			throws Exception {
 		MqttFixedHeader fixedHeader = new MqttFixedHeader(MqttMessageType.CONNECT, false, MqttQoS.AT_MOST_ONCE, false,
 				10);
 		MqttConnectVariableHeader variableHeader = new MqttConnectVariableHeader("MQTT", 4, true, true, true, 0, true,
-				true, 60);
+				cleanSession, 60);
 		MqttConnectPayload payload = new MqttConnectPayload(clientId, "willtopic", "willmessage", "username",
 				"password");
 
 		MqttConnectMessage msg = new MqttConnectMessage(fixedHeader, variableHeader, payload);
 
-		EmbeddedChannel channel = new EmbeddedChannel(new ChannelId() {
-			private static final long serialVersionUID = 3931333967922160660L;
+		ChannelId cid = channelId == null ? TestUtil.newChannelId(clientId, false) : channelId;
 
-			@Override
-			public int compareTo(ChannelId o) {
-				return this.asLongText().equals(o.asLongText()) ? 0 : 1;
-			}
-
-			@Override
-			public String asShortText() {
-				return clientId;
-			}
-
-			@Override
-			public String asLongText() {
-				return clientId;
-			}
-		}, new ConnectReceiver());
+		EmbeddedChannel channel = new EmbeddedChannel(cid, new ConnectReceiver());
 
 		channel.writeInbound(msg);
 

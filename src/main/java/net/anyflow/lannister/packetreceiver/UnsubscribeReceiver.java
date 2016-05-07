@@ -52,6 +52,6 @@ public class UnsubscribeReceiver extends SimpleChannelInboundHandler<MqttUnsubsc
 
 		topicFilters.stream().forEach(tf -> session.topicSubscriptions().remove(tf));
 
-		session.send(MessageFactory.unsuback(msg.variableHeader().messageId())); // [MQTT-3.10.4-4],[MQTT-3.10.4-5]
+		session.send(MessageFactory.unsuback(msg.variableHeader().messageId())); // [MQTT-2.3.1-7],[MQTT-3.10.4-4],[MQTT-3.10.4-5]
 	}
 }
