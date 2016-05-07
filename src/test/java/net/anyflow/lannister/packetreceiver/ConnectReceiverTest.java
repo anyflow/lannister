@@ -21,7 +21,7 @@ import org.eclipse.paho.client.mqttv3.MqttConnectOptions;
 import org.eclipse.paho.client.mqttv3.MqttException;
 import org.eclipse.paho.client.mqttv3.persist.MemoryPersistence;
 import org.junit.Assert;
-import org.junit.ClassRule;
+import org.junit.BeforeClass;
 import org.junit.Test;
 
 import io.netty.channel.ChannelHandlerContext;
@@ -35,7 +35,7 @@ import io.netty.handler.codec.mqtt.MqttConnectVariableHeader;
 import io.netty.handler.codec.mqtt.MqttFixedHeader;
 import io.netty.handler.codec.mqtt.MqttMessageType;
 import io.netty.handler.codec.mqtt.MqttQoS;
-import net.anyflow.lannister.Server;
+import net.anyflow.lannister.TestSuite;
 import net.anyflow.lannister.TestUtil;
 import net.anyflow.lannister.plugin.Authorization;
 import net.anyflow.lannister.plugin.Plugin;
@@ -46,8 +46,10 @@ import net.anyflow.lannister.session.Session;
 public class ConnectReceiverTest {
 	private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(ConnectReceiverTest.class);
 
-	@ClassRule
-	public static Server server = new Server();
+	@BeforeClass
+	public static void setUpBeforeClass() throws Exception {
+		TestSuite.setUp();
+	}
 
 	@Test
 	public void testNonCleanSessionWithoutClientId() throws Exception {

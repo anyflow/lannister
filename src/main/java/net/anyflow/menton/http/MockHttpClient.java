@@ -148,7 +148,6 @@ public class MockHttpClient implements IHttpClient {
 
 	@Override
 	public <T> IHttpClient setOption(ChannelOption<T> option, T value) {
-		// TODO Auto-generated method stub
 		return null;
 	}
 

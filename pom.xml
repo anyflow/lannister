@@ -31,7 +31,7 @@
 		<dependency>
 			<groupId>junit</groupId>
 			<artifactId>junit</artifactId>
-			<version>4.11</version>
+			<version>4.12</version>
 			<exclusions>
 				<exclusion>
 					<groupId>org.hamcrest</groupId>
@@ -184,6 +184,25 @@
 							<mainClass>net.anyflow.lannister.Application</mainClass>
 						</manifest>
 					</archive>
+				</configuration>
+			</plugin>
+			<!-- skip test on mavening... To skip test, follow the command : mvn package 
+				-Dmaven.test.skip=true -->
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-surefire-plugin</artifactId>
+				<version>2.16</version>
+				<configuration>
+					<skipTests>false</skipTests>
+					<systemProperties>
+						<property>
+							<name>targetServer</name>
+							<value>${targetServer}</value>
+						</property>
+					</systemProperties>
+					<includes>
+						<include>**/TestSuite.java</include>
+					</includes>
 				</configuration>
 			</plugin>
 			<!-- Copy dependencies to lib directory -->

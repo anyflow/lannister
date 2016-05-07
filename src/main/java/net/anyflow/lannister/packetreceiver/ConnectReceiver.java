@@ -92,8 +92,8 @@ public class ConnectReceiver extends SimpleChannelInboundHandler<MqttConnectMess
 		else if (session == null) { // [MQTT-3.1.2-4]
 			session = new Session(clientId, msg.variableHeader().keepAliveTimeSeconds(), cleanSession,
 					newWill(clientId, msg)); // [MQTT-3.1.2-6]
-
 		}
+
 		Session.NEXUS.put(session, ctx);
 
 		if (session.will() != null) {
