@@ -1,8 +1,3 @@
-package net.anyflow.lannister.plugin;
-
-import io.netty.handler.codec.mqtt.MqttConnAckMessage;
-import io.netty.handler.codec.mqtt.MqttConnectMessage;
-
 /*
  * Copyright 2016 The Lannister Project
  * 
@@ -19,53 +14,56 @@ import io.netty.handler.codec.mqtt.MqttConnectMessage;
  * limitations under the License.
  */
 
+package net.anyflow.lannister.plugin;
+
 public class PluginFactory {
 
-	public Plugin create(Class<? extends Plugin> pluginType) {
-		// TODO Retrieve client object's plugin
-		// TODO Getting default value from application.properties
+	private static Authorization authorization;
+	private static EventListener eventListener;
+	private static ServiceStatus serviceStatus;
 
-		if (EventListener.class.getTypeName().equals(pluginType.getTypeName())) {
-			return new EventListener() {
-				@Override
-				public void connectMessageReceived(MqttConnectMessage msg) {
-					return;
-				}
+	static {
+		authorization = new DefaultAuthorization();
+		eventListener = new DefaultEventListener();
+		serviceStatus = new DefaultServiceStatus();
+	}
 
-				@Override
-				public void connAckMessageSent(MqttConnAckMessage msg) {
-					return;
-				}
-			};
-		}
-		else if (Authorization.class.getTypeName().equals(pluginType.getTypeName())) {
-			return new Authorization() {
-				@Override
-				public boolean isValid(String clientId) {
-					return true;
-				}
+	public static Authorization authorization() {
+		return authorization == null ? null : (Authorization) authorization.clone();
+	}
 
-				@Override
-				public boolean isValid(boolean hasUserName, boolean hasPassword, String userName, String password) {
-					return true;
-				}
+	public static EventListener eventListener() {
+		return eventListener == null ? null : (EventListener) eventListener.clone();
+	}
 
-				@Override
-				public boolean isAuthorized(boolean hasUserName, String username) {
-					return true;
-				}
-			};
-		}
-		else if (ServiceStatus.class.getTypeName().equals(pluginType.getTypeName())) {
-			return new ServiceStatus() {
-				@Override
-				public boolean isServiceAvailable() {
-					return true;
-				}
-			};
-		}
-		else {
-			return null;
-		}
+	public static ServiceStatus serviceStatus() {
+		return serviceStatus == null ? null : (ServiceStatus) serviceStatus.clone();
+	}
+
+	public static Authorization authorization(Authorization authorization) {
+		if (authorization == null) { return null; }
+
+		Authorization ret = PluginFactory.authorization;
+		PluginFactory.authorization = authorization;
+
+		return ret;
+	}
+
+	public static EventListener eventListener(EventListener eventListener) {
+		if (eventListener == null) { return null; }
+
+		EventListener ret = PluginFactory.eventListener;
+		PluginFactory.eventListener = eventListener;
+
+		return ret;
+	}
+
+	public static ServiceStatus serviceStatus(ServiceStatus serviceStatus) {
+		if (serviceStatus == null) { return null; }
+
+		ServiceStatus ret = PluginFactory.serviceStatus;
+		PluginFactory.serviceStatus = serviceStatus;
+
+		return ret;
 	}
 }

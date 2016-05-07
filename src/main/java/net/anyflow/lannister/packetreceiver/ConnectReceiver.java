@@ -41,9 +41,9 @@ public class ConnectReceiver extends SimpleChannelInboundHandler<MqttConnectMess
 
 	private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(ConnectReceiver.class);
 
-	private EventListener eventListener = (EventListener) (new PluginFactory()).create(EventListener.class);
-	private ServiceStatus serviceStatus = (ServiceStatus) (new PluginFactory()).create(ServiceStatus.class);
-	private Authorization auth = (Authorization) (new PluginFactory()).create(Authorization.class);
+	private final EventListener eventListener = PluginFactory.eventListener();
+	private final ServiceStatus serviceStatus = PluginFactory.serviceStatus();
+	private final Authorization auth = PluginFactory.authorization();
 
 	@Override
 	protected void channelRead0(ChannelHandlerContext ctx, MqttConnectMessage msg) throws Exception {
@@ -60,8 +60,14 @@ public class ConnectReceiver extends SimpleChannelInboundHandler<MqttConnectMess
 		boolean cleanSession = msg.variableHeader().isCleanSession();
 		String clientId = msg.payload().clientIdentifier();
 
-		if (Strings.isNullOrEmpty(clientId) && cleanSession) {
-			clientId = Settings.SELF.getProperty("mqtt.defaultClientId", "lannisterDefaultClientId"); // [MQTT-3.1.3-6],[MQTT-3.1.3-7]
+		if (Strings.isNullOrEmpty(clientId)) {
+			if (cleanSession) {
+				clientId = Settings.SELF.getProperty("mqtt.defaultClientId", "lannisterDefaultClientId"); // [MQTT-3.1.3-6],[MQTT-3.1.3-7]
+			}
+			else {
+				sendNoneAcceptMessage(ctx, MqttConnectReturnCode.CONNECTION_REFUSED_IDENTIFIER_REJECTED, false); // [MQTT-3.1.3-8],[MQTT-3.2.2-4]
+				return;
+			}
 		}
 
 		MqttConnectReturnCode returnCode = filterPlugins(msg);
@@ -108,6 +114,13 @@ public class ConnectReceiver extends SimpleChannelInboundHandler<MqttConnectMess
 		});
 	}
 
+	private Message will(String clientId, MqttConnectMessage conn) {
+		if (conn.variableHeader().isWillFlag() == false) { return null; } // [MQTT-3.1.2-12]
+
+		return new Message(-1, conn.payload().willTopic(), clientId, conn.payload().willMessage().getBytes(),
+				MqttQoS.valueOf(conn.variableHeader().willQos()), conn.variableHeader().isWillRetain());
+	}
+
 	private MqttConnectReturnCode filterPlugins(MqttConnectMessage msg) {
 		if (serviceStatus.isServiceAvailable() == false) {
 			return MqttConnectReturnCode.CONNECTION_REFUSED_SERVER_UNAVAILABLE;
@@ -123,13 +136,6 @@ public class ConnectReceiver extends SimpleChannelInboundHandler<MqttConnectMess
 				msg.payload().userName()) == false) { return MqttConnectReturnCode.CONNECTION_REFUSED_NOT_AUTHORIZED; }
 
 		return MqttConnectReturnCode.CONNECTION_ACCEPTED;
-	}
-
-	private Message will(String clientId, MqttConnectMessage conn) {
-		if (conn.variableHeader().isWillFlag() == false) { return null; } // [MQTT-3.1.2-12]
-
-		return new Message(-1, conn.payload().willTopic(), clientId, conn.payload().willMessage().getBytes(),
-				MqttQoS.valueOf(conn.variableHeader().willQos()), conn.variableHeader().isWillRetain());
 	}
 
 	private void sendNoneAcceptMessage(ChannelHandlerContext ctx, MqttConnectReturnCode returnCode,

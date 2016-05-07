@@ -14,22 +14,24 @@
  * limitations under the License.
  */
 
-package net.anyflow.lannister;
+package net.anyflow.lannister.plugin;
 
-import org.junit.rules.ExternalResource;
+import io.netty.handler.codec.mqtt.MqttConnAckMessage;
+import io.netty.handler.codec.mqtt.MqttConnectMessage;
 
-public class Server extends ExternalResource {
-
-	@SuppressWarnings("unused")
-	private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(Server.class);
-
+public class DefaultEventListener implements EventListener {
 	@Override
-	protected void before() throws Throwable {
-		Application.main(null);
+	public Plugin clone() {
+		return new DefaultEventListener();
 	}
 
 	@Override
-	protected void after() {
-		Application.instance().shutdown();
+	public void connectMessageReceived(MqttConnectMessage msg) {
+		// Do nothing
+	}
+
+	@Override
+	public void connAckMessageSent(MqttConnAckMessage msg) {
+		// Do nothing
 	}
 }

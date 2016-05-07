@@ -14,22 +14,16 @@
  * limitations under the License.
  */
 
-package net.anyflow.lannister;
+package net.anyflow.lannister.plugin;
 
-import org.junit.rules.ExternalResource;
-
-public class Server extends ExternalResource {
-
-	@SuppressWarnings("unused")
-	private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(Server.class);
-
+public class DefaultServiceStatus implements ServiceStatus {
 	@Override
-	protected void before() throws Throwable {
-		Application.main(null);
+	public Plugin clone() {
+		return new DefaultServiceStatus();
 	}
 
 	@Override
-	protected void after() {
-		Application.instance().shutdown();
+	public boolean isServiceAvailable() {
+		return true;
 	}
 }
