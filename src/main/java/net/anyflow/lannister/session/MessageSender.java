@@ -35,7 +35,6 @@ import net.anyflow.lannister.message.Message;
 import net.anyflow.lannister.message.MessageFactory;
 import net.anyflow.lannister.message.OutboundMessageStatus;
 import net.anyflow.lannister.topic.Topic;
-import net.anyflow.lannister.topic.TopicSubscription;
 import net.anyflow.lannister.topic.Topics;
 
 public class MessageSender {
@@ -49,10 +48,6 @@ public class MessageSender {
 
 	protected MessageSender(Session session) {
 		this.session = session;
-	}
-
-	protected static MqttQoS adjustQoS(MqttQoS subscriptionQos, MqttQoS publishQos) {
-		return subscriptionQos.value() <= publishQos.value() ? subscriptionQos : publishQos;
 	}
 
 	protected ChannelFuture send(MqttMessage message) {
@@ -69,21 +64,10 @@ public class MessageSender {
 		});
 	}
 
-	protected void sendPublish(Topic topic, Message message, boolean isRetain) {
-		logger.debug("event arrived [clientId={}, message={}, isRetain={}]", session.clientId(), message, isRetain);
+	protected void sendPublish(Topic topic, Message message) {
+		logger.debug("event arrived [clientId={}, message={}]", session.clientId(), message);
 
-		// TODO what if returned topicSubscriptions are multiple?
-		TopicSubscription subscription = session.matches(message.topicName()).findAny().orElse(null);
-		assert subscription != null;
-
-		message.setId(session.nextMessageId()); // [MQTT-2.3.1-2]
-		message.setRetain(isRetain);
-		message.setQos(adjustQoS(subscription.qos(), message.qos()));
-
-		if (message.qos() != MqttQoS.AT_MOST_ONCE) {
-			Topic.NEXUS.get(message.topicName()).subscribers().get(session.clientId()).addOutboundMessageStatus(
-					message.id(), message.key(), OutboundMessageStatus.Status.TO_PUBLISH, message.qos());
-		}
+		if (!session.isConnected()) { return; }
 
 		executefilters(message);
 

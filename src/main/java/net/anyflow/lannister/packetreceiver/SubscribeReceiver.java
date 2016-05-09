@@ -82,7 +82,7 @@ public class SubscribeReceiver extends SimpleChannelInboundHandler<MqttSubscribe
 
 			topic.putMessage(topic.retainedMessage().publisherId(), topic.retainedMessage());
 
-			session.sendPublish(topic, topic.retainedMessage(), true); // [MQTT-3.3.1-6],[MQTT-3.3.1-8]
+			session.sendPublish(topic, topic.retainedMessage()); // [MQTT-3.3.1-6],[MQTT-3.3.1-8]
 		});
 
 		// TODO [MQTT-3.3.1-7]

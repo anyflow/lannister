@@ -33,6 +33,7 @@ import net.anyflow.lannister.Hazelcast;
 import net.anyflow.lannister.message.InboundMessageStatus;
 import net.anyflow.lannister.message.InboundMessageStatus.Status;
 import net.anyflow.lannister.message.Message;
+import net.anyflow.lannister.message.OutboundMessageStatus;
 import net.anyflow.lannister.serialization.SerializableFactory;
 import net.anyflow.lannister.session.Session;
 
@@ -149,6 +150,8 @@ public class Topic implements com.hazelcast.nio.serialization.Portable {
 	}
 
 	public void putMessage(String requesterId, Message message) {
+		assert name.equals(message.topicName());
+
 		if (message.qos() == MqttQoS.AT_MOST_ONCE) { return; }
 
 		messages.put(message.key(), message);
@@ -156,16 +159,30 @@ public class Topic implements com.hazelcast.nio.serialization.Portable {
 		addInboundMessageStatus(requesterId, message.id(), Status.RECEIVED);
 	}
 
-	protected static MqttQoS adjustQoS(MqttQoS subscriptionQos, MqttQoS publishQos) {
+	private static MqttQoS adjustQoS(MqttQoS subscriptionQos, MqttQoS publishQos) {
 		return subscriptionQos.value() <= publishQos.value() ? subscriptionQos : publishQos;
 	}
 
 	public void broadcast(Message message) {
+		assert name.equals(message.topicName());
+
 		subscribers.keySet().stream().filter(id -> Session.NEXUS.get(id) != null).forEach(id -> {
 			Session session = Session.NEXUS.get(id);
 
+			// TODO what if returned topicSubscriptions are multiple?
+			TopicSubscription subscription = session.matches(name).findAny().orElse(null);
+			assert subscription != null;
+
+			message.setQos(adjustQoS(subscription.qos(), message.qos()));
+			message.setId(session.nextMessageId()); // [MQTT-2.3.1-2]
+
+			if (message.qos() != MqttQoS.AT_MOST_ONCE) {
+				Topic.NEXUS.get(message.topicName()).subscribers().get(session.clientId()).addOutboundMessageStatus(
+						message.id(), message.key(), OutboundMessageStatus.Status.TO_PUBLISH, message.qos()); // [MQTT-3.1.2-5]
+			}
+
 			if (session.isConnected()) {
-				session.sendPublish(this, message.clone(), false); // [MQTT-3.3.1-8],[MQTT-3.3.1-9]
+				session.sendPublish(this, message.clone()); // [MQTT-3.3.1-8],[MQTT-3.3.1-9]
 			}
 			else {
 				NEXUS.notifier().publish(new Notification(id, this, message.clone()));
@@ -174,6 +191,8 @@ public class Topic implements com.hazelcast.nio.serialization.Portable {
 	}
 
 	public void publish(String requesterId, Message message) {
+		assert name.equals(message.topicName());
+
 		putMessage(requesterId, message);
 		broadcast(message);
 	}

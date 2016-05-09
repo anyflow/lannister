@@ -63,12 +63,7 @@ public class PublishReceiver extends SimpleChannelInboundHandler<MqttPublishMess
 				msg.fixedHeader().isRetain());
 
 		if (message.isRetain()) { // else do nothing [MQTT-3.3.1-12]
-			if (message.message().length > 0) {
-				topic.setRetainedMessage(message); // [MQTT-3.3.1-5]
-			}
-			else {
-				topic.setRetainedMessage(null); // [MQTT-3.3.1-10],[MQTT-3.3.1-11]
-			}
+			topic.setRetainedMessage(message.message().length > 0 ? message : null); // [MQTT-3.3.1-5],[MQTT-3.3.1-10],[MQTT-3.3.1-11]
 		}
 
 		// TODO What to do when sender re-publish message corrensponds to

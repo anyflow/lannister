@@ -150,8 +150,8 @@ public class Session implements com.hazelcast.nio.serialization.Portable {
 		return messageSender.send(message);
 	}
 
-	public void sendPublish(Topic topic, Message message, boolean isRetain) {
-		messageSender.sendPublish(topic, message, isRetain);
+	public void sendPublish(Topic topic, Message message) {
+		messageSender.sendPublish(topic, message);
 	}
 
 	public void completeRemainedMessages() {

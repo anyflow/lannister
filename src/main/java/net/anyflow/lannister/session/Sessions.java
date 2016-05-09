@@ -83,7 +83,7 @@ public class Sessions implements MessageListener<Notification> {
 		if (session == null) { return; }
 
 		synchronized (this) {
-			if (session.cleanSession()) {
+			if (session.cleanSession()) { // [MQTT-3.1.2-5]
 				sessions.remove(session.clientId());
 			}
 
@@ -114,6 +114,6 @@ public class Sessions implements MessageListener<Notification> {
 		Session session = get(notified.clientId());
 		if (session == null || session.isConnected() == false) { return; }
 
-		session.sendPublish(notified.topic(), notified.message(), false);// [MQTT-3.3.1-8],[MQTT-3.3.1-9]
+		session.sendPublish(notified.topic(), notified.message());// [MQTT-3.3.1-8],[MQTT-3.3.1-9]
 	}
 }
