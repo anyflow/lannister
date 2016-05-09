@@ -19,6 +19,7 @@ package net.anyflow.lannister.message;
 import java.util.List;
 
 import com.google.common.base.Strings;
+import com.google.common.collect.Lists;
 
 import io.netty.buffer.Unpooled;
 import io.netty.handler.codec.mqtt.MqttConnAckMessage;
@@ -37,7 +38,11 @@ import io.netty.handler.codec.mqtt.MqttPublishVariableHeader;
 import io.netty.handler.codec.mqtt.MqttQoS;
 import io.netty.handler.codec.mqtt.MqttSubAckMessage;
 import io.netty.handler.codec.mqtt.MqttSubAckPayload;
+import io.netty.handler.codec.mqtt.MqttSubscribeMessage;
+import io.netty.handler.codec.mqtt.MqttSubscribePayload;
+import io.netty.handler.codec.mqtt.MqttTopicSubscription;
 import io.netty.handler.codec.mqtt.MqttUnsubAckMessage;
+import io.netty.util.CharsetUtil;
 
 public class MessageFactory {
 	public static MqttConnectMessage connect(ConnectOptions options) {
@@ -91,7 +96,7 @@ public class MessageFactory {
 	}
 
 	public static MqttMessage pubrel(int messageId) {
-		MqttFixedHeader fixedHeader = new MqttFixedHeader(MqttMessageType.PUBREL, false, MqttQoS.AT_MOST_ONCE, false,
+		MqttFixedHeader fixedHeader = new MqttFixedHeader(MqttMessageType.PUBREL, false, MqttQoS.AT_LEAST_ONCE, false,
 				2);
 		MqttMessageIdVariableHeader variableHeader = MqttMessageIdVariableHeader.from(messageId);
 
@@ -111,6 +116,22 @@ public class MessageFactory {
 				0);
 
 		return new MqttMessage(fixedHeader);
+	}
+
+	public static MqttSubscribeMessage subscribe(int messageId, MqttTopicSubscription... topicSubscriptions) {
+		int topicNameSize = 0;
+		int topicCount = topicSubscriptions.length;
+
+		for (MqttTopicSubscription item : topicSubscriptions) {
+			topicNameSize += item.topicName().getBytes(CharsetUtil.UTF_8).length;
+		}
+
+		MqttFixedHeader fixedHeader = new MqttFixedHeader(MqttMessageType.SUBSCRIBE, false, MqttQoS.AT_LEAST_ONCE,
+				false, 2 + topicNameSize + topicCount);
+		MqttMessageIdVariableHeader variableHeader = MqttMessageIdVariableHeader.from(messageId);
+		MqttSubscribePayload payload = new MqttSubscribePayload(Lists.newArrayList(topicSubscriptions));
+
+		return new MqttSubscribeMessage(fixedHeader, variableHeader, payload);
 	}
 
 	public static MqttSubAckMessage suback(int messageId, List<Integer> grantedQoSLevels) {

@@ -34,12 +34,14 @@ import io.netty.handler.codec.mqtt.MqttConnAckMessage;
 import io.netty.handler.codec.mqtt.MqttDecoder;
 import io.netty.handler.codec.mqtt.MqttEncoder;
 import io.netty.handler.codec.mqtt.MqttMessage;
+import io.netty.handler.codec.mqtt.MqttTopicSubscription;
 import io.netty.handler.ssl.SslContext;
 import io.netty.handler.ssl.SslContextBuilder;
 import io.netty.handler.ssl.util.InsecureTrustManagerFactory;
 import io.netty.util.concurrent.DefaultThreadFactory;
 import net.anyflow.lannister.Settings;
 import net.anyflow.lannister.message.ConnectOptions;
+import net.anyflow.lannister.message.Message;
 import net.anyflow.lannister.message.MessageFactory;
 
 public class MqttClient {
@@ -52,6 +54,8 @@ public class MqttClient {
 	private Channel channel;
 	private EventLoopGroup group;
 	private MessageReceiver receiver;
+
+	private Integer currentMessageId;
 
 	private URI uri;
 	private ConnectOptions options;
@@ -66,6 +70,8 @@ public class MqttClient {
 		this.trustManagerFactory = useInsecureTrustManagerFactory ? InsecureTrustManagerFactory.INSTANCE : null;
 		this.sharedObject = new SharedObject();
 		this.options = new ConnectOptions();
+
+		this.currentMessageId = 0;
 	}
 
 	public MqttConnAckMessage connect() throws InterruptedException {
@@ -83,7 +89,7 @@ public class MqttClient {
 				ch.pipeline().addLast(MqttDecoder.class.getName(), new MqttDecoder());
 				ch.pipeline().addLast(MqttEncoder.class.getName(), MqttEncoder.INSTANCE);
 				ch.pipeline().addLast(MqttPacketReceiver.class.getName(),
-						new MqttPacketReceiver(receiver, sharedObject));
+						new MqttPacketReceiver(MqttClient.this, receiver, sharedObject));
 			}
 		});
 
@@ -105,10 +111,12 @@ public class MqttClient {
 		return channel != null && channel.isActive();
 	}
 
-	public void disconnect() {
+	public void disconnect(boolean sendDisconnect) {
 		if (!isConnected()) { return; }
 
-		send(MessageFactory.disconnect());
+		if (sendDisconnect) {
+			send(MessageFactory.disconnect());
+		}
 
 		channel.disconnect().addListener(ChannelFutureListener.CLOSE);
 		group.shutdownGracefully();
@@ -117,7 +125,7 @@ public class MqttClient {
 		group = null;
 	}
 
-	public ChannelFuture send(MqttMessage message) {
+	protected ChannelFuture send(MqttMessage message) {
 		if (!isConnected()) {
 			logger.error("Channel is not active");
 			return null;
@@ -136,5 +144,25 @@ public class MqttClient {
 		this.options = connectOptions;
 
 		return this;
+	}
+
+	public void publish(Message message) {
+		send(MessageFactory.publish(message, false));
+	}
+
+	public void subscribe(MqttTopicSubscription... topicSubscriptions) throws InterruptedException {
+		send(MessageFactory.subscribe(nextMessageId(), topicSubscriptions));
+
+		// TODO error handling,store subscription
+	}
+
+	public int nextMessageId() {
+		currentMessageId = currentMessageId + 1;
+
+		if (currentMessageId > Message.MAX_MESSAGE_ID_NUM) {
+			currentMessageId = Message.MIN_MESSAGE_ID_NUM;
+		}
+
+		return currentMessageId;
 	}
 }

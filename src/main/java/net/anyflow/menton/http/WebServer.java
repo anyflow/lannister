@@ -114,12 +114,12 @@ public class WebServer implements TaskCompletionInformer {
 	public void shutdown() {
 		if (bossGroup != null) {
 			bossGroup.shutdownGracefully().awaitUninterruptibly();
-			logger.debug("Boss event loop group shutdowned.");
+			logger.debug("Boss event loop group shutdowned");
 		}
 
 		if (workerGroup != null) {
 			workerGroup.shutdownGracefully().awaitUninterruptibly();
-			logger.debug("Worker event loop group shutdowned.");
+			logger.debug("Worker event loop group shutdowned");
 		}
 
 		logger.debug("Menton server stopped");

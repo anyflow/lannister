@@ -1,10 +1,20 @@
 package net.anyflow.lannister.topic;
 
+import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
+import io.netty.handler.codec.mqtt.MqttQoS;
+import io.netty.handler.codec.mqtt.MqttTopicSubscription;
+import io.netty.util.CharsetUtil;
 import net.anyflow.lannister.MqttServerTest;
 import net.anyflow.lannister.TestSuite;
+import net.anyflow.lannister.TestUtil;
+import net.anyflow.lannister.client.MqttClient;
+import net.anyflow.lannister.message.ConnectOptions;
+import net.anyflow.lannister.message.Message;
+import net.anyflow.lannister.message.OutboundMessageStatus;
+import net.anyflow.lannister.session.Session;
 
 public class TopicTest {
 	@SuppressWarnings("unused")
@@ -17,7 +27,55 @@ public class TopicTest {
 
 	@Test
 	public void persistMessagesForDisconnectedPersistantSession() throws Exception {
-		// TODO after mqttclient PUB/SUB featured
-	}
+		String clientId = TestUtil.newClientId();
 
+		ConnectOptions options = new ConnectOptions();
+		options.clientId(clientId);
+		options.cleanSession(false);
+
+		String topicName = "testTopic";
+		String message = "test message";
+
+		MqttClient client = new MqttClient("mqtt://localhost:1883");
+		client.connectOptions(options).connect();
+
+		client.subscribe(new MqttTopicSubscription(topicName, MqttQoS.EXACTLY_ONCE));
+		client.disconnect(true);
+
+		Thread.sleep(100);
+
+		Assert.assertNotNull(Session.NEXUS.get(clientId));
+
+		String publisherId = TestUtil.newClientId();
+
+		MqttClient publisher = new MqttClient("mqtt://localhost:1883");
+
+		ConnectOptions pubOptions = new ConnectOptions();
+		pubOptions.clientId(publisherId);
+		pubOptions.cleanSession(true);
+
+		int messageId = 1;
+		publisher.connectOptions(pubOptions).connect();
+		publisher.publish(new Message(messageId, topicName, publisherId, message.getBytes(CharsetUtil.UTF_8),
+				MqttQoS.EXACTLY_ONCE, false));
+
+		Thread.sleep(100);
+
+		publisher.disconnect(true);
+
+		Thread.sleep(100);
+
+		Assert.assertNull(Session.NEXUS.get(publisherId));
+
+		Topic topic = Topic.NEXUS.get(topicName);
+		Assert.assertNotNull(topic);
+
+		TopicSubscriber subscriber = topic.subscribers().get(clientId);
+		Assert.assertNotNull(subscriber);
+
+		OutboundMessageStatus status = subscriber.outboundMessageStatuses().values().stream().findFirst().orElse(null);
+
+		Assert.assertNotNull(status);
+		Assert.assertTrue(Message.key(publisherId, messageId).equals(status.inboundMessageKey()));
+	}
 }

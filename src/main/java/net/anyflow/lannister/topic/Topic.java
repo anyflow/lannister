@@ -169,23 +169,25 @@ public class Topic implements com.hazelcast.nio.serialization.Portable {
 		subscribers.keySet().stream().filter(id -> Session.NEXUS.get(id) != null).forEach(id -> {
 			Session session = Session.NEXUS.get(id);
 
+			Message toSend = message.clone();
+
 			// TODO what if returned topicSubscriptions are multiple?
 			TopicSubscription subscription = session.matches(name).findAny().orElse(null);
 			assert subscription != null;
 
-			message.setQos(adjustQoS(subscription.qos(), message.qos()));
-			message.setId(session.nextMessageId()); // [MQTT-2.3.1-2]
+			toSend.setQos(adjustQoS(subscription.qos(), message.qos()));
+			toSend.setId(session.nextMessageId()); // [MQTT-2.3.1-2]
 
-			if (message.qos() != MqttQoS.AT_MOST_ONCE) {
-				Topic.NEXUS.get(message.topicName()).subscribers().get(session.clientId()).addOutboundMessageStatus(
-						message.id(), message.key(), OutboundMessageStatus.Status.TO_PUBLISH, message.qos()); // [MQTT-3.1.2-5]
+			if (toSend.qos() != MqttQoS.AT_MOST_ONCE) {
+				Topic.NEXUS.get(toSend.topicName()).subscribers().get(session.clientId()).addOutboundMessageStatus(
+						toSend.id(), message.key(), OutboundMessageStatus.Status.TO_PUBLISH, toSend.qos()); // [MQTT-3.1.2-5]
 			}
 
 			if (session.isConnected()) {
-				session.sendPublish(this, message.clone()); // [MQTT-3.3.1-8],[MQTT-3.3.1-9]
+				session.sendPublish(this, toSend); // [MQTT-3.3.1-8],[MQTT-3.3.1-9]
 			}
 			else {
-				NEXUS.notifier().publish(new Notification(id, this, message.clone()));
+				NEXUS.notifier().publish(new Notification(id, this, toSend));
 			}
 		});
 	}

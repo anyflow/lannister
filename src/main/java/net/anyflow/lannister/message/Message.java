@@ -32,6 +32,9 @@ import net.anyflow.lannister.serialization.SerializableFactory;
 public class Message implements com.hazelcast.nio.serialization.Portable {
 	public final static int ID = 1;
 
+	public static final int MAX_MESSAGE_ID_NUM = 0xffff;
+	public static final int MIN_MESSAGE_ID_NUM = 1;
+
 	@JsonProperty
 	private int id;
 	@JsonProperty

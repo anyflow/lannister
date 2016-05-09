@@ -48,6 +48,8 @@ public class Hazelcast {
 	private Hazelcast() {
 		Config config = new Config();
 
+		config.setProperty("hazelcast.shutdownhook.enabled", "false");
+
 		config.getSerializationConfig().addPortableFactory(SerializableFactory.ID, new SerializableFactory());
 
 		config.getSerializationConfig()

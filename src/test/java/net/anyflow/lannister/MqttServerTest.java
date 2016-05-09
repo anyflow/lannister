@@ -24,14 +24,13 @@ public class MqttServerTest {
 		options.clientId(TestUtil.newClientId());
 
 		MqttClient client = new MqttClient("mqtt://localhost:1883");
-		MqttConnAckMessage ret = client.connectOptions(options).receiver(m -> {
-		}).connect();
+		MqttConnAckMessage ret = client.connectOptions(options).connect();
 
 		Assert.assertEquals(MqttConnectReturnCode.CONNECTION_ACCEPTED, ret.variableHeader().connectReturnCode());
 
 		Assert.assertTrue(client.isConnected());
 
-		client.disconnect();
+		client.disconnect(true);
 
 		Assert.assertFalse(client.isConnected());
 	}
@@ -42,14 +41,13 @@ public class MqttServerTest {
 		options.clientId(TestUtil.newClientId());
 
 		MqttClient client = new MqttClient("mqtts://localhost:8883", true);
-		MqttConnAckMessage ret = client.connectOptions(options).receiver(m -> {
-		}).connect();
+		MqttConnAckMessage ret = client.connectOptions(options).connect();
 
 		Assert.assertEquals(MqttConnectReturnCode.CONNECTION_ACCEPTED, ret.variableHeader().connectReturnCode());
 
 		Assert.assertTrue(client.isConnected());
 
-		client.disconnect();
+		client.disconnect(true);
 
 		Assert.assertFalse(client.isConnected());
 	}

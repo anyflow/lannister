@@ -49,9 +49,6 @@ public class Session implements com.hazelcast.nio.serialization.Portable {
 
 	private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(Session.class);
 
-	private static final int MAX_MESSAGE_ID_NUM = 0xffff;
-	private static final int MIN_MESSAGE_ID_NUM = 1;
-
 	public static Sessions NEXUS;
 	public static final int ID = 4;
 
@@ -162,15 +159,11 @@ public class Session implements com.hazelcast.nio.serialization.Portable {
 		return Topic.NEXUS.map().values().parallelStream().filter(t -> this.matches(t.name()).count() > 0);
 	}
 
-	public Stream<Topic> topics() {
-		return topics(topicSubscriptions.values());
-	}
-
 	public int nextMessageId() {
 		currentMessageId = currentMessageId + 1;
 
-		if (currentMessageId > MAX_MESSAGE_ID_NUM) {
-			currentMessageId = MIN_MESSAGE_ID_NUM;
+		if (currentMessageId > Message.MAX_MESSAGE_ID_NUM) {
+			currentMessageId = Message.MIN_MESSAGE_ID_NUM;
 		}
 
 		Session.NEXUS.persist(this);
