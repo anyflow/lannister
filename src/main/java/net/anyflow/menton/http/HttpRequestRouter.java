@@ -46,9 +46,6 @@ public class HttpRequestRouter extends SimpleChannelInboundHandler<FullHttpReque
 
 	private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(HttpRequestRouter.class);
 
-	protected HttpRequestRouter() {
-	}
-
 	private boolean isWebResourcePath(String path) {
 		return Settings.SELF.webResourceExtensionToMimes().keySet().stream().anyMatch(s -> path.endsWith("." + s));
 	}

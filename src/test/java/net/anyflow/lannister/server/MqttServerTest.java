@@ -1,4 +1,4 @@
-package net.anyflow.lannister;
+package net.anyflow.lannister.server;
 
 import org.junit.Assert;
 import org.junit.BeforeClass;
@@ -6,6 +6,8 @@ import org.junit.Test;
 
 import io.netty.handler.codec.mqtt.MqttConnAckMessage;
 import io.netty.handler.codec.mqtt.MqttConnectReturnCode;
+import net.anyflow.lannister.TestSuite;
+import net.anyflow.lannister.TestUtil;
 import net.anyflow.lannister.client.MqttClient;
 import net.anyflow.lannister.message.ConnectOptions;
 

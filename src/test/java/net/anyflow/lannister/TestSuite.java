@@ -25,6 +25,7 @@ import org.junit.runners.Suite.SuiteClasses;
 import net.anyflow.lannister.admin.command.SessionsFilterTest;
 import net.anyflow.lannister.admin.command.TopicsFilterTest;
 import net.anyflow.lannister.packetreceiver.ConnectReceiverTest;
+import net.anyflow.lannister.server.MqttServerTest;
 import net.anyflow.lannister.topic.TopicMatcherTest;
 import net.anyflow.lannister.topic.TopicTest;
 

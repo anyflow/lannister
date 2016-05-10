@@ -7,13 +7,13 @@ import org.junit.Test;
 import io.netty.handler.codec.mqtt.MqttQoS;
 import io.netty.handler.codec.mqtt.MqttTopicSubscription;
 import io.netty.util.CharsetUtil;
-import net.anyflow.lannister.MqttServerTest;
 import net.anyflow.lannister.TestSuite;
 import net.anyflow.lannister.TestUtil;
 import net.anyflow.lannister.client.MqttClient;
 import net.anyflow.lannister.message.ConnectOptions;
 import net.anyflow.lannister.message.Message;
 import net.anyflow.lannister.message.OutboundMessageStatus;
+import net.anyflow.lannister.server.MqttServerTest;
 import net.anyflow.lannister.session.Session;
 
 public class TopicTest {

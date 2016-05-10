@@ -14,17 +14,17 @@
  * limitations under the License.
  */
 
-package net.anyflow.lannister;
+package net.anyflow.lannister.server;
 
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.EventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
 import io.netty.util.concurrent.DefaultThreadFactory;
+import net.anyflow.lannister.Settings;
 import net.anyflow.lannister.packetreceiver.SessionExpirator;
 
 public class MqttServer {
-
 	private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(MqttServer.class);
 
 	private final EventLoopGroup bossGroup;
@@ -32,6 +32,8 @@ public class MqttServer {
 
 	private static final Integer TCP_PORT = Settings.SELF.getInt("lannister.tcp.port", null);
 	private static final Integer TCP_SSL_PORT = Settings.SELF.getInt("lannister.tcp.ssl.port", null);
+	private static final Integer WEBSOCKET_PORT = Settings.SELF.getInt("lannister.websocket.port", null);
+	private static final Integer WEBSOCKET_SSL_PORT = Settings.SELF.getInt("lannister.websocket.ssl.port", null);
 
 	public MqttServer() {
 		bossGroup = new NioEventLoopGroup(Settings.SELF.getInt("lannister.system.bossThreadCount", 0),
@@ -53,7 +55,7 @@ public class MqttServer {
 
 				bootstrap = bootstrap.group(bossGroup, workerGroup).channel(NioServerSocketChannel.class);
 
-				bootstrap.handler(new SessionExpirator()).childHandler(new MqttChannelInitializer(false));
+				bootstrap.handler(new SessionExpirator()).childHandler(new MqttChannelInitializer(false, false));
 				bootstrap.bind(TCP_PORT).sync();
 			}
 			if (TCP_SSL_PORT != null) {
@@ -61,11 +63,29 @@ public class MqttServer {
 
 				bootstrap = bootstrap.group(bossGroup, workerGroup).channel(NioServerSocketChannel.class);
 
-				bootstrap.handler(new SessionExpirator()).childHandler(new MqttChannelInitializer(true));
+				bootstrap.handler(new SessionExpirator()).childHandler(new MqttChannelInitializer(false, true));
 				bootstrap.bind(TCP_SSL_PORT).sync();
 			}
+			if (WEBSOCKET_PORT != null) {
+				ServerBootstrap bootstrap = new ServerBootstrap();
 
-			logger.info("Lannister server started: [MQTT tcp.port={}, tcp.ssl.port={}]", TCP_PORT, TCP_SSL_PORT);
+				bootstrap = bootstrap.group(bossGroup, workerGroup).channel(NioServerSocketChannel.class);
+
+				bootstrap.handler(new SessionExpirator()).childHandler(new MqttChannelInitializer(true, false));
+				bootstrap.bind(WEBSOCKET_PORT).sync();
+			}
+			if (WEBSOCKET_SSL_PORT != null) {
+				ServerBootstrap bootstrap = new ServerBootstrap();
+
+				bootstrap = bootstrap.group(bossGroup, workerGroup).channel(NioServerSocketChannel.class);
+
+				bootstrap.handler(new SessionExpirator()).childHandler(new MqttChannelInitializer(true, true));
+				bootstrap.bind(WEBSOCKET_SSL_PORT).sync();
+			}
+
+			logger.info(
+					"Lannister server started: [MQTT tcp.port={}, tcp.ssl.port={}, websocket.port={}, websocket.ssl.port={}]",
+					TCP_PORT, TCP_SSL_PORT, WEBSOCKET_PORT, WEBSOCKET_SSL_PORT);
 		}
 		catch (Exception e) {
 			logger.error("Lannister failed to start", e);
