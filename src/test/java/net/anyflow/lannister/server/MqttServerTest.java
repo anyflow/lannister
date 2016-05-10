@@ -1,10 +1,25 @@
+/*
+ * Copyright 2016 The Menton Project
+ * 
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ * 
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package net.anyflow.lannister.server;
 
 import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
-import io.netty.handler.codec.mqtt.MqttConnAckMessage;
 import io.netty.handler.codec.mqtt.MqttConnectReturnCode;
 import net.anyflow.lannister.TestSuite;
 import net.anyflow.lannister.TestUtil;
@@ -26,9 +41,9 @@ public class MqttServerTest {
 		options.clientId(TestUtil.newClientId());
 
 		MqttClient client = new MqttClient("mqtt://localhost:1883");
-		MqttConnAckMessage ret = client.connectOptions(options).connect();
+		MqttConnectReturnCode ret = client.connectOptions(options).connect();
 
-		Assert.assertEquals(MqttConnectReturnCode.CONNECTION_ACCEPTED, ret.variableHeader().connectReturnCode());
+		Assert.assertEquals(MqttConnectReturnCode.CONNECTION_ACCEPTED, ret);
 
 		Assert.assertTrue(client.isConnected());
 
@@ -43,9 +58,9 @@ public class MqttServerTest {
 		options.clientId(TestUtil.newClientId());
 
 		MqttClient client = new MqttClient("mqtts://localhost:8883", true);
-		MqttConnAckMessage ret = client.connectOptions(options).connect();
+		MqttConnectReturnCode ret = client.connectOptions(options).connect();
 
-		Assert.assertEquals(MqttConnectReturnCode.CONNECTION_ACCEPTED, ret.variableHeader().connectReturnCode());
+		Assert.assertEquals(MqttConnectReturnCode.CONNECTION_ACCEPTED, ret);
 
 		Assert.assertTrue(client.isConnected());
 

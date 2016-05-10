@@ -31,6 +31,7 @@ import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioSocketChannel;
 import io.netty.handler.codec.mqtt.MqttConnAckMessage;
+import io.netty.handler.codec.mqtt.MqttConnectReturnCode;
 import io.netty.handler.codec.mqtt.MqttDecoder;
 import io.netty.handler.codec.mqtt.MqttEncoder;
 import io.netty.handler.codec.mqtt.MqttMessage;
@@ -70,11 +71,10 @@ public class MqttClient {
 		this.trustManagerFactory = useInsecureTrustManagerFactory ? InsecureTrustManagerFactory.INSTANCE : null;
 		this.sharedObject = new SharedObject();
 		this.options = new ConnectOptions();
-
 		this.currentMessageId = 0;
 	}
 
-	public MqttConnAckMessage connect() throws InterruptedException {
+	public MqttConnectReturnCode connect() throws InterruptedException {
 		group = new NioEventLoopGroup(1, new DefaultThreadFactory("lannister/client"));
 
 		bootstrap.group(group).channel(NioSocketChannel.class).handler(new ChannelInitializer<SocketChannel>() {
@@ -95,6 +95,7 @@ public class MqttClient {
 
 		channel = bootstrap.connect(uri.getHost(), uri.getPort()).sync().channel();
 
+		normalizeMessage(options.will());
 		send(MessageFactory.connect(options));
 
 		synchronized (sharedObject.locker()) {
@@ -104,7 +105,7 @@ public class MqttClient {
 		}
 		if (sharedObject.receivedMessage() == null) { return null; }
 
-		return (MqttConnAckMessage) sharedObject.receivedMessage();
+		return ((MqttConnAckMessage) sharedObject.receivedMessage()).variableHeader().connectReturnCode();
 	}
 
 	public boolean isConnected() {
@@ -147,6 +148,7 @@ public class MqttClient {
 	}
 
 	public void publish(Message message) {
+		normalizeMessage(message);
 		send(MessageFactory.publish(message, false));
 	}
 
@@ -164,5 +166,16 @@ public class MqttClient {
 		}
 
 		return currentMessageId;
+	}
+
+	private void normalizeMessage(Message message) {
+		if (message == null) { return; }
+
+		message.setId(nextMessageId());
+		message.publisherId(this.options.clientId());
+	}
+
+	public String clientId() {
+		return options.clientId();
 	}
 }

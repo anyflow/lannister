@@ -16,9 +16,8 @@
 
 package net.anyflow.lannister.client;
 
-import io.netty.handler.codec.mqtt.MqttMessage;
+import net.anyflow.lannister.message.Message;
 
 public interface MessageReceiver {
-
-	void messageReceived(MqttMessage message);
+	void messageReceived(Message message);
 }

@@ -47,7 +47,7 @@ public class Topic implements com.hazelcast.nio.serialization.Portable {
 	@JsonProperty
 	private String name;
 	@JsonProperty
-	private Message retainedMessage;
+	private Message retainedMessage; // [MQTT-3.1.2.7]
 	@JsonProperty
 	private IMap<String, TopicSubscriber> subscribers; // clientIds
 	@JsonProperty

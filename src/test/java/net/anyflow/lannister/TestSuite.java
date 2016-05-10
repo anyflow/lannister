@@ -26,12 +26,13 @@ import net.anyflow.lannister.admin.command.SessionsFilterTest;
 import net.anyflow.lannister.admin.command.TopicsFilterTest;
 import net.anyflow.lannister.packetreceiver.ConnectReceiverTest;
 import net.anyflow.lannister.server.MqttServerTest;
+import net.anyflow.lannister.session.WillTest;
 import net.anyflow.lannister.topic.TopicMatcherTest;
 import net.anyflow.lannister.topic.TopicTest;
 
 @RunWith(Suite.class)
 @SuiteClasses({ SessionsFilterTest.class, ConnectReceiverTest.class, TopicMatcherTest.class, TopicsFilterTest.class,
-		CodecTest.class, MqttServerTest.class, TopicTest.class })
+		CodecTest.class, MqttServerTest.class, TopicTest.class, WillTest.class })
 public class TestSuite {
 
 	private static boolean SETUP_CALLED = false;

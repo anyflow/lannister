@@ -22,7 +22,6 @@ import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
 import io.netty.handler.codec.mqtt.MqttPublishMessage;
-import net.anyflow.lannister.NettyUtil;
 import net.anyflow.lannister.message.InboundMessageStatus;
 import net.anyflow.lannister.message.Message;
 import net.anyflow.lannister.message.MessageFactory;
@@ -58,9 +57,7 @@ public class PublishReceiver extends SimpleChannelInboundHandler<MqttPublishMess
 			Topic.put(topic);
 		}
 
-		Message message = new Message(msg.variableHeader().messageId(), msg.variableHeader().topicName(),
-				session.clientId(), NettyUtil.copy(msg.payload()), msg.fixedHeader().qosLevel(),
-				msg.fixedHeader().isRetain());
+		Message message = Message.newMessage(msg, session.clientId());
 
 		if (message.isRetain()) { // else do nothing [MQTT-3.3.1-12]
 			topic.setRetainedMessage(message.message().length > 0 ? message : null); // [MQTT-3.3.1-5],[MQTT-3.3.1-10],[MQTT-3.3.1-11]

@@ -25,8 +25,10 @@ import com.hazelcast.nio.serialization.ClassDefinitionBuilder;
 import com.hazelcast.nio.serialization.PortableReader;
 import com.hazelcast.nio.serialization.PortableWriter;
 
+import io.netty.handler.codec.mqtt.MqttPublishMessage;
 import io.netty.handler.codec.mqtt.MqttQoS;
 import io.netty.util.internal.StringUtil;
+import net.anyflow.lannister.NettyUtil;
 import net.anyflow.lannister.serialization.SerializableFactory;
 
 public class Message implements com.hazelcast.nio.serialization.Portable {
@@ -74,6 +76,10 @@ public class Message implements com.hazelcast.nio.serialization.Portable {
 
 	public String publisherId() {
 		return publisherId;
+	}
+
+	public void publisherId(String publisherId) {
+		this.publisherId = publisherId;
 	}
 
 	public byte[] message() {
@@ -156,5 +162,11 @@ public class Message implements com.hazelcast.nio.serialization.Portable {
 		return new ClassDefinitionBuilder(SerializableFactory.ID, ID).addIntField("id").addUTFField("topicName")
 				.addUTFField("publisherId").addByteArrayField("message").addIntField("qos").addBooleanField("isRetain")
 				.build();
+	}
+
+	public static Message newMessage(MqttPublishMessage published, String clientId) {
+		return new Message(published.variableHeader().messageId(), published.variableHeader().topicName(), clientId,
+				NettyUtil.copy(published.payload()), published.fixedHeader().qosLevel(),
+				published.fixedHeader().isRetain());
 	}
 }

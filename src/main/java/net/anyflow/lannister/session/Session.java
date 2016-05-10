@@ -119,6 +119,12 @@ public class Session implements com.hazelcast.nio.serialization.Portable {
 		return will;
 	}
 
+	public void will(Message will) {
+		this.will = will;
+
+		Session.NEXUS.persist(this);
+	}
+
 	public boolean cleanSession() {
 		return cleanSession;
 	}

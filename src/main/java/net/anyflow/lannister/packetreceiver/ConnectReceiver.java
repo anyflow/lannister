@@ -86,7 +86,7 @@ public class ConnectReceiver extends SimpleChannelInboundHandler<MqttConnectMess
 			session = newSession(msg, cleanSession, clientId); // [MQTT-3.1.2-6]
 		}
 		else if (session == null) { // [MQTT-3.1.2-4]
-			session = newSession(msg, cleanSession, clientId); // [MQTT-3.1.2-6]
+			session = newSession(msg, cleanSession, clientId);
 		}
 
 		Session.NEXUS.put(session, ctx);
@@ -116,8 +116,7 @@ public class ConnectReceiver extends SimpleChannelInboundHandler<MqttConnectMess
 	}
 
 	private Session newSession(MqttConnectMessage msg, boolean cleanSession, String clientId) {
-		return new Session(clientId, msg.variableHeader().keepAliveTimeSeconds(), cleanSession,
-				newWill(clientId, msg));
+		return new Session(clientId, msg.variableHeader().keepAliveTimeSeconds(), cleanSession, newWill(clientId, msg));
 	}
 
 	private Message newWill(String clientId, MqttConnectMessage conn) {

@@ -63,7 +63,7 @@ public class TopicTest {
 
 		publisher.disconnect(true);
 
-		Thread.sleep(100);
+		Thread.sleep(1000);
 
 		Assert.assertNull(Session.NEXUS.get(publisherId));
 

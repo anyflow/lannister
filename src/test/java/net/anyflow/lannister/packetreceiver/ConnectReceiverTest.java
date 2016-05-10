@@ -60,11 +60,9 @@ public class ConnectReceiverTest {
 		options.cleanSession(false);
 
 		MqttClient client = new MqttClient("mqtt://localhost:1883");
-		MqttConnAckMessage ret = client.connectOptions(options).receiver(m -> {
-		}).connect();
+		MqttConnectReturnCode ret = client.connectOptions(options).receiver(null).connect();
 
-		Assert.assertEquals(MqttConnectReturnCode.CONNECTION_REFUSED_IDENTIFIER_REJECTED,
-				ret.variableHeader().connectReturnCode());
+		Assert.assertEquals(MqttConnectReturnCode.CONNECTION_REFUSED_IDENTIFIER_REJECTED, ret);
 	}
 
 	@Test
