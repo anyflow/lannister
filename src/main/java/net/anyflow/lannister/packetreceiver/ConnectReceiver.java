@@ -27,6 +27,7 @@ import io.netty.handler.codec.mqtt.MqttConnectReturnCode;
 import io.netty.handler.codec.mqtt.MqttIdentifierRejectedException;
 import io.netty.handler.codec.mqtt.MqttQoS;
 import io.netty.handler.codec.mqtt.MqttUnacceptableProtocolVersionException;
+import net.anyflow.lannister.Hazelcast;
 import net.anyflow.lannister.Settings;
 import net.anyflow.lannister.message.Message;
 import net.anyflow.lannister.message.MessageFactory;
@@ -62,7 +63,13 @@ public class ConnectReceiver extends SimpleChannelInboundHandler<MqttConnectMess
 
 		if (Strings.isNullOrEmpty(clientId)) {
 			if (cleanSession) {
-				clientId = Settings.SELF.getProperty("mqtt.defaultClientId", "lannisterDefaultClientId"); // [MQTT-3.1.3-6],[MQTT-3.1.3-7]
+				if (Settings.SELF.getBoolean("mqtt.acceptEmptyClientId", true)) {
+					clientId = "Lannister_"
+							+ Long.toString(Hazelcast.SELF.generator().getIdGenerator("clientIdGenerator").newId()); // [MQTT-3.1.3-6],[MQTT-3.1.3-7]
+				}
+				else {
+					sendNoneAcceptMessage(ctx, MqttConnectReturnCode.CONNECTION_REFUSED_IDENTIFIER_REJECTED, false);
+				}
 			}
 			else {
 				sendNoneAcceptMessage(ctx, MqttConnectReturnCode.CONNECTION_REFUSED_IDENTIFIER_REJECTED, false); // [MQTT-3.1.3-8],[MQTT-3.2.2-4]
@@ -81,7 +88,7 @@ public class ConnectReceiver extends SimpleChannelInboundHandler<MqttConnectMess
 
 		if (cleanSession) {
 			if (session != null) {
-				session.dispose(false);
+				session.dispose(false); // [MQTT-3.1.4-2]
 			}
 			session = newSession(msg, cleanSession, clientId); // [MQTT-3.1.2-6]
 		}
@@ -104,7 +111,7 @@ public class ConnectReceiver extends SimpleChannelInboundHandler<MqttConnectMess
 		}
 
 		final Session sessionFinal = session;
-		final MqttConnAckMessage acceptMsg = MessageFactory.connack(returnCode, sessionPresent);
+		final MqttConnAckMessage acceptMsg = MessageFactory.connack(returnCode, sessionPresent); // [MQTT-3.1.4-4]
 
 		session.send(acceptMsg).addListener(f -> {
 			eventListener.connAckMessageSent(acceptMsg);
@@ -151,7 +158,7 @@ public class ConnectReceiver extends SimpleChannelInboundHandler<MqttConnectMess
 			logger.debug("packet outgoing [{}]", msg);
 
 			eventListener.connAckMessageSent(msg);
-			ctx.channel().disconnect().addListener(ChannelFutureListener.CLOSE); // [MQTT-3.2.2-5]
+			ctx.channel().disconnect().addListener(ChannelFutureListener.CLOSE); // [MQTT-3.2.2-5],[MQTT-3.1.4-5]
 		});
 	}
 

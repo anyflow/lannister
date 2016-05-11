@@ -76,7 +76,7 @@ public class ConnectReceiverTest {
 	public void testCleanSessionWithoutClientId() throws Exception {
 		MqttConnAckMessage ret = executeNormalChannelRead0("", true, null);
 
-		Assert.assertEquals(ret.variableHeader().connectReturnCode(), MqttConnectReturnCode.CONNECTION_ACCEPTED);
+		Assert.assertEquals(MqttConnectReturnCode.CONNECTION_ACCEPTED, ret.variableHeader().connectReturnCode());
 	}
 
 	@Test
