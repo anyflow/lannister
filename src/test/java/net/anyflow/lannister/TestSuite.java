@@ -37,14 +37,10 @@ import net.anyflow.lannister.topic.TopicTest;
 public class TestSuite {
 
 	private static boolean SETUP_CALLED = false;
-	public static Integer SESSION_EXIRE_TIMEOUT = 1;
 
 	@BeforeClass
 	public static void setUp() {
 		if (SETUP_CALLED) { return; }
-
-		Settings.SELF.setProperty("lannister.sessionExpirationHandlerExecutionIntervalSeconds",
-				SESSION_EXIRE_TIMEOUT.toString());
 
 		Application.main(null);
 		SETUP_CALLED = true;

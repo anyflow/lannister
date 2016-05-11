@@ -23,6 +23,7 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 
 import io.netty.handler.codec.mqtt.MqttConnectReturnCode;
+import net.anyflow.lannister.Settings;
 import net.anyflow.lannister.TestSuite;
 import net.anyflow.lannister.TestUtil;
 import net.anyflow.lannister.client.MqttClient;
@@ -54,7 +55,9 @@ public class SessionExpiratorTest {
 
 		Assert.assertTrue(session.isExpired());
 
-		Thread.sleep((TestSuite.SESSION_EXIRE_TIMEOUT + 3) * 1000);
+		int expireTimeout = Settings.SELF.getInt("lannister.sessionExpirationHandlerExecutionIntervalSeconds", 1);
+
+		Thread.sleep((expireTimeout + 3) * 1000);
 
 		Assert.assertNull(Session.NEXUS.get(clientId));
 	}
