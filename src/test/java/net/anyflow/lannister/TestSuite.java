@@ -25,6 +25,7 @@ import org.junit.runners.Suite.SuiteClasses;
 import net.anyflow.lannister.admin.command.SessionsFilterTest;
 import net.anyflow.lannister.admin.command.TopicsFilterTest;
 import net.anyflow.lannister.packetreceiver.ConnectReceiverTest;
+import net.anyflow.lannister.packetreceiver.SessionExpiratorTest;
 import net.anyflow.lannister.server.MqttServerTest;
 import net.anyflow.lannister.session.WillTest;
 import net.anyflow.lannister.topic.TopicMatcherTest;
@@ -32,14 +33,18 @@ import net.anyflow.lannister.topic.TopicTest;
 
 @RunWith(Suite.class)
 @SuiteClasses({ SessionsFilterTest.class, ConnectReceiverTest.class, TopicMatcherTest.class, TopicsFilterTest.class,
-		CodecTest.class, MqttServerTest.class, TopicTest.class, WillTest.class })
+		CodecTest.class, MqttServerTest.class, TopicTest.class, WillTest.class, SessionExpiratorTest.class })
 public class TestSuite {
 
 	private static boolean SETUP_CALLED = false;
+	public static Integer SESSION_EXIRE_TIMEOUT = 1;
 
 	@BeforeClass
 	public static void setUp() {
 		if (SETUP_CALLED) { return; }
+
+		Settings.SELF.setProperty("lannister.sessionExpirationHandlerExecutionIntervalSeconds",
+				SESSION_EXIRE_TIMEOUT.toString());
 
 		Application.main(null);
 		SETUP_CALLED = true;

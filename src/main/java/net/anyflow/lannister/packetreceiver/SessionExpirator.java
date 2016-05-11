@@ -47,6 +47,6 @@ public class SessionExpirator extends ChannelInboundHandlerAdapter {
 
 			logger.debug("SessionExpirationHandler executed : [dispose count={}]", disposes.size());
 
-		} , interval, interval, TimeUnit.SECONDS);
+		} , 0, interval, TimeUnit.SECONDS);
 	}
 }

@@ -29,6 +29,7 @@ import net.anyflow.lannister.TestUtil;
 import net.anyflow.lannister.client.MqttClient;
 import net.anyflow.lannister.message.ConnectOptions;
 import net.anyflow.lannister.message.Message;
+import net.anyflow.lannister.topic.Topic;
 
 public class WillTest {
 	@BeforeClass
@@ -88,13 +89,18 @@ public class WillTest {
 
 		client0.disconnect(false); // abnormal disconnect
 
+		Thread.sleep(1000); // for will to null
+
 		synchronized (wrapper) {
-			wrapper.wait(15000);
+			wrapper.wait(5000);
 		}
 
-		Assert.assertNotNull(Session.NEXUS.get(client0Id).will());
-		Assert.assertTrue(wrapper.getMessage() != null);
-		Assert.assertTrue(wrapper.getMessage().topicName().equals(willTopic));
+		Message will = wrapper.getMessage();
+
+		Assert.assertNull(Session.NEXUS.get(client0Id).will());
+		Assert.assertTrue(will != null);
+		Assert.assertTrue(will.topicName().equals(willTopic));
+		Assert.assertNull(Topic.NEXUS.get(will.topicName()).retainedMessage());
 		Assert.assertTrue(message.equals(new String(wrapper.getMessage().message())));
 	}
 

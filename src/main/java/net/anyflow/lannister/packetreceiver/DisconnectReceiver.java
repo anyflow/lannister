@@ -29,7 +29,7 @@ public class DisconnectReceiver {
 	}
 
 	protected void handle(Session session) {
-		session.will(null); // [MQTT-3.1.2-8]
+		session.will(null); // [MQTT-3.1.2-8],[MQTT-3.1.2-10]
 		session.dispose(false); // [MQTT-3.14.4-1],[MQTT-3.14.4-2],[MQTT-3.14.4-3]
 	}
 }
