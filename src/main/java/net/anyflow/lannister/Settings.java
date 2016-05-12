@@ -18,6 +18,8 @@ package net.anyflow.lannister;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.URISyntaxException;
+import java.security.CodeSource;
 import java.security.cert.CertificateException;
 import java.util.Map;
 
@@ -31,6 +33,8 @@ public class Settings extends java.util.Properties {
 
 	protected static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(Settings.class);
 
+	private final static String CONFIG_NAME = "lannister.cfg";
+
 	public final static Settings SELF;
 
 	static {
@@ -43,7 +47,8 @@ public class Settings extends java.util.Properties {
 	@SuppressWarnings("unchecked")
 	private Settings() {
 		try {
-			load(Application.class.getClassLoader().getResourceAsStream("META-INF/application.properties"));
+			load(Application.class.getClassLoader().getResourceAsStream(CONFIG_NAME));
+
 			ssc = new SelfSignedCertificate();
 		}
 		catch (IOException e) {
@@ -143,5 +148,17 @@ public class Settings extends java.util.Properties {
 
 	public void setWebResourcePhysicalRootPath(String physicalRootPath) {
 		this.setProperty("menton.httpServer.webResourcePhysicalRootPath", physicalRootPath);
+	}
+
+	public static <T> String getWorkingPath(java.lang.Class<T> mainClass) {
+		CodeSource codeSource = mainClass.getProtectionDomain().getCodeSource();
+
+		try {
+			return (new File(codeSource.getLocation().toURI().getPath())).getParentFile().getPath();
+		}
+		catch (URISyntaxException e) {
+			logger.error(e.getMessage(), e);
+			return null;
+		}
 	}
 }

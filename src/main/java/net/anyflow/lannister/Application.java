@@ -100,7 +100,6 @@ public class Application {
 	}
 
 	public static void configureLog4j() {
-		org.apache.log4j.xml.DOMConfigurator
-				.configure(Application.class.getClassLoader().getResource("META-INF/log4j.xml"));
+		org.apache.log4j.xml.DOMConfigurator.configure(Application.class.getClassLoader().getResource("log4j.xml"));
 	}
 }

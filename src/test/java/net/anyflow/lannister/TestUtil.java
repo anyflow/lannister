@@ -16,12 +16,7 @@
 
 package net.anyflow.lannister;
 
-import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelId;
-import io.netty.channel.embedded.EmbeddedChannel;
-import io.netty.handler.codec.mqtt.MqttDecoder;
-import io.netty.handler.codec.mqtt.MqttEncoder;
-import io.netty.handler.codec.mqtt.MqttMessage;
 
 public class TestUtil {
 
@@ -76,19 +71,5 @@ public class TestUtil {
 				return asLongText();
 			}
 		};
-	}
-
-	public static ByteBuf encode(MqttMessage message) {
-		EmbeddedChannel ch = new EmbeddedChannel(MqttEncoder.INSTANCE);
-		ch.writeOutbound(message);
-
-		return ch.readInbound();
-	}
-
-	public static MqttMessage decode(ByteBuf byteArray) {
-		EmbeddedChannel ch = new EmbeddedChannel(new MqttDecoder());
-		ch.writeInbound(byteArray);
-
-		return ch.readOutbound();
 	}
 }
