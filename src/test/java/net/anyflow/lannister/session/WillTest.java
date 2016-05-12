@@ -16,10 +16,6 @@
 
 package net.anyflow.lannister.session;
 
-import org.junit.Assert;
-import org.junit.BeforeClass;
-import org.junit.Test;
-
 import io.netty.handler.codec.mqtt.MqttConnectReturnCode;
 import io.netty.handler.codec.mqtt.MqttQoS;
 import io.netty.handler.codec.mqtt.MqttTopicSubscription;
@@ -31,103 +27,115 @@ import net.anyflow.lannister.message.ConnectOptions;
 import net.anyflow.lannister.message.Message;
 import net.anyflow.lannister.topic.Topic;
 
+import org.junit.Assert;
+import org.junit.BeforeClass;
+import org.junit.Test;
+
 public class WillTest {
-	@BeforeClass
-	public static void setUpBeforeClass() throws Exception {
-		TestSuite.setUp();
-	}
 
-	@Test
-	public void testWillSend() throws Exception {
-		String willTopic = "will";
-		String message = "ASTALAVISTA";
+    @BeforeClass
+    public static void setUpBeforeClass() throws Exception {
+        TestSuite.setUp();
+    }
 
-		String client0Id = TestUtil.newClientId();
-		ConnectOptions options = new ConnectOptions();
-		options.clientId(client0Id);
-		options.will(
-				new Message(-1, willTopic, null, message.getBytes(CharsetUtil.UTF_8), MqttQoS.AT_LEAST_ONCE, false));
-		options.cleanSession(false);
+    @Test
+    public void testWillSend() throws Exception {
+        String willTopic = "will";
+        String message = "ASTALAVISTA";
 
-		MqttClient client0 = new MqttClient("mqtt://localhost:1883");
-		MqttConnectReturnCode ret = client0.connectOptions(options).connect();
+        String client0Id = TestUtil.newClientId();
+        ConnectOptions options = new ConnectOptions();
+        options.clientId(client0Id);
+        options.will(
+                new Message(-1, willTopic, null, message.getBytes(CharsetUtil.UTF_8), MqttQoS.AT_LEAST_ONCE, false));
+        options.cleanSession(false);
 
-		Assert.assertEquals(MqttConnectReturnCode.CONNECTION_ACCEPTED, ret);
-		Assert.assertTrue(client0.isConnected());
+        MqttClient client0 = new MqttClient("mqtt://localhost:1883");
+        MqttConnectReturnCode ret = client0.connectOptions(options).connect();
 
-		Assert.assertTrue(Session.NEXUS.get(client0Id).will() != null
-				&& Session.NEXUS.get(client0Id).will().topicName().equals(willTopic));
+        Assert.assertEquals(MqttConnectReturnCode.CONNECTION_ACCEPTED, ret);
+        Assert.assertTrue(client0.isConnected());
 
-		// ================= client1 creation
+        Assert.assertTrue(Session.NEXUS.get(client0Id).will() != null
+                && Session.NEXUS.get(client0Id).will().topicName().equals(willTopic));
 
-		class MessageWrapper {
-			private Message message = null;
+        // ================= client1 creation
 
-			public Message getMessage() {
-				return message;
-			}
+        class MessageWrapper {
+            private Message message = null;
 
-			public void setMessage(Message message) {
-				this.message = message;
-			}
-		}
+            public Message getMessage() {
+                return message;
+            }
 
-		MessageWrapper wrapper = new MessageWrapper();
-		MqttClient client1 = new MqttClient("mqtt://localhost:1883");
-		ret = client1.receiver(m -> {
-			wrapper.setMessage(m);
+            public void setMessage(Message message) {
+                this.message = message;
+            }
+        }
 
-			synchronized (wrapper) {
-				wrapper.notifyAll();
-			}
-		}).connect();
+        MessageWrapper wrapper = new MessageWrapper();
 
-		client1.subscribe(new MqttTopicSubscription(willTopic, MqttQoS.AT_LEAST_ONCE));
+        String client1Id = TestUtil.newClientId();
+        ConnectOptions options1 = new ConnectOptions();
+        options1.clientId(client1Id);
 
-		Assert.assertEquals(MqttConnectReturnCode.CONNECTION_ACCEPTED, ret);
-		Assert.assertTrue(client1.isConnected());
+        MqttClient client1 = new MqttClient("mqtt://localhost:1883");
+        ret = client1.connectOptions(options1).receiver(m -> {
+            wrapper.setMessage(m);
 
-		client0.disconnect(false); // abnormal disconnect
+            synchronized (wrapper) {
+                wrapper.notify();
+            }
+        }).connect();
 
-		Thread.sleep(1000); // for will to null
+        client1.subscribe(new MqttTopicSubscription(willTopic, MqttQoS.AT_LEAST_ONCE));
 
-		synchronized (wrapper) {
-			wrapper.wait(5000);
-		}
+        Assert.assertEquals(MqttConnectReturnCode.CONNECTION_ACCEPTED, ret);
+        Assert.assertTrue(client1.isConnected());
 
-		Message will = wrapper.getMessage();
+        Thread.sleep(100); // for client1 connecting & subscribing
 
-		Assert.assertNull(Session.NEXUS.get(client0Id).will());
-		Assert.assertTrue(will != null);
-		Assert.assertTrue(will.topicName().equals(willTopic));
-		Assert.assertNull(Topic.NEXUS.get(will.topicName()).retainedMessage());
-		Assert.assertTrue(message.equals(new String(wrapper.getMessage().message())));
-	}
+        client0.disconnect(false); // abnormal disconnect
 
-	@Test
-	public void testWillToNullOnNormalDisconnect() throws Exception {
-		String willTopic = "will";
-		String message = "ASTALAVISTA";
+        Thread.sleep(100); // for client0's will to null
 
-		String clientId = TestUtil.newClientId();
-		ConnectOptions options = new ConnectOptions();
-		options.clientId(clientId);
-		options.will(
-				new Message(-1, willTopic, null, message.getBytes(CharsetUtil.UTF_8), MqttQoS.AT_LEAST_ONCE, false));
-		options.cleanSession(false);
+        synchronized (wrapper) {
+            wrapper.wait(5000);
+        }
 
-		MqttClient client0 = new MqttClient("mqtt://localhost:1883");
-		MqttConnectReturnCode ret = client0.connectOptions(options).connect();
+        Message will = wrapper.getMessage();
 
-		Assert.assertEquals(MqttConnectReturnCode.CONNECTION_ACCEPTED, ret);
-		Assert.assertTrue(client0.isConnected());
+        Assert.assertNull(Session.NEXUS.get(client0Id).will());
+        Assert.assertNotNull(will);
+        Assert.assertTrue(will.topicName().equals(willTopic));
+        Assert.assertNull(Topic.NEXUS.get(will.topicName()).retainedMessage());
+        Assert.assertTrue(message.equals(new String(wrapper.getMessage().message())));
+    }
 
-		Assert.assertTrue(Session.NEXUS.get(clientId).will() != null
-				&& Session.NEXUS.get(clientId).will().topicName().equals(willTopic));
+    @Test
+    public void testWillToNullOnNormalDisconnect() throws Exception {
+        String willTopic = "will";
+        String message = "ASTALAVISTA";
 
-		client0.disconnect(true);
+        String clientId = TestUtil.newClientId();
+        ConnectOptions options = new ConnectOptions();
+        options.clientId(clientId);
+        options.will(
+                new Message(-1, willTopic, null, message.getBytes(CharsetUtil.UTF_8), MqttQoS.AT_LEAST_ONCE, false));
+        options.cleanSession(false);
 
-		Thread.sleep(100);
-		Assert.assertNull(Session.NEXUS.get(clientId).will());
-	}
+        MqttClient client0 = new MqttClient("mqtt://localhost:1883");
+        MqttConnectReturnCode ret = client0.connectOptions(options).connect();
+
+        Assert.assertEquals(MqttConnectReturnCode.CONNECTION_ACCEPTED, ret);
+        Assert.assertTrue(client0.isConnected());
+
+        Assert.assertTrue(Session.NEXUS.get(clientId).will() != null
+                && Session.NEXUS.get(clientId).will().topicName().equals(willTopic));
+
+        client0.disconnect(true);
+
+        Thread.sleep(100);
+        Assert.assertNull(Session.NEXUS.get(clientId).will());
+    }
 }
