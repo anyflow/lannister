@@ -35,7 +35,7 @@ public class SessionExpirator extends ChannelInboundHandlerAdapter {
 
 		int interval = Settings.SELF.getInt("lannister.sessionExpirationHandlerExecutionIntervalSeconds", 0);
 
-		ctx.executor().scheduleWithFixedDelay(() -> {
+		ctx.executor().scheduleAtFixedRate(() -> {
 			List<Session> disposes = Lists.newArrayList();
 
 			Session.NEXUS.ctxs().keySet().stream().filter(id -> {

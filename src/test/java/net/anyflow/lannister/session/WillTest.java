@@ -93,11 +93,11 @@ public class WillTest {
         Assert.assertEquals(MqttConnectReturnCode.CONNECTION_ACCEPTED, ret);
         Assert.assertTrue(client1.isConnected());
 
-        Thread.sleep(100); // for client1 connecting & subscribing
+        Thread.sleep(500); // for client1 connecting & subscribing
 
         client0.disconnect(false); // abnormal disconnect
 
-        Thread.sleep(100); // for client0's will to null
+        Thread.sleep(500); // for client0's will to null
 
         synchronized (wrapper) {
             wrapper.wait(5000);

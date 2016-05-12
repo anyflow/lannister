@@ -57,7 +57,7 @@ public class SessionExpiratorTest {
 
 		int expireTimeout = Settings.SELF.getInt("lannister.sessionExpirationHandlerExecutionIntervalSeconds", 1);
 
-		Thread.sleep((expireTimeout + 3) * 1000);
+		Thread.sleep((expireTimeout + 2) * 1000);
 
 		Assert.assertNull(Session.NEXUS.get(clientId));
 	}

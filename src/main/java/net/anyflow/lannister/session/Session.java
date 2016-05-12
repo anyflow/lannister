@@ -132,7 +132,7 @@ public class Session implements com.hazelcast.nio.serialization.Portable {
 	public boolean isExpired() {
 		if (keepAliveSeconds == 0) { return false; }
 
-		return ((new Date()).getTime() - lastIncomingTime.getTime()) * 1000 > keepAliveSeconds * 1.5;
+		return ((new Date()).getTime() - lastIncomingTime.getTime()) > keepAliveSeconds * 1.5 * 1000;
 	}
 
 	public void setLastIncomingTime(Date lastIncomingTime) {
@@ -183,10 +183,14 @@ public class Session implements com.hazelcast.nio.serialization.Portable {
 			will(null); // [MQTT-3.1.2-10]
 		}
 
+		ChannelId channelId = null;
 		ChannelHandlerContext ctx = NEXUS.channelHandlerContext(clientId);
+		if (ctx != null) {
+			ctx.disconnect().addListener(ChannelFutureListener.CLOSE);
+			channelId = ctx.channel().id();
+		}
 
-		ctx.disconnect().addListener(ChannelFutureListener.CLOSE);
-		logger.debug("Session disposed [clientId={}/channelId={}]", clientId, ctx.channel().id());
+		logger.debug("Session disposed [clientId={}/channelId={}]", clientId, ctx == null ? "null" : channelId);
 
 		NEXUS.remove(this);
 	}
