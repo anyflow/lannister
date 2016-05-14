@@ -136,7 +136,7 @@
 				<configuration>
 					<archive>
 						<manifestEntries>
-							<Class-Path>conf/ plugin/</Class-Path>
+							<Class-Path>conf/</Class-Path>
 						</manifestEntries>
 						<manifest>
 							<addClasspath>true</addClasspath>

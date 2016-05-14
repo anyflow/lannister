@@ -31,10 +31,7 @@ import net.anyflow.lannister.Hazelcast;
 import net.anyflow.lannister.Settings;
 import net.anyflow.lannister.message.Message;
 import net.anyflow.lannister.message.MessageFactory;
-import net.anyflow.lannister.plugin.Authorization;
-import net.anyflow.lannister.plugin.EventListener;
-import net.anyflow.lannister.plugin.PluginFactory;
-import net.anyflow.lannister.plugin.ServiceStatus;
+import net.anyflow.lannister.plugin.Plugins;
 import net.anyflow.lannister.session.Session;
 import net.anyflow.lannister.topic.Topic;
 
@@ -42,15 +39,11 @@ public class ConnectReceiver extends SimpleChannelInboundHandler<MqttConnectMess
 
 	private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(ConnectReceiver.class);
 
-	private final EventListener eventListener = PluginFactory.eventListener();
-	private final ServiceStatus serviceStatus = PluginFactory.serviceStatus();
-	private final Authorization auth = PluginFactory.authorization();
-
 	@Override
 	protected void channelRead0(ChannelHandlerContext ctx, MqttConnectMessage msg) throws Exception {
 		logger.debug("packet incoming : {}", msg.toString());
 
-		eventListener.connectMessageReceived(msg);
+		Plugins.SELF.eventListener().connectMessageReceived(msg);
 
 		Session session = Session.NEXUS.get(ctx.channel().id());
 		if (session != null) {
@@ -114,7 +107,7 @@ public class ConnectReceiver extends SimpleChannelInboundHandler<MqttConnectMess
 		final MqttConnAckMessage acceptMsg = MessageFactory.connack(returnCode, sessionPresent); // [MQTT-3.1.4-4]
 
 		session.send(acceptMsg).addListener(f -> {
-			eventListener.connAckMessageSent(acceptMsg);
+			Plugins.SELF.eventListener().connAckMessageSent(acceptMsg);
 
 			if (!sessionFinal.cleanSession()) {
 				sessionFinal.completeRemainedMessages(); // [MQTT-4.4.0-1]
@@ -134,17 +127,17 @@ public class ConnectReceiver extends SimpleChannelInboundHandler<MqttConnectMess
 	}
 
 	private MqttConnectReturnCode filterPlugins(MqttConnectMessage msg) {
-		if (serviceStatus.isServiceAvailable() == false) {
+		if (Plugins.SELF.serviceStatus().isServiceAvailable() == false) {
 			return MqttConnectReturnCode.CONNECTION_REFUSED_SERVER_UNAVAILABLE;
 		}
-		else if (auth.isValid(msg.payload().clientIdentifier()) == false) {
+		else if (Plugins.SELF.authorization().isValid(msg.payload().clientIdentifier()) == false) {
 			return MqttConnectReturnCode.CONNECTION_REFUSED_IDENTIFIER_REJECTED; // [MQTT-3.1.3-9]
 		}
-		else if (auth.isValid(msg.variableHeader().hasUserName(), msg.variableHeader().hasPassword(),
-				msg.payload().userName(), msg.payload().password()) == false) {
+		else if (Plugins.SELF.authorization().isValid(msg.variableHeader().hasUserName(),
+				msg.variableHeader().hasPassword(), msg.payload().userName(), msg.payload().password()) == false) {
 			return MqttConnectReturnCode.CONNECTION_REFUSED_BAD_USER_NAME_OR_PASSWORD;
 		}
-		else if (auth.isAuthorized(msg.variableHeader().hasUserName(),
+		else if (Plugins.SELF.authorization().isAuthorized(msg.variableHeader().hasUserName(),
 				msg.payload().userName()) == false) { return MqttConnectReturnCode.CONNECTION_REFUSED_NOT_AUTHORIZED; }
 
 		return MqttConnectReturnCode.CONNECTION_ACCEPTED;
@@ -157,7 +150,7 @@ public class ConnectReceiver extends SimpleChannelInboundHandler<MqttConnectMess
 		ctx.channel().writeAndFlush(msg).addListener(f -> {
 			logger.debug("packet outgoing [{}]", msg);
 
-			eventListener.connAckMessageSent(msg);
+			Plugins.SELF.eventListener().connAckMessageSent(msg);
 			ctx.channel().disconnect().addListener(ChannelFutureListener.CLOSE); // [MQTT-3.2.2-5],[MQTT-3.1.4-5]
 		});
 	}

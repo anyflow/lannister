@@ -18,8 +18,6 @@ package net.anyflow.lannister;
 
 import java.io.File;
 import java.io.IOException;
-import java.net.URISyntaxException;
-import java.security.CodeSource;
 import java.security.cert.CertificateException;
 import java.util.Map;
 
@@ -148,17 +146,5 @@ public class Settings extends java.util.Properties {
 
 	public void setWebResourcePhysicalRootPath(String physicalRootPath) {
 		this.setProperty("menton.httpServer.webResourcePhysicalRootPath", physicalRootPath);
-	}
-
-	public static <T> String getWorkingPath(java.lang.Class<T> mainClass) {
-		CodeSource codeSource = mainClass.getProtectionDomain().getCodeSource();
-
-		try {
-			return (new File(codeSource.getLocation().toURI().getPath())).getParentFile().getPath();
-		}
-		catch (URISyntaxException e) {
-			logger.error(e.getMessage(), e);
-			return null;
-		}
 	}
 }

@@ -50,11 +50,12 @@
 		<appender-ref ref="APPLICATION" />
 	</appender>
 
-	<logger name="com.jayway.jsonpath.JsonPath" additivity="false">
+	<logger name="org.reflections.Reflections" additivity="false">
 		<level value="ERROR" />
 		<appender-ref ref="ASYNC_APPLICATION" />
+		<appender-ref ref="ASYNC_CONSOLE" />
 	</logger>
-
+	
 	<logger name="net.anyflow">
 		<level value="DEBUG" />
 		<appender-ref ref="ASYNC_APPLICATION" />

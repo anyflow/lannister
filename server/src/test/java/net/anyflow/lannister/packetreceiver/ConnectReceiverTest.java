@@ -37,7 +37,7 @@ import net.anyflow.lannister.client.MqttClient;
 import net.anyflow.lannister.message.ConnectOptions;
 import net.anyflow.lannister.plugin.Authorization;
 import net.anyflow.lannister.plugin.Plugin;
-import net.anyflow.lannister.plugin.PluginFactory;
+import net.anyflow.lannister.plugin.Plugins;
 import net.anyflow.lannister.plugin.ServiceStatus;
 import net.anyflow.lannister.session.Session;
 
@@ -81,7 +81,7 @@ public class ConnectReceiverTest {
 
 	@Test
 	public void testCONNECTION_REFUSED_SERVER_UNAVAILABLE() throws Exception {
-		ServiceStatus prev = PluginFactory.serviceStatus(new ServiceStatus() {
+		ServiceStatus prev = Plugins.SELF.serviceStatus(new ServiceStatus() {
 			@Override
 			public Plugin clone() {
 				return this;
@@ -98,12 +98,12 @@ public class ConnectReceiverTest {
 		Assert.assertEquals(ret.variableHeader().connectReturnCode(),
 				MqttConnectReturnCode.CONNECTION_REFUSED_SERVER_UNAVAILABLE);
 
-		PluginFactory.serviceStatus(prev);
+		Plugins.SELF.serviceStatus(prev);
 	}
 
 	@Test
 	public void testCONNECTION_REFUSED_IDENTIFIER_REJECTED() throws Exception {
-		Authorization prev = PluginFactory.authorization(new Authorization() {
+		Authorization prev = Plugins.SELF.authorization(new Authorization() {
 			@Override
 			public Plugin clone() {
 				return this;
@@ -130,12 +130,12 @@ public class ConnectReceiverTest {
 		Assert.assertEquals(ret.variableHeader().connectReturnCode(),
 				MqttConnectReturnCode.CONNECTION_REFUSED_IDENTIFIER_REJECTED);
 
-		PluginFactory.authorization(prev);
+		Plugins.SELF.authorization(prev);
 	}
 
 	@Test
 	public void testCONNECTION_REFUSED_BAD_USER_NAME_OR_PASSWORD() throws Exception {
-		Authorization prev = PluginFactory.authorization(new Authorization() {
+		Authorization prev = Plugins.SELF.authorization(new Authorization() {
 			@Override
 			public Plugin clone() {
 				return this;
@@ -162,12 +162,12 @@ public class ConnectReceiverTest {
 		Assert.assertEquals(ret.variableHeader().connectReturnCode(),
 				MqttConnectReturnCode.CONNECTION_REFUSED_BAD_USER_NAME_OR_PASSWORD);
 
-		PluginFactory.authorization(prev);
+		Plugins.SELF.authorization(prev);
 	}
 
 	@Test
 	public void testCONNECTION_REFUSED_NOT_AUTHORIZED() throws Exception {
-		Authorization prev = PluginFactory.authorization(new Authorization() {
+		Authorization prev = Plugins.SELF.authorization(new Authorization() {
 			@Override
 			public Plugin clone() {
 				return this;
@@ -194,7 +194,7 @@ public class ConnectReceiverTest {
 		Assert.assertEquals(ret.variableHeader().connectReturnCode(),
 				MqttConnectReturnCode.CONNECTION_REFUSED_NOT_AUTHORIZED);
 
-		PluginFactory.authorization(prev);
+		Plugins.SELF.authorization(prev);
 	}
 
 	@Test
