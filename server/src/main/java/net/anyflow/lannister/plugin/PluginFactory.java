@@ -23,9 +23,29 @@ public class PluginFactory {
 	private static ServiceStatus serviceStatus;
 
 	static {
-		authorization = new DefaultAuthorization();
-		eventListener = new DefaultEventListener();
-		serviceStatus = new DefaultServiceStatus();
+		load();
+	}
+
+	private static void load() {
+
+		// Reflections r = new Reflections();
+		// Reflections.collect(arg0, arg1, arg2)
+		// URLClassLoader child = new URLClassLoader(myJar.toURL(),
+		// PluginFactory.class.getClassLoader());
+		// Class classToLoad = Class.forName("com.MyClass", true, child);
+		// Method method = classToLoad.getDeclaredMethod("myMethod");
+		// Object instance = classToLoad.newInstance();
+		// Object result = method.invoke(instance);
+
+		if (authorization == null) {
+			authorization = new DefaultAuthorization();
+		}
+		if (eventListener == null) {
+			eventListener = new DefaultEventListener();
+		}
+		if (serviceStatus == null) {
+			serviceStatus = new DefaultServiceStatus();
+		}
 	}
 
 	public static Authorization authorization() {

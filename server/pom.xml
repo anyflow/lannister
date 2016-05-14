@@ -196,7 +196,7 @@
 					<message>Maven artifacts for ${project.version}</message>  <!-- git commit message -->
 					<noJekyll>true</noJekyll>                                  <!-- disable webpage processing -->
 					<outputDirectory>${project.build.directory}/mvn-repo</outputDirectory> <!-- matches distribution management repository url above -->
-					<branch>refs/heads/server-repo</branch>
+					<branch>refs/heads/server-mvn-repo</branch>
 					<includes>
 						<include>**/*</include>
 					</includes>

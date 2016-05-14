@@ -1,0 +1,33 @@
+<?xml version="1.0"?>
+<project
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd"
+	xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+	<modelVersion>4.0.0</modelVersion>
+	<parent>
+		<groupId>net.anyflow</groupId>
+		<artifactId>lannister</artifactId>
+		<version>0.9.5-SNAPSHOT</version>
+	</parent>
+	<artifactId>lannister-plugin-example</artifactId>
+	<name>lannister plugin example</name>
+	<packaging>jar</packaging>
+	
+	<repositories>
+		<repository>
+			<id>lannister-interface-mvn-repo</id>
+			<url>https://raw.github.com/anyflow/lannister/interface-mvn-repo/</url>
+			<snapshots>
+				<enabled>true</enabled>
+				<updatePolicy>always</updatePolicy>
+			</snapshots>
+		</repository>
+	</repositories>
+
+	<dependencies>
+		<dependency>
+			<groupId>net.anyflow</groupId>
+			<artifactId>lannister-interface</artifactId>
+			<version>0.9.5-SNAPSHOT</version>
+		</dependency>
+	</dependencies>
+</project>
