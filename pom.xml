@@ -137,6 +137,16 @@
 					<include>log4j.xml</include>
 				</includes>
 			</resource>
+
+			<resource>
+				<filtering>true</filtering>
+				<directory>src/main/resources</directory>
+				<targetPath>../bin/</targetPath>
+				<includes>
+					<include>startup.sh</include>
+					<include>shutdown.sh</include>
+				</includes>
+			</resource>
 		</resources>
 
 		<testResources>
