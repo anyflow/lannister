@@ -1,0 +1,192 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+
+	<artifactId>lannister-server</artifactId>
+	<name>lannister server</name>
+	<parent>
+		<groupId>net.anyflow</groupId>
+		<artifactId>lannister</artifactId>
+		<version>0.9.5-SNAPSHOT</version>
+	</parent>
+	<packaging>jar</packaging>
+
+	<dependencies>
+		<dependency>
+			<groupId>net.anyflow</groupId>
+			<artifactId>lannister-interface</artifactId>
+			<version>0.9.5-SNAPSHOT</version>
+		</dependency>
+
+		<dependency>
+			<groupId>com.hazelcast</groupId>
+			<artifactId>hazelcast</artifactId>
+			<version>3.6.2</version>
+		</dependency>
+
+		<dependency>
+			<groupId>com.google.guava</groupId>
+			<artifactId>guava</artifactId>
+			<version>17.0</version>
+		</dependency>
+
+		<!-- the core, which includes Streaming API, shared low-level abstractions 
+			(but NOT data-binding) -->
+		<dependency>
+			<groupId>com.fasterxml.jackson.core</groupId>
+			<artifactId>jackson-core</artifactId>
+			<version>2.7.4</version>
+		</dependency>
+		<!-- Just the annotations; use this dependency if you want to attach annotations 
+			to classes without connecting them to the code. -->
+		<dependency>
+			<groupId>com.fasterxml.jackson.core</groupId>
+			<artifactId>jackson-annotations</artifactId>
+			<version>2.7.4</version>
+		</dependency>
+		<!-- databinding; ObjectMapper, JsonNode and related classes are here -->
+		<dependency>
+			<groupId>com.fasterxml.jackson.core</groupId>
+			<artifactId>jackson-databind</artifactId>
+			<version>2.7.4</version>
+		</dependency>
+		<dependency>
+			<groupId>com.fasterxml.jackson.dataformat</groupId>
+			<artifactId>jackson-dataformat-smile</artifactId>
+			<version>2.7.4</version>
+		</dependency>
+		<!-- for menton -->
+		<dependency>
+			<groupId>net.sf.jtidy</groupId>
+			<artifactId>jtidy</artifactId>
+			<version>r938</version>
+		</dependency>
+		<!-- for menton -->
+		<dependency>
+			<groupId>org.reflections</groupId>
+			<artifactId>reflections</artifactId>
+			<version>0.9.10</version>
+		</dependency>
+
+		<dependency>
+			<groupId>io.netty</groupId>
+			<artifactId>netty-tcnative-boringssl-static</artifactId>
+			<version>1.1.33.Fork15</version>
+		</dependency>
+
+		<dependency>
+			<groupId>org.javassist</groupId>
+			<artifactId>javassist</artifactId>
+			<version>3.19.0-GA</version>
+		</dependency>
+	</dependencies>
+
+	<build>
+		<filters>
+			<filter>src/main/filters/${env}.properties</filter>
+		</filters>
+
+		<resources>
+			<resource>
+				<filtering>true</filtering>
+				<directory>src/main/resources</directory>
+				<targetPath>../conf/</targetPath>
+				<includes>
+					<include>lannister.cfg</include>
+					<include>log4j.xml</include>
+				</includes>
+			</resource>
+
+			<resource>
+				<filtering>true</filtering>
+				<directory>src/main/resources</directory>
+				<targetPath>../bin/</targetPath>
+				<includes>
+					<include>startup.sh</include>
+					<include>shutdown.sh</include>
+				</includes>
+			</resource>
+		</resources>
+
+		<testResources>
+			<testResource>
+				<filtering>true</filtering>
+				<directory>src/test/resources</directory>
+				<includes>
+					<include>lannister.cfg</include>
+					<include>log4j.xml</include>
+				</includes>
+			</testResource>
+		</testResources>
+
+		<extensions>
+			<extension>
+				<groupId>kr.motd.maven</groupId>
+				<artifactId>os-maven-plugin</artifactId>
+				<version>1.4.0.Final</version>
+			</extension>
+		</extensions>
+
+		<plugins>
+			<!-- for jar packaging -->
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-jar-plugin</artifactId>
+				<version>2.4</version>
+				<configuration>
+					<archive>
+						<manifestEntries>
+							<Class-Path>conf/</Class-Path>
+							<Class-Path>plugin/</Class-Path>
+						</manifestEntries>
+						<manifest>
+							<addClasspath>true</addClasspath>
+							<addDefaultImplementationEntries>true</addDefaultImplementationEntries>
+							<addDefaultSpecificationEntries>true</addDefaultSpecificationEntries>
+							<classpathPrefix>lib/</classpathPrefix>
+							<mainClass>net.anyflow.lannister.Application</mainClass>
+						</manifest>
+					</archive>
+				</configuration>
+			</plugin>
+			<!-- skip test on mavening... To skip test, follow the command : mvn package 
+				-Dmaven.test.skip=true -->
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-surefire-plugin</artifactId>
+				<version>2.16</version>
+				<configuration>
+					<skipTests>false</skipTests>
+					<systemProperties>
+						<property>
+							<name>targetServer</name>
+							<value>${targetServer}</value>
+						</property>
+					</systemProperties>
+					<includes>
+						<include>**/TestSuite.java</include>
+					</includes>
+				</configuration>
+			</plugin>
+			<!-- run jar via maven (mvn exec:java) -->
+			<plugin>
+				<groupId>org.codehaus.mojo</groupId>
+				<artifactId>exec-maven-plugin</artifactId>
+				<version>1.5.0</version>
+				<configuration>
+					<execution>
+						<phase>verify</phase>
+						<goals>
+							<goal>java</goal>
+						</goals>
+					</execution>
+					<mainClass>net.anyflow.lannister.Application</mainClass>
+					<additionalClasspathElements>
+						<additionalClasspathElement>${project.build.directory}/conf</additionalClasspathElement>
+						<additionalClasspathElement>${project.build.directory}/plugin</additionalClasspathElement>
+					</additionalClasspathElements>
+				</configuration>
+			</plugin>
+		</plugins>
+	</build>
+</project>

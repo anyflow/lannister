@@ -5,15 +5,16 @@
 .DS_Store
 
 # directories #
-target/
-logs/
+**/target/
+**/logs/
+**/bin/
 
 # eclipse related #
-.settings
-.classpath
-.project
+**/.settings
+**/.classpath
+**/.project
 
 #buildinfo
-src/main/resources/buildinfo.properties
+**/buildinfo.properties
 
 upload_coverage.sh
