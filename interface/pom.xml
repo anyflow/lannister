@@ -1,15 +1,46 @@
 <?xml version="1.0"?>
-<project xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd" xmlns="http://maven.apache.org/POM/4.0.0"
-    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
-  <modelVersion>4.0.0</modelVersion>
+<project
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd"
+	xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+	<modelVersion>4.0.0</modelVersion>
 
-  <artifactId>lannister-interface</artifactId>
-  <name>lannister interface</name>
-  <parent>
-    <groupId>net.anyflow</groupId>
-    <artifactId>lannister</artifactId>
-    <version>0.9.5-SNAPSHOT</version>
-  </parent>
-  <packaging>jar</packaging>
-  
+	<artifactId>lannister-interface</artifactId>
+	<name>lannister interface</name>
+	<parent>
+		<groupId>net.anyflow</groupId>
+		<artifactId>lannister</artifactId>
+		<version>0.9.5-SNAPSHOT</version>
+	</parent>
+	<packaging>jar</packaging>
+
+	<build>
+		<plugins>
+			<plugin>
+				<groupId>com.github.github</groupId>
+				<artifactId>site-maven-plugin</artifactId>
+				<version>0.12</version>
+				<configuration>
+					<message>Maven artifacts for ${project.version}</message>  <!-- git commit message -->
+					<noJekyll>true</noJekyll>                                  <!-- disable webpage processing -->
+					<outputDirectory>${project.build.directory}/mvn-repo</outputDirectory> <!-- matches distribution management repository url above -->
+					<branch>refs/heads/interface-mvn-repo</branch>
+					<includes>
+						<include>**/*</include>
+					</includes>
+					<repositoryName>lannister</repositoryName>
+					<repositoryOwner>anyflow</repositoryOwner>
+				</configuration>
+				<executions>
+					<!-- run site-maven-plugin's 'site' target as part of the build's normal 
+						'deploy' phase -->
+					<execution>
+						<goals>
+							<goal>site</goal>
+						</goals>
+						<phase>deploy</phase>
+					</execution>
+				</executions>
+			</plugin>
+		</plugins>
+	</build>
 </project>

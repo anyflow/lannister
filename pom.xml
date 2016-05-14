@@ -10,6 +10,14 @@
 	<description>MQTT broker with full spec support and Clustering/WebSocket/SSL based on Java - Netty/Hazelcast</description>
 	<packaging>pom</packaging>
 
+	<distributionManagement>
+		<repository>
+			<id>internal.repo</id>
+			<name>Temporary Staging Repository</name>
+			<url>file://${project.build.directory}/mvn-repo</url>
+		</repository>
+	</distributionManagement>
+
 	<modules>
 		<module>server</module>
 		<module>interface</module>
@@ -30,7 +38,7 @@
 			</activation>
 			<properties>
 				<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-				<os.detected.classifier>osx-x86_64</os.detected.classifier>
+				<github.global.server>github</github.global.server>
 			</properties>
 		</profile>
 	</profiles>
@@ -156,6 +164,14 @@
 						<dirty>-dirty</dirty>
 						<forceLongFormat>false</forceLongFormat>
 					</gitDescribe>
+				</configuration>
+			</plugin>
+
+			<plugin>
+				<artifactId>maven-deploy-plugin</artifactId>
+				<version>2.8.1</version>
+				<configuration>
+					<altDeploymentRepository>internal.repo::default::file://${project.build.directory}/mvn-repo</altDeploymentRepository>
 				</configuration>
 			</plugin>
 		</plugins>
