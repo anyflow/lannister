@@ -11,7 +11,7 @@
 	<artifactId>lannister-plugin-example</artifactId>
 	<name>lannister plugin example</name>
 	<packaging>jar</packaging>
-	
+
 	<repositories>
 		<repository>
 			<id>lannister-interface-mvn-repo</id>
@@ -30,4 +30,9 @@
 			<version>0.9.5-SNAPSHOT</version>
 		</dependency>
 	</dependencies>
+
+	<build>
+		<plugins>	
+		</plugins>
+	</build>
 </project>

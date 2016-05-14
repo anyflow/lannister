@@ -136,8 +136,7 @@
 				<configuration>
 					<archive>
 						<manifestEntries>
-							<Class-Path>conf/</Class-Path>
-							<Class-Path>plugin/</Class-Path>
+							<Class-Path>conf/ plugin/</Class-Path>
 						</manifestEntries>
 						<manifest>
 							<addClasspath>true</addClasspath>
@@ -157,12 +156,6 @@
 				<version>2.16</version>
 				<configuration>
 					<skipTests>false</skipTests>
-					<systemProperties>
-						<property>
-							<name>targetServer</name>
-							<value>${targetServer}</value>
-						</property>
-					</systemProperties>
 					<includes>
 						<include>**/TestSuite.java</include>
 					</includes>
@@ -187,7 +180,27 @@
 					</additionalClasspathElements>
 				</configuration>
 			</plugin>
-
+			<!-- Copy dependencies to lib directory -->
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-dependency-plugin</artifactId>
+				<version>2.1</version>
+				<executions>
+					<execution>
+						<id>copy-dependencies</id>
+						<phase>package</phase>
+						<goals>
+							<goal>copy-dependencies</goal>
+						</goals>
+						<configuration>
+							<outputDirectory>${project.build.directory}/lib</outputDirectory>
+							<overWriteReleases>false</overWriteReleases>
+							<overWriteSnapshots>false</overWriteSnapshots>
+							<overWriteIfNewer>true</overWriteIfNewer>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
 			<plugin>
 				<groupId>com.github.github</groupId>
 				<artifactId>site-maven-plugin</artifactId>

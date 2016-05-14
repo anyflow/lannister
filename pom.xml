@@ -76,7 +76,7 @@
 	</dependencies>
 
 	<build>
-		<finalName>${project.artifactId}-${project.version}-${git.commit.id.describe}</finalName>
+		<finalName>${project.artifactId}-${project.version}</finalName>
 		<plugins>
 			<!-- Force eclipse use java version 1.8 -->
 			<plugin>
@@ -115,27 +115,6 @@
 						<configuration>
 							<rules>
 							</rules>
-						</configuration>
-					</execution>
-				</executions>
-			</plugin>
-			<!-- Copy dependencies to lib directory -->
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-dependency-plugin</artifactId>
-				<version>2.1</version>
-				<executions>
-					<execution>
-						<id>copy-dependencies</id>
-						<phase>package</phase>
-						<goals>
-							<goal>copy-dependencies</goal>
-						</goals>
-						<configuration>
-							<outputDirectory>${project.build.directory}/lib</outputDirectory>
-							<overWriteReleases>false</overWriteReleases>
-							<overWriteSnapshots>false</overWriteSnapshots>
-							<overWriteIfNewer>true</overWriteIfNewer>
 						</configuration>
 					</execution>
 				</executions>
