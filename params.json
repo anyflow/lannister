@@ -1,0 +1,6 @@
+{
+  "name": "Lannister",
+  "tagline": "High performance MQTT broker w/ full spec,Clustering,WebSocket,SSL on Java - Netty & Hazelcast",
+  "body": "# Lannister [![Build Status](https://travis-ci.org/anyflow/lannister.svg?branch=master)](https://travis-ci.org/anyflow/lannister) [![Codacy Badge](https://api.codacy.com/project/badge/Grade/8d72feca76504d89a9846beecbbbc34b)](https://www.codacy.com/app/anyflow/lannister?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=anyflow/lannister&amp;utm_campaign=Badge_Grade) [![Codacy Badge](https://api.codacy.com/project/badge/Coverage/8d72feca76504d89a9846beecbbbc34b)](https://www.codacy.com/app/anyflow/lannister?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=anyflow/lannister&amp;utm_campaign=Badge_Coverage)\r\n\r\n### MQTT broker targeting\r\n\r\n1. Support full Specs(v3.1, v3.11)\r\n2. 1000K connections\r\n3. Clustering\r\n4. WebSocket\r\n5. SSL\r\n6. $SYS and native Topics(e.g. $COMMAND)\r\n7. Web admin Dashboard\r\n8. HTTP REST APIs(for admin, client)\r\n9. etc.\r\n\r\n## Installation\r\nTODO:\r\n\r\n## Usage\r\nTODO:\r\n\r\n## Contributing\r\nTODO:\r\n\r\n## History\r\nTODO:\r\n\r\n## Credits\r\nTODO:\r\n\r\n## License\r\nApache License Version 2.0                    \r\n",
+  "note": "Don't delete this file! It's used internally to help with page regeneration."
+}
