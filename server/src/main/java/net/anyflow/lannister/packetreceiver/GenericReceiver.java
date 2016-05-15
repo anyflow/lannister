@@ -57,7 +57,7 @@ public class GenericReceiver extends SimpleChannelInboundHandler<MqttMessage> {
 			return;
 		}
 		else {
-			logger.debug("packet incoming : {}", msg.toString());
+			logger.debug("packet incoming [message={}]", msg.toString());
 
 			Session session = Session.NEXUS.get(ctx.channel().id());
 			if (session == null) {

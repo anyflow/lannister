@@ -33,7 +33,7 @@ public class PubCompReceiver {
 	protected void handle(Session session, int messageId) {
 		Topic topic = Topic.NEXUS.get(session.clientId(), messageId, ClientType.SUBSCRIBER);
 		if (topic == null) {
-			logger.error("Topic does not exist : [clientId={}, messageId={}]", session.clientId(), messageId);
+			logger.error("Topic does not exist [clientId={}, messageId={}]", session.clientId(), messageId);
 			session.dispose(true); // [MQTT-3.3.5-2]
 			return;
 		}
@@ -41,6 +41,6 @@ public class PubCompReceiver {
 		final TopicSubscriber topicSubscriber = topic.subscribers().get(session.clientId());
 
 		topicSubscriber.removeOutboundMessageStatus(messageId);
-		logger.debug("Outbound message status REMOVED : [clientId={}, messageId={}]", session.clientId(), messageId);
+		logger.debug("Outbound message status REMOVED [clientId={}, messageId={}]", session.clientId(), messageId);
 	}
 }

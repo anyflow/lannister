@@ -54,6 +54,7 @@ public class Plugins {
 		plugins.put(ConnectEventListener.class, new DefaultConnectEventListener());
 		plugins.put(DisconnectEventListener.class, new DefaultDisconnectEventListener());
 		plugins.put(PublishEventListener.class, new DefaultPublishEventListener());
+		plugins.put(DeliveredEventListener.class, new DefaultDeliveredEventListener());
 
 		load();
 	}
@@ -73,14 +74,16 @@ public class Plugins {
 				.filter(p -> !p.equals(DefaultAuthenticator.class)));
 		load(Authorizer.class,
 				reflections.getSubTypesOf(Authorizer.class).stream().filter(p -> !p.equals(DefaultAuthorizer.class)));
+		load(ServiceStatus.class, reflections.getSubTypesOf(ServiceStatus.class).stream()
+				.filter(p -> !p.equals(DefaultServiceStatus.class)));
 		load(ConnectEventListener.class, reflections.getSubTypesOf(ConnectEventListener.class).stream()
 				.filter(p -> !p.equals(DefaultConnectEventListener.class)));
 		load(DisconnectEventListener.class, reflections.getSubTypesOf(DisconnectEventListener.class).stream()
 				.filter(p -> !p.equals(DefaultDisconnectEventListener.class)));
 		load(PublishEventListener.class, reflections.getSubTypesOf(PublishEventListener.class).stream()
 				.filter(p -> !p.equals(DefaultPublishEventListener.class)));
-		load(ServiceStatus.class, reflections.getSubTypesOf(ServiceStatus.class).stream()
-				.filter(p -> !p.equals(DefaultServiceStatus.class)));
+		load(DeliveredEventListener.class, reflections.getSubTypesOf(DeliveredEventListener.class).stream()
+				.filter(p -> !p.equals(DefaultDeliveredEventListener.class)));
 	}
 
 	@SuppressWarnings("unchecked")

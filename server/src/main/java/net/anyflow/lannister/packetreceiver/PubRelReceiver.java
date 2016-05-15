@@ -36,14 +36,14 @@ public class PubRelReceiver {
 
 		Topic topic = Topic.NEXUS.get(session.clientId(), messageId, ClientType.PUBLISHER);
 		if (topic == null) {
-			logger.error("Topic does not exist : [clientId={}, messageId={}]", session.clientId(), messageId);
+			logger.error("Topic does not exist [clientId={}, messageId={}]", session.clientId(), messageId);
 			session.dispose(true); // [MQTT-3.3.5-2]
 			return;
 		}
 
 		session.send(MessageFactory.pubcomp(messageId)).addListener(f -> {
 			topic.removeInboundMessageStatus(session.clientId(), messageId);
-			logger.debug("Inbound message status REMOVED : [clientId={}, messageId={}]", session.clientId(), messageId);
+			logger.debug("Inbound message status REMOVED [clientId={}, messageId={}]", session.clientId(), messageId);
 		});
 	}
 }

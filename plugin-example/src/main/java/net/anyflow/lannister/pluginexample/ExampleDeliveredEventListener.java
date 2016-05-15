@@ -14,23 +14,23 @@
  * limitations under the License.
  */
 
-package net.anyflow.lannister.plugin;
+package net.anyflow.lannister.pluginexample;
 
-import net.anyflow.lannister.entity.MqttConnectReturnCode;
-import net.anyflow.lannister.message.IMessage;
+import net.anyflow.lannister.plugin.DeliveredEventArgs;
+import net.anyflow.lannister.plugin.DeliveredEventListener;
+import net.anyflow.lannister.plugin.Plugin;
 
-public interface ConnectEventArgs {
-	String clientId();
+public class ExampleDeliveredEventListener implements DeliveredEventListener {
+	private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory
+			.getLogger(ExampleDeliveredEventListener.class);
 
-	IMessage will();
+	@Override
+	public Plugin clone() {
+		return this;
+	}
 
-	Boolean cleanSession();
-
-	MqttConnectReturnCode returnCode();
-
-	default public String log() {
-		return (new StringBuilder()).append("clientId=").append(clientId()).append(", will=").append(will())
-				.append(", cleanSession=").append(cleanSession()).append(", returnCode=").append(returnCode())
-				.toString();
+	@Override
+	public void delivered(DeliveredEventArgs args) {
+		logger.debug("ExampleDeliveredEventListener.delivered() called [{}]", args.log());
 	}
 }

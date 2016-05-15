@@ -16,7 +16,13 @@
 
 package net.anyflow.lannister.plugin;
 
-public interface ConnectEventListener extends Plugin {
+public interface DeliveredEventArgs {
+	String clientId();
 
-	public void connectHandled(ConnectEventArgs args);
+	int messageId();
+
+	default public String log() {
+		return (new StringBuilder()).append("clientId=").append(clientId()).append(", messageId=").append(messageId())
+				.toString();
+	}
 }

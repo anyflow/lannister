@@ -47,7 +47,7 @@ public class ConnectReceiver extends SimpleChannelInboundHandler<MqttConnectMess
 
 	@Override
 	protected void channelRead0(ChannelHandlerContext ctx, MqttConnectMessage msg) throws Exception {
-		logger.debug("packet incoming : {}", msg.toString());
+		logger.debug("packet incoming [message={}]", msg.toString());
 
 		Session session = Session.NEXUS.get(ctx.channel().id());
 		if (session != null) {

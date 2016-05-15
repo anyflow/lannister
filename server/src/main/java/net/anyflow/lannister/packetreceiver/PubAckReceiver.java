@@ -22,6 +22,10 @@ import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
 import io.netty.handler.codec.mqtt.MqttPubAckMessage;
+import net.anyflow.lannister.message.OutboundMessageStatus;
+import net.anyflow.lannister.plugin.DeliveredEventArgs;
+import net.anyflow.lannister.plugin.DeliveredEventListener;
+import net.anyflow.lannister.plugin.Plugins;
 import net.anyflow.lannister.session.Session;
 import net.anyflow.lannister.topic.Topic;
 import net.anyflow.lannister.topic.TopicSubscriber;
@@ -33,29 +37,46 @@ public class PubAckReceiver extends SimpleChannelInboundHandler<MqttPubAckMessag
 
 	@Override
 	protected void channelRead0(ChannelHandlerContext ctx, MqttPubAckMessage msg) throws Exception {
-		logger.debug("packet incoming : {}", msg.toString());
+		logger.debug("packet incoming [message={}]", msg.toString());
 
 		Session session = Session.NEXUS.get(ctx.channel().id());
 		if (session == null) {
-			logger.error("None exist session message : {}", msg.toString());
+			logger.error("None exist session message [message={}]", msg.toString());
 			ctx.disconnect().addListener(ChannelFutureListener.CLOSE); // [MQTT-4.8.0-1]
 			return;
 		}
 
 		session.setLastIncomingTime(new Date());
 
-		Topic topic = Topic.NEXUS.get(session.clientId(), msg.variableHeader().messageId(), ClientType.SUBSCRIBER);
+		String clientId = session.clientId();
+		int messageId = msg.variableHeader().messageId();
+
+		Topic topic = Topic.NEXUS.get(clientId, messageId, ClientType.SUBSCRIBER);
 		if (topic == null) {
-			logger.error("Topic does not exist : [clientId={}, messageId={}]", session.clientId(),
-					msg.variableHeader().messageId());
+			logger.error("Topic does not exist [clientId={}, messageId={}]", clientId, messageId);
 			session.dispose(true); // [MQTT-3.3.5-2]
 			return;
 		}
 
-		final TopicSubscriber topicSubscriber = topic.subscribers().get(session.clientId());
+		final TopicSubscriber topicSubscriber = topic.subscribers().get(clientId);
 
-		topicSubscriber.removeOutboundMessageStatus(msg.variableHeader().messageId());
-		logger.debug("Outbound message status REMOVED : [clientId={}, messageId={}]", session.clientId(),
-				msg.variableHeader().messageId());
+		OutboundMessageStatus status = topicSubscriber.outboundMessageStatuses().get(messageId);
+
+		if (status != null) {
+			Plugins.SELF.get(DeliveredEventListener.class).delivered(new DeliveredEventArgs() {
+				@Override
+				public String clientId() {
+					return clientId;
+				}
+
+				@Override
+				public int messageId() {
+					return messageId;
+				}
+			});
+		}
+
+		topicSubscriber.removeOutboundMessageStatus(messageId);
+		logger.debug("Outbound message status REMOVED [clientId={}, messageId={}]", clientId, messageId);
 	}
 }

@@ -18,6 +18,9 @@ package net.anyflow.lannister.packetreceiver;
 
 import net.anyflow.lannister.message.MessageFactory;
 import net.anyflow.lannister.message.OutboundMessageStatus;
+import net.anyflow.lannister.plugin.DeliveredEventArgs;
+import net.anyflow.lannister.plugin.DeliveredEventListener;
+import net.anyflow.lannister.plugin.Plugins;
 import net.anyflow.lannister.session.Session;
 import net.anyflow.lannister.topic.Topic;
 import net.anyflow.lannister.topic.TopicSubscriber;
@@ -35,12 +38,34 @@ public class PubRecReceiver {
 	protected void handle(Session session, int messageId) {
 		Topic topic = Topic.NEXUS.get(session.clientId(), messageId, ClientType.SUBSCRIBER);
 		if (topic == null) {
-			logger.error("Topic does not exist : [clientId={}, messageId={}]", session.clientId(), messageId);
+			logger.error("Topic does not exist [clientId={}, messageId={}]", session.clientId(), messageId);
 			session.dispose(true); // [MQTT-3.3.5-2]
 			return;
 		}
 
 		final TopicSubscriber topicSubscriber = topic.subscribers().get(session.clientId());
+
+		OutboundMessageStatus status = topicSubscriber.outboundMessageStatuses().get(messageId);
+
+		if (status == null || status.status() == OutboundMessageStatus.Status.TO_PUBLISH) {
+			session.dispose(true);
+			return;
+		}
+
+		if (status.status() == OutboundMessageStatus.Status.PUBLISHED) {
+			Plugins.SELF.get(DeliveredEventListener.class).delivered(new DeliveredEventArgs() {
+				@Override
+				public String clientId() {
+					return session.clientId();
+				}
+
+				@Override
+				public int messageId() {
+					return messageId;
+				}
+			});
+		}
+
 		topicSubscriber.setOutboundMessageStatus(messageId, OutboundMessageStatus.Status.PUBRECED);
 
 		session.send(MessageFactory.pubrel(messageId));

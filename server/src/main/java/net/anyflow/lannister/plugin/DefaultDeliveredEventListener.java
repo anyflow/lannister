@@ -16,7 +16,17 @@
 
 package net.anyflow.lannister.plugin;
 
-public interface ConnectEventListener extends Plugin {
+public class DefaultDeliveredEventListener implements DeliveredEventListener {
+	private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory
+			.getLogger(DefaultDeliveredEventListener.class);
 
-	public void connectHandled(ConnectEventArgs args);
+	@Override
+	public Plugin clone() {
+		return this;
+	}
+
+	@Override
+	public void delivered(DeliveredEventArgs args) {
+		logger.debug("DefaultDeliveredEventListener.delivered() called [{}]", args.log());
+	}
 }

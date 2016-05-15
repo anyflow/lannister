@@ -32,11 +32,11 @@ public class UnsubscribeReceiver extends SimpleChannelInboundHandler<MqttUnsubsc
 
 	@Override
 	protected void channelRead0(ChannelHandlerContext ctx, MqttUnsubscribeMessage msg) throws Exception {
-		logger.debug("packet incoming : {}", msg.toString());
+		logger.debug("packet incoming [message={}]", msg.toString());
 
 		Session session = Session.NEXUS.get(ctx.channel().id());
 		if (session == null) {
-			logger.error("None exist session message : {}", msg.toString());
+			logger.error("None exist session message [message={}]", msg.toString());
 			ctx.disconnect().addListener(ChannelFutureListener.CLOSE); // [MQTT-4.8.0-1]
 			return;
 		}

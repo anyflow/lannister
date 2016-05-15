@@ -39,11 +39,11 @@ public class PublishReceiver extends SimpleChannelInboundHandler<MqttPublishMess
 
 	@Override
 	protected void channelRead0(ChannelHandlerContext ctx, MqttPublishMessage msg) throws Exception {
-		logger.debug("packet incoming : {}", msg.toString());
+		logger.debug("packet incoming [message={}]", msg.toString());
 
 		Session session = Session.NEXUS.get(ctx.channel().id());
 		if (session == null) {
-			logger.error("None exist session message : {}", msg.toString());
+			logger.error("None exist session message [message={}]", msg.toString());
 			ctx.disconnect().addListener(ChannelFutureListener.CLOSE); // [MQTT-4.8.0-1]
 			return;
 		}
@@ -97,7 +97,7 @@ public class PublishReceiver extends SimpleChannelInboundHandler<MqttPublishMess
 		case AT_LEAST_ONCE:
 			session.send(MessageFactory.puback(msg.variableHeader().messageId())).addListener(
 					f -> topicFinal.removeInboundMessageStatus(session.clientId(), msg.variableHeader().messageId())); // [MQTT-3.3.4-1],[MQTT-2.3.1-6]
-			logger.debug("Inbound message status REMOVED : [clientId={}, messageId={}]", session.clientId(),
+			logger.debug("Inbound message status REMOVED [clientId={}, messageId={}]", session.clientId(),
 					msg.variableHeader().messageId());
 			return;
 

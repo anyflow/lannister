@@ -16,7 +16,7 @@
 
 package net.anyflow.lannister.plugin;
 
-public interface ConnectEventListener extends Plugin {
+public interface DeliveredEventListener extends Plugin {
 
-	public void connectHandled(ConnectEventArgs args);
+	public void delivered(DeliveredEventArgs args);
 }
