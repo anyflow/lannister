@@ -39,6 +39,9 @@ import io.netty.handler.codec.mqtt.MqttMessage;
 import net.anyflow.lannister.Hazelcast;
 import net.anyflow.lannister.Literals;
 import net.anyflow.lannister.message.Message;
+import net.anyflow.lannister.plugin.DisconnectEventArgs;
+import net.anyflow.lannister.plugin.DisconnectEventListener;
+import net.anyflow.lannister.plugin.Plugins;
 import net.anyflow.lannister.serialization.ChannelIdSerializer;
 import net.anyflow.lannister.serialization.SerializableFactory;
 import net.anyflow.lannister.topic.Topic;
@@ -193,6 +196,23 @@ public class Session implements com.hazelcast.nio.serialization.Portable {
 		logger.debug("Session disposed [clientId={}/channelId={}]", clientId, ctx == null ? "null" : channelId);
 
 		NEXUS.remove(this);
+
+		Plugins.SELF.get(DisconnectEventListener.class).disconnected(new DisconnectEventArgs() {
+			@Override
+			public String clientId() {
+				return clientId;
+			}
+
+			@Override
+			public Boolean cleanSession() {
+				return cleanSession;
+			}
+
+			@Override
+			public Boolean byDisconnectMessage() {
+				return !sendWill;
+			}
+		});
 	}
 
 	@JsonIgnore

@@ -27,6 +27,9 @@ import io.netty.channel.SimpleChannelInboundHandler;
 import io.netty.handler.codec.DecoderException;
 import io.netty.handler.codec.mqtt.MqttMessage;
 import io.netty.handler.codec.mqtt.MqttMessageIdVariableHeader;
+import net.anyflow.lannister.plugin.DisconnectEventArgs;
+import net.anyflow.lannister.plugin.DisconnectEventListener;
+import net.anyflow.lannister.plugin.Plugins;
 import net.anyflow.lannister.session.Session;
 
 public class GenericReceiver extends SimpleChannelInboundHandler<MqttMessage> {
@@ -119,6 +122,23 @@ public class GenericReceiver extends SimpleChannelInboundHandler<MqttMessage> {
 			}
 			else {
 				ctx.channel().disconnect().addListener(ChannelFutureListener.CLOSE);
+
+				Plugins.SELF.get(DisconnectEventListener.class).disconnected(new DisconnectEventArgs() {
+					@Override
+					public String clientId() {
+						return null;
+					}
+
+					@Override
+					public Boolean cleanSession() {
+						return null;
+					}
+
+					@Override
+					public Boolean byDisconnectMessage() {
+						return false;
+					}
+				});
 			}
 		}
 		else {

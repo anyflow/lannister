@@ -16,11 +16,13 @@
 
 package net.anyflow.lannister.pluginexample;
 
-import net.anyflow.lannister.entity.ConnectEventArgs;
+import net.anyflow.lannister.plugin.ConnectEventArgs;
 import net.anyflow.lannister.plugin.ConnectEventListener;
 import net.anyflow.lannister.plugin.Plugin;
 
 public class ExampleConnectEventListener implements ConnectEventListener {
+	private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(ExampleConnectEventListener.class);
+
 	@Override
 	public Plugin clone() {
 		return new ExampleConnectEventListener();
@@ -28,6 +30,6 @@ public class ExampleConnectEventListener implements ConnectEventListener {
 
 	@Override
 	public void connectHandled(ConnectEventArgs args) {
-		// Do Nothing
+		logger.debug("DefaultConnectEventListener.connectHandled() called [{}]", args.log());
 	}
 }

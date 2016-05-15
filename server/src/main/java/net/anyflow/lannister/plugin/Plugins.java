@@ -24,7 +24,7 @@ import java.net.URLClassLoader;
 import java.security.CodeSource;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
+import java.util.stream.Stream;
 
 import org.reflections.Reflections;
 import org.reflections.scanners.SubTypesScanner;
@@ -47,10 +47,47 @@ public class Plugins {
 
 	private Plugins() {
 		plugins = Maps.newHashMap();
+
+		plugins.put(Authorization.class, new DefaultAuthorization());
+		plugins.put(ServiceStatus.class, new DefaultServiceStatus());
+		plugins.put(ConnectEventListener.class, new DefaultConnectEventListener());
+		plugins.put(DisconnectEventListener.class, new DefaultDisconnectEventListener());
+
 		load();
 	}
 
-	private String getWorkingPath() {
+	private void load() {
+		URLClassLoader classLoader = null;
+		try {
+			classLoader = new URLClassLoader(pluginJarUrls(), Plugins.class.getClassLoader());
+		}
+		catch (MalformedURLException e) {
+			logger.error(e.getMessage(), e);
+		}
+
+		Reflections reflections = new Reflections(classLoader, new SubTypesScanner(false));
+
+		load(Authorization.class, reflections.getSubTypesOf(Authorization.class).stream()
+				.filter(p -> !p.equals(DefaultAuthorization.class)));
+		load(ServiceStatus.class, reflections.getSubTypesOf(ServiceStatus.class).stream()
+				.filter(p -> !p.equals(DefaultServiceStatus.class)));
+		load(ConnectEventListener.class, reflections.getSubTypesOf(ConnectEventListener.class).stream()
+				.filter(p -> !p.equals(DefaultConnectEventListener.class)));
+		load(DisconnectEventListener.class, reflections.getSubTypesOf(DisconnectEventListener.class).stream()
+				.filter(p -> !p.equals(DefaultDisconnectEventListener.class)));
+	}
+
+	@SuppressWarnings("unchecked")
+	public <T extends Plugin> T get(Class<T> clazz) {
+		return (T) plugins.get(clazz).clone();
+	}
+
+	@SuppressWarnings("unchecked")
+	public <T extends Plugin> T put(Class<T> clazz, T source) {
+		return (T) plugins.put(clazz, source);
+	}
+
+	private String appRootPath() {
 		CodeSource codeSource = Application.class.getProtectionDomain().getCodeSource();
 
 		try {
@@ -62,8 +99,8 @@ public class Plugins {
 		}
 	}
 
-	private URL[] pluginUrls() throws MalformedURLException {
-		File dir = new File(getWorkingPath() + "/plugin/");
+	private URL[] pluginJarUrls() throws MalformedURLException {
+		File dir = new File(appRootPath() + "/plugin/");
 		File[] files = dir.listFiles();
 		if (files != null) {
 			List<URL> ret = Lists.newArrayList();
@@ -79,60 +116,17 @@ public class Plugins {
 		}
 	}
 
-	@SuppressWarnings("unchecked")
-	public <T extends Plugin> T get(Class<T> clazz) {
-		return (T) plugins.get(clazz);
-	}
+	private <T extends Plugin> void load(Class<T> clazz, Stream<Class<? extends T>> source) {
+		Class<? extends T> plugin = source.findAny().orElse(null);
+		if (plugin == null) { return; }
 
-	@SuppressWarnings("unchecked")
-	public <T extends Plugin> T put(Class<T> clazz, T source) {
-		return (T) plugins.put(clazz, source);
-	}
-
-	private <T extends Plugin> void load(Class<T> clazz, Set<Class<? extends T>> source) {
-		if (source == null || source.size() <= 0) {
-			if (clazz.equals(Authorization.class)) {
-				plugins.put(Authorization.class, new DefaultAuthorization());
-				logger.debug("{} plugin loaded", DefaultAuthorization.class.getName());
-			}
-			else if (clazz.equals(ServiceStatus.class)) {
-				plugins.put(ServiceStatus.class, new DefaultServiceStatus());
-				logger.debug("{} plugin loaded", DefaultServiceStatus.class.getName());
-			}
-			else if (clazz.equals(ConnectEventListener.class)) {
-				plugins.put(ConnectEventListener.class, new DefaultConnectEventListener());
-				logger.debug("{} plugin loaded", DefaultConnectEventListener.class.getName());
-			}
-			else {
-				return;
-			}
-		}
-		else {
-			Class<? extends T> plugin = source.stream().findAny().get();
-
-			try {
-				plugins.put(clazz, plugin.newInstance());
-				logger.debug("{} plugin loaded", plugin.getClass().getName());
-			}
-			catch (InstantiationException | IllegalAccessException e) {
-				logger.error(e.getMessage(), e);
-			}
-		}
-	}
-
-	private void load() {
-		URLClassLoader classLoader = null;
 		try {
-			classLoader = new URLClassLoader(pluginUrls(), Plugins.class.getClassLoader());
+			T instance = plugin.newInstance();
+			plugins.put(clazz, instance);
+			logger.debug("{} plugin loaded", instance.getClass().getName());
 		}
-		catch (MalformedURLException e) {
+		catch (InstantiationException | IllegalAccessException e) {
 			logger.error(e.getMessage(), e);
 		}
-
-		Reflections reflections = new Reflections(classLoader, new SubTypesScanner(false));
-
-		load(Authorization.class, reflections.getSubTypesOf(Authorization.class));
-		load(ServiceStatus.class, reflections.getSubTypesOf(ServiceStatus.class));
-		load(ConnectEventListener.class, reflections.getSubTypesOf(ConnectEventListener.class));
 	}
 }

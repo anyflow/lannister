@@ -16,17 +16,16 @@
 
 package net.anyflow.lannister.plugin;
 
-import net.anyflow.lannister.entity.ConnectEventArgs;
-
 public class DefaultConnectEventListener implements ConnectEventListener {
+	private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(DefaultConnectEventListener.class);
+
 	@Override
 	public Plugin clone() {
-		return new DefaultConnectEventListener();
+		return this;
 	}
 
 	@Override
 	public void connectHandled(ConnectEventArgs args) {
-		// TODO Auto-generated method stub
-
+		logger.debug("DefaultConnectEventListener.connectHandled() called [{}]", args.log());
 	}
 }

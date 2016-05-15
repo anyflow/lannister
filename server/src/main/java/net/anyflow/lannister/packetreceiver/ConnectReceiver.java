@@ -29,9 +29,12 @@ import io.netty.handler.codec.mqtt.MqttQoS;
 import io.netty.handler.codec.mqtt.MqttUnacceptableProtocolVersionException;
 import net.anyflow.lannister.Hazelcast;
 import net.anyflow.lannister.Settings;
+import net.anyflow.lannister.message.IMessage;
 import net.anyflow.lannister.message.Message;
 import net.anyflow.lannister.message.MessageFactory;
 import net.anyflow.lannister.plugin.Authorization;
+import net.anyflow.lannister.plugin.ConnectEventArgs;
+import net.anyflow.lannister.plugin.ConnectEventListener;
 import net.anyflow.lannister.plugin.Plugins;
 import net.anyflow.lannister.plugin.ServiceStatus;
 import net.anyflow.lannister.session.Session;
@@ -107,6 +110,29 @@ public class ConnectReceiver extends SimpleChannelInboundHandler<MqttConnectMess
 		final MqttConnAckMessage acceptMsg = MessageFactory.connack(returnCode, sessionPresent); // [MQTT-3.1.4-4]
 
 		session.send(acceptMsg).addListener(f -> {
+			Plugins.SELF.get(ConnectEventListener.class).connectHandled(new ConnectEventArgs() {
+				@Override
+				public String clientId() {
+					return sessionFinal.clientId();
+				}
+
+				@Override
+				public IMessage will() {
+					return sessionFinal.will();
+				}
+
+				@Override
+				public Boolean cleanSession() {
+					return sessionFinal.cleanSession();
+				}
+
+				@Override
+				public net.anyflow.lannister.entity.MqttConnectReturnCode returnCode() {
+					return net.anyflow.lannister.entity.MqttConnectReturnCode
+							.valueOf(MqttConnectReturnCode.CONNECTION_ACCEPTED.byteValue());
+				}
+			});
+
 			if (!sessionFinal.cleanSession()) {
 				sessionFinal.completeRemainedMessages(); // [MQTT-4.4.0-1]
 			}
@@ -148,6 +174,27 @@ public class ConnectReceiver extends SimpleChannelInboundHandler<MqttConnectMess
 		ctx.channel().writeAndFlush(msg).addListener(f -> {
 			logger.debug("packet outgoing [{}]", msg);
 
+			Plugins.SELF.get(ConnectEventListener.class).connectHandled(new ConnectEventArgs() {
+				@Override
+				public String clientId() {
+					return null;
+				}
+
+				@Override
+				public IMessage will() {
+					return null;
+				}
+
+				@Override
+				public Boolean cleanSession() {
+					return null;
+				}
+
+				@Override
+				public net.anyflow.lannister.entity.MqttConnectReturnCode returnCode() {
+					return net.anyflow.lannister.entity.MqttConnectReturnCode.valueOf(returnCode.byteValue());
+				}
+			});
 			ctx.channel().disconnect().addListener(ChannelFutureListener.CLOSE); // [MQTT-3.2.2-5],[MQTT-3.1.4-5]
 		});
 	}

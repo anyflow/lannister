@@ -117,6 +117,15 @@
 					<include>log4j.xml</include>
 				</includes>
 			</testResource>
+			
+			<testResource>
+				<filtering>false</filtering>
+				<directory>src/test/resources</directory>
+				<targetPath>../plugin/</targetPath>
+				<includes>
+					<include>plugin.jar</include>
+				</includes>
+			</testResource>
 		</testResources>
 
 		<extensions>
