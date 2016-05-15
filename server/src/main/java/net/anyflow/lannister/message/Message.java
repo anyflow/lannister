@@ -72,12 +72,6 @@ public class Message implements com.hazelcast.nio.serialization.Portable, IMessa
 		return id;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see net.anyflow.lannister.message.IMessage#setId(int)
-	 */
-	@Override
 	public void setId(int id) {
 		this.id = id;
 	}
@@ -92,22 +86,11 @@ public class Message implements com.hazelcast.nio.serialization.Portable, IMessa
 		return topicName;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see net.anyflow.lannister.message.IMessage#publisherId()
-	 */
 	@Override
 	public String publisherId() {
 		return publisherId;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see net.anyflow.lannister.message.IMessage#publisherId(java.lang.String)
-	 */
-	@Override
 	public void publisherId(String publisherId) {
 		this.publisherId = publisherId;
 	}
@@ -122,12 +105,6 @@ public class Message implements com.hazelcast.nio.serialization.Portable, IMessa
 		return message;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see net.anyflow.lannister.message.IMessage#setMessage(byte[])
-	 */
-	@Override
 	public void setMessage(byte[] message) {
 		this.message = message != null ? message : new byte[] {};
 	}
@@ -142,14 +119,6 @@ public class Message implements com.hazelcast.nio.serialization.Portable, IMessa
 		return qos;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see
-	 * net.anyflow.lannister.message.IMessage#setQos(io.netty.handler.codec.mqtt
-	 * .MqttQoS)
-	 */
-	@Override
 	public void setQos(MqttQoS qos) {
 		this.qos = qos;
 	}
@@ -164,12 +133,6 @@ public class Message implements com.hazelcast.nio.serialization.Portable, IMessa
 		return isRetain;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see net.anyflow.lannister.message.IMessage#setRetain(boolean)
-	 */
-	@Override
 	public void setRetain(boolean isRetain) {
 		this.isRetain = isRetain;
 	}

@@ -16,11 +16,17 @@
 
 package net.anyflow.lannister.plugin;
 
-import io.netty.handler.codec.mqtt.MqttConnAckMessage;
-import io.netty.handler.codec.mqtt.MqttConnectMessage;
+import net.anyflow.lannister.entity.ConnectEventArgs;
 
-public interface EventListener extends Plugin {
-	void connectMessageReceived(final MqttConnectMessage msg);
+public class DefaultConnectEventListener implements ConnectEventListener {
+	@Override
+	public Plugin clone() {
+		return new DefaultConnectEventListener();
+	}
 
-	void connAckMessageSent(final MqttConnAckMessage msg);
+	@Override
+	public void connectHandled(ConnectEventArgs args) {
+		// TODO Auto-generated method stub
+
+	}
 }

@@ -8,7 +8,7 @@ public class ConnectOptions {
 	private String userName;
 	private String password;
 	private boolean cleanSession;
-	private IMessage will;
+	private Message will;
 	private int keepAliveTimeSeconds;
 
 	public ConnectOptions() {
@@ -21,7 +21,7 @@ public class ConnectOptions {
 		this.keepAliveTimeSeconds = 120;
 	}
 
-	public ConnectOptions(MqttVersion version, String clientId, boolean cleanSession, IMessage will, String userName,
+	public ConnectOptions(MqttVersion version, String clientId, boolean cleanSession, Message will, String userName,
 			String password, int keepAliveTimeSeconds) {
 		this.version = version;
 		this.clientId = clientId;
@@ -72,11 +72,11 @@ public class ConnectOptions {
 		this.cleanSession = cleanSession;
 	}
 
-	public IMessage will() {
+	public Message will() {
 		return will;
 	}
 
-	public void will(IMessage will) {
+	public void will(Message will) {
 		this.will = will;
 	}
 

@@ -19,26 +19,15 @@ package net.anyflow.lannister.message;
 import io.netty.handler.codec.mqtt.MqttQoS;
 
 public interface IMessage {
-
 	int id();
-
-	void setId(int id);
 
 	String topicName();
 
 	String publisherId();
 
-	void publisherId(String publisherId);
-
 	byte[] message();
-
-	void setMessage(byte[] message);
 
 	MqttQoS qos();
 
-	void setQos(MqttQoS qos);
-
 	boolean isRetain();
-
-	void setRetain(boolean isRetain);
 }

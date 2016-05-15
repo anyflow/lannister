@@ -23,7 +23,6 @@ import com.hazelcast.nio.serialization.ClassDefinitionBuilder;
 import com.hazelcast.nio.serialization.PortableReader;
 import com.hazelcast.nio.serialization.PortableWriter;
 
-import net.anyflow.lannister.message.IMessage;
 import net.anyflow.lannister.message.Message;
 import net.anyflow.lannister.serialization.SerializableFactory;
 
@@ -51,7 +50,7 @@ public class Notification implements com.hazelcast.nio.serialization.Portable {
 		return topic;
 	}
 
-	public IMessage message() {
+	public Message message() {
 		return message;
 	}
 

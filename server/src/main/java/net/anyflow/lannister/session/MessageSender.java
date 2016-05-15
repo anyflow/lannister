@@ -27,7 +27,6 @@ import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.mqtt.MqttMessage;
 import io.netty.handler.codec.mqtt.MqttQoS;
 import net.anyflow.lannister.Settings;
-import net.anyflow.lannister.message.IMessage;
 import net.anyflow.lannister.message.InboundMessageStatus;
 import net.anyflow.lannister.message.Message;
 import net.anyflow.lannister.message.MessageFactory;
@@ -65,7 +64,7 @@ public class MessageSender {
 		});
 	}
 
-	protected void sendPublish(Topic topic, IMessage message) {
+	protected void sendPublish(Topic topic, Message message) {
 		logger.debug("event arrived [clientId={}, message={}]", session.clientId(), message);
 
 		if (!session.isConnected()) { return; }
@@ -91,7 +90,7 @@ public class MessageSender {
 		});
 	}
 
-	private static void executefilters(IMessage message) {
+	private static void executefilters(Message message) {
 		for (MessageFilter filter : FILTERS) {
 			filter.execute(message);
 		}

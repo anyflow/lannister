@@ -14,24 +14,20 @@
  * limitations under the License.
  */
 
-package net.anyflow.lannister.plugin;
+package net.anyflow.lannister.pluginexample;
 
-import io.netty.handler.codec.mqtt.MqttConnAckMessage;
-import io.netty.handler.codec.mqtt.MqttConnectMessage;
+import net.anyflow.lannister.entity.ConnectEventArgs;
+import net.anyflow.lannister.plugin.ConnectEventListener;
+import net.anyflow.lannister.plugin.Plugin;
 
-public class DefaultEventListener implements EventListener {
+public class ExampleConnectEventListener implements ConnectEventListener {
 	@Override
 	public Plugin clone() {
-		return new DefaultEventListener();
+		return new ExampleConnectEventListener();
 	}
 
 	@Override
-	public void connectMessageReceived(MqttConnectMessage msg) {
-		// Do nothing
-	}
-
-	@Override
-	public void connAckMessageSent(MqttConnAckMessage msg) {
-		// Do nothing
+	public void connectHandled(ConnectEventArgs args) {
+		// Do Nothing
 	}
 }

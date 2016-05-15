@@ -42,7 +42,6 @@ import io.netty.handler.ssl.util.InsecureTrustManagerFactory;
 import io.netty.util.concurrent.DefaultThreadFactory;
 import net.anyflow.lannister.Settings;
 import net.anyflow.lannister.message.ConnectOptions;
-import net.anyflow.lannister.message.IMessage;
 import net.anyflow.lannister.message.Message;
 import net.anyflow.lannister.message.MessageFactory;
 
@@ -148,7 +147,7 @@ public class MqttClient {
 		return this;
 	}
 
-	public void publish(IMessage message) {
+	public void publish(Message message) {
 		normalizeMessage(message);
 		send(MessageFactory.publish(message, false));
 	}
@@ -169,7 +168,7 @@ public class MqttClient {
 		return currentMessageId;
 	}
 
-	private void normalizeMessage(IMessage message) {
+	private void normalizeMessage(Message message) {
 		if (message == null) { return; }
 
 		message.setId(nextMessageId());

@@ -17,20 +17,20 @@
 package net.anyflow.lannister.plugin;
 
 import java.io.File;
-import java.lang.reflect.Modifier;
 import java.net.MalformedURLException;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.security.CodeSource;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import org.reflections.Reflections;
 import org.reflections.scanners.SubTypesScanner;
 
 import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
+import com.google.common.collect.Maps;
 
 import net.anyflow.lannister.Application;
 
@@ -39,15 +39,14 @@ public class Plugins {
 
 	public static Plugins SELF;
 
-	private Authorization authorization;
-	private EventListener eventListener;
-	private ServiceStatus serviceStatus;
+	private Map<Class<? extends Plugin>, Plugin> plugins;
 
 	static {
 		SELF = new Plugins();
 	}
 
 	private Plugins() {
+		plugins = Maps.newHashMap();
 		load();
 	}
 
@@ -80,6 +79,47 @@ public class Plugins {
 		}
 	}
 
+	@SuppressWarnings("unchecked")
+	public <T extends Plugin> T get(Class<T> clazz) {
+		return (T) plugins.get(clazz);
+	}
+
+	@SuppressWarnings("unchecked")
+	public <T extends Plugin> T put(Class<T> clazz, T source) {
+		return (T) plugins.put(clazz, source);
+	}
+
+	private <T extends Plugin> void load(Class<T> clazz, Set<Class<? extends T>> source) {
+		if (source == null || source.size() <= 0) {
+			if (clazz.equals(Authorization.class)) {
+				plugins.put(Authorization.class, new DefaultAuthorization());
+				logger.debug("{} plugin loaded", DefaultAuthorization.class.getName());
+			}
+			else if (clazz.equals(ServiceStatus.class)) {
+				plugins.put(ServiceStatus.class, new DefaultServiceStatus());
+				logger.debug("{} plugin loaded", DefaultServiceStatus.class.getName());
+			}
+			else if (clazz.equals(ConnectEventListener.class)) {
+				plugins.put(ConnectEventListener.class, new DefaultConnectEventListener());
+				logger.debug("{} plugin loaded", DefaultConnectEventListener.class.getName());
+			}
+			else {
+				return;
+			}
+		}
+		else {
+			Class<? extends T> plugin = source.stream().findAny().get();
+
+			try {
+				plugins.put(clazz, plugin.newInstance());
+				logger.debug("{} plugin loaded", plugin.getClass().getName());
+			}
+			catch (InstantiationException | IllegalAccessException e) {
+				logger.error(e.getMessage(), e);
+			}
+		}
+	}
+
 	private void load() {
 		URLClassLoader classLoader = null;
 		try {
@@ -89,104 +129,10 @@ public class Plugins {
 			logger.error(e.getMessage(), e);
 		}
 
-		if (classLoader == null) {
-			loadDefaults();
-			return;
-		}
-
 		Reflections reflections = new Reflections(classLoader, new SubTypesScanner(false));
 
-		Set<Class<? extends Authorization>> authorizations = reflections.getSubTypesOf(Authorization.class);
-		Set<Class<? extends EventListener>> eventListeners = reflections.getSubTypesOf(EventListener.class);
-		Set<Class<? extends ServiceStatus>> serviceStatuses = reflections.getSubTypesOf(ServiceStatus.class);
-
-		Set<Class<? extends Plugin>> plugins = Sets.newHashSet();
-		plugins.addAll(authorizations);
-		plugins.addAll(eventListeners);
-		plugins.addAll(serviceStatuses);
-
-		plugins.stream().forEach(p -> {
-			try {
-				final int mods = p.getModifiers();
-				if (Modifier.isAbstract(mods) || Modifier.isInterface(mods)) { return; }
-				if (p.equals(DefaultAuthorization.class) || p.equals(DefaultEventListener.class)
-						|| p.equals(DefaultServiceStatus.class)) { return; }
-
-				if (Authorization.class.isAssignableFrom(p)) {
-					authorization = (Authorization) p.newInstance();
-				}
-				if (EventListener.class.isAssignableFrom(p)) {
-					eventListener = (EventListener) p.newInstance();
-				}
-				if (ServiceStatus.class.isAssignableFrom(p)) {
-					serviceStatus = (ServiceStatus) p.newInstance();
-				}
-
-				logger.debug("{} plugin loaded", p.getName());
-			}
-			catch (Exception e) {
-				logger.error(e.getMessage(), e);
-				return;
-			}
-			;
-		});
-
-		loadDefaults();
-	}
-
-	private void loadDefaults() {
-		if (authorization == null) {
-			authorization = new DefaultAuthorization();
-			logger.debug("{} plugin loaded", authorization.getClass().getName());
-		}
-		if (eventListener == null) {
-			eventListener = new DefaultEventListener();
-			logger.debug("{} plugin loaded", eventListener.getClass().getName());
-
-		}
-		if (serviceStatus == null) {
-			serviceStatus = new DefaultServiceStatus();
-			logger.debug("{} plugin loaded", serviceStatus.getClass().getName());
-
-		}
-	}
-
-	public Authorization authorization() {
-		return authorization == null ? null : (Authorization) authorization.clone();
-	}
-
-	public EventListener eventListener() {
-		return eventListener == null ? null : (EventListener) eventListener.clone();
-	}
-
-	public ServiceStatus serviceStatus() {
-		return serviceStatus == null ? null : (ServiceStatus) serviceStatus.clone();
-	}
-
-	public Authorization authorization(Authorization authorization) {
-		if (authorization == null) { return null; }
-
-		Authorization ret = this.authorization;
-		this.authorization = authorization;
-
-		return ret;
-	}
-
-	public EventListener eventListener(EventListener eventListener) {
-		if (eventListener == null) { return null; }
-
-		EventListener ret = this.eventListener;
-		this.eventListener = eventListener;
-
-		return ret;
-	}
-
-	public ServiceStatus serviceStatus(ServiceStatus serviceStatus) {
-		if (serviceStatus == null) { return null; }
-
-		ServiceStatus ret = this.serviceStatus;
-		this.serviceStatus = serviceStatus;
-
-		return ret;
+		load(Authorization.class, reflections.getSubTypesOf(Authorization.class));
+		load(ServiceStatus.class, reflections.getSubTypesOf(ServiceStatus.class));
+		load(ConnectEventListener.class, reflections.getSubTypesOf(ConnectEventListener.class));
 	}
 }

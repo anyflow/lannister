@@ -38,7 +38,6 @@ import io.netty.channel.ChannelId;
 import io.netty.handler.codec.mqtt.MqttMessage;
 import net.anyflow.lannister.Hazelcast;
 import net.anyflow.lannister.Literals;
-import net.anyflow.lannister.message.IMessage;
 import net.anyflow.lannister.message.Message;
 import net.anyflow.lannister.serialization.ChannelIdSerializer;
 import net.anyflow.lannister.serialization.SerializableFactory;
@@ -154,7 +153,7 @@ public class Session implements com.hazelcast.nio.serialization.Portable {
 		return messageSender.send(message);
 	}
 
-	public void sendPublish(Topic topic, IMessage message) {
+	public void sendPublish(Topic topic, Message message) {
 		messageSender.sendPublish(topic, message);
 	}
 

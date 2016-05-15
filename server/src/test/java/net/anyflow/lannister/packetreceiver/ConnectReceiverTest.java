@@ -81,7 +81,7 @@ public class ConnectReceiverTest {
 
 	@Test
 	public void testCONNECTION_REFUSED_SERVER_UNAVAILABLE() throws Exception {
-		ServiceStatus prev = Plugins.SELF.serviceStatus(new ServiceStatus() {
+		ServiceStatus prev = Plugins.SELF.put(ServiceStatus.class, new ServiceStatus() {
 			@Override
 			public Plugin clone() {
 				return this;
@@ -98,12 +98,12 @@ public class ConnectReceiverTest {
 		Assert.assertEquals(ret.variableHeader().connectReturnCode(),
 				MqttConnectReturnCode.CONNECTION_REFUSED_SERVER_UNAVAILABLE);
 
-		Plugins.SELF.serviceStatus(prev);
+		Plugins.SELF.put(ServiceStatus.class, prev);
 	}
 
 	@Test
 	public void testCONNECTION_REFUSED_IDENTIFIER_REJECTED() throws Exception {
-		Authorization prev = Plugins.SELF.authorization(new Authorization() {
+		Authorization prev = Plugins.SELF.put(Authorization.class, new Authorization() {
 			@Override
 			public Plugin clone() {
 				return this;
@@ -130,12 +130,12 @@ public class ConnectReceiverTest {
 		Assert.assertEquals(ret.variableHeader().connectReturnCode(),
 				MqttConnectReturnCode.CONNECTION_REFUSED_IDENTIFIER_REJECTED);
 
-		Plugins.SELF.authorization(prev);
+		Plugins.SELF.put(Authorization.class, prev);
 	}
 
 	@Test
 	public void testCONNECTION_REFUSED_BAD_USER_NAME_OR_PASSWORD() throws Exception {
-		Authorization prev = Plugins.SELF.authorization(new Authorization() {
+		Authorization prev = Plugins.SELF.put(Authorization.class, new Authorization() {
 			@Override
 			public Plugin clone() {
 				return this;
@@ -162,12 +162,12 @@ public class ConnectReceiverTest {
 		Assert.assertEquals(ret.variableHeader().connectReturnCode(),
 				MqttConnectReturnCode.CONNECTION_REFUSED_BAD_USER_NAME_OR_PASSWORD);
 
-		Plugins.SELF.authorization(prev);
+		Plugins.SELF.put(Authorization.class, prev);
 	}
 
 	@Test
 	public void testCONNECTION_REFUSED_NOT_AUTHORIZED() throws Exception {
-		Authorization prev = Plugins.SELF.authorization(new Authorization() {
+		Authorization prev = Plugins.SELF.put(Authorization.class, new Authorization() {
 			@Override
 			public Plugin clone() {
 				return this;
@@ -194,7 +194,7 @@ public class ConnectReceiverTest {
 		Assert.assertEquals(ret.variableHeader().connectReturnCode(),
 				MqttConnectReturnCode.CONNECTION_REFUSED_NOT_AUTHORIZED);
 
-		Plugins.SELF.authorization(prev);
+		Plugins.SELF.put(Authorization.class, prev);
 	}
 
 	@Test

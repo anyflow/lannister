@@ -21,9 +21,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Strings;
 
 import io.netty.handler.codec.mqtt.MqttQoS;
-import net.anyflow.lannister.message.IMessage;
-import net.anyflow.lannister.plugin.MessageFilter;
-import net.anyflow.lannister.plugin.Plugin;
+import net.anyflow.lannister.message.Message;
 import net.anyflow.lannister.topic.Topic;
 import net.anyflow.menton.http.HttpRequestHandler;
 
@@ -53,7 +51,7 @@ public class TopicsFilter extends HttpRequestHandler implements MessageFilter {
 	}
 
 	@Override
-	public void execute(IMessage message) {
+	public void execute(Message message) {
 		if (message == null || message.topicName().startsWith("$COMMAND/GET/topics") == false) { return; }
 
 		message.setQos(MqttQoS.AT_MOST_ONCE);
