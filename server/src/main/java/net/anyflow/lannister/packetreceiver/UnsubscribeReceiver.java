@@ -24,6 +24,9 @@ import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
 import io.netty.handler.codec.mqtt.MqttUnsubscribeMessage;
 import net.anyflow.lannister.message.MessageFactory;
+import net.anyflow.lannister.plugin.Plugins;
+import net.anyflow.lannister.plugin.UnsubscribeEventArgs;
+import net.anyflow.lannister.plugin.UnsubscribeEventListener;
 import net.anyflow.lannister.session.Session;
 
 public class UnsubscribeReceiver extends SimpleChannelInboundHandler<MqttUnsubscribeMessage> {
@@ -51,6 +54,18 @@ public class UnsubscribeReceiver extends SimpleChannelInboundHandler<MqttUnsubsc
 		}
 
 		topicFilters.stream().forEach(tf -> session.topicSubscriptions().remove(tf));
+
+		Plugins.SELF.get(UnsubscribeEventListener.class).unsubscribed(new UnsubscribeEventArgs() {
+			@Override
+			public String clientId() {
+				return session.clientId();
+			}
+
+			@Override
+			public List<String> topicFilters() {
+				return topicFilters;
+			}
+		});
 
 		session.send(MessageFactory.unsuback(msg.variableHeader().messageId())); // [MQTT-2.3.1-7],[MQTT-3.10.4-4],[MQTT-3.10.4-5]
 	}

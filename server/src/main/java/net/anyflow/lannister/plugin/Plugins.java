@@ -56,6 +56,7 @@ public class Plugins {
 		plugins.put(PublishEventListener.class, new DefaultPublishEventListener());
 		plugins.put(DeliveredEventListener.class, new DefaultDeliveredEventListener());
 		plugins.put(SubscribeEventListener.class, new DefaultSubscribeEventListener());
+		plugins.put(UnsubscribeEventListener.class, new DefaultUnsubscribeEventListener());
 
 		load();
 	}
@@ -87,6 +88,8 @@ public class Plugins {
 				.filter(p -> !p.equals(DefaultDeliveredEventListener.class)));
 		load(SubscribeEventListener.class, reflections.getSubTypesOf(SubscribeEventListener.class).stream()
 				.filter(p -> !p.equals(DefaultSubscribeEventListener.class)));
+		load(UnsubscribeEventListener.class, reflections.getSubTypesOf(UnsubscribeEventListener.class).stream()
+				.filter(p -> !p.equals(DefaultUnsubscribeEventListener.class)));
 	}
 
 	@SuppressWarnings("unchecked")
