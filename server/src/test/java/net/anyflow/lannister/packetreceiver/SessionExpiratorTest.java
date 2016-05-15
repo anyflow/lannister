@@ -42,7 +42,7 @@ public class SessionExpiratorTest {
 		ConnectOptions options = new ConnectOptions();
 		options.clientId(clientId);
 
-		MqttClient client = new MqttClient("mqtt://localhost:1883");
+		MqttClient client = new MqttClient("mqtt://localhost:" + Settings.SELF.mqttPort());
 		MqttConnectReturnCode ret = client.connectOptions(options).connect();
 
 		Assert.assertTrue(ret == MqttConnectReturnCode.CONNECTION_ACCEPTED);

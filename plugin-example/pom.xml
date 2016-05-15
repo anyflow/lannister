@@ -27,12 +27,34 @@
 		<dependency>
 			<groupId>net.anyflow</groupId>
 			<artifactId>lannister-interface</artifactId>
-			<version>0.9.5-SNAPSHOT</version>
+			<version>${project.version}</version>
 		</dependency>
 	</dependencies>
 
 	<build>
-		<plugins>	
+		<plugins>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-antrun-plugin</artifactId>
+				<version>1.7</version>
+				<executions>
+					<execution>
+						<phase>package</phase>
+						<goals>
+							<goal>run</goal>
+						</goals>
+						<configuration>
+							<target>
+								<copy todir="${basedir}/../server/target/plugin">
+									<fileset dir="${project.build.directory}">
+										<filename regex="${project.build.finalName}" />
+									</fileset>
+								</copy>
+							</target>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
 		</plugins>
 	</build>
 </project>

@@ -14,25 +14,27 @@
  * limitations under the License.
  */
 
-package net.anyflow.lannister.plugin;
+package net.anyflow.lannister.httphandler;
+
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Strings;
 
-import io.netty.handler.codec.mqtt.MqttQoS;
-import net.anyflow.lannister.message.Message;
-import net.anyflow.lannister.topic.Topic;
+import net.anyflow.lannister.session.Session;
 import net.anyflow.menton.http.HttpRequestHandler;
 
-@HttpRequestHandler.Handles(paths = { "topics" }, httpMethods = { "GET" })
-public class TopicsFilter extends HttpRequestHandler implements MessageFilter {
+@HttpRequestHandler.Handles(paths = { "sessions" }, httpMethods = { "GET" })
+public class Sessions extends HttpRequestHandler {
 
-	private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(TopicsFilter.class);
+	private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(Sessions.class);
 
-	private byte[] allBinary() {
+	private String liveString() {
 		try {
-			return (new ObjectMapper()).writeValueAsBytes(Topic.NEXUS.map());
+			return (new ObjectMapper()).writeValueAsString(Session.NEXUS.map().values().stream()
+					.filter(s -> s.isConnected()).collect(Collectors.toMap(Session::clientId, Function.identity())));
 		}
 		catch (JsonProcessingException e) {
 			logger.error(e.getMessage(), e);
@@ -42,22 +44,11 @@ public class TopicsFilter extends HttpRequestHandler implements MessageFilter {
 
 	private String allString() {
 		try {
-			return (new ObjectMapper()).writeValueAsString(Topic.NEXUS.map());
+			return (new ObjectMapper()).writeValueAsString(Session.NEXUS.map());
 		}
 		catch (JsonProcessingException e) {
 			logger.error(e.getMessage(), e);
 			return null;
-		}
-	}
-
-	@Override
-	public void execute(Message message) {
-		if (message == null || message.topicName().startsWith("$COMMAND/GET/topics") == false) { return; }
-
-		message.setQos(MqttQoS.AT_MOST_ONCE);
-
-		if (message.topicName().equals("$COMMAND/GET/topics")) {
-			message.setMessage(allBinary());
 		}
 	}
 
@@ -67,16 +58,14 @@ public class TopicsFilter extends HttpRequestHandler implements MessageFilter {
 
 		switch (filter) {
 		case "":
+		case "live":
+			return liveString();
+
 		case "all":
 			return allString();
 
 		default:
 			return null;
 		}
-	}
-
-	@Override
-	public Plugin clone() {
-		return new TopicsFilter();
 	}
 }

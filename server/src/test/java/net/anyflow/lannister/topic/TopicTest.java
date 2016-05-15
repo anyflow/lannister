@@ -7,6 +7,7 @@ import org.junit.Test;
 import io.netty.handler.codec.mqtt.MqttQoS;
 import io.netty.handler.codec.mqtt.MqttTopicSubscription;
 import io.netty.util.CharsetUtil;
+import net.anyflow.lannister.Settings;
 import net.anyflow.lannister.TestSuite;
 import net.anyflow.lannister.TestUtil;
 import net.anyflow.lannister.client.MqttClient;
@@ -36,7 +37,7 @@ public class TopicTest {
 		String topicName = "testTopic";
 		String message = "test message";
 
-		MqttClient client = new MqttClient("mqtt://localhost:1883");
+		MqttClient client = new MqttClient("mqtt://localhost:" + Settings.SELF.mqttPort());
 		client.connectOptions(options).connect();
 
 		client.subscribe(new MqttTopicSubscription(topicName, MqttQoS.EXACTLY_ONCE));
@@ -48,7 +49,7 @@ public class TopicTest {
 
 		String publisherId = TestUtil.newClientId();
 
-		MqttClient publisher = new MqttClient("mqtt://localhost:1883");
+		MqttClient publisher = new MqttClient("mqtt://localhost:" + Settings.SELF.mqttPort());
 
 		ConnectOptions pubOptions = new ConnectOptions();
 		pubOptions.clientId(publisherId);

@@ -16,20 +16,27 @@
 
 package net.anyflow.lannister.pluginexample;
 
+import net.anyflow.lannister.plugin.Authenticator;
 import net.anyflow.lannister.plugin.Plugin;
-import net.anyflow.lannister.plugin.ServiceStatus;
 
-public class ExampleServiceStatus implements ServiceStatus {
-	private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(ExampleServiceStatus.class);
+public class ExampleAuthenticator implements Authenticator {
+	private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(ExampleAuthenticator.class);
 
 	@Override
 	public Plugin clone() {
-		return new ExampleServiceStatus();
+		return new ExampleAuthenticator();
 	}
 
 	@Override
-	public boolean isServiceAvailable() {
-		logger.debug("ExampleServiceStatus.isServiceAvailable() called");
+	public boolean isValid(String clientId) {
+		logger.debug("ExampleAuthenticator.isValid() called [clientId={}]", clientId);
+		return true;
+	}
+
+	@Override
+	public boolean isValid(String clientId, String userName, String password) {
+		logger.debug("ExampleAuthenticator.isValid() called [clientId={}, userName={}, password={}]", clientId,
+				userName, password);
 		return true;
 	}
 }

@@ -17,10 +17,7 @@
 package net.anyflow.lannister.session;
 
 import java.util.Date;
-import java.util.List;
 import java.util.stream.Stream;
-
-import com.google.common.collect.Lists;
 
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelHandlerContext;
@@ -31,17 +28,12 @@ import net.anyflow.lannister.message.InboundMessageStatus;
 import net.anyflow.lannister.message.Message;
 import net.anyflow.lannister.message.MessageFactory;
 import net.anyflow.lannister.message.OutboundMessageStatus;
-import net.anyflow.lannister.plugin.MessageFilter;
-import net.anyflow.lannister.plugin.SessionsFilter;
-import net.anyflow.lannister.plugin.TopicsFilter;
 import net.anyflow.lannister.topic.Topic;
 import net.anyflow.lannister.topic.Topics;
 
 public class MessageSender {
-
 	private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(MessageSender.class);
 
-	private final static List<MessageFilter> FILTERS = Lists.newArrayList(new SessionsFilter(), new TopicsFilter());
 	private final static int RESPONSE_TIMEOUT_SECONDS = Settings.SELF.getInt("lannister.responseTimeoutSeconds", 60);
 
 	private final Session session;
@@ -69,8 +61,6 @@ public class MessageSender {
 
 		if (!session.isConnected()) { return; }
 
-		executefilters(message);
-
 		send(MessageFactory.publish(message, false)).addListener(f -> {
 			switch (message.qos()) {
 			case AT_MOST_ONCE:
@@ -88,12 +78,6 @@ public class MessageSender {
 				break;
 			}
 		});
-	}
-
-	private static void executefilters(Message message) {
-		for (MessageFilter filter : FILTERS) {
-			filter.execute(message);
-		}
 	}
 
 	protected void completeRemainedMessages() {

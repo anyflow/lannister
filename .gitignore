@@ -1,7 +1,5 @@
 # Package Files #
-*.jar
-*.war
-*.ear
+#*.jar
 .DS_Store
 
 # directories #

@@ -16,8 +16,6 @@
 
 package net.anyflow.lannister.plugin;
 
-import net.anyflow.lannister.message.Message;
-
-public interface MessageFilter extends Plugin {
-	void execute(Message message);
+public interface Authorizer extends Plugin {
+	boolean isAuthorized(String clientId, String username);
 }

@@ -10,7 +10,7 @@ public class ExampleDisconnectEventListener implements DisconnectEventListener {
 
 	@Override
 	public Plugin clone() {
-		return this;
+		return new ExampleDisconnectEventListener();
 	}
 
 	@Override

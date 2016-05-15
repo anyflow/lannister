@@ -48,10 +48,12 @@ public class Plugins {
 	private Plugins() {
 		plugins = Maps.newHashMap();
 
-		plugins.put(Authorization.class, new DefaultAuthorization());
+		plugins.put(Authenticator.class, new DefaultAuthenticator());
+		plugins.put(Authorizer.class, new DefaultAuthorizer());
 		plugins.put(ServiceStatus.class, new DefaultServiceStatus());
 		plugins.put(ConnectEventListener.class, new DefaultConnectEventListener());
 		plugins.put(DisconnectEventListener.class, new DefaultDisconnectEventListener());
+		plugins.put(PublishEventListener.class, new DefaultPublishEventListener());
 
 		load();
 	}
@@ -67,14 +69,18 @@ public class Plugins {
 
 		Reflections reflections = new Reflections(classLoader, new SubTypesScanner(false));
 
-		load(Authorization.class, reflections.getSubTypesOf(Authorization.class).stream()
-				.filter(p -> !p.equals(DefaultAuthorization.class)));
-		load(ServiceStatus.class, reflections.getSubTypesOf(ServiceStatus.class).stream()
-				.filter(p -> !p.equals(DefaultServiceStatus.class)));
+		load(Authenticator.class, reflections.getSubTypesOf(Authenticator.class).stream()
+				.filter(p -> !p.equals(DefaultAuthenticator.class)));
+		load(Authorizer.class,
+				reflections.getSubTypesOf(Authorizer.class).stream().filter(p -> !p.equals(DefaultAuthorizer.class)));
 		load(ConnectEventListener.class, reflections.getSubTypesOf(ConnectEventListener.class).stream()
 				.filter(p -> !p.equals(DefaultConnectEventListener.class)));
 		load(DisconnectEventListener.class, reflections.getSubTypesOf(DisconnectEventListener.class).stream()
 				.filter(p -> !p.equals(DefaultDisconnectEventListener.class)));
+		load(PublishEventListener.class, reflections.getSubTypesOf(PublishEventListener.class).stream()
+				.filter(p -> !p.equals(DefaultPublishEventListener.class)));
+		load(ServiceStatus.class, reflections.getSubTypesOf(ServiceStatus.class).stream()
+				.filter(p -> !p.equals(DefaultServiceStatus.class)));
 	}
 
 	@SuppressWarnings("unchecked")

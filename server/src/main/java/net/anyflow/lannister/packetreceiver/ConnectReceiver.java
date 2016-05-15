@@ -32,7 +32,8 @@ import net.anyflow.lannister.Settings;
 import net.anyflow.lannister.message.IMessage;
 import net.anyflow.lannister.message.Message;
 import net.anyflow.lannister.message.MessageFactory;
-import net.anyflow.lannister.plugin.Authorization;
+import net.anyflow.lannister.plugin.Authenticator;
+import net.anyflow.lannister.plugin.Authorizer;
 import net.anyflow.lannister.plugin.ConnectEventArgs;
 import net.anyflow.lannister.plugin.ConnectEventListener;
 import net.anyflow.lannister.plugin.Plugins;
@@ -151,18 +152,22 @@ public class ConnectReceiver extends SimpleChannelInboundHandler<MqttConnectMess
 	}
 
 	private MqttConnectReturnCode filterPlugins(MqttConnectMessage msg) {
+
+		String clientId = msg.payload().clientIdentifier();
+		String userName = msg.variableHeader().hasUserName() ? msg.payload().userName() : null;
+		String password = msg.variableHeader().hasPassword() ? msg.payload().password() : null;
+
 		if (Plugins.SELF.get(ServiceStatus.class).isServiceAvailable() == false) {
 			return MqttConnectReturnCode.CONNECTION_REFUSED_SERVER_UNAVAILABLE;
 		}
-		else if (Plugins.SELF.get(Authorization.class).isValid(msg.payload().clientIdentifier()) == false) {
+		else if (Plugins.SELF.get(Authenticator.class).isValid(clientId) == false) {
 			return MqttConnectReturnCode.CONNECTION_REFUSED_IDENTIFIER_REJECTED; // [MQTT-3.1.3-9]
 		}
-		else if (Plugins.SELF.get(Authorization.class).isValid(msg.variableHeader().hasUserName(),
-				msg.variableHeader().hasPassword(), msg.payload().userName(), msg.payload().password()) == false) {
+		else if (Plugins.SELF.get(Authenticator.class).isValid(clientId, userName, password) == false) {
 			return MqttConnectReturnCode.CONNECTION_REFUSED_BAD_USER_NAME_OR_PASSWORD;
 		}
-		else if (Plugins.SELF.get(Authorization.class).isAuthorized(msg.variableHeader().hasUserName(),
-				msg.payload().userName()) == false) { return MqttConnectReturnCode.CONNECTION_REFUSED_NOT_AUTHORIZED; }
+		else if (Plugins.SELF.get(Authorizer.class).isAuthorized(clientId,
+				userName) == false) { return MqttConnectReturnCode.CONNECTION_REFUSED_NOT_AUTHORIZED; }
 
 		return MqttConnectReturnCode.CONNECTION_ACCEPTED;
 	}

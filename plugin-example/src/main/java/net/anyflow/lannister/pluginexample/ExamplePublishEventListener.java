@@ -14,19 +14,23 @@
  * limitations under the License.
  */
 
-package net.anyflow.lannister.plugin;
+package net.anyflow.lannister.pluginexample;
 
-public class DefaultDisconnectEventListener implements DisconnectEventListener {
-	private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory
-			.getLogger(DefaultDisconnectEventListener.class);
+import net.anyflow.lannister.plugin.Plugin;
+import net.anyflow.lannister.plugin.PublishEventArgs;
+import net.anyflow.lannister.plugin.PublishEventListener;
+
+public class ExamplePublishEventListener implements PublishEventListener {
+	private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(ExamplePublishEventListener.class);
 
 	@Override
 	public Plugin clone() {
-		return this;
+		return new ExamplePublishEventListener();
 	}
 
 	@Override
-	public void disconnected(DisconnectEventArgs args) {
-		logger.debug("DefaultDisconnectEventListener.disconnected() called [{}]", args.log());
+	public boolean beforePublish(PublishEventArgs args) {
+		logger.debug("ExamplePublishEventListener.beforePublish() called [{}]", args.log());
+		return true;
 	}
 }

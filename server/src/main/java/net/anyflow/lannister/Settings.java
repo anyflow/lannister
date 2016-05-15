@@ -99,18 +99,26 @@ public class Settings extends java.util.Properties {
 		}
 	}
 
-	/**
-	 * @return HTTP port. If empty, returns null(the channel will not be
-	 *         established).
-	 */
+	public Integer mqttPort() {
+		return tryParse(getProperty("lannister.tcp.port", null));
+	}
+
+	public Integer mqttsPort() {
+		return tryParse(getProperty("lannister.tcp.ssl.port", null));
+	}
+
+	public Integer websocketPort() {
+		return tryParse(getProperty("lannister.websocket.port", null));
+	}
+
+	public Integer websocketSslPort() {
+		return tryParse(getProperty("lannister.websocket.ssl.port", null));
+	}
+
 	public Integer httpPort() {
 		return tryParse(getProperty("menton.httpServer.http.port", null));
 	}
 
-	/**
-	 * @return HTTPS port. If empty, returns null(the channel will not be
-	 *         established).
-	 */
 	public Integer httpsPort() {
 		return tryParse(getProperty("menton.httpServer.https.port", null));
 	}

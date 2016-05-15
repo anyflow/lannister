@@ -14,26 +14,10 @@
  * limitations under the License.
  */
 
-package net.anyflow.lannister.message;
+package net.anyflow.lannister.plugin;
 
-import io.netty.handler.codec.mqtt.MqttQoS;
+public interface Authenticator extends Plugin {
+	boolean isValid(String clientId);
 
-public interface IMessage {
-	int id();
-
-	String topicName();
-
-	String publisherId();
-
-	byte[] message();
-
-	MqttQoS qos();
-
-	boolean isRetain();
-
-	default String log() {
-		return (new StringBuilder()).append("messageId=").append(id()).append(", topicName=").append(topicName())
-				.append(", publisherId=").append(publisherId()).append(", message=").append(message()).append(", qos=")
-				.append(qos()).append(", isRetain=").append(isRetain()).toString();
-	}
+	boolean isValid(String clientId, String userName, String password);
 }

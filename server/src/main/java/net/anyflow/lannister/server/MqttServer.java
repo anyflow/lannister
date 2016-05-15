@@ -25,86 +25,84 @@ import net.anyflow.lannister.Settings;
 import net.anyflow.lannister.packetreceiver.SessionExpirator;
 
 public class MqttServer {
-    private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(MqttServer.class);
+	private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(MqttServer.class);
 
-    private final EventLoopGroup bossGroup;
-    private final EventLoopGroup workerGroup;
+	private final EventLoopGroup bossGroup;
+	private final EventLoopGroup workerGroup;
 
-    private static final Integer TCP_PORT = Settings.SELF.getInt("lannister.tcp.port", null);
-    private static final Integer TCP_SSL_PORT = Settings.SELF.getInt("lannister.tcp.ssl.port", null);
-    private static final Integer WEBSOCKET_PORT = Settings.SELF.getInt("lannister.websocket.port", null);
-    private static final Integer WEBSOCKET_SSL_PORT = Settings.SELF.getInt("lannister.websocket.ssl.port", null);
+	public MqttServer() {
+		bossGroup = new NioEventLoopGroup(Settings.SELF.getInt("lannister.system.bossThreadCount", 0),
+				new DefaultThreadFactory("lannister/boss"));
+		workerGroup = new NioEventLoopGroup(Settings.SELF.getInt("lannister.system.workerThreadCount", 0),
+				new DefaultThreadFactory("lannister/worker"));
+	}
 
-    public MqttServer() {
-        bossGroup = new NioEventLoopGroup(Settings.SELF.getInt("lannister.system.bossThreadCount", 0),
-                new DefaultThreadFactory("lannister/boss"));
-        workerGroup = new NioEventLoopGroup(Settings.SELF.getInt("lannister.system.workerThreadCount", 0),
-                new DefaultThreadFactory("lannister/worker"));
-    }
+	public void start() throws Exception {
+		if (Settings.SELF.mqttPort() == null && Settings.SELF.mqttsPort() == null
+				&& Settings.SELF.websocketPort() == null && Settings.SELF.websocketSslPort() == null) {
+			logger.info("No MQTT port(s) arranged");
+			shutdown();
+			return;
+		}
 
-    public void start() throws Exception {
-        if (TCP_PORT == null && TCP_SSL_PORT == null) {
-            logger.info("No MQTT port(s) arranged");
-            shutdown();
-            return;
-        }
+		try {
+			SessionExpirator sessionExpirator = new SessionExpirator();
 
-        try {
-            SessionExpirator sessionExpirator = new SessionExpirator();
+			if (Settings.SELF.mqttPort() != null) {
+				executeBootstrap(sessionExpirator, Settings.SELF.mqttPort(), false, false);
+				sessionExpirator = null;
+			}
+			if (Settings.SELF.mqttsPort() != null) {
+				executeBootstrap(sessionExpirator, Settings.SELF.mqttsPort(), false, true);
+				sessionExpirator = null;
+			}
+			if (Settings.SELF.websocketPort() != null) {
+				executeBootstrap(sessionExpirator, Settings.SELF.websocketPort(), true, false);
+				sessionExpirator = null;
+			}
+			if (Settings.SELF.websocketSslPort() != null) {
+				executeBootstrap(sessionExpirator, Settings.SELF.websocketSslPort(), true, true);
+				sessionExpirator = null;
+			}
 
-            if (TCP_PORT != null) {
-                executeBootstrap(sessionExpirator, TCP_PORT, false, false);
-                sessionExpirator = null;
-            }
-            if (TCP_SSL_PORT != null) {
-                executeBootstrap(sessionExpirator, TCP_SSL_PORT, false, true);
-                sessionExpirator = null;
-            }
-            if (WEBSOCKET_PORT != null) {
-                executeBootstrap(sessionExpirator, WEBSOCKET_PORT, true, false);
-                sessionExpirator = null;
-            }
-            if (WEBSOCKET_SSL_PORT != null) {
-                executeBootstrap(sessionExpirator, WEBSOCKET_SSL_PORT, true, true);
-                sessionExpirator = null;
-            }
+			logger.info(
+					"Lannister server started: [MQTT tcp.port={}, tcp.ssl.port={}, websocket.port={}, websocket.ssl.port={}]",
+					Settings.SELF.mqttPort(), Settings.SELF.mqttsPort(), Settings.SELF.websocketPort(),
+					Settings.SELF.websocketSslPort());
+		}
+		catch (Exception e) {
+			logger.error("Lannister failed to start", e);
 
-            logger.info(
-                    "Lannister server started: [MQTT tcp.port={}, tcp.ssl.port={}, websocket.port={}, websocket.ssl.port={}]",
-                    TCP_PORT, TCP_SSL_PORT, WEBSOCKET_PORT, WEBSOCKET_SSL_PORT);
-        }
-        catch (Exception e) {
-            logger.error("Lannister failed to start", e);
+			shutdown();
 
-            shutdown();
+			throw e;
+		}
+	}
 
-            throw e;
-        }
-    }
+	private void executeBootstrap(SessionExpirator sessionExpirator, int port, boolean useWebSocket, boolean useSsl)
+			throws InterruptedException {
+		ServerBootstrap bootstrap = new ServerBootstrap();
 
-    private void executeBootstrap(SessionExpirator sessionExpirator, int port, boolean useWebSocket, boolean useSsl) throws InterruptedException {
-        ServerBootstrap bootstrap = new ServerBootstrap();
+		bootstrap = bootstrap.group(bossGroup, workerGroup).channel(NioServerSocketChannel.class);
 
-        bootstrap = bootstrap.group(bossGroup, workerGroup).channel(NioServerSocketChannel.class);
+		if (sessionExpirator != null) {
+			bootstrap.handler(sessionExpirator);
+		}
+		bootstrap.childHandler(new MqttChannelInitializer(useWebSocket, useSsl));
+		bootstrap.bind(port).sync();
+	}
 
-        if (sessionExpirator != null) {
-            bootstrap.handler(sessionExpirator);
-        }
-        bootstrap.childHandler(new MqttChannelInitializer(useWebSocket, useSsl));
-        bootstrap.bind(port).sync();
-    }
+	public void shutdown() {
+		if (bossGroup != null) {
+			bossGroup.shutdownGracefully().awaitUninterruptibly();
+			logger.info("Boss event loop group shutdowned");
+		}
 
-    public void shutdown() {
-        if (bossGroup != null) {
-            bossGroup.shutdownGracefully().awaitUninterruptibly();
-            logger.info("Boss event loop group shutdowned");
-        }
+		if (workerGroup != null) {
+			workerGroup.shutdownGracefully().awaitUninterruptibly();
+			logger.info("Worker event loop group shutdowned");
+		}
 
-        if (workerGroup != null) {
-            workerGroup.shutdownGracefully().awaitUninterruptibly();
-            logger.info("Worker event loop group shutdowned");
-        }
-
-        logger.info("Lannister server shutdowned");
-    }
+		logger.info("Lannister server shutdowned");
+	}
 }

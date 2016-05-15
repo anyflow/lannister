@@ -21,6 +21,7 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 
 import io.netty.handler.codec.mqtt.MqttConnectReturnCode;
+import net.anyflow.lannister.Settings;
 import net.anyflow.lannister.TestSuite;
 import net.anyflow.lannister.TestUtil;
 import net.anyflow.lannister.client.MqttClient;
@@ -40,7 +41,7 @@ public class MqttServerTest {
 		ConnectOptions options = new ConnectOptions();
 		options.clientId(TestUtil.newClientId());
 
-		MqttClient client = new MqttClient("mqtt://localhost:1883");
+		MqttClient client = new MqttClient("mqtt://localhost:" + Settings.SELF.mqttPort());
 		MqttConnectReturnCode ret = client.connectOptions(options).connect();
 
 		Assert.assertEquals(MqttConnectReturnCode.CONNECTION_ACCEPTED, ret);
@@ -57,7 +58,7 @@ public class MqttServerTest {
 		ConnectOptions options = new ConnectOptions();
 		options.clientId(TestUtil.newClientId());
 
-		MqttClient client = new MqttClient("mqtts://localhost:8883", true);
+		MqttClient client = new MqttClient("mqtts://localhost:" + Settings.SELF.mqttsPort(), true);
 		MqttConnectReturnCode ret = client.connectOptions(options).connect();
 
 		Assert.assertEquals(MqttConnectReturnCode.CONNECTION_ACCEPTED, ret);

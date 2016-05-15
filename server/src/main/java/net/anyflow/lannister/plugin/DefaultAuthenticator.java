@@ -16,24 +16,24 @@
 
 package net.anyflow.lannister.plugin;
 
-public class DefaultAuthorization implements Authorization {
+public class DefaultAuthenticator implements Authenticator {
+	private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(DefaultAuthenticator.class);
+
 	@Override
 	public Plugin clone() {
-		return new DefaultAuthorization();
+		return new DefaultAuthenticator();
 	}
 
 	@Override
 	public boolean isValid(String clientId) {
+		logger.debug("DefaultAuthenticator.isValid() called [clientId={}]", clientId);
 		return true;
 	}
 
 	@Override
-	public boolean isValid(boolean hasUserName, boolean hasPassword, String userName, String password) {
-		return true;
-	}
-
-	@Override
-	public boolean isAuthorized(boolean hasUserName, String username) {
+	public boolean isValid(String clientId, String userName, String password) {
+		logger.debug("DefaultAuthenticator.isValid() called [clientId={}, userName={}, password={}]", clientId,
+				userName, password);
 		return true;
 	}
 }

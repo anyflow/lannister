@@ -16,27 +16,20 @@
 
 package net.anyflow.lannister.pluginexample;
 
-import net.anyflow.lannister.plugin.Authorization;
+import net.anyflow.lannister.plugin.Authorizer;
 import net.anyflow.lannister.plugin.Plugin;
 
-public class ExampleAuthorization implements Authorization {
+public class ExampleAuthorizer implements Authorizer {
+	private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(ExampleAuthorizer.class);
+
 	@Override
 	public Plugin clone() {
-		return new ExampleAuthorization();
+		return new ExampleAuthorizer();
 	}
 
 	@Override
-	public boolean isValid(String clientId) {
-		return true;
-	}
-
-	@Override
-	public boolean isValid(boolean hasUserName, boolean hasPassword, String userName, String password) {
-		return true;
-	}
-
-	@Override
-	public boolean isAuthorized(boolean hasUserName, String username) {
+	public boolean isAuthorized(String clientId, String userName) {
+		logger.debug("ExampleAuthorizer.isAuthorized() called [clientId={}, userName={}]", clientId, userName);
 		return true;
 	}
 }

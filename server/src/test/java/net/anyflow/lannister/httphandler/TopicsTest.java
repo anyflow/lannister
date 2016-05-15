@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package net.anyflow.lannister.plugin;
+package net.anyflow.lannister.httphandler;
 
 import org.junit.Assert;
 import org.junit.BeforeClass;
@@ -26,7 +26,7 @@ import net.anyflow.lannister.TestSuite;
 import net.anyflow.menton.http.HttpClient;
 import net.anyflow.menton.http.HttpResponse;
 
-public class SessionsFilterTest {
+public class TopicsTest {
 
 	@BeforeClass
 	public static void setUpBeforeClass() throws Exception {
@@ -34,18 +34,8 @@ public class SessionsFilterTest {
 	}
 
 	@Test
-	public void testLive() throws Exception {
-		HttpClient client = new HttpClient("http://localhost:8090/sessions?filter=live");
-		HttpResponse res = client.get();
-
-		Assert.assertEquals(HttpResponseStatus.OK, res.status());
-		Assert.assertTrue(res.content().toString(CharsetUtil.UTF_8).startsWith("{"));
-		Assert.assertTrue(res.content().toString(CharsetUtil.UTF_8).endsWith("}"));
-	}
-
-	@Test
 	public void testAll() throws Exception {
-		HttpClient client = new HttpClient("http://localhost:8090/sessions?filter=all");
+		HttpClient client = new HttpClient("http://localhost:8090/topics?filter=all");
 		HttpResponse res = client.get();
 
 		Assert.assertEquals(HttpResponseStatus.OK, res.status());

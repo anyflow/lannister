@@ -14,26 +14,19 @@
  * limitations under the License.
  */
 
-package net.anyflow.lannister.message;
+package net.anyflow.lannister.plugin;
 
-import io.netty.handler.codec.mqtt.MqttQoS;
+public class DefaultPublishEventListener implements PublishEventListener {
+	private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(DefaultPublishEventListener.class);
 
-public interface IMessage {
-	int id();
+	@Override
+	public Plugin clone() {
+		return this;
+	}
 
-	String topicName();
-
-	String publisherId();
-
-	byte[] message();
-
-	MqttQoS qos();
-
-	boolean isRetain();
-
-	default String log() {
-		return (new StringBuilder()).append("messageId=").append(id()).append(", topicName=").append(topicName())
-				.append(", publisherId=").append(publisherId()).append(", message=").append(message()).append(", qos=")
-				.append(qos()).append(", isRetain=").append(isRetain()).toString();
+	@Override
+	public boolean beforePublish(PublishEventArgs args) {
+		logger.debug("DefaultPublishEventListener.beforePublish() called [{}]", args.log());
+		return true;
 	}
 }

@@ -31,11 +31,13 @@ import io.netty.handler.codec.mqtt.MqttConnectVariableHeader;
 import io.netty.handler.codec.mqtt.MqttFixedHeader;
 import io.netty.handler.codec.mqtt.MqttMessageType;
 import io.netty.handler.codec.mqtt.MqttQoS;
+import net.anyflow.lannister.Settings;
 import net.anyflow.lannister.TestSuite;
 import net.anyflow.lannister.TestUtil;
 import net.anyflow.lannister.client.MqttClient;
 import net.anyflow.lannister.message.ConnectOptions;
-import net.anyflow.lannister.plugin.Authorization;
+import net.anyflow.lannister.plugin.Authenticator;
+import net.anyflow.lannister.plugin.Authorizer;
 import net.anyflow.lannister.plugin.Plugin;
 import net.anyflow.lannister.plugin.Plugins;
 import net.anyflow.lannister.plugin.ServiceStatus;
@@ -59,7 +61,7 @@ public class ConnectReceiverTest {
 		ConnectOptions options = new ConnectOptions();
 		options.cleanSession(false);
 
-		MqttClient client = new MqttClient("mqtt://localhost:1883");
+		MqttClient client = new MqttClient("mqtt://localhost:" + Settings.SELF.mqttPort());
 		MqttConnectReturnCode ret = client.connectOptions(options).receiver(null).connect();
 
 		Assert.assertEquals(MqttConnectReturnCode.CONNECTION_REFUSED_IDENTIFIER_REJECTED, ret);
@@ -103,7 +105,7 @@ public class ConnectReceiverTest {
 
 	@Test
 	public void testCONNECTION_REFUSED_IDENTIFIER_REJECTED() throws Exception {
-		Authorization prev = Plugins.SELF.put(Authorization.class, new Authorization() {
+		Authenticator prev = Plugins.SELF.put(Authenticator.class, new Authenticator() {
 			@Override
 			public Plugin clone() {
 				return this;
@@ -115,12 +117,7 @@ public class ConnectReceiverTest {
 			}
 
 			@Override
-			public boolean isValid(boolean hasUserName, boolean hasPassword, String userName, String password) {
-				return true;
-			}
-
-			@Override
-			public boolean isAuthorized(boolean hasUserName, String username) {
+			public boolean isValid(String clientId, String userName, String password) {
 				return true;
 			}
 		});
@@ -130,12 +127,12 @@ public class ConnectReceiverTest {
 		Assert.assertEquals(ret.variableHeader().connectReturnCode(),
 				MqttConnectReturnCode.CONNECTION_REFUSED_IDENTIFIER_REJECTED);
 
-		Plugins.SELF.put(Authorization.class, prev);
+		Plugins.SELF.put(Authenticator.class, prev);
 	}
 
 	@Test
 	public void testCONNECTION_REFUSED_BAD_USER_NAME_OR_PASSWORD() throws Exception {
-		Authorization prev = Plugins.SELF.put(Authorization.class, new Authorization() {
+		Authenticator prev = Plugins.SELF.put(Authenticator.class, new Authenticator() {
 			@Override
 			public Plugin clone() {
 				return this;
@@ -147,13 +144,8 @@ public class ConnectReceiverTest {
 			}
 
 			@Override
-			public boolean isValid(boolean hasUserName, boolean hasPassword, String userName, String password) {
+			public boolean isValid(String clientId, String userName, String password) {
 				return false;
-			}
-
-			@Override
-			public boolean isAuthorized(boolean hasUserName, String username) {
-				return true;
 			}
 		});
 
@@ -162,29 +154,19 @@ public class ConnectReceiverTest {
 		Assert.assertEquals(ret.variableHeader().connectReturnCode(),
 				MqttConnectReturnCode.CONNECTION_REFUSED_BAD_USER_NAME_OR_PASSWORD);
 
-		Plugins.SELF.put(Authorization.class, prev);
+		Plugins.SELF.put(Authenticator.class, prev);
 	}
 
 	@Test
 	public void testCONNECTION_REFUSED_NOT_AUTHORIZED() throws Exception {
-		Authorization prev = Plugins.SELF.put(Authorization.class, new Authorization() {
+		Authorizer prev = Plugins.SELF.put(Authorizer.class, new Authorizer() {
 			@Override
 			public Plugin clone() {
 				return this;
 			}
 
 			@Override
-			public boolean isValid(String clientId) {
-				return true;
-			}
-
-			@Override
-			public boolean isValid(boolean hasUserName, boolean hasPassword, String userName, String password) {
-				return true;
-			}
-
-			@Override
-			public boolean isAuthorized(boolean hasUserName, String username) {
+			public boolean isAuthorized(String clientId, String username) {
 				return false;
 			}
 		});
@@ -194,7 +176,7 @@ public class ConnectReceiverTest {
 		Assert.assertEquals(ret.variableHeader().connectReturnCode(),
 				MqttConnectReturnCode.CONNECTION_REFUSED_NOT_AUTHORIZED);
 
-		Plugins.SELF.put(Authorization.class, prev);
+		Plugins.SELF.put(Authorizer.class, prev);
 	}
 
 	@Test

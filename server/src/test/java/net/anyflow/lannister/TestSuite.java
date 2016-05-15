@@ -22,18 +22,18 @@ import org.junit.runner.RunWith;
 import org.junit.runners.Suite;
 import org.junit.runners.Suite.SuiteClasses;
 
+import net.anyflow.lannister.httphandler.SessionsTest;
+import net.anyflow.lannister.httphandler.TopicsTest;
 import net.anyflow.lannister.packetreceiver.ConnectReceiverTest;
 import net.anyflow.lannister.packetreceiver.SessionExpiratorTest;
-import net.anyflow.lannister.plugin.SessionsFilterTest;
-import net.anyflow.lannister.plugin.TopicsFilterTest;
 import net.anyflow.lannister.server.MqttServerTest;
 import net.anyflow.lannister.session.WillTest;
 import net.anyflow.lannister.topic.TopicMatcherTest;
 import net.anyflow.lannister.topic.TopicTest;
 
 @RunWith(Suite.class)
-@SuiteClasses({ NettyUtilTest.class, SessionsFilterTest.class, ConnectReceiverTest.class, TopicMatcherTest.class,
-		TopicsFilterTest.class, MqttServerTest.class, TopicTest.class, WillTest.class, SessionExpiratorTest.class })
+@SuiteClasses({ NettyUtilTest.class, SessionsTest.class, ConnectReceiverTest.class, TopicMatcherTest.class,
+		TopicsTest.class, MqttServerTest.class, TopicTest.class, WillTest.class, SessionExpiratorTest.class })
 public class TestSuite {
 
 	private static boolean SETUP_CALLED = false;

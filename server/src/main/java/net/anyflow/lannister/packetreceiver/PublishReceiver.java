@@ -22,9 +22,13 @@ import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
 import io.netty.handler.codec.mqtt.MqttPublishMessage;
+import net.anyflow.lannister.message.IMessage;
 import net.anyflow.lannister.message.InboundMessageStatus;
 import net.anyflow.lannister.message.Message;
 import net.anyflow.lannister.message.MessageFactory;
+import net.anyflow.lannister.plugin.Plugins;
+import net.anyflow.lannister.plugin.PublishEventArgs;
+import net.anyflow.lannister.plugin.PublishEventListener;
 import net.anyflow.lannister.session.Session;
 import net.anyflow.lannister.topic.Topic;
 import net.anyflow.lannister.topic.TopicMatcher;
@@ -51,13 +55,23 @@ public class PublishReceiver extends SimpleChannelInboundHandler<MqttPublishMess
 			return;
 		}
 
+		Message message = Message.newMessage(msg, session.clientId());
+
+		if (!Plugins.SELF.get(PublishEventListener.class).beforePublish(new PublishEventArgs() {
+			@Override
+			public IMessage message() {
+				return message;
+			}
+		})) {
+			session.dispose(true);
+			return;
+		}
+
 		Topic topic = Topic.NEXUS.get(msg.variableHeader().topicName());
 		if (topic == null) {
 			topic = new Topic(msg.variableHeader().topicName());
 			Topic.put(topic);
 		}
-
-		Message message = Message.newMessage(msg, session.clientId());
 
 		if (message.isRetain()) { // else do nothing [MQTT-3.3.1-12]
 			topic.setRetainedMessage(message.message().length > 0 ? message : null); // [MQTT-3.3.1-5],[MQTT-3.3.1-10],[MQTT-3.3.1-11]
