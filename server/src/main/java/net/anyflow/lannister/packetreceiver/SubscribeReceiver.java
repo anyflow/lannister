@@ -28,6 +28,10 @@ import io.netty.handler.codec.mqtt.MqttQoS;
 import io.netty.handler.codec.mqtt.MqttSubscribeMessage;
 import io.netty.handler.codec.mqtt.MqttTopicSubscription;
 import net.anyflow.lannister.message.MessageFactory;
+import net.anyflow.lannister.plugin.ITopicSubscription;
+import net.anyflow.lannister.plugin.Plugins;
+import net.anyflow.lannister.plugin.SubscribeEventArgs;
+import net.anyflow.lannister.plugin.SubscribeEventListener;
 import net.anyflow.lannister.session.Session;
 import net.anyflow.lannister.topic.TopicMatcher;
 import net.anyflow.lannister.topic.TopicSubscription;
@@ -74,6 +78,16 @@ public class SubscribeReceiver extends SimpleChannelInboundHandler<MqttSubscribe
 			grantedQoss.add(topicSubscription.qos().value());
 			topicSubscriptions.add(topicSubscription);
 		});
+
+		if (!Plugins.SELF.get(SubscribeEventListener.class).allowSubscribe(new SubscribeEventArgs() {
+			@Override
+			public List<ITopicSubscription> topicSubscriptions() {
+				return Lists.newArrayList(topicSubscriptions);
+			}
+		})) {
+			session.dispose(true);
+			return;
+		}
 
 		session.send(MessageFactory.suback(msg.variableHeader().messageId(), grantedQoss)); // [MQTT-2.3.1-7],[MQTT-2.3.1-7],[MQTT-3.8.4-1],[MQTT-3.8.4-2]
 

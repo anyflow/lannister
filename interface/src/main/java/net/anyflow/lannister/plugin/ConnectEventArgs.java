@@ -16,8 +16,7 @@
 
 package net.anyflow.lannister.plugin;
 
-import net.anyflow.lannister.entity.MqttConnectReturnCode;
-import net.anyflow.lannister.message.IMessage;
+import io.netty.handler.codec.mqtt.MqttConnectReturnCode;
 
 public interface ConnectEventArgs {
 	String clientId();

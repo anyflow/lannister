@@ -40,7 +40,7 @@ import net.anyflow.lannister.plugin.Authenticator;
 import net.anyflow.lannister.plugin.Authorizer;
 import net.anyflow.lannister.plugin.Plugin;
 import net.anyflow.lannister.plugin.Plugins;
-import net.anyflow.lannister.plugin.ServiceStatus;
+import net.anyflow.lannister.plugin.ServiceChecker;
 import net.anyflow.lannister.session.Session;
 
 //TODO invalid version(e.g. 2) mqtt connect, server seems process nothing
@@ -83,7 +83,7 @@ public class ConnectReceiverTest {
 
 	@Test
 	public void testCONNECTION_REFUSED_SERVER_UNAVAILABLE() throws Exception {
-		ServiceStatus prev = Plugins.SELF.put(ServiceStatus.class, new ServiceStatus() {
+		ServiceChecker prev = Plugins.SELF.put(ServiceChecker.class, new ServiceChecker() {
 			@Override
 			public Plugin clone() {
 				return this;
@@ -100,7 +100,7 @@ public class ConnectReceiverTest {
 		Assert.assertEquals(ret.variableHeader().connectReturnCode(),
 				MqttConnectReturnCode.CONNECTION_REFUSED_SERVER_UNAVAILABLE);
 
-		Plugins.SELF.put(ServiceStatus.class, prev);
+		Plugins.SELF.put(ServiceChecker.class, prev);
 	}
 
 	@Test

@@ -16,7 +16,7 @@
 
 package net.anyflow.lannister.client;
 
-import net.anyflow.lannister.message.IMessage;
+import net.anyflow.lannister.plugin.IMessage;
 
 public interface MessageReceiver {
 	void messageReceived(IMessage message);

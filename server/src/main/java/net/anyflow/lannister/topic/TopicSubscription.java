@@ -26,9 +26,10 @@ import com.hazelcast.nio.serialization.PortableReader;
 import com.hazelcast.nio.serialization.PortableWriter;
 
 import io.netty.handler.codec.mqtt.MqttQoS;
+import net.anyflow.lannister.plugin.ITopicSubscription;
 import net.anyflow.lannister.serialization.SerializableFactory;
 
-public class TopicSubscription implements com.hazelcast.nio.serialization.Portable {
+public class TopicSubscription implements com.hazelcast.nio.serialization.Portable, ITopicSubscription {
 
 	public final static int ID = 8;
 
@@ -45,10 +46,18 @@ public class TopicSubscription implements com.hazelcast.nio.serialization.Portab
 		this.qos = qos;
 	}
 
+	/* (non-Javadoc)
+	 * @see net.anyflow.lannister.topic.ITopicSubscription#topicFilter()
+	 */
+	@Override
 	public String topicFilter() {
 		return topicFilter;
 	}
 
+	/* (non-Javadoc)
+	 * @see net.anyflow.lannister.topic.ITopicSubscription#qos()
+	 */
+	@Override
 	public MqttQoS qos() {
 		return qos;
 	}

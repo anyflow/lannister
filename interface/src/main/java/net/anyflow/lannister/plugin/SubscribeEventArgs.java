@@ -16,6 +16,18 @@
 
 package net.anyflow.lannister.plugin;
 
-public interface ServiceStatus extends Plugin {
-	boolean isServiceAvailable();
+import java.util.List;
+
+public interface SubscribeEventArgs {
+	List<ITopicSubscription> topicSubscriptions();
+
+	default String log() {
+		StringBuilder sb = new StringBuilder();
+
+		if (topicSubscriptions() == null) { return null; }
+
+		topicSubscriptions().stream().forEach(ts -> sb.append("|").append(ts.log()));
+
+		return sb.toString();
+	}
 }

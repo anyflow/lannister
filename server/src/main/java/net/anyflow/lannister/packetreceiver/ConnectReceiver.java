@@ -29,15 +29,15 @@ import io.netty.handler.codec.mqtt.MqttQoS;
 import io.netty.handler.codec.mqtt.MqttUnacceptableProtocolVersionException;
 import net.anyflow.lannister.Hazelcast;
 import net.anyflow.lannister.Settings;
-import net.anyflow.lannister.message.IMessage;
 import net.anyflow.lannister.message.Message;
 import net.anyflow.lannister.message.MessageFactory;
 import net.anyflow.lannister.plugin.Authenticator;
 import net.anyflow.lannister.plugin.Authorizer;
 import net.anyflow.lannister.plugin.ConnectEventArgs;
 import net.anyflow.lannister.plugin.ConnectEventListener;
+import net.anyflow.lannister.plugin.IMessage;
 import net.anyflow.lannister.plugin.Plugins;
-import net.anyflow.lannister.plugin.ServiceStatus;
+import net.anyflow.lannister.plugin.ServiceChecker;
 import net.anyflow.lannister.session.Session;
 import net.anyflow.lannister.topic.Topic;
 
@@ -128,9 +128,8 @@ public class ConnectReceiver extends SimpleChannelInboundHandler<MqttConnectMess
 				}
 
 				@Override
-				public net.anyflow.lannister.entity.MqttConnectReturnCode returnCode() {
-					return net.anyflow.lannister.entity.MqttConnectReturnCode
-							.valueOf(MqttConnectReturnCode.CONNECTION_ACCEPTED.byteValue());
+				public MqttConnectReturnCode returnCode() {
+					return MqttConnectReturnCode.CONNECTION_ACCEPTED;
 				}
 			});
 
@@ -157,7 +156,7 @@ public class ConnectReceiver extends SimpleChannelInboundHandler<MqttConnectMess
 		String userName = msg.variableHeader().hasUserName() ? msg.payload().userName() : null;
 		String password = msg.variableHeader().hasPassword() ? msg.payload().password() : null;
 
-		if (Plugins.SELF.get(ServiceStatus.class).isServiceAvailable() == false) {
+		if (Plugins.SELF.get(ServiceChecker.class).isServiceAvailable() == false) {
 			return MqttConnectReturnCode.CONNECTION_REFUSED_SERVER_UNAVAILABLE;
 		}
 		else if (Plugins.SELF.get(Authenticator.class).isValid(clientId) == false) {
@@ -196,8 +195,8 @@ public class ConnectReceiver extends SimpleChannelInboundHandler<MqttConnectMess
 				}
 
 				@Override
-				public net.anyflow.lannister.entity.MqttConnectReturnCode returnCode() {
-					return net.anyflow.lannister.entity.MqttConnectReturnCode.valueOf(returnCode.byteValue());
+				public MqttConnectReturnCode returnCode() {
+					return returnCode;
 				}
 			});
 			ctx.channel().disconnect().addListener(ChannelFutureListener.CLOSE); // [MQTT-3.2.2-5],[MQTT-3.1.4-5]

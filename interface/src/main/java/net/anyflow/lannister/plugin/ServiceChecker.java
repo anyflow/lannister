@@ -14,22 +14,8 @@
  * limitations under the License.
  */
 
-package net.anyflow.lannister.pluginexample;
+package net.anyflow.lannister.plugin;
 
-import net.anyflow.lannister.plugin.Plugin;
-import net.anyflow.lannister.plugin.ServiceStatus;
-
-public class ExampleServiceStatus implements ServiceStatus {
-	private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(ExampleServiceStatus.class);
-
-	@Override
-	public Plugin clone() {
-		return new ExampleServiceStatus();
-	}
-
-	@Override
-	public boolean isServiceAvailable() {
-		logger.debug("ExampleServiceStatus.isServiceAvailable() called");
-		return true;
-	}
+public interface ServiceChecker extends Plugin {
+	boolean isServiceAvailable();
 }

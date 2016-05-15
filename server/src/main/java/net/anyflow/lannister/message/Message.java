@@ -29,6 +29,7 @@ import io.netty.handler.codec.mqtt.MqttPublishMessage;
 import io.netty.handler.codec.mqtt.MqttQoS;
 import io.netty.util.internal.StringUtil;
 import net.anyflow.lannister.NettyUtil;
+import net.anyflow.lannister.plugin.IMessage;
 import net.anyflow.lannister.serialization.SerializableFactory;
 
 public class Message implements com.hazelcast.nio.serialization.Portable, IMessage {

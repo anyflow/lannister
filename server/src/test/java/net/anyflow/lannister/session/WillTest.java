@@ -29,8 +29,8 @@ import net.anyflow.lannister.TestSuite;
 import net.anyflow.lannister.TestUtil;
 import net.anyflow.lannister.client.MqttClient;
 import net.anyflow.lannister.message.ConnectOptions;
-import net.anyflow.lannister.message.IMessage;
 import net.anyflow.lannister.message.Message;
+import net.anyflow.lannister.plugin.IMessage;
 import net.anyflow.lannister.topic.Topic;
 
 public class WillTest {

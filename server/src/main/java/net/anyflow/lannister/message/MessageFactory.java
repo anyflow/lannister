@@ -43,6 +43,7 @@ import io.netty.handler.codec.mqtt.MqttSubscribePayload;
 import io.netty.handler.codec.mqtt.MqttTopicSubscription;
 import io.netty.handler.codec.mqtt.MqttUnsubAckMessage;
 import io.netty.util.CharsetUtil;
+import net.anyflow.lannister.plugin.IMessage;
 
 public class MessageFactory {
 	public static MqttConnectMessage connect(ConnectOptions options) {

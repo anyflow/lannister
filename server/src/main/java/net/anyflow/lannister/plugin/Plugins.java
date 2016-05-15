@@ -50,11 +50,12 @@ public class Plugins {
 
 		plugins.put(Authenticator.class, new DefaultAuthenticator());
 		plugins.put(Authorizer.class, new DefaultAuthorizer());
-		plugins.put(ServiceStatus.class, new DefaultServiceStatus());
+		plugins.put(ServiceChecker.class, new DefaultServiceChecker());
 		plugins.put(ConnectEventListener.class, new DefaultConnectEventListener());
 		plugins.put(DisconnectEventListener.class, new DefaultDisconnectEventListener());
 		plugins.put(PublishEventListener.class, new DefaultPublishEventListener());
 		plugins.put(DeliveredEventListener.class, new DefaultDeliveredEventListener());
+		plugins.put(SubscribeEventListener.class, new DefaultSubscribeEventListener());
 
 		load();
 	}
@@ -74,8 +75,8 @@ public class Plugins {
 				.filter(p -> !p.equals(DefaultAuthenticator.class)));
 		load(Authorizer.class,
 				reflections.getSubTypesOf(Authorizer.class).stream().filter(p -> !p.equals(DefaultAuthorizer.class)));
-		load(ServiceStatus.class, reflections.getSubTypesOf(ServiceStatus.class).stream()
-				.filter(p -> !p.equals(DefaultServiceStatus.class)));
+		load(ServiceChecker.class, reflections.getSubTypesOf(ServiceChecker.class).stream()
+				.filter(p -> !p.equals(DefaultServiceChecker.class)));
 		load(ConnectEventListener.class, reflections.getSubTypesOf(ConnectEventListener.class).stream()
 				.filter(p -> !p.equals(DefaultConnectEventListener.class)));
 		load(DisconnectEventListener.class, reflections.getSubTypesOf(DisconnectEventListener.class).stream()
@@ -84,6 +85,8 @@ public class Plugins {
 				.filter(p -> !p.equals(DefaultPublishEventListener.class)));
 		load(DeliveredEventListener.class, reflections.getSubTypesOf(DeliveredEventListener.class).stream()
 				.filter(p -> !p.equals(DefaultDeliveredEventListener.class)));
+		load(SubscribeEventListener.class, reflections.getSubTypesOf(SubscribeEventListener.class).stream()
+				.filter(p -> !p.equals(DefaultSubscribeEventListener.class)));
 	}
 
 	@SuppressWarnings("unchecked")
@@ -132,7 +135,7 @@ public class Plugins {
 		try {
 			T instance = plugin.newInstance();
 			plugins.put(clazz, instance);
-			logger.debug("{} plugin loaded", instance.getClass().getName());
+			logger.info("Plugin loaded [{}]", instance.getClass().getName());
 		}
 		catch (InstantiationException | IllegalAccessException e) {
 			logger.error(e.getMessage(), e);

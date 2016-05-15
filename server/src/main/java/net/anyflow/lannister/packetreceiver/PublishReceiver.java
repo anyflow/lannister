@@ -22,10 +22,10 @@ import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
 import io.netty.handler.codec.mqtt.MqttPublishMessage;
-import net.anyflow.lannister.message.IMessage;
 import net.anyflow.lannister.message.InboundMessageStatus;
 import net.anyflow.lannister.message.Message;
 import net.anyflow.lannister.message.MessageFactory;
+import net.anyflow.lannister.plugin.IMessage;
 import net.anyflow.lannister.plugin.Plugins;
 import net.anyflow.lannister.plugin.PublishEventArgs;
 import net.anyflow.lannister.plugin.PublishEventListener;
@@ -57,7 +57,7 @@ public class PublishReceiver extends SimpleChannelInboundHandler<MqttPublishMess
 
 		Message message = Message.newMessage(msg, session.clientId());
 
-		if (!Plugins.SELF.get(PublishEventListener.class).beforePublish(new PublishEventArgs() {
+		if (!Plugins.SELF.get(PublishEventListener.class).allowPublish(new PublishEventArgs() {
 			@Override
 			public IMessage message() {
 				return message;

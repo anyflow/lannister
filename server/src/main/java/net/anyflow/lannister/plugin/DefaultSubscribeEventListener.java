@@ -16,14 +16,18 @@
 
 package net.anyflow.lannister.plugin;
 
-public class DefaultServiceStatus implements ServiceStatus {
+public class DefaultSubscribeEventListener implements SubscribeEventListener {
+	private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory
+			.getLogger(DefaultSubscribeEventListener.class);
+
 	@Override
 	public Plugin clone() {
-		return new DefaultServiceStatus();
+		return this;
 	}
 
 	@Override
-	public boolean isServiceAvailable() {
+	public boolean allowSubscribe(SubscribeEventArgs args) {
+		logger.debug("DefaultSubscribeEventListener.allowSubscribe() called [{}]", args.log());
 		return true;
 	}
 }

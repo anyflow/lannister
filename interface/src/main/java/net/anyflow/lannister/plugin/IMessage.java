@@ -16,7 +16,24 @@
 
 package net.anyflow.lannister.plugin;
 
-public interface PublishEventListener extends Plugin {
+import io.netty.handler.codec.mqtt.MqttQoS;
 
-	public boolean allowPublish(PublishEventArgs args);
+public interface IMessage {
+	int id();
+
+	String topicName();
+
+	String publisherId();
+
+	byte[] message();
+
+	MqttQoS qos();
+
+	boolean isRetain();
+
+	default String log() {
+		return (new StringBuilder()).append("messageId=").append(id()).append(", topicName=").append(topicName())
+				.append(", publisherId=").append(publisherId()).append(", message=").append(message()).append(", qos=")
+				.append(qos()).append(", isRetain=").append(isRetain()).toString();
+	}
 }

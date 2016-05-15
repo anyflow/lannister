@@ -14,10 +14,15 @@
  * limitations under the License.
  */
 
-package net.anyflow.lannister.plugin;
+package net.anyflow.lannister.pluginexample;
 
-public class DefaultPublishEventListener implements PublishEventListener {
-	private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(DefaultPublishEventListener.class);
+import net.anyflow.lannister.plugin.Plugin;
+import net.anyflow.lannister.plugin.SubscribeEventArgs;
+import net.anyflow.lannister.plugin.SubscribeEventListener;
+
+public class ExampleSubscribeEventListener implements SubscribeEventListener {
+	private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory
+			.getLogger(ExampleSubscribeEventListener.class);
 
 	@Override
 	public Plugin clone() {
@@ -25,8 +30,8 @@ public class DefaultPublishEventListener implements PublishEventListener {
 	}
 
 	@Override
-	public boolean allowPublish(PublishEventArgs args) {
-		logger.debug("DefaultPublishEventListener.allowPublish() called [{}]", args.log());
+	public boolean allowSubscribe(SubscribeEventArgs args) {
+		logger.debug("ExampleSubscribeEventListener.allowSubscribe() called [{}]", args.log());
 		return true;
 	}
 }

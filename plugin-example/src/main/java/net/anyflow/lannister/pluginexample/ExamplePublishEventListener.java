@@ -29,8 +29,8 @@ public class ExamplePublishEventListener implements PublishEventListener {
 	}
 
 	@Override
-	public boolean beforePublish(PublishEventArgs args) {
-		logger.debug("ExamplePublishEventListener.beforePublish() called [{}]", args.log());
+	public boolean allowPublish(PublishEventArgs args) {
+		logger.debug("ExamplePublishEventListener.allowPublish() called [{}]", args.log());
 		return true;
 	}
 }

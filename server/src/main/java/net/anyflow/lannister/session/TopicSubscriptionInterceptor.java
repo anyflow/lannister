@@ -18,10 +18,10 @@ package net.anyflow.lannister.session;
 
 import com.hazelcast.map.MapInterceptor;
 
+import net.anyflow.lannister.plugin.ITopicSubscription;
 import net.anyflow.lannister.topic.Topic;
 import net.anyflow.lannister.topic.TopicMatcher;
 import net.anyflow.lannister.topic.TopicSubscriber;
-import net.anyflow.lannister.topic.TopicSubscription;
 
 public class TopicSubscriptionInterceptor implements MapInterceptor {
 
@@ -50,7 +50,7 @@ public class TopicSubscriptionInterceptor implements MapInterceptor {
 
 	@Override
 	public void afterPut(Object value) {
-		TopicSubscription topicSubscription = (TopicSubscription) value;
+		ITopicSubscription topicSubscription = (ITopicSubscription) value;
 
 		Session.NEXUS.channelHandlerContext(clientId).executor().submit(() -> {
 			Topic.NEXUS.map().values().stream()
@@ -61,7 +61,7 @@ public class TopicSubscriptionInterceptor implements MapInterceptor {
 
 	@Override
 	public Object interceptRemove(Object removedValue) {
-		TopicSubscription topicSubscription = (TopicSubscription) removedValue;
+		ITopicSubscription topicSubscription = (ITopicSubscription) removedValue;
 
 		Session.NEXUS.channelHandlerContext(clientId).executor().submit(() -> {
 			Topic.NEXUS.map().values().stream()

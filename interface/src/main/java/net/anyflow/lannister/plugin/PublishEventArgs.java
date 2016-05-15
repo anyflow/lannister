@@ -16,8 +16,6 @@
 
 package net.anyflow.lannister.plugin;
 
-import net.anyflow.lannister.message.IMessage;
-
 public interface PublishEventArgs {
 	IMessage message();
 

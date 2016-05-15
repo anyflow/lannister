@@ -14,9 +14,22 @@
  * limitations under the License.
  */
 
-package net.anyflow.lannister.plugin;
+package net.anyflow.lannister.pluginexample;
 
-public interface PublishEventListener extends Plugin {
+import net.anyflow.lannister.plugin.Plugin;
+import net.anyflow.lannister.plugin.ServiceChecker;
 
-	public boolean allowPublish(PublishEventArgs args);
+public class ExampleServiceChecker implements ServiceChecker {
+	private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(ExampleServiceChecker.class);
+
+	@Override
+	public Plugin clone() {
+		return new ExampleServiceChecker();
+	}
+
+	@Override
+	public boolean isServiceAvailable() {
+		logger.debug("ExampleServiceStatus.isServiceAvailable() called");
+		return true;
+	}
 }

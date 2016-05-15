@@ -16,7 +16,7 @@
 
 package net.anyflow.lannister.plugin;
 
-public interface PublishEventListener extends Plugin {
+public interface SubscribeEventListener extends Plugin {
 
-	public boolean allowPublish(PublishEventArgs args);
+	public boolean allowSubscribe(SubscribeEventArgs args);
 }
