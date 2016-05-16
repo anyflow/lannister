@@ -20,53 +20,95 @@
 
     <section class="main-content">
       <h1>
-<a id="lannister---" class="anchor" href="#lannister---" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Lannister <a href="https://travis-ci.org/anyflow/lannister"><img src="https://travis-ci.org/anyflow/lannister.svg?branch=master" alt="Build Status"></a> <a href="https://www.codacy.com/app/anyflow/lannister?utm_source=github.com&amp;amp;utm_medium=referral&amp;amp;utm_content=anyflow/lannister&amp;amp;utm_campaign=Badge_Grade"><img src="https://api.codacy.com/project/badge/Grade/8d72feca76504d89a9846beecbbbc34b" alt="Codacy Badge"></a> <a href="https://www.codacy.com/app/anyflow/lannister?utm_source=github.com&amp;amp;utm_medium=referral&amp;amp;utm_content=anyflow/lannister&amp;amp;utm_campaign=Badge_Coverage"><img src="https://api.codacy.com/project/badge/Coverage/8d72feca76504d89a9846beecbbbc34b" alt="Codacy Badge"></a>
-</h1>
+<a id="lannister" class="anchor" href="#lannister" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Lannister</h1>
 
-<h3>
-<a id="mqtt-broker-targeting" class="anchor" href="#mqtt-broker-targeting" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>MQTT broker targeting</h3>
+<p><a href="https://travis-ci.org/anyflow/lannister"><img src="https://travis-ci.org/anyflow/lannister.svg?branch=master" alt="Build Status"></a> <a href="https://www.codacy.com/app/anyflow/lannister?utm_source=github.com&amp;amp;utm_medium=referral&amp;amp;utm_content=anyflow/lannister&amp;amp;utm_campaign=Badge_Grade"><img src="https://api.codacy.com/project/badge/Grade/8d72feca76504d89a9846beecbbbc34b" alt="Codacy Badge"></a> <a href="https://www.codacy.com/app/anyflow/lannister?utm_source=github.com&amp;amp;utm_medium=referral&amp;amp;utm_content=anyflow/lannister&amp;amp;utm_campaign=Badge_Coverage"><img src="https://api.codacy.com/project/badge/Coverage/8d72feca76504d89a9846beecbbbc34b" alt="Codacy Badge"></a></p>
+
+<p>High performance MQTT broker w/ full spec,Clustering,WebSocket,SSL on Java - <a href="https://github.com/netty/netty">Netty</a> &amp; <a href="https://github.com/hazelcast/hazelcast">Hazelcast</a>
+<strong>under CONSTRUCTION</strong>.</p>
+
+<h2>
+<a id="features" class="anchor" href="#features" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Features</h2>
 
 <ol>
-<li>Support full Specs(v3.1, v3.11)</li>
-<li>1000K connections</li>
-<li>Clustering</li>
+<li>Full Protocol Specifications(<a href="http://public.dhe.ibm.com/software/dw/webservices/ws-mqtt/mqtt-v3r1.html">MQTT Version 3.1</a>, <a href="http://docs.oasis-open.org/mqtt/mqtt/v3.1.1/os/mqtt-v3.1.1-os.html">MQTT Version 3.11</a>) Support includes
+
+<ul>
+<li>QoS 0,1,2 on Publish / Subscribe</li>
+<li>Clean/Persistent Session</li>
+<li>Retain / Will Message</li>
+</ul>
+</li>
+<li>1000K connections per node</li>
+<li>Clustering
+
+<ul>
+<li>Topic / Message / Message Status / Session redundant</li>
+<li>Scalable</li>
+<li>No SPOF(peer-to-peer based : No master and slave)</li>
+</ul>
+</li>
 <li>WebSocket</li>
-<li>SSL</li>
-<li>$SYS and native Topics(e.g. $COMMAND)</li>
-<li>Web admin Dashboard</li>
-<li>HTTP REST APIs(for admin, client)</li>
-<li>etc.</li>
+<li>SSL (TCP / WebSocket both)</li>
+<li>$SYS</li>
+<li>Plugin Support
+
+<ul>
+<li>Authenticator</li>
+<li>Authorizer</li>
+<li>ServiceChecker</li>
+<li>ConnectEventListener</li>
+<li>DisconnectEventListener</li>
+<li>PublishEventListener</li>
+<li>DeliveredEventListener</li>
+<li>SubscribeEventListener</li>
+<li>UnsubscribeEventListener</li>
+</ul>
+</li>
+<li>HTTP REST APIs for admin, client</li>
+<li>Web admin Dashboard <em>(arranged for Lannister version 1.1)</em>
+</li>
+<li>Data Persistence <em>(arranged for Lannister version 1.1)</em>
+</li>
 </ol>
 
 <h2>
-<a id="installation" class="anchor" href="#installation" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Installation</h2>
+<a id="getting-started" class="anchor" href="#getting-started" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Getting Started</h2>
 
-<p>TODO:</p>
+<p>Lannister is <strong>under CONSTRUCTION</strong>. But the most of features above are implemented and tested. You can run and test Lannister via,</p>
 
-<h2>
-<a id="usage" class="anchor" href="#usage" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Usage</h2>
+<pre><code>// The below commands requires Java 8 and Maven 3
 
-<p>TODO:</p>
-
-<h2>
-<a id="contributing" class="anchor" href="#contributing" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Contributing</h2>
-
-<p>TODO:</p>
+git clone https://github.com/anyflow/lannister.git
+mvn package exec:java
+</code></pre>
 
 <h2>
-<a id="history" class="anchor" href="#history" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>History</h2>
+<a id="version-history" class="anchor" href="#version-history" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Version History</h2>
 
-<p>TODO:</p>
+<h5>
+<a id="version-095-beta1--may-16-2016" class="anchor" href="#version-095-beta1--may-16-2016" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a><a href="https://github.com/anyflow/lannister/commit/c47558dca141f5dd8162e512ec5079731814b6f4">version 0.9.5-beta1</a> / May 16, 2016</h5>
+
+<ul>
+<li>Code Review, Test based on chapter 3.1 of Spec v3.1.1 Mandatory normative statements</li>
+<li>Implement full features of Protocol Specification MQTT version 3.1.1</li>
+<li>Add WebSocket <em>(default port: 2883)</em>
+</li>
+<li>Add SSL <em>(default port: 8883, default WebSocket SSL port: 9883)</em>
+</li>
+<li>Add Plugin - Framework &amp; Default / Example Plugins</li>
+<li>Add admin HTTP REST APIs - listing topics, sessions</li>
+</ul>
 
 <h2>
-<a id="credits" class="anchor" href="#credits" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Credits</h2>
+<a id="author" class="anchor" href="#author" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Author</h2>
 
-<p>TODO:</p>
+<p>Park Hyunjeong / <a href="mailto:anyflow@gmail.com">anyflow@gmail.com</a></p>
 
 <h2>
 <a id="license" class="anchor" href="#license" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>License</h2>
 
-<p>Apache License Version 2.0                    </p>
+<p>Lannister is released under version 2.0 of the <a href="http://www.apache.org/licenses/LICENSE-2.0">Apache License</a>.</p>
 
       <footer class="site-footer">
         <span class="site-footer-owner"><a href="https://github.com/anyflow/lannister">Lannister</a> is maintained by <a href="https://github.com/anyflow">anyflow</a>.</span>
