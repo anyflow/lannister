@@ -109,7 +109,7 @@ public class SubscribeReceiver extends SimpleChannelInboundHandler<MqttSubscribe
 			}
 		};
 
-		if (DefaultSubscribeEventListener.SHARED.allowSubscribe(args)) {
+		if (!DefaultSubscribeEventListener.SHARED.allowSubscribe(args)) {
 			session.dispose(true);
 			return;
 		}

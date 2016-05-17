@@ -24,6 +24,7 @@ import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.mqtt.MqttMessage;
 import io.netty.handler.codec.mqtt.MqttQoS;
 import net.anyflow.lannister.Settings;
+import net.anyflow.lannister.Statistics;
 import net.anyflow.lannister.message.InboundMessageStatus;
 import net.anyflow.lannister.message.Message;
 import net.anyflow.lannister.message.MessageFactory;
@@ -62,6 +63,8 @@ public class MessageSender {
 		if (!session.isConnected()) { return; }
 
 		send(MessageFactory.publish(message, false)).addListener(f -> {
+			Statistics.SELF.add(Statistics.Criterion.MESSAGES_PUBLISH_SENT, 1);
+
 			switch (message.qos()) {
 			case AT_MOST_ONCE:
 				break;
@@ -156,7 +159,10 @@ public class MessageSender {
 				switch (s.status()) {
 				case TO_PUBLISH:
 				case PUBLISHED:
-					send(MessageFactory.publish(message, s.status() == OutboundMessageStatus.Status.PUBLISHED));
+					send(MessageFactory.publish(message, s.status() == OutboundMessageStatus.Status.PUBLISHED))
+							.addListener(f -> {
+						Statistics.SELF.add(Statistics.Criterion.MESSAGES_PUBLISH_SENT, 1);
+					});
 					break;
 
 				case PUBRECED:

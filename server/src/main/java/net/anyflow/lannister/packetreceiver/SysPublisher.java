@@ -23,8 +23,8 @@ import io.netty.channel.ChannelInboundHandlerAdapter;
 import io.netty.handler.codec.mqtt.MqttQoS;
 import io.netty.util.CharsetUtil;
 import net.anyflow.lannister.Settings;
+import net.anyflow.lannister.Statistics;
 import net.anyflow.lannister.message.Message;
-import net.anyflow.lannister.sys.Statistics;
 import net.anyflow.lannister.topic.Topic;
 
 public class SysPublisher extends ChannelInboundHandlerAdapter {
@@ -48,7 +48,6 @@ public class SysPublisher extends ChannelInboundHandlerAdapter {
 				byte[] msg = e.getValue().value().getBytes(CharsetUtil.UTF_8);
 				topic.publish(requesterId, new Message(-1, e.getKey(), requesterId, msg, MqttQoS.AT_MOST_ONCE, false));
 			});
-
 		} , 0, interval, TimeUnit.SECONDS);
 	}
 }

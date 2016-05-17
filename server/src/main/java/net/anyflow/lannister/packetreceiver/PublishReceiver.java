@@ -22,6 +22,7 @@ import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
 import io.netty.handler.codec.mqtt.MqttPublishMessage;
+import net.anyflow.lannister.Statistics;
 import net.anyflow.lannister.message.InboundMessageStatus;
 import net.anyflow.lannister.message.Message;
 import net.anyflow.lannister.message.MessageFactory;
@@ -40,6 +41,7 @@ public class PublishReceiver extends SimpleChannelInboundHandler<MqttPublishMess
 	@Override
 	protected void channelRead0(ChannelHandlerContext ctx, MqttPublishMessage msg) throws Exception {
 		logger.debug("packet incoming [message={}]", msg.toString());
+		Statistics.SELF.add(Statistics.Criterion.MESSAGES_PUBLISH_RECEIVED, 1);
 
 		Session session = Session.NEXUS.get(ctx.channel().id());
 		if (session == null) {
