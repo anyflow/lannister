@@ -23,6 +23,7 @@ import io.netty.channel.socket.nio.NioServerSocketChannel;
 import io.netty.util.concurrent.DefaultThreadFactory;
 import net.anyflow.lannister.Settings;
 import net.anyflow.lannister.packetreceiver.SessionExpirator;
+import net.anyflow.lannister.packetreceiver.SysPublisher;
 
 public class MqttServer {
 	private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(MqttServer.class);
@@ -47,22 +48,27 @@ public class MqttServer {
 
 		try {
 			SessionExpirator sessionExpirator = new SessionExpirator();
+			SysPublisher sysPublisher = new SysPublisher();
 
 			if (Settings.SELF.mqttPort() != null) {
-				executeBootstrap(sessionExpirator, Settings.SELF.mqttPort(), false, false);
+				executeBootstrap(sessionExpirator, sysPublisher, Settings.SELF.mqttPort(), false, false);
 				sessionExpirator = null;
+				sysPublisher = null;
 			}
 			if (Settings.SELF.mqttsPort() != null) {
-				executeBootstrap(sessionExpirator, Settings.SELF.mqttsPort(), false, true);
+				executeBootstrap(sessionExpirator, sysPublisher, Settings.SELF.mqttsPort(), false, true);
 				sessionExpirator = null;
+				sysPublisher = null;
 			}
 			if (Settings.SELF.websocketPort() != null) {
-				executeBootstrap(sessionExpirator, Settings.SELF.websocketPort(), true, false);
+				executeBootstrap(sessionExpirator, sysPublisher, Settings.SELF.websocketPort(), true, false);
 				sessionExpirator = null;
+				sysPublisher = null;
 			}
 			if (Settings.SELF.websocketSslPort() != null) {
-				executeBootstrap(sessionExpirator, Settings.SELF.websocketSslPort(), true, true);
+				executeBootstrap(sessionExpirator, sysPublisher, Settings.SELF.websocketSslPort(), true, true);
 				sessionExpirator = null;
+				sysPublisher = null;
 			}
 
 			logger.info(
@@ -79,14 +85,17 @@ public class MqttServer {
 		}
 	}
 
-	private void executeBootstrap(SessionExpirator sessionExpirator, int port, boolean useWebSocket, boolean useSsl)
-			throws InterruptedException {
+	private void executeBootstrap(SessionExpirator sessionExpirator, SysPublisher sysPublisher, int port,
+			boolean useWebSocket, boolean useSsl) throws InterruptedException {
 		ServerBootstrap bootstrap = new ServerBootstrap();
 
 		bootstrap = bootstrap.group(bossGroup, workerGroup).channel(NioServerSocketChannel.class);
 
 		if (sessionExpirator != null) {
 			bootstrap.handler(sessionExpirator);
+		}
+		if (sysPublisher != null) {
+			bootstrap.handler(sysPublisher);
 		}
 		bootstrap.childHandler(new MqttChannelInitializer(useWebSocket, useSsl));
 		bootstrap.bind(port).sync();

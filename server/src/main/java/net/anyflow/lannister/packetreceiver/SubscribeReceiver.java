@@ -28,6 +28,8 @@ import io.netty.handler.codec.mqtt.MqttQoS;
 import io.netty.handler.codec.mqtt.MqttSubscribeMessage;
 import io.netty.handler.codec.mqtt.MqttTopicSubscription;
 import net.anyflow.lannister.message.MessageFactory;
+import net.anyflow.lannister.plugin.DefaultSubscribeEventListener;
+import net.anyflow.lannister.plugin.ISession;
 import net.anyflow.lannister.plugin.ITopicSubscription;
 import net.anyflow.lannister.plugin.Plugins;
 import net.anyflow.lannister.plugin.SubscribeEventArgs;
@@ -79,15 +81,7 @@ public class SubscribeReceiver extends SimpleChannelInboundHandler<MqttSubscribe
 			topicSubscriptions.add(topicSubscription);
 		});
 
-		if (!Plugins.SELF.get(SubscribeEventListener.class).allowSubscribe(new SubscribeEventArgs() {
-			@Override
-			public List<ITopicSubscription> topicSubscriptions() {
-				return Lists.newArrayList(topicSubscriptions);
-			}
-		})) {
-			session.dispose(true);
-			return;
-		}
+		executePlugins(session, topicSubscriptions);
 
 		session.send(MessageFactory.suback(msg.variableHeader().messageId(), grantedQoss)); // [MQTT-2.3.1-7],[MQTT-2.3.1-7],[MQTT-3.8.4-1],[MQTT-3.8.4-2]
 
@@ -100,5 +94,29 @@ public class SubscribeReceiver extends SimpleChannelInboundHandler<MqttSubscribe
 		});
 
 		// TODO [MQTT-3.3.1-7]
+	}
+
+	private void executePlugins(Session session, List<TopicSubscription> topicSubscriptions) {
+		SubscribeEventArgs args = new SubscribeEventArgs() {
+			@Override
+			public List<ITopicSubscription> topicSubscriptions() {
+				return Lists.newArrayList(topicSubscriptions);
+			}
+
+			@Override
+			public ISession session() {
+				return session;
+			}
+		};
+
+		if (DefaultSubscribeEventListener.SHARED.allowSubscribe(args)) {
+			session.dispose(true);
+			return;
+		}
+
+		if (!Plugins.SELF.get(SubscribeEventListener.class).allowSubscribe(args)) {
+			session.dispose(true);
+			return;
+		}
 	}
 }

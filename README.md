@@ -42,7 +42,7 @@ git clone https://github.com/anyflow/lannister.git
 cd lannister
 
 # Build all(interface, server, plugin-example) projects
-mvn package
+mvn install
 # Change directory to lannister server
 cd server
 # Run lannister server directed by lannister.cfg/log4j.xml files in conf directory

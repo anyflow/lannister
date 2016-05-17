@@ -17,8 +17,15 @@
 package net.anyflow.lannister.plugin;
 
 public class DefaultSubscribeEventListener implements SubscribeEventListener {
+	@SuppressWarnings("unused")
 	private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory
 			.getLogger(DefaultSubscribeEventListener.class);
+
+	public static DefaultSubscribeEventListener SHARED;
+
+	static {
+		SHARED = new DefaultSubscribeEventListener();
+	}
 
 	@Override
 	public Plugin clone() {
@@ -27,7 +34,12 @@ public class DefaultSubscribeEventListener implements SubscribeEventListener {
 
 	@Override
 	public boolean allowSubscribe(SubscribeEventArgs args) {
-		logger.debug("DefaultSubscribeEventListener.allowSubscribe() called [{}]", args.log());
-		return true;
+		if (!args.session().cleanSession()
+				&& args.topicSubscriptions().stream().filter(ts -> ts.topicFilter().startsWith("$SYS")).count() > 0) {
+			return false;
+		}
+		else {
+			return true;
+		}
 	}
 }

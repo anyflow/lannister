@@ -41,6 +41,7 @@ import net.anyflow.lannister.Literals;
 import net.anyflow.lannister.message.Message;
 import net.anyflow.lannister.plugin.DisconnectEventArgs;
 import net.anyflow.lannister.plugin.DisconnectEventListener;
+import net.anyflow.lannister.plugin.ISession;
 import net.anyflow.lannister.plugin.Plugins;
 import net.anyflow.lannister.serialization.ChannelIdSerializer;
 import net.anyflow.lannister.serialization.SerializableFactory;
@@ -48,7 +49,7 @@ import net.anyflow.lannister.topic.Topic;
 import net.anyflow.lannister.topic.TopicMatcher;
 import net.anyflow.lannister.topic.TopicSubscription;
 
-public class Session implements com.hazelcast.nio.serialization.Portable {
+public class Session implements com.hazelcast.nio.serialization.Portable, ISession {
 
 	private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(Session.class);
 
@@ -114,6 +115,12 @@ public class Session implements com.hazelcast.nio.serialization.Portable {
 		return ctx.channel().isActive();
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see net.anyflow.lannister.session.ISession#clientId()
+	 */
+	@Override
 	public String clientId() {
 		return clientId;
 	}
@@ -128,6 +135,12 @@ public class Session implements com.hazelcast.nio.serialization.Portable {
 		Session.NEXUS.persist(this);
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see net.anyflow.lannister.session.ISession#cleanSession()
+	 */
+	@Override
 	public boolean cleanSession() {
 		return cleanSession;
 	}
