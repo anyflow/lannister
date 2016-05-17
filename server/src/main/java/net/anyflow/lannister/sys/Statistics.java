@@ -6,27 +6,12 @@ import java.util.Map;
 import com.google.common.collect.Maps;
 
 import net.anyflow.lannister.Settings;
+import net.anyflow.lannister.session.Session;
+import net.anyflow.lannister.topic.Topic;
 
 public class Statistics {
 
 	public static Statistics SELF;
-
-	public static final String TOPICFILTER_BYTE_RECEIVED = "$SYS/broker/load/bytes/received";
-	public static final String TOPICFILTER_BYTE_SENT = "$SYS/broker/load/bytes/sent";
-	public static final String TOPICFILTER_CLIENTS_CONNECTED = "$SYS/broker/clients/connected";
-	public static final String TOPICFILTER_CLIENTS_DISCONNECTED = "$SYS/broker/clients/disconnected";
-	public static final String TOPICFILTER_CLIENTS_MAXIMUM = "$SYS/broker/clients/maximum";
-	public static final String TOPICFILTER_CLIENTS_TOTAL = "$SYS/broker/clients/total";
-	public static final String TOPICFILTER_MESSAGES_RECEIVED = "$SYS/broker/messages/received";
-	public static final String TOPICFILTER_MESSAGES_SENT = "$SYS/broker/messages/sent";
-	public static final String TOPICFILTER_PUBLISH_DROPPED = "$SYS/broker/messages/publish/dropped";
-	public static final String TOPICFILTER_PUBLISH_RECEIVED = "$SYS/broker/messages/publish/received";
-	public static final String TOPICFILTER_PUBLISH_SENT = "$SYS/broker/messages/publish/sent";
-	public static final String TOPICFILTER_RETAINED_COUNT = "$SYS/broker/messages/retained/count";
-	public static final String TOPICFILTER_SUBSCRIPTIONS_COUNT = "$SYS/broker/subscriptions/count";
-	public static final String TOPICFILTER_BROKER_TIME = "$SYS/broker/time";
-	public static final String TOPICFILTER_BROKER_UPTIME = "$SYS/broker/uptime";
-	public static final String TOPICFILTER_BROKER_VERSION = "$SYS/broker/version";
 
 	static {
 		SELF = new Statistics();
@@ -43,38 +28,117 @@ public class Statistics {
 	}
 
 	private void initializeData() {
-		data.put(TOPICFILTER_BROKER_VERSION, new SysValue() {
+		data.put("$SYS/broker/load/bytes/received", new SysValue() {
 			@Override
 			public String value() {
-				return Settings.SELF.getProperty("project.version");
+				return "null";
 			}
 		});
 
-		data.put(TOPICFILTER_BROKER_UPTIME, new SysValue() {
+		data.put("$SYS/broker/load/bytes/sent", new SysValue() {
 			@Override
 			public String value() {
-				return Double.toString((double) ((new Date()).getTime() - brokerStartTime.getTime()) / (double) 1000);
+				return "null";
 			}
 		});
 
-		data.put(TOPICFILTER_BROKER_TIME, new SysValue() {
+		data.put("$SYS/broker/clients/connected", new SysValue() {
+			@Override
+			public String value() {
+				return "null";
+			}
+		});
+
+		data.put("$SYS/broker/clients/disconnected", new SysValue() {
+			@Override
+			public String value() {
+				return "null";
+			}
+		});
+
+		data.put("$SYS/broker/clients/maximum", new SysValue() {
+			@Override
+			public String value() {
+				return "null";
+			}
+		});
+
+		data.put("$SYS/broker/clients/total", new SysValue() {
+			@Override
+			public String value() {
+				return "null";
+			}
+		});
+
+		data.put("$SYS/broker/messages/received", new SysValue() {
+			@Override
+			public String value() {
+				return "null";
+			}
+		});
+
+		data.put("$SYS/broker/messages/sent", new SysValue() {
+			@Override
+			public String value() {
+				return "null";
+			}
+		});
+
+		data.put("$SYS/broker/messages/publish/dropped", new SysValue() {
+			@Override
+			public String value() {
+				return "null";
+			}
+		});
+
+		data.put("$SYS/broker/messages/publish/received", new SysValue() {
+			@Override
+			public String value() {
+				return "null";
+			}
+		});
+
+		data.put("$SYS/broker/messages/publish/sent", new SysValue() {
+			@Override
+			public String value() {
+				return "null";
+			}
+		});
+
+		data.put("$SYS/broker/messages/retained/count", new SysValue() {
+			@Override
+			public String value() {
+				return Long
+						.toString(Topic.NEXUS.map().values().stream().filter(t -> t.retainedMessage() != null).count());
+			}
+		});
+
+		data.put("$SYS/broker/subscriptions/count", new SysValue() {
+			@Override
+			public String value() {
+				return Long.toString(Session.NEXUS.map().values().stream().map(s -> s.topicSubscriptions())
+						.flatMap(s -> s.values().stream()).count());
+			}
+		});
+
+		data.put("$SYS/broker/time", new SysValue() {
 			@Override
 			public String value() {
 				return (new Date()).toString();
 			}
 		});
 
-		data.put(TOPICFILTER_CLIENTS_CONNECTED, new SysValue() {
+		data.put("$SYS/broker/uptime", new SysValue() {
 			@Override
 			public String value() {
-				return "null";
+				return Double.toString((double) ((new Date()).getTime() - brokerStartTime.getTime()) / (double) 1000);
 			}
 		});
 
-		data.put(TOPICFILTER_CLIENTS_DISCONNECTED, new SysValue() {
+		data.put("$SYS/broker/version", new SysValue() {
 			@Override
 			public String value() {
-				return "null";
+				return Settings.SELF.getProperty("project.version");
 			}
 		});
 	}
