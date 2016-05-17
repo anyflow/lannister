@@ -20,7 +20,7 @@
 
 	<!-- console log file appender -->
 	<appender name="OUTPUT" class="org.apache.log4j.DailyRollingFileAppender">
-		<param name="File" value="${log.path}/output.log" />
+		<param name="File" value="${project.build.directory}/logs/output.log" />
 		<param name="Append" value="true" />
 		<param name="DatePattern" value="'.'yyyy-MM-dd" />
 		<layout class="org.apache.log4j.PatternLayout">
@@ -30,7 +30,7 @@
 
 	<!-- Application log file appender -->
 	<appender name="APPLICATION" class="org.apache.log4j.DailyRollingFileAppender">
-		<param name="File" value="${log.path}/application.log" />
+		<param name="File" value="${project.build.directory}/logs/application.log" />
 		<param name="Append" value="true" />
 		<param name="DatePattern" value="'.'yyyy-MM-dd" />
 		<layout class="org.apache.log4j.PatternLayout">
