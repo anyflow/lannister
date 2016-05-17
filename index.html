@@ -1,42 +1,50 @@
 <!DOCTYPE html>
-<html lang="en-us">
+<html>
   <head>
-    <meta charset="UTF-8">
-    <title>Lannister by anyflow</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <link rel="stylesheet" type="text/css" href="stylesheets/normalize.css" media="screen">
-    <link href='https://fonts.googleapis.com/css?family=Open+Sans:400,700' rel='stylesheet' type='text/css'>
+    <meta charset='utf-8'>
+    <meta http-equiv="X-UA-Compatible" content="chrome=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    <link href='https://fonts.googleapis.com/css?family=Architects+Daughter' rel='stylesheet' type='text/css'>
     <link rel="stylesheet" type="text/css" href="stylesheets/stylesheet.css" media="screen">
     <link rel="stylesheet" type="text/css" href="stylesheets/github-light.css" media="screen">
-  </head>
-  <body>
-    <section class="page-header">
-      <h1 class="project-name">Lannister</h1>
-      <h2 class="project-tagline">High performance MQTT broker w/ full spec,Clustering,WebSocket,SSL on Java - Netty &amp; Hazelcast</h2>
-      <a href="https://github.com/anyflow/lannister" class="btn">View on GitHub</a>
-      <a href="https://github.com/anyflow/lannister/zipball/master" class="btn">Download .zip</a>
-      <a href="https://github.com/anyflow/lannister/tarball/master" class="btn">Download .tar.gz</a>
-    </section>
+    <link rel="stylesheet" type="text/css" href="stylesheets/print.css" media="print">
 
-    <section class="main-content">
-      <h1>
+    <!--[if lt IE 9]>
+    <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+
+    <title>Lannister by anyflow</title>
+  </head>
+
+  <body>
+    <header>
+      <div class="inner">
+        <h1>Lannister</h1>
+        <h2>High performance MQTT broker w/ full spec,Clustering,WebSocket,SSL on Java - Netty &amp; Hazelcast</h2>
+        <a href="https://github.com/anyflow/lannister" class="button"><small>View project on</small> GitHub</a>
+      </div>
+    </header>
+
+    <div id="content-wrapper">
+      <div class="inner clearfix">
+        <section id="main-content">
+          <h1>
 <a id="lannister" class="anchor" href="#lannister" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Lannister</h1>
 
 <p><a href="https://travis-ci.org/anyflow/lannister"><img src="https://travis-ci.org/anyflow/lannister.svg?branch=master" alt="Build Status"></a> <a href="https://www.codacy.com/app/anyflow/lannister?utm_source=github.com&amp;amp;utm_medium=referral&amp;amp;utm_content=anyflow/lannister&amp;amp;utm_campaign=Badge_Grade"><img src="https://api.codacy.com/project/badge/Grade/8d72feca76504d89a9846beecbbbc34b" alt="Codacy Badge"></a> <a href="https://www.codacy.com/app/anyflow/lannister?utm_source=github.com&amp;amp;utm_medium=referral&amp;amp;utm_content=anyflow/lannister&amp;amp;utm_campaign=Badge_Coverage"><img src="https://api.codacy.com/project/badge/Coverage/8d72feca76504d89a9846beecbbbc34b" alt="Codacy Badge"></a></p>
 
-<p>High performance MQTT broker w/ full spec,Clustering,WebSocket,SSL on Java - <a href="https://github.com/netty/netty">Netty</a> &amp; <a href="https://github.com/hazelcast/hazelcast">Hazelcast</a>
-<strong>under CONSTRUCTION</strong>.</p>
+<p>High performance MQTT broker w/ full specifications support, Clustering, WebSocket, SSL on Java - <a href="https://github.com/netty/netty">Netty</a> &amp; <a href="https://github.com/hazelcast/hazelcast">Hazelcast</a> <strong>under CONSTRUCTION</strong>.</p>
 
 <h2>
 <a id="features" class="anchor" href="#features" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Features</h2>
 
 <ol>
-<li>Full Protocol Specifications(<a href="http://public.dhe.ibm.com/software/dw/webservices/ws-mqtt/mqtt-v3r1.html">MQTT Version 3.1</a>, <a href="http://docs.oasis-open.org/mqtt/mqtt/v3.1.1/os/mqtt-v3.1.1-os.html">MQTT Version 3.11</a>) Support includes
+<li>Full Protocol Specifications(<a href="http://public.dhe.ibm.com/software/dw/webservices/ws-mqtt/mqtt-v3r1.html">MQTT Version 3.1</a>, <a href="http://docs.oasis-open.org/mqtt/mqtt/v3.1.1/os/mqtt-v3.1.1-os.html">MQTT Version 3.1.1</a>) Support includes
 
 <ul>
 <li>QoS 0,1,2 on Publish / Subscribe</li>
-<li>Clean/Persistent Session</li>
-<li>Retain / Will Message</li>
+<li>Clean / Persistent Session</li>
+<li>Retained / Will Message</li>
 </ul>
 </li>
 <li>1000K connections per node</li>
@@ -44,8 +52,9 @@
 
 <ul>
 <li>Topic / Message / Message Status / Session redundant</li>
-<li>Scalable</li>
 <li>No SPOF(peer-to-peer based : No master and slave)</li>
+<li>Easy Scaling out<br>
+</li>
 </ul>
 </li>
 <li>WebSocket</li>
@@ -75,13 +84,21 @@
 <h2>
 <a id="getting-started" class="anchor" href="#getting-started" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Getting Started</h2>
 
-<p>Lannister is <strong>under CONSTRUCTION</strong>. But the most of features above are implemented and tested. You can run and test Lannister via,</p>
+<p>Lannister is <strong>under CONSTRUCTION</strong>. But the most of features above are implemented and tested. You can run and test Lannister simply via,</p>
 
-<pre><code>// The below commands requires Java 8 and Maven 3
+<div class="highlight highlight-source-r"><pre><span class="pl-c"># The below commands require Java 8 and Maven 3</span>
 
-git clone https://github.com/anyflow/lannister.git
-mvn package exec:java
-</code></pre>
+<span class="pl-c"># Clone lannister source</span>
+<span class="pl-smi">git</span> <span class="pl-smi">clone</span> <span class="pl-smi">https</span><span class="pl-k">:</span><span class="pl-k">//</span><span class="pl-smi">github.com</span><span class="pl-k">/</span><span class="pl-smi">anyflow</span><span class="pl-k">/</span><span class="pl-smi">lannister.git</span>
+<span class="pl-c"># Change directory to lannister</span>
+<span class="pl-smi">cd</span> <span class="pl-smi">lannister</span>
+
+<span class="pl-c"># Build all(interface, server, plugin-example) projects</span>
+<span class="pl-smi">mvn</span> <span class="pl-smi">package</span>
+<span class="pl-c"># Change directory to lannister server</span>
+<span class="pl-smi">cd</span> <span class="pl-smi">server</span>
+<span class="pl-c"># Run lannister server directed by lannister.cfg/log4j.xml files in conf directory</span>
+<span class="pl-smi">mvn</span> <span class="pl-smi">exec</span><span class="pl-k">:</span><span class="pl-smi">java</span></pre></div>
 
 <h2>
 <a id="version-history" class="anchor" href="#version-history" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Version History</h2>
@@ -92,12 +109,13 @@ mvn package exec:java
 <ul>
 <li>Code Review, Test based on chapter 3.1 of Spec v3.1.1 Mandatory normative statements</li>
 <li>Implement full features of Protocol Specification MQTT version 3.1.1</li>
+<li>Add clustering</li>
 <li>Add WebSocket <em>(default port: 2883)</em>
 </li>
 <li>Add SSL <em>(default port: 8883, default WebSocket SSL port: 9883)</em>
 </li>
-<li>Add Plugin - Framework &amp; Default / Example Plugins</li>
-<li>Add admin HTTP REST APIs - listing topics, sessions</li>
+<li>Add plugin's : Framework &amp; Default / Example Plugins</li>
+<li>Add admin HTTP REST APIs : listing topics, sessions</li>
 </ul>
 
 <h2>
@@ -109,14 +127,24 @@ mvn package exec:java
 <a id="license" class="anchor" href="#license" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>License</h2>
 
 <p>Lannister is released under version 2.0 of the <a href="http://www.apache.org/licenses/LICENSE-2.0">Apache License</a>.</p>
+        </section>
 
-      <footer class="site-footer">
-        <span class="site-footer-owner"><a href="https://github.com/anyflow/lannister">Lannister</a> is maintained by <a href="https://github.com/anyflow">anyflow</a>.</span>
+        <aside id="sidebar">
+          <a href="https://github.com/anyflow/lannister/zipball/master" class="button">
+            <small>Download</small>
+            .zip file
+          </a>
+          <a href="https://github.com/anyflow/lannister/tarball/master" class="button">
+            <small>Download</small>
+            .tar.gz file
+          </a>
 
-        <span class="site-footer-credits">This page was generated by <a href="https://pages.github.com">GitHub Pages</a> using the <a href="https://github.com/jasonlong/cayman-theme">Cayman theme</a> by <a href="https://twitter.com/jasonlong">Jason Long</a>.</span>
-      </footer>
+          <p class="repo-owner"><a href="https://github.com/anyflow/lannister"></a> is maintained by <a href="https://github.com/anyflow">anyflow</a>.</p>
 
-    </section>
+          <p>This page was generated by <a href="https://pages.github.com">GitHub Pages</a> using the Architect theme by <a href="https://twitter.com/jasonlong">Jason Long</a>.</p>
+        </aside>
+      </div>
+    </div>
 
   
   </body>
