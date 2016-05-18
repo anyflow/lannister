@@ -44,7 +44,7 @@ public class MqttPacketReceiver extends SimpleChannelInboundHandler<MqttMessage>
 		switch (msg.fixedHeader().messageType()) {
 		case PUBLISH:
 			if (receiver != null) {
-				receiver.messageReceived(Message.newMessage((MqttPublishMessage) msg, client.clientId()));
+				receiver.messageReceived(Message.newMessage(client.clientId(), (MqttPublishMessage) msg));
 			}
 
 			int messageId = ((MqttPublishMessage) msg).variableHeader().messageId();

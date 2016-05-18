@@ -135,7 +135,6 @@
 				<configuration>
 					<dotGitDirectory>${project.basedir}/.git</dotGitDirectory>
 					<generateGitPropertiesFile>true</generateGitPropertiesFile>
-					<generateGitPropertiesFilename>${project.basedir}/src/main/resources/buildinfo.properties</generateGitPropertiesFilename>
 					<failOnNoGitDirectory>false</failOnNoGitDirectory>
 					<gitDescribe>
 						<skip>false</skip>

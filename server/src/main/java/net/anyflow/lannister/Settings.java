@@ -41,11 +41,15 @@ public class Settings extends java.util.Properties {
 
 	private Map<String, String> webResourceExtensionToMimes;
 	private SelfSignedCertificate ssc;
+	private java.util.Properties gitProperties;
 
 	@SuppressWarnings("unchecked")
 	private Settings() {
+		gitProperties = new java.util.Properties();
+
 		try {
 			load(Application.class.getClassLoader().getResourceAsStream(CONFIG_NAME));
+			gitProperties.load(Application.class.getClassLoader().getResourceAsStream("git.properties"));
 
 			ssc = new SelfSignedCertificate();
 		}
@@ -63,6 +67,7 @@ public class Settings extends java.util.Properties {
 		catch (IOException e) {
 			logger.error(e.getMessage(), e);
 		}
+
 	}
 
 	public Integer getInt(String key, Integer defaultValue) {
@@ -154,5 +159,21 @@ public class Settings extends java.util.Properties {
 
 	public void setWebResourcePhysicalRootPath(String physicalRootPath) {
 		this.setProperty("menton.httpServer.webResourcePhysicalRootPath", physicalRootPath);
+	}
+
+	public String version() {
+		return getProperty("lannister.version");
+	}
+
+	public String commitId() {
+		return this.gitProperties.getProperty("git.commit.id");
+	}
+
+	public String commitIdDescribe() {
+		return this.gitProperties.getProperty("git.commit.id.describe");
+	}
+
+	public String buildTime() {
+		return this.gitProperties.getProperty("git.build.time");
 	}
 }

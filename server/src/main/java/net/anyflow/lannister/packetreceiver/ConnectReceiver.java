@@ -95,16 +95,14 @@ public class ConnectReceiver extends SimpleChannelInboundHandler<MqttConnectMess
 
 		Session.NEXUS.put(session, ctx);
 
-		if (session.will() != null) {
+		if (session.will() != null && session.will().isRetain()) { // [MQTT-3.1.2-16],[MQTT-3.1.2-17]
 			Topic topic = Topic.NEXUS.get(session.will().topicName());
 			if (topic == null) {
 				topic = new Topic(session.will().topicName());
-				Topic.put(topic);
+				Topic.NEXUS.insert(topic);
 			}
 
-			if (session.will().isRetain()) { // [MQTT-3.1.2-16],[MQTT-3.1.2-17]
-				topic.setRetainedMessage(session.will().message().length > 0 ? session.will() : null);
-			}
+			topic.setRetainedMessage(session.will());
 		}
 
 		final Session sessionFinal = session;

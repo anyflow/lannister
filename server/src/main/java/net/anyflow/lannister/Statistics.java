@@ -17,8 +17,10 @@
 package net.anyflow.lannister;
 
 import java.util.Date;
+import java.util.List;
 import java.util.Map;
 
+import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.hazelcast.core.ILock;
 import com.hazelcast.core.IMap;
@@ -29,6 +31,13 @@ import net.anyflow.lannister.topic.Topic;
 public class Statistics {
 
 	public static Statistics SELF;
+
+	public static final String $SYS_BROKER_VERSION = "$SYS/broker/version";
+	public static final String $SYS_BROKER_TIMESTAMP = "$SYS/broker/timestamp";
+	public static final String $SYS_BROKER_CHANGESET = "$SYS/broker/changeset";
+
+	public static final List<String> $SYS_STATIC_TOPICS = Lists.newArrayList($SYS_BROKER_VERSION, $SYS_BROKER_TIMESTAMP,
+			$SYS_BROKER_CHANGESET);
 
 	static {
 		SELF = new Statistics();
@@ -93,6 +102,22 @@ public class Statistics {
 		}
 		finally {
 			lock.unlock();
+		}
+	}
+
+	public String getStatic(String topicName) {
+		switch (topicName) {
+		case $SYS_BROKER_VERSION:
+			return Settings.SELF.version();
+
+		case $SYS_BROKER_TIMESTAMP:
+			return Settings.SELF.buildTime();
+
+		case $SYS_BROKER_CHANGESET:
+			return Settings.SELF.commitIdDescribe() + " / " + Settings.SELF.commitId();
+
+		default:
+			return null;
 		}
 	}
 
@@ -161,13 +186,6 @@ public class Statistics {
 			public String value() {
 				return Double.toString((double) ((new Date()).getTime() - criterions.get(Criterion.BROKER_START_TIME))
 						/ (double) 1000);
-			}
-		});
-
-		data.put("$SYS/broker/version", new SysValue() {
-			@Override
-			public String value() {
-				return Settings.SELF.getProperty("project.version");
 			}
 		});
 	}

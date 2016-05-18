@@ -28,9 +28,6 @@ import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelId;
 import net.anyflow.lannister.Hazelcast;
 import net.anyflow.lannister.topic.Notification;
-import net.anyflow.lannister.topic.Topic;
-import net.anyflow.lannister.topic.TopicMatcher;
-import net.anyflow.lannister.topic.TopicSubscriber;
 
 public class Sessions implements MessageListener<Notification> {
 
@@ -97,14 +94,6 @@ public class Sessions implements MessageListener<Notification> {
 
 	public IMap<String, Session> map() {
 		return sessions;
-	}
-
-	public void topicAdded(Topic topic) {
-		sessions.values().stream().parallel()
-				.filter(session -> session.topicSubscriptions().values().stream()
-						.anyMatch(ts -> TopicMatcher.match(ts.topicFilter(), topic.name())))
-				.forEach(session -> topic.subscribers().put(session.clientId(),
-						new TopicSubscriber(session.clientId(), topic.name())));
 	}
 
 	@Override

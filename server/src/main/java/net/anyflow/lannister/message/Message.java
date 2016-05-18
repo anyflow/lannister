@@ -196,7 +196,7 @@ public class Message implements com.hazelcast.nio.serialization.Portable, IMessa
 				.build();
 	}
 
-	public static Message newMessage(MqttPublishMessage published, String clientId) {
+	public static Message newMessage(String clientId, MqttPublishMessage published) {
 		return new Message(published.variableHeader().messageId(), published.variableHeader().topicName(), clientId,
 				NettyUtil.copy(published.payload()), published.fixedHeader().qosLevel(),
 				published.fixedHeader().isRetain());

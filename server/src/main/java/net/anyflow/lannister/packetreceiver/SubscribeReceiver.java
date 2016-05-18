@@ -16,10 +16,13 @@
 
 package net.anyflow.lannister.packetreceiver;
 
+import java.util.Collection;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 
 import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 
 import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandlerContext;
@@ -27,6 +30,10 @@ import io.netty.channel.SimpleChannelInboundHandler;
 import io.netty.handler.codec.mqtt.MqttQoS;
 import io.netty.handler.codec.mqtt.MqttSubscribeMessage;
 import io.netty.handler.codec.mqtt.MqttTopicSubscription;
+import io.netty.util.CharsetUtil;
+import net.anyflow.lannister.Settings;
+import net.anyflow.lannister.Statistics;
+import net.anyflow.lannister.message.Message;
 import net.anyflow.lannister.message.MessageFactory;
 import net.anyflow.lannister.plugin.DefaultSubscribeEventListener;
 import net.anyflow.lannister.plugin.ISession;
@@ -63,40 +70,70 @@ public class SubscribeReceiver extends SimpleChannelInboundHandler<MqttSubscribe
 		}
 
 		// TODO multiple sub checking (granted QoS)
-		List<Integer> grantedQoss = Lists.newArrayList();
-		List<TopicSubscription> topicSubscriptions = Lists.newArrayList();
+		Map.Entry<List<Integer>, Map<String, TopicSubscription>> returns = generateReturns(topicSubs);
+		List<Integer> grantedQoss = returns.getKey();
+		Map<String, TopicSubscription> topicSubscriptions = returns.getValue();
 
-		topicSubs.stream().filter(topicSub -> {
-			if (TopicMatcher.isValid(topicSub.topicName(), true)) { return true; }
+		if (!executePlugins(session, topicSubscriptions.values())) { return; }
 
-			grantedQoss.add(MqttQoS.FAILURE.value());
-			return false;
-		}).forEach(topicSub -> {
-			TopicSubscription topicSubscription = new TopicSubscription(topicSub.topicName(),
-					topicSub.qualityOfService());
-
-			session.topicSubscriptions().put(topicSubscription.topicFilter(), topicSubscription);
-
-			grantedQoss.add(topicSubscription.qos().value());
-			topicSubscriptions.add(topicSubscription);
-		});
-
-		executePlugins(session, topicSubscriptions);
+		session.topicSubscriptions().putAll(topicSubscriptions);
 
 		session.send(MessageFactory.suback(msg.variableHeader().messageId(), grantedQoss)); // [MQTT-2.3.1-7],[MQTT-2.3.1-7],[MQTT-3.8.4-1],[MQTT-3.8.4-2]
 
-		session.topics(topicSubscriptions).forEach(topic -> {
+		sendRetainedMessage(session, topicSubscriptions);
+
+		publishStatic$Sys(session, topicSubscriptions.values());
+
+		// TODO [MQTT-3.3.1-7]
+	}
+
+	private void sendRetainedMessage(Session session, Map<String, TopicSubscription> topicSubscriptions) {
+		session.topics(topicSubscriptions.values()).forEach(topic -> {
 			if (topic.retainedMessage() == null) { return; }
 
 			topic.putMessage(topic.retainedMessage().publisherId(), topic.retainedMessage());
 
 			session.sendPublish(topic, topic.retainedMessage()); // [MQTT-3.3.1-6],[MQTT-3.3.1-8]
 		});
-
-		// TODO [MQTT-3.3.1-7]
 	}
 
-	private void executePlugins(Session session, List<TopicSubscription> topicSubscriptions) {
+	private Map.Entry<List<Integer>, Map<String, TopicSubscription>> generateReturns(
+			List<MqttTopicSubscription> topicSubs) {
+		List<Integer> grantedQoss = Lists.newArrayList();
+		Map<String, TopicSubscription> topicSubscriptions = Maps.newHashMap();
+
+		topicSubs.stream().forEach(topicSub -> {
+			if (TopicMatcher.isValid(topicSub.topicName(), true)) {
+				TopicSubscription topicSubscription = new TopicSubscription(topicSub.topicName(),
+						topicSub.qualityOfService());
+
+				grantedQoss.add(topicSubscription.qos().value());
+				topicSubscriptions.put(topicSubscription.topicFilter(), topicSubscription);
+			}
+			else {
+				grantedQoss.add(MqttQoS.FAILURE.value());
+			}
+		});
+
+		return new Map.Entry<List<Integer>, Map<String, TopicSubscription>>() {
+			@Override
+			public List<Integer> getKey() {
+				return grantedQoss;
+			}
+
+			@Override
+			public Map<String, TopicSubscription> getValue() {
+				return topicSubscriptions;
+			}
+
+			@Override
+			public Map<String, TopicSubscription> setValue(Map<String, TopicSubscription> value) {
+				return null; // Should not be called
+			}
+		};
+	}
+
+	private boolean executePlugins(Session session, Collection<TopicSubscription> topicSubscriptions) {
 		SubscribeEventArgs args = new SubscribeEventArgs() {
 			@Override
 			public List<ITopicSubscription> topicSubscriptions() {
@@ -111,12 +148,31 @@ public class SubscribeReceiver extends SimpleChannelInboundHandler<MqttSubscribe
 
 		if (!DefaultSubscribeEventListener.SHARED.allowSubscribe(args)) {
 			session.dispose(true);
-			return;
+			return false;
 		}
 
 		if (!Plugins.SELF.get(SubscribeEventListener.class).allowSubscribe(args)) {
 			session.dispose(true);
-			return;
+			return false;
 		}
+
+		return true;
+	}
+
+	private void publishStatic$Sys(Session session, Collection<TopicSubscription> topicSubscriptions) {
+		String requesterId = Settings.SELF.getProperty("lannister.broker.id", "lannister_broker_id");
+
+		topicSubscriptions.stream().forEach(ts -> {
+			Statistics.$SYS_STATIC_TOPICS.stream().forEach(t -> {
+				if (!TopicMatcher.match(ts.topicFilter(), t)) { return; }
+
+				byte[] msg = Statistics.SELF.getStatic(t).getBytes(CharsetUtil.UTF_8);
+
+				session.send(MessageFactory.publish(new Message(-1, t, requesterId, msg, MqttQoS.AT_MOST_ONCE, false),
+						false)).addListener(f -> {
+					Statistics.SELF.add(Statistics.Criterion.MESSAGES_PUBLISH_SENT, 1);
+				});
+			});
+		});
 	}
 }

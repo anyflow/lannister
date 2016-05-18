@@ -57,7 +57,7 @@ public class PublishReceiver extends SimpleChannelInboundHandler<MqttPublishMess
 			return;
 		}
 
-		Message message = Message.newMessage(msg, session.clientId());
+		Message message = Message.newMessage(session.clientId(), msg);
 
 		if (!Plugins.SELF.get(PublishEventListener.class).allowPublish(new PublishEventArgs() {
 			@Override
@@ -69,16 +69,6 @@ public class PublishReceiver extends SimpleChannelInboundHandler<MqttPublishMess
 			return;
 		}
 
-		Topic topic = Topic.NEXUS.get(msg.variableHeader().topicName());
-		if (topic == null) {
-			topic = new Topic(msg.variableHeader().topicName());
-			Topic.put(topic);
-		}
-
-		if (message.isRetain()) { // else do nothing [MQTT-3.3.1-12]
-			topic.setRetainedMessage(message.message().length > 0 ? message : null); // [MQTT-3.3.1-5],[MQTT-3.3.1-10],[MQTT-3.3.1-11]
-		}
-
 		// TODO What to do when sender re-publish message corrensponds to
 		// unacked status?
 
@@ -88,9 +78,7 @@ public class PublishReceiver extends SimpleChannelInboundHandler<MqttPublishMess
 		// messages to be delivered to any onward recipients in this
 		// case.[MQTT-4.3.3-2].
 
-		topic.publish(session.clientId(), message);
-
-		final Topic topicFinal = topic;
+		final Topic topic = Topic.NEXUS.publish(message);
 
 		switch (msg.fixedHeader().qosLevel()) {
 		case AT_MOST_ONCE:
@@ -98,14 +86,14 @@ public class PublishReceiver extends SimpleChannelInboundHandler<MqttPublishMess
 
 		case AT_LEAST_ONCE:
 			session.send(MessageFactory.puback(msg.variableHeader().messageId())).addListener(
-					f -> topicFinal.removeInboundMessageStatus(session.clientId(), msg.variableHeader().messageId())); // [MQTT-3.3.4-1],[MQTT-2.3.1-6]
+					f -> topic.removeInboundMessageStatus(session.clientId(), msg.variableHeader().messageId())); // [MQTT-3.3.4-1],[MQTT-2.3.1-6]
 			logger.debug("Inbound message status REMOVED [clientId={}, messageId={}]", session.clientId(),
 					msg.variableHeader().messageId());
 			return;
 
 		case EXACTLY_ONCE:
 			session.send(MessageFactory.pubrec(msg.variableHeader().messageId()))
-					.addListener(f -> topicFinal.setInboundMessageStatus(session.clientId(),
+					.addListener(f -> topic.setInboundMessageStatus(session.clientId(),
 							msg.variableHeader().messageId(), InboundMessageStatus.Status.PUBRECED)); // [MQTT-3.3.4-1],[MQTT-2.3.1-6]
 			return;
 

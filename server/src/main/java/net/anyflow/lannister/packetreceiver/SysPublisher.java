@@ -39,14 +39,9 @@ public class SysPublisher extends ChannelInboundHandlerAdapter {
 
 		ctx.executor().scheduleAtFixedRate(() -> {
 			Statistics.SELF.data().entrySet().stream().forEach(e -> {
-				Topic topic = Topic.NEXUS.get(e.getKey());
-				if (topic == null) {
-					topic = new Topic(e.getKey());
-					Topic.put(topic);
-				}
-
 				byte[] msg = e.getValue().value().getBytes(CharsetUtil.UTF_8);
-				topic.publish(requesterId, new Message(-1, e.getKey(), requesterId, msg, MqttQoS.AT_MOST_ONCE, false));
+
+				Topic.NEXUS.publish(new Message(-1, e.getKey(), requesterId, msg, MqttQoS.AT_MOST_ONCE, false));
 			});
 		} , 0, interval, TimeUnit.SECONDS);
 	}

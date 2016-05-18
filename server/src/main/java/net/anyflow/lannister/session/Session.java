@@ -195,7 +195,7 @@ public class Session implements com.hazelcast.nio.serialization.Portable, ISessi
 
 	public void dispose(boolean sendWill) {
 		if (sendWill && will != null) { // [MQTT-3.1.2-12]
-			Topic.NEXUS.get(will.topicName()).publish(clientId, will);
+			Topic.NEXUS.publish(will);
 			will(null); // [MQTT-3.1.2-10]
 		}
 

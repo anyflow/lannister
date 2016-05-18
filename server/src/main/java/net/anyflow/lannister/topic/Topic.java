@@ -20,7 +20,6 @@ import java.io.IOException;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.google.common.collect.ImmutableMap;
 import com.hazelcast.core.ILock;
 import com.hazelcast.core.IMap;
 import com.hazelcast.nio.serialization.ClassDefinition;
@@ -103,8 +102,14 @@ public class Topic implements com.hazelcast.nio.serialization.Portable {
 	}
 
 	public void setRetainedMessage(Message message) {
-		this.retainedMessage = message;
-		NEXUS.put(this);
+		if (message == null || message.message().length <= 0) {
+			this.retainedMessage = null;
+		}
+		else {
+			this.retainedMessage = message;
+		}
+
+		NEXUS.persist(this);
 	}
 
 	public IMap<String, TopicSubscriber> subscribers() {
@@ -115,8 +120,8 @@ public class Topic implements com.hazelcast.nio.serialization.Portable {
 		return messages;
 	}
 
-	public ImmutableMap<String, InboundMessageStatus> inboundMessageStatuses() {
-		return ImmutableMap.copyOf(inboundMessageStatuses);
+	public IMap<String, InboundMessageStatus> inboundMessageStatuses() {
+		return inboundMessageStatuses;
 	}
 
 	public InboundMessageStatus getInboundMessageStatus(String clientId, int messageId) {
@@ -192,18 +197,22 @@ public class Topic implements com.hazelcast.nio.serialization.Portable {
 		});
 	}
 
-	public void publish(String requesterId, Message message) {
+	protected void publish(Message message) {
 		assert name.equals(message.topicName());
 
-		putMessage(requesterId, message);
+		if (message.isRetain()) {// else do nothing [MQTT-3.3.1-12]
+			setRetainedMessage(message); // [MQTT-3.3.1-5],[MQTT-3.3.1-10],[MQTT-3.3.1-11]
+		}
+
+		putMessage(message.publisherId(), message);
 		broadcast(message);
 	}
 
-	public static Topic put(Topic topic) {
-		Session.NEXUS.topicAdded(topic);
-
-		// TODO should be added in case of no subscriber & no retained Message?
-		return NEXUS.put(topic);
+	public void addSubscribers() {
+		Session.NEXUS.map().values().stream()
+				.filter(s -> s.topicSubscriptions().values().stream()
+						.anyMatch(ts -> TopicMatcher.match(ts.topicFilter(), name)))
+				.forEach(s -> subscribers.put(s.clientId(), new TopicSubscriber(s.clientId(), name)));
 	}
 
 	public void addMessageRef(String messageKey) {

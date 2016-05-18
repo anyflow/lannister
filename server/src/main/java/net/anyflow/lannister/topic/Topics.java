@@ -21,6 +21,7 @@ import com.hazelcast.core.IMap;
 import com.hazelcast.core.ITopic;
 
 import net.anyflow.lannister.Hazelcast;
+import net.anyflow.lannister.message.Message;
 import net.anyflow.lannister.session.Sessions;
 
 public class Topics {
@@ -79,12 +80,24 @@ public class Topics {
 		}).findAny().orElse(null);
 	}
 
-	protected Topic put(Topic topic) {
+	protected void persist(Topic topic) {
+		if (topic == null && topics.get(topic) == null) {
+			logger.error("Null or new topic can not bepersisted.");
+			return;
+		}
+
+		topics.put(topic.name(), topic);
+	}
+
+	public Topic insert(Topic topic) {
 		if (topic == null) {
 			logger.error("Null topic tried to be inserted.");
 			return null;
 		}
 
+		topic.addSubscribers();
+
+		// TODO should be added in case of no subscriber & no retained Message?
 		return topics.put(topic.name(), topic);
 	}
 
@@ -97,5 +110,17 @@ public class Topics {
 		topic.dispose();
 
 		return topics.remove(topic.name());
+	}
+
+	public Topic publish(Message message) {
+		Topic topic = get(message.topicName());
+		if (topic == null) {
+			topic = new Topic(message.topicName());
+			insert(topic);
+		}
+
+		topic.publish(message);
+
+		return topic;
 	}
 }

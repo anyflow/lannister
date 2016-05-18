@@ -65,7 +65,11 @@ public class Application {
 				}
 			});
 
-			logger.info("Lannister bootstrapped successfully");
+			logger.info("Lannister bootstrapping completed");
+			logger.info("version        : {}", Settings.SELF.version());
+			logger.info("build time     : {}", Settings.SELF.buildTime());
+			logger.info("commit ID      : {}", Settings.SELF.commitId());
+			logger.info("commit ID desc : {}", Settings.SELF.commitIdDescribe());
 			return true;
 		}
 		catch (Exception e) {
