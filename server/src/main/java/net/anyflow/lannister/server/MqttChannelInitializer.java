@@ -36,6 +36,8 @@ public class MqttChannelInitializer extends ChannelInitializer<SocketChannel> {
 	protected void initChannel(SocketChannel ch) throws Exception {
 		logger.debug("Initializaing channels...");
 
+		ch.pipeline().addLast(ByteCounterCodec.class.getName(), new ByteCounterCodec());
+
 		if ("true".equalsIgnoreCase(Settings.SELF.getProperty("netty.logger"))) {
 			ch.pipeline().addLast(LoggingHandler.class.getName(), new LoggingHandler(LogLevel.DEBUG));
 		}

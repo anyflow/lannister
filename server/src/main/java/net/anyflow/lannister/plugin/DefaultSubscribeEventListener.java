@@ -34,12 +34,6 @@ public class DefaultSubscribeEventListener implements SubscribeEventListener {
 
 	@Override
 	public boolean allowSubscribe(SubscribeEventArgs args) {
-		if (!args.session().cleanSession()
-				&& args.topicSubscriptions().stream().filter(ts -> ts.topicFilter().startsWith("$SYS")).count() > 0) {
-			return false;
-		}
-		else {
-			return true;
-		}
+	    return args.session().cleanSession() ||  args.topicSubscriptions().stream().filter(ts -> ts.topicFilter().startsWith("$SYS")).count() <= 0;
 	}
 }

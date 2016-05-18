@@ -44,8 +44,8 @@ public class MessageSender {
 	}
 
 	protected ChannelFuture send(MqttMessage message) {
-		if (session.isConnected() == false) {
-			logger.error("Message is not sent - Channel is inactive [{}]", message);
+		if (session.isConnected(true) == false) {
+			logger.error("Message is not sent - Channel is inactive or out of the node. [{}]", message);
 			return null;
 		}
 
@@ -60,7 +60,7 @@ public class MessageSender {
 	protected void sendPublish(Topic topic, Message message) {
 		logger.debug("event arrived [clientId={}, message={}]", session.clientId(), message);
 
-		if (!session.isConnected()) { return; }
+		if (!session.isConnected(true)) { return; }
 
 		send(MessageFactory.publish(message, false)).addListener(f -> {
 			Statistics.SELF.add(Statistics.Criterion.MESSAGES_PUBLISH_SENT, 1);

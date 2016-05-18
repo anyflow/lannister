@@ -59,6 +59,8 @@ public class Session implements com.hazelcast.nio.serialization.Portable, ISessi
 	@JsonProperty
 	private String clientId;
 	@JsonProperty
+	private boolean isConnected;
+	@JsonProperty
 	private IMap<String, TopicSubscription> topicSubscriptions;
 	@JsonProperty
 	private int currentMessageId;
@@ -82,6 +84,7 @@ public class Session implements com.hazelcast.nio.serialization.Portable, ISessi
 
 	public Session(String clientId, int keepAliveSeconds, boolean cleanSession, Message will) {
 		this.clientId = clientId;
+		this.isConnected = true;
 		this.createTime = new Date();
 		this.currentMessageId = 0;
 		this.keepAliveSeconds = keepAliveSeconds;
@@ -107,12 +110,20 @@ public class Session implements com.hazelcast.nio.serialization.Portable, ISessi
 		return ctx.channel().id();
 	}
 
-	@JsonProperty
-	public boolean isConnected() {
+	public boolean isConnected(boolean checkOwnership) {
+		if (!isConnected) { return false; }
+		if (!checkOwnership) { return isConnected; }
+
 		ChannelHandlerContext ctx = NEXUS.channelHandlerContext(clientId);
 		if (ctx == null) { return false; }
 
 		return ctx.channel().isActive();
+	}
+
+	public void setConnected(boolean isConnected) {
+		this.isConnected = isConnected;
+
+		Session.NEXUS.persist(this);
 	}
 
 	/*
@@ -194,6 +205,8 @@ public class Session implements com.hazelcast.nio.serialization.Portable, ISessi
 	}
 
 	public void dispose(boolean sendWill) {
+		setConnected(false);
+
 		if (sendWill && will != null) { // [MQTT-3.1.2-12]
 			Topic.NEXUS.publish(will);
 			will(null); // [MQTT-3.1.2-10]
@@ -243,6 +256,7 @@ public class Session implements com.hazelcast.nio.serialization.Portable, ISessi
 	@Override
 	public void writePortable(PortableWriter writer) throws IOException {
 		writer.writeUTF("clientId", clientId);
+		writer.writeBoolean("isConnected", isConnected);
 		writer.writeInt("currentMessageId", currentMessageId);
 		if (will != null) {
 			writer.writePortable("will", will);
@@ -259,6 +273,7 @@ public class Session implements com.hazelcast.nio.serialization.Portable, ISessi
 	@Override
 	public void readPortable(PortableReader reader) throws IOException {
 		clientId = reader.readUTF("clientId");
+		isConnected = reader.readBoolean("isConnected");
 		currentMessageId = reader.readInt("currentMessageId");
 		will = reader.readPortable("will");
 		cleanSession = reader.readBoolean("isCleanSession");
@@ -273,8 +288,8 @@ public class Session implements com.hazelcast.nio.serialization.Portable, ISessi
 
 	public static ClassDefinition classDefinition() {
 		return new ClassDefinitionBuilder(SerializableFactory.ID, ID).addUTFField("clientId")
-				.addIntField("currentMessageId").addPortableField("will", Message.classDefinition())
-				.addBooleanField("isCleanSession").addIntField("keepAliveSeconds").addLongField("createTime")
-				.addLongField("lastIncomingTime").build();
+				.addBooleanField("isConnected").addIntField("currentMessageId")
+				.addPortableField("will", Message.classDefinition()).addBooleanField("isCleanSession")
+				.addIntField("keepAliveSeconds").addLongField("createTime").addLongField("lastIncomingTime").build();
 	}
 }

@@ -101,7 +101,7 @@ public class Sessions implements MessageListener<Notification> {
 		Notification notified = message.getMessageObject();
 
 		Session session = get(notified.clientId());
-		if (session == null || session.isConnected() == false) { return; }
+		if (session == null || session.isConnected(true) == false) { return; }
 
 		session.sendPublish(notified.topic(), notified.message());// [MQTT-3.3.1-8],[MQTT-3.3.1-9]
 	}

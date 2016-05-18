@@ -30,163 +30,195 @@ import net.anyflow.lannister.topic.Topic;
 
 public class Statistics {
 
-	public static Statistics SELF;
+    public static Statistics SELF;
 
-	public static final String $SYS_BROKER_VERSION = "$SYS/broker/version";
-	public static final String $SYS_BROKER_TIMESTAMP = "$SYS/broker/timestamp";
-	public static final String $SYS_BROKER_CHANGESET = "$SYS/broker/changeset";
+    public static final String $SYS_BROKER_VERSION = "$SYS/broker/version";
+    public static final String $SYS_BROKER_TIMESTAMP = "$SYS/broker/timestamp";
+    public static final String $SYS_BROKER_CHANGESET = "$SYS/broker/changeset";
 
-	public static final List<String> $SYS_STATIC_TOPICS = Lists.newArrayList($SYS_BROKER_VERSION, $SYS_BROKER_TIMESTAMP,
-			$SYS_BROKER_CHANGESET);
+    public static final List<String> $SYS_STATIC_TOPICS = Lists.newArrayList($SYS_BROKER_VERSION, $SYS_BROKER_TIMESTAMP,
+            $SYS_BROKER_CHANGESET);
 
-	static {
-		SELF = new Statistics();
-	}
+    static {
+        SELF = new Statistics();
+    }
 
-	public interface SysValue {
-		String value();
-	}
+    private Map<String, SysValue> data; // key : topic name
+    private IMap<Criterion, Long> criterions;
 
-	private class RawSysValue implements SysValue {
-		private Criterion criterion;
+    public interface SysValue {
+        String value();
+    }
 
-		private RawSysValue(Criterion criterion) {
-			this.criterion = criterion;
-		}
+    private class RawSysValue implements SysValue {
+        private Criterion criterion;
 
-		@Override
-		public String value() {
-			return criterions.get(criterion).toString();
-		}
-	}
+        private RawSysValue(Criterion criterion) {
+            this.criterion = criterion;
+        }
 
-	public enum Criterion {
-		BROKER_START_TIME,
-		BYTE_RECEIVED,
-		BYTE_SENT,
-		CLIENTS_CONNECTED,
-		CLIENTS_DISCONNECTED,
-		CLIENTS_MAXIMUM,
-		CLIENTS_TOTAL,
-		MESSAGES_RECEIVED,
-		MESSAGES_SENT,
-		MESSAGES_PUBLISH_DROPPED,
-		MESSAGES_PUBLISH_RECEIVED,
-		MESSAGES_PUBLISH_SENT;
-	}
+        @Override
+        public String value() {
+            return criterions.get(criterion).toString();
+        }
+    }
 
-	private Map<String, SysValue> data; // key : topic name
-	private IMap<Criterion, Long> criterions;
+    public enum Criterion {
+        BROKER_START_TIME,
+        BYTE_RECEIVED,
+        BYTE_SENT,
+        CLIENTS_MAXIMUM,
+        MESSAGES_RECEIVED,
+        MESSAGES_SENT,
+        MESSAGES_PUBLISH_DROPPED,
+        MESSAGES_PUBLISH_RECEIVED,
+        MESSAGES_PUBLISH_SENT;
+    }
 
-	private Statistics() {
-		this.data = Maps.newHashMap();
-		this.criterions = Hazelcast.SELF.generator().getMap("statistics");
+    private Statistics() {
+        this.data = Maps.newHashMap();
+        this.criterions = Hazelcast.SELF.generator().getMap("statistics");
 
-		initializeCriterions();
-		initializeData();
-	}
+        initializeCriterions();
+        initializeData();
+    }
 
-	public Map<String, SysValue> data() {
-		return data;
-	}
+    public Map<String, SysValue> data() {
+        return data;
+    }
 
-	public void add(Criterion criterion, long size) {
-		ILock lock = Hazelcast.SELF.generator().getLock(criterion.toString());
+    public void add(Criterion criterion, long size) {
+        ILock lock = Hazelcast.SELF.generator().getLock(criterion.toString());
 
-		lock.lock();
-		try {
-			Long val = criterions.get(criterion);
-			val += size;
+        lock.lock();
+        try {
+            Long val = criterions.get(criterion);
+            val += size;
 
-			criterions.set(criterion, val);
-		}
-		finally {
-			lock.unlock();
-		}
-	}
+            criterions.set(criterion, val);
+        }
+        finally {
+            lock.unlock();
+        }
+    }
 
-	public String getStatic(String topicName) {
-		switch (topicName) {
-		case $SYS_BROKER_VERSION:
-			return Settings.SELF.version();
+    public void setMaxActiveClients(long current) {
+        ILock lock = Hazelcast.SELF.generator().getLock(Criterion.CLIENTS_MAXIMUM.toString());
 
-		case $SYS_BROKER_TIMESTAMP:
-			return Settings.SELF.buildTime();
+        lock.lock();
+        try {
+            Long prev = criterions.get(Criterion.CLIENTS_MAXIMUM);
 
-		case $SYS_BROKER_CHANGESET:
-			return Settings.SELF.commitIdDescribe() + " / " + Settings.SELF.commitId();
+            if (prev < current) {
+                criterions.set(Criterion.CLIENTS_MAXIMUM, current);
+            }
+        }
+        finally {
+            lock.unlock();
+        }
+    }
 
-		default:
-			return null;
-		}
-	}
+    public String getStatic(String topicName) {
+        switch (topicName) {
+        case $SYS_BROKER_VERSION:
+            return Settings.SELF.version();
 
-	private void initializeCriterions() {
-		if (criterions.get(Criterion.BROKER_START_TIME) == null) {
-			criterions.set(Criterion.BROKER_START_TIME, (new Date()).getTime());
-		}
+        case $SYS_BROKER_TIMESTAMP:
+            return Settings.SELF.buildTime();
 
-		initialize(Criterion.BYTE_RECEIVED);
-		initialize(Criterion.BYTE_SENT);
-		initialize(Criterion.CLIENTS_CONNECTED);
-		initialize(Criterion.CLIENTS_DISCONNECTED);
-		initialize(Criterion.CLIENTS_MAXIMUM);
-		initialize(Criterion.CLIENTS_TOTAL);
-		initialize(Criterion.MESSAGES_RECEIVED);
-		initialize(Criterion.MESSAGES_SENT);
-		initialize(Criterion.MESSAGES_PUBLISH_DROPPED);
-		initialize(Criterion.MESSAGES_PUBLISH_RECEIVED);
-		initialize(Criterion.MESSAGES_PUBLISH_SENT);
-	}
+        case $SYS_BROKER_CHANGESET:
+            return Settings.SELF.commitIdDescribe() + " / " + Settings.SELF.commitId();
 
-	private void initialize(Criterion criterion) {
-		if (criterions.get(criterion) != null) { return; }
+        default:
+            return null;
+        }
+    }
 
-		criterions.put(criterion, 0l);
-	}
+    private void initializeCriterions() {
+        if (criterions.get(Criterion.BROKER_START_TIME) == null) {
+            criterions.set(Criterion.BROKER_START_TIME, (new Date()).getTime());
+        }
 
-	private void initializeData() {
-		data.put("$SYS/broker/load/bytes/received", new RawSysValue(Criterion.BYTE_RECEIVED));
-		data.put("$SYS/broker/load/bytes/sent", new RawSysValue(Criterion.BYTE_SENT));
-		data.put("$SYS/broker/clients/connected", new RawSysValue(Criterion.CLIENTS_CONNECTED));
-		data.put("$SYS/broker/clients/disconnected", new RawSysValue(Criterion.CLIENTS_DISCONNECTED));
-		data.put("$SYS/broker/clients/maximum", new RawSysValue(Criterion.CLIENTS_MAXIMUM));
-		data.put("$SYS/broker/clients/total", new RawSysValue(Criterion.CLIENTS_TOTAL));
-		data.put("$SYS/broker/messages/received", new RawSysValue(Criterion.MESSAGES_RECEIVED));
-		data.put("$SYS/broker/messages/sent", new RawSysValue(Criterion.MESSAGES_SENT));
-		data.put("$SYS/broker/messages/publish/dropped", new RawSysValue(Criterion.MESSAGES_PUBLISH_DROPPED));
-		data.put("$SYS/broker/messages/publish/received", new RawSysValue(Criterion.MESSAGES_PUBLISH_RECEIVED));
-		data.put("$SYS/broker/messages/publish/sent", new RawSysValue(Criterion.MESSAGES_PUBLISH_SENT));
+        initialize(Criterion.BYTE_RECEIVED);
+        initialize(Criterion.BYTE_SENT);
+        initialize(Criterion.CLIENTS_MAXIMUM);
+        initialize(Criterion.MESSAGES_RECEIVED);
+        initialize(Criterion.MESSAGES_SENT);
+        initialize(Criterion.MESSAGES_PUBLISH_DROPPED);
+        initialize(Criterion.MESSAGES_PUBLISH_RECEIVED);
+        initialize(Criterion.MESSAGES_PUBLISH_SENT);
+    }
 
-		data.put("$SYS/broker/messages/retained/count", new SysValue() {
-			@Override
-			public String value() {
-				return Long
-						.toString(Topic.NEXUS.map().values().stream().filter(t -> t.retainedMessage() != null).count());
-			}
-		});
+    private void initialize(Criterion criterion) {
+        if (criterions.get(criterion) != null) { return; }
 
-		data.put("$SYS/broker/subscriptions/count", new SysValue() {
-			@Override
-			public String value() {
-				return Long.toString(Session.NEXUS.map().values().stream().map(s -> s.topicSubscriptions())
-						.flatMap(s -> s.values().stream()).count());
-			}
-		});
+        criterions.put(criterion, 0l);
+    }
 
-		data.put("$SYS/broker/time", new SysValue() {
-			@Override
-			public String value() {
-				return (new Date()).toString();
-			}
-		});
+    private void initializeData() {
+        data.put("$SYS/broker/load/bytes/received", new RawSysValue(Criterion.BYTE_RECEIVED));
+        data.put("$SYS/broker/load/bytes/sent", new RawSysValue(Criterion.BYTE_SENT));
+        data.put("$SYS/broker/clients/maximum", new RawSysValue(Criterion.CLIENTS_MAXIMUM));
+        data.put("$SYS/broker/messages/received", new RawSysValue(Criterion.MESSAGES_RECEIVED));
+        data.put("$SYS/broker/messages/sent", new RawSysValue(Criterion.MESSAGES_SENT));
+        data.put("$SYS/broker/messages/publish/dropped", new RawSysValue(Criterion.MESSAGES_PUBLISH_DROPPED));
+        data.put("$SYS/broker/messages/publish/received", new RawSysValue(Criterion.MESSAGES_PUBLISH_RECEIVED));
+        data.put("$SYS/broker/messages/publish/sent", new RawSysValue(Criterion.MESSAGES_PUBLISH_SENT));
 
-		data.put("$SYS/broker/uptime", new SysValue() {
-			@Override
-			public String value() {
-				return Double.toString((double) ((new Date()).getTime() - criterions.get(Criterion.BROKER_START_TIME))
-						/ (double) 1000);
-			}
-		});
-	}
+        data.put("$SYS/broker/clients/connected", new SysValue() {
+            @Override
+            public String value() {
+                long current = Session.NEXUS.map().values().stream().filter(s -> s.isConnected(false)).count();
+
+                setMaxActiveClients(current);
+
+                return Long.toString(current);
+            }
+        });
+
+        data.put("$SYS/broker/clients/disconnected", new SysValue() {
+            @Override
+            public String value() {
+                return Long.toString(Session.NEXUS.map().values().stream().filter(s -> !s.isConnected(false)).count());
+            }
+        });
+
+        data.put("$SYS/broker/clients/total", new SysValue() {
+            @Override
+            public String value() {
+                return Long.toString(Session.NEXUS.map().entrySet().stream().count());
+            }
+        });
+
+        data.put("$SYS/broker/messages/retained/count", new SysValue() {
+            @Override
+            public String value() {
+                return Long
+                        .toString(Topic.NEXUS.map().values().stream().filter(t -> t.retainedMessage() != null).count());
+            }
+        });
+
+        data.put("$SYS/broker/subscriptions/count", new SysValue() {
+            @Override
+            public String value() {
+                return Long.toString(Session.NEXUS.map().values().stream().map(s -> s.topicSubscriptions())
+                        .flatMap(s -> s.values().stream()).count());
+            }
+        });
+
+        data.put("$SYS/broker/time", new SysValue() {
+            @Override
+            public String value() {
+                return (new Date()).toString();
+            }
+        });
+
+        data.put("$SYS/broker/uptime", new SysValue() {
+            @Override
+            public String value() {
+                return Double.toString((double) ((new Date()).getTime() - criterions.get(Criterion.BROKER_START_TIME))
+                        / (double) 1000);
+            }
+        });
+    }
 }

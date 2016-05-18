@@ -188,7 +188,7 @@ public class Topic implements com.hazelcast.nio.serialization.Portable {
 						toSend.id(), message.key(), OutboundMessageStatus.Status.TO_PUBLISH, toSend.qos()); // [MQTT-3.1.2-5]
 			}
 
-			if (session.isConnected()) {
+			if (session.isConnected(true)) {
 				session.sendPublish(this, toSend); // [MQTT-3.3.1-8],[MQTT-3.3.1-9]
 			}
 			else {
