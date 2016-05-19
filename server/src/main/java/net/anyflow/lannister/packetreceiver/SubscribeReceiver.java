@@ -36,7 +36,6 @@ import net.anyflow.lannister.Statistics;
 import net.anyflow.lannister.message.Message;
 import net.anyflow.lannister.message.MessageFactory;
 import net.anyflow.lannister.plugin.DefaultSubscribeEventListener;
-import net.anyflow.lannister.plugin.ISession;
 import net.anyflow.lannister.plugin.ITopicSubscription;
 import net.anyflow.lannister.plugin.Plugins;
 import net.anyflow.lannister.plugin.SubscribeEventArgs;
@@ -141,8 +140,13 @@ public class SubscribeReceiver extends SimpleChannelInboundHandler<MqttSubscribe
 			}
 
 			@Override
-			public ISession session() {
-				return session;
+			public String clientId() {
+				return session.clientId();
+			}
+
+			@Override
+			public boolean cleanSession() {
+				return session.cleanSession();
 			}
 		};
 

@@ -19,7 +19,9 @@ package net.anyflow.lannister.plugin;
 import java.util.List;
 
 public interface SubscribeEventArgs {
-	ISession session();
+	String clientId();
+
+	boolean cleanSession();
 
 	List<ITopicSubscription> topicSubscriptions();
 
