@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package net.anyflow.lannister.packetreceiver;
+package net.anyflow.lannister.server;
 
 import java.util.List;
 import java.util.concurrent.TimeUnit;
@@ -23,19 +23,43 @@ import com.google.common.collect.Lists;
 
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
+import io.netty.handler.codec.mqtt.MqttQoS;
+import io.netty.util.CharsetUtil;
 import net.anyflow.lannister.Settings;
+import net.anyflow.lannister.Statistics;
+import net.anyflow.lannister.message.Message;
 import net.anyflow.lannister.session.Session;
+import net.anyflow.lannister.topic.Topic;
 
-public class SessionExpirator extends ChannelInboundHandlerAdapter {
-
-	private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(SessionExpirator.class);
+public class ScheduledExecutor extends ChannelInboundHandlerAdapter {
+	private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(ScheduledExecutor.class);
 
 	@Override
 	public void handlerAdded(ChannelHandlerContext ctx) throws Exception {
+		int $sysPublisherInterval = Settings.SELF.getInt("annister.sys.intervalSeconds", 2);
+		ctx.executor().scheduleAtFixedRate(new $SysPublisher(), 0, $sysPublisherInterval, TimeUnit.SECONDS);
 
-		int interval = Settings.SELF.getInt("lannister.sessionExpirationHandlerExecutionIntervalSeconds", 0);
+		int sessionExpiratorInterval = Settings.SELF
+				.getInt("lannister.sessionExpirationHandlerExecutionIntervalSeconds", 0);
+		ctx.executor().scheduleAtFixedRate(new SessionExpirator(), 0, sessionExpiratorInterval, TimeUnit.SECONDS);
+	}
 
-		ctx.executor().scheduleAtFixedRate(() -> {
+	class $SysPublisher implements Runnable {
+		@Override
+		public void run() {
+			String requesterId = Settings.SELF.getProperty("lannister.broker.id", "lannister_broker_id");
+
+			Statistics.SELF.data().entrySet().stream().forEach(e -> {
+				byte[] msg = e.getValue().value().getBytes(CharsetUtil.UTF_8);
+
+				Topic.NEXUS.publish(new Message(-1, e.getKey(), requesterId, msg, MqttQoS.AT_MOST_ONCE, false));
+			});
+		}
+	}
+
+	class SessionExpirator implements Runnable {
+		@Override
+		public void run() {
 			List<Session> disposes = Lists.newArrayList();
 
 			Session.NEXUS.ctxs().keySet().stream().filter(id -> {
@@ -46,7 +70,6 @@ public class SessionExpirator extends ChannelInboundHandlerAdapter {
 			disposes.stream().forEach(s -> s.dispose(true)); // [MQTT-3.1.2-24]
 
 			logger.debug("SessionExpirationHandler executed [dispose count={}]", disposes.size());
-
-		} , 0, interval, TimeUnit.SECONDS);
+		}
 	}
 }

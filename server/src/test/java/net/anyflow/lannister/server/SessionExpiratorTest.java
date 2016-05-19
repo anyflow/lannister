@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package net.anyflow.lannister.packetreceiver;
+package net.anyflow.lannister.server;
 
 import java.util.Date;
 
