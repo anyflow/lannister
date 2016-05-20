@@ -32,9 +32,6 @@ import net.anyflow.lannister.Settings;
 import net.anyflow.menton.general.TaskCompletionInformer;
 import net.anyflow.menton.general.TaskCompletionListener;
 
-/**
- * @author anyflow
- */
 public class WebServer implements TaskCompletionInformer {
 
 	private static final Logger logger = LoggerFactory.getLogger(WebServer.class);
@@ -59,24 +56,10 @@ public class WebServer implements TaskCompletionInformer {
 		return workerGroup;
 	}
 
-	/**
-	 * @param requestHandlerPakcageRoot
-	 *            root package prefix of request handlers.
-	 * @return the HTTP channel
-	 * @throws Exception
-	 */
 	public void start(String requestHandlerPakcageRoot) throws Exception {
 		start(requestHandlerPakcageRoot, null);
 	}
 
-	/**
-	 * @param requestHandlerPakcageRoot
-	 *            root package prefix of request handlers.
-	 * @param webSocketFrameHandler
-	 *            websocket handler
-	 * @return the HTTP channel
-	 * @throws Exception
-	 */
 	public void start(String requestHandlerPakcageRoot,
 			final Class<? extends WebsocketFrameHandler> websocketFrameHandlerClass) throws Exception {
 		HttpRequestHandler.setRequestHandlerPakcageRoot(requestHandlerPakcageRoot);
@@ -126,36 +109,17 @@ public class WebServer implements TaskCompletionInformer {
 		inform();
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see
-	 * net.anyflow.menton.general.TaskCompletionInformer#register(net.anyflow.
-	 * menton.general.TaskCompletionListener)
-	 */
 	@Override
 	public void register(TaskCompletionListener taskCompletionListener) {
 		taskCompletionListeners.add(taskCompletionListener);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see
-	 * net.anyflow.menton.general.TaskCompletionInformer#deregister(net.anyflow.
-	 * menton.general.TaskCompletionListener)
-	 */
 	@Override
 	public void deregister(TaskCompletionListener taskCompletionListener) {
 		taskCompletionListeners.remove(taskCompletionListener);
 
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see net.anyflow.menton.general.TaskCompletionInformer#inform()
-	 */
 	@Override
 	public void inform() {
 		for (TaskCompletionListener taskCompletionListener : taskCompletionListeners) {

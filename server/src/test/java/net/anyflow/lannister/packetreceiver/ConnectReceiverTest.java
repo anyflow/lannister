@@ -55,9 +55,6 @@ public class ConnectReceiverTest {
 
 	@Test
 	public void testNonCleanSessionWithoutClientId() throws Exception {
-		// TODO Remove phantom CONNECT message right after CONACK(sent but not
-		// received the below client)
-
 		ConnectOptions options = new ConnectOptions();
 		options.cleanSession(false);
 
@@ -75,10 +72,20 @@ public class ConnectReceiverTest {
 	}
 
 	@Test
-	public void testCleanSessionWithoutClientId() throws Exception {
+	public void testCleanSessionWithoutClientIdReturnTrue() throws Exception {
 		MqttConnAckMessage ret = executeNormalChannelRead0("", true, null);
 
 		Assert.assertEquals(MqttConnectReturnCode.CONNECTION_ACCEPTED, ret.variableHeader().connectReturnCode());
+	}
+
+	@Test
+	public void testCleanSessionWithoutClientIdReturnFalse() throws Exception {
+		Settings.SELF.setProperty("mqtt.acceptEmptyClientId", "false");
+		MqttConnAckMessage ret = executeNormalChannelRead0("", true, null);
+
+		Assert.assertEquals(MqttConnectReturnCode.CONNECTION_REFUSED_IDENTIFIER_REJECTED,
+				ret.variableHeader().connectReturnCode());
+		Settings.SELF.setProperty("mqtt.acceptEmptyClientId", "true");
 	}
 
 	@Test

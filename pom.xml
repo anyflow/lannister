@@ -5,7 +5,7 @@
 
 	<groupId>net.anyflow</groupId>
 	<artifactId>lannister</artifactId>
-	<version>0.9.5-SNAPSHOT</version>
+	<version>0.9.5.0-SNAPSHOT</version>
 	<name>lannister</name>
 	<description>MQTT broker with full spec support and Clustering/WebSocket/SSL based on Java - Netty/Hazelcast</description>
 	<packaging>pom</packaging>
@@ -17,6 +17,13 @@
 			<url>file://${project.build.directory}/mvn-repo</url>
 		</repository>
 	</distributionManagement>
+
+	<scm>
+		<connection>scm:git:git@github.com:anyflow/lannister.git</connection>
+		<url>scm:git:git@github.com:anyflow/lannister.git</url>
+		<developerConnection>scm:git:git@github.com:anyflow/lannister.git</developerConnection>
+		<tag>HEAD</tag>
+	</scm>
 
 	<modules>
 		<module>interface</module>

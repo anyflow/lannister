@@ -17,27 +17,19 @@
 package net.anyflow.lannister.packetreceiver;
 
 import java.util.Date;
-import java.util.List;
-
-import com.google.common.collect.Lists;
 
 import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
-import io.netty.handler.codec.DecoderException;
 import io.netty.handler.codec.mqtt.MqttMessage;
 import io.netty.handler.codec.mqtt.MqttMessageIdVariableHeader;
-import net.anyflow.lannister.plugin.DisconnectEventArgs;
+import net.anyflow.lannister.AbnormalDisconnectEventArgs;
 import net.anyflow.lannister.plugin.DisconnectEventListener;
 import net.anyflow.lannister.plugin.Plugins;
 import net.anyflow.lannister.session.Session;
 
 public class GenericReceiver extends SimpleChannelInboundHandler<MqttMessage> {
-
 	private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(GenericReceiver.class);
-
-	private static final String UNKNOWN_RETURN_CODE = "unknown connect return code:";
-	private static final String UNKNOWN_RETURN_TYPE = "Unknown message type: ";
 
 	@Override
 	protected void channelRead0(ChannelHandlerContext ctx, MqttMessage msg) throws Exception {
@@ -51,7 +43,9 @@ public class GenericReceiver extends SimpleChannelInboundHandler<MqttMessage> {
 			else {
 				ctx.channel().writeAndFlush(msg).addListener(f -> {
 					logger.debug("packet outgoing [{}]", msg);
-					ctx.channel().disconnect().addListener(ChannelFutureListener.CLOSE); // [MQTT-3.2.2-5]
+
+					ctx.channel().disconnect().addListener(ChannelFutureListener.CLOSE).addListener(fs -> // [MQTT-3.2.2-5]
+					Plugins.SELF.get(DisconnectEventListener.class).disconnected(new AbnormalDisconnectEventArgs()));
 				});
 			}
 			return;
@@ -62,7 +56,9 @@ public class GenericReceiver extends SimpleChannelInboundHandler<MqttMessage> {
 			Session session = Session.NEXUS.get(ctx.channel().id());
 			if (session == null) {
 				logger.error("None exist session message : {}", msg.toString());
-				ctx.disconnect().addListener(ChannelFutureListener.CLOSE); // [MQTT-4.8.0-1]
+
+				ctx.channel().disconnect().addListener(ChannelFutureListener.CLOSE).addListener(fs -> // [MQTT-4.8.0-1]
+				Plugins.SELF.get(DisconnectEventListener.class).disconnected(new AbnormalDisconnectEventArgs()));
 				return;
 			}
 
@@ -105,8 +101,8 @@ public class GenericReceiver extends SimpleChannelInboundHandler<MqttMessage> {
 			return;
 		}
 		else {
-			session.dispose(true); // abnormal disconnection without
-									// DISCONNECT [MQTT-4.8.0-1]
+			session.dispose(true); // abnormal disconnection without DISCONNECT
+									// [MQTT-4.8.0-1]
 		}
 	}
 
@@ -114,41 +110,13 @@ public class GenericReceiver extends SimpleChannelInboundHandler<MqttMessage> {
 	public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
 		logger.error(cause.getMessage(), cause);
 
-		if (cause instanceof DecoderException
-				|| (cause instanceof IllegalArgumentException && contains(cause.getMessage()))) {
-			Session session = Session.NEXUS.get(ctx.channel().id());
-			if (session != null) {
-				session.dispose(true);
-			}
-			else {
-				ctx.channel().disconnect().addListener(ChannelFutureListener.CLOSE);
-
-				Plugins.SELF.get(DisconnectEventListener.class).disconnected(new DisconnectEventArgs() {
-					@Override
-					public String clientId() {
-						return null;
-					}
-
-					@Override
-					public Boolean cleanSession() {
-						return null;
-					}
-
-					@Override
-					public Boolean byDisconnectMessage() {
-						return false;
-					}
-				});
-			}
+		Session session = Session.NEXUS.get(ctx.channel().id());
+		if (session != null) {
+			session.dispose(true);
 		}
 		else {
-			super.exceptionCaught(ctx, cause);
+			ctx.channel().disconnect().addListener(ChannelFutureListener.CLOSE).addListener(fs -> // [MQTT-3.2.2-5]
+			Plugins.SELF.get(DisconnectEventListener.class).disconnected(new AbnormalDisconnectEventArgs()));
 		}
-	}
-
-	private static boolean contains(String message) {
-		List<String> messages = Lists.newArrayList(UNKNOWN_RETURN_CODE, UNKNOWN_RETURN_TYPE);
-
-		return messages.stream().anyMatch(s -> s.contains(message));
 	}
 }

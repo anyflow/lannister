@@ -49,7 +49,11 @@ cd server
 mvn exec:java
 ```
 ## Version History
-##### [version 0.9.5-beta1](https://github.com/anyflow/lannister/commit/c47558dca141f5dd8162e512ec5079731814b6f4) / May 16, 2016
+##### version 0.9.5.0 / May 21, 2016
+- Code Review, Test based on chapter 3.2 of Spec v3.1.1 Mandatory normative statements
+- Add $SYS Required Topics
+
+##### version 0.9.5-beta1 / May 16, 2016
 - Code Review, Test based on chapter 3.1 of Spec v3.1.1 Mandatory normative statements
 - Implement full features of Protocol Specification MQTT version 3.1.1
 - Add clustering

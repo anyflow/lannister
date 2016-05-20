@@ -22,10 +22,12 @@ import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
 import io.netty.handler.codec.mqtt.MqttPublishMessage;
+import net.anyflow.lannister.AbnormalDisconnectEventArgs;
 import net.anyflow.lannister.Statistics;
 import net.anyflow.lannister.message.InboundMessageStatus;
 import net.anyflow.lannister.message.Message;
 import net.anyflow.lannister.message.MessageFactory;
+import net.anyflow.lannister.plugin.DisconnectEventListener;
 import net.anyflow.lannister.plugin.IMessage;
 import net.anyflow.lannister.plugin.Plugins;
 import net.anyflow.lannister.plugin.PublishEventArgs;
@@ -46,7 +48,9 @@ public class PublishReceiver extends SimpleChannelInboundHandler<MqttPublishMess
 		Session session = Session.NEXUS.get(ctx.channel().id());
 		if (session == null) {
 			logger.error("None exist session message [message={}]", msg.toString());
-			ctx.disconnect().addListener(ChannelFutureListener.CLOSE); // [MQTT-4.8.0-1]
+
+			ctx.channel().disconnect().addListener(ChannelFutureListener.CLOSE).addListener(fs -> // [MQTT-4.8.0-1]
+			Plugins.SELF.get(DisconnectEventListener.class).disconnected(new AbnormalDisconnectEventArgs()));
 			return;
 		}
 

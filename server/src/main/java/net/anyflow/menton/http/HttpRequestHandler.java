@@ -89,12 +89,6 @@ public abstract class HttpRequestHandler {
 		HttpRequestHandler.requestHandlerPakcageRoot = requestHandlerPakcageRoot;
 	}
 
-	/**
-	 * @param requestedPath
-	 * @param httpMethod
-	 * @param requestHandlerPackageRoot
-	 * @return
-	 */
 	protected static MatchedCriterion findRequestHandler(String requestedPath, String httpMethod) {
 		for (String criterion : handlerClassMap.keySet()) {
 			MatchedCriterion mc = match(requestedPath, httpMethod, criterion);

@@ -62,7 +62,7 @@ public class MessageSender {
 
 		if (!session.isConnected(true)) { return; }
 
-		send(MessageFactory.publish(message, false)).addListener(f -> {
+		send(MessageFactory.publish(message, false)).addListener(f -> { // [MQTT-3.3.1-2]
 			Statistics.SELF.add(Statistics.Criterion.MESSAGES_PUBLISH_SENT, 1);
 
 			switch (message.qos()) {
@@ -159,7 +159,7 @@ public class MessageSender {
 				switch (s.status()) {
 				case TO_PUBLISH:
 				case PUBLISHED:
-					send(MessageFactory.publish(message, s.status() == OutboundMessageStatus.Status.PUBLISHED))
+					send(MessageFactory.publish(message, s.status() == OutboundMessageStatus.Status.PUBLISHED)) // [MQTT-3.3.1-1]
 							.addListener(f -> {
 						Statistics.SELF.add(Statistics.Criterion.MESSAGES_PUBLISH_SENT, 1);
 					});

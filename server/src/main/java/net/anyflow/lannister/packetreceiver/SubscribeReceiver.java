@@ -31,11 +31,13 @@ import io.netty.handler.codec.mqtt.MqttQoS;
 import io.netty.handler.codec.mqtt.MqttSubscribeMessage;
 import io.netty.handler.codec.mqtt.MqttTopicSubscription;
 import io.netty.util.CharsetUtil;
+import net.anyflow.lannister.AbnormalDisconnectEventArgs;
 import net.anyflow.lannister.Settings;
 import net.anyflow.lannister.Statistics;
 import net.anyflow.lannister.message.Message;
 import net.anyflow.lannister.message.MessageFactory;
 import net.anyflow.lannister.plugin.DefaultSubscribeEventListener;
+import net.anyflow.lannister.plugin.DisconnectEventListener;
 import net.anyflow.lannister.plugin.ITopicSubscription;
 import net.anyflow.lannister.plugin.Plugins;
 import net.anyflow.lannister.plugin.SubscribeEventArgs;
@@ -55,7 +57,9 @@ public class SubscribeReceiver extends SimpleChannelInboundHandler<MqttSubscribe
 		Session session = Session.NEXUS.get(ctx.channel().id());
 		if (session == null) {
 			logger.error("None exist session message [message={}]", msg.toString());
-			ctx.disconnect().addListener(ChannelFutureListener.CLOSE); // [MQTT-4.8.0-1]
+
+			ctx.channel().disconnect().addListener(ChannelFutureListener.CLOSE).addListener(fs -> // [MQTT-4.8.0-1]
+			Plugins.SELF.get(DisconnectEventListener.class).disconnected(new AbnormalDisconnectEventArgs()));
 			return;
 		}
 

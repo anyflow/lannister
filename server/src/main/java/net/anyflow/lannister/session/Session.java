@@ -36,6 +36,7 @@ import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelId;
 import io.netty.handler.codec.mqtt.MqttMessage;
+import net.anyflow.lannister.AbnormalDisconnectEventArgs;
 import net.anyflow.lannister.Hazelcast;
 import net.anyflow.lannister.Literals;
 import net.anyflow.lannister.message.Message;
@@ -202,7 +203,9 @@ public class Session implements com.hazelcast.nio.serialization.Portable {
 		ChannelId channelId = null;
 		ChannelHandlerContext ctx = NEXUS.channelHandlerContext(clientId);
 		if (ctx != null) {
-			ctx.disconnect().addListener(ChannelFutureListener.CLOSE);
+			ctx.channel().disconnect().addListener(ChannelFutureListener.CLOSE).addListener(fs -> Plugins.SELF
+					.get(DisconnectEventListener.class).disconnected(new AbnormalDisconnectEventArgs()));
+
 			channelId = ctx.channel().id();
 		}
 
