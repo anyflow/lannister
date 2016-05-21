@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 The Menton Project
+ * Copyright 2016 The Lannister Project
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package net.anyflow.menton.http;
+package net.anyflow.lannister.http;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
@@ -31,12 +31,6 @@ import com.google.common.collect.Maps;
 
 import net.anyflow.lannister.Settings;
 
-/**
- * Base class for request handler. The class contains common stuffs for
- * generating business logic.
- * 
- * @author anyflow
- */
 public abstract class HttpRequestHandler {
 
 	private static final Map<String, Class<? extends HttpRequestHandler>> handlerClassMap = Maps.newHashMap();
@@ -46,31 +40,16 @@ public abstract class HttpRequestHandler {
 	private HttpRequest request;
 	private HttpResponse response;
 
-	/**
-	 * @author anyflow
-	 */
 	@Retention(RetentionPolicy.RUNTIME)
 	@Target({ ElementType.TYPE, ElementType.METHOD })
 	public @interface Handles {
-
-		/**
-		 * @return supported paths
-		 */
 		String[] paths();
 
-		/**
-		 * supported http methods
-		 * 
-		 * @return http method string
-		 */
 		String[] httpMethods();
 
 		String webResourcePath() default "none";
 	}
 
-	/**
-	 * @return processed response body string
-	 */
 	public abstract String service();
 
 	protected void initialize(HttpRequest request, HttpResponse response) throws URISyntaxException {

@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 The Menton Project
+ * Copyright 2016 The Lannister Project
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package net.anyflow.menton.http;
+package net.anyflow.lannister.http;
 
 import java.util.Set;
 
@@ -38,9 +38,6 @@ import io.netty.handler.codec.http.cookie.ServerCookieDecoder;
 import io.netty.util.CharsetUtil;
 import net.anyflow.lannister.Settings;
 
-/**
- * @author anyflow
- */
 public class HttpResponse extends DefaultFullHttpResponse {
 
 	private static final Logger logger = LoggerFactory.getLogger(HttpResponse.class);
@@ -72,10 +69,6 @@ public class HttpResponse extends DefaultFullHttpResponse {
 		return ret;
 	}
 
-	/**
-	 * @param version
-	 * @param status
-	 */
 	private HttpResponse(HttpVersion version, HttpResponseStatus status, ByteBuf content) {
 		super(version, status, content);
 	}
@@ -103,7 +96,7 @@ public class HttpResponse extends DefaultFullHttpResponse {
 		}
 
 		if ("false".equalsIgnoreCase(
-				Settings.SELF.getProperty("menton.logging.logWebResourceHttpResponseContent", "false"))
+				Settings.SELF.getProperty("lannister.web.logging.logWebResourceHttpResponseContent", "false"))
 				&& Settings.SELF.webResourceExtensionToMimes()
 						.containsValue(headers().get(HttpHeaderNames.CONTENT_TYPE))) {
 			buf.append("Content: WEB RESOURCE CONTENT");
@@ -112,7 +105,7 @@ public class HttpResponse extends DefaultFullHttpResponse {
 
 		String content = this.content().toString(CharsetUtil.UTF_8);
 
-		int size = Ints.tryParse(Settings.SELF.getProperty("menton.logging.httpResponseContentSize", "100"));
+		int size = Ints.tryParse(Settings.SELF.getProperty("lannister.web.logging.httpResponseContentSize", "100"));
 
 		if (size < 0) {
 			buf.append("Content:\r\n   ").append(content);

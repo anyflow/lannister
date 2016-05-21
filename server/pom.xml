@@ -53,13 +53,13 @@
 			<artifactId>jackson-dataformat-smile</artifactId>
 			<version>2.7.4</version>
 		</dependency>
-		<!-- for menton -->
+		<!-- for lannister.web -->
 		<dependency>
 			<groupId>net.sf.jtidy</groupId>
 			<artifactId>jtidy</artifactId>
 			<version>r938</version>
 		</dependency>
-		<!-- for menton -->
+		<!-- for lannister.web -->
 		<dependency>
 			<groupId>org.reflections</groupId>
 			<artifactId>reflections</artifactId>

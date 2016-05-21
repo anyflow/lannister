@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 The Menton Project
+ * Copyright 2016 The Lannister Project
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,14 +14,10 @@
  * limitations under the License.
  */
 
-package net.anyflow.menton.http;
-
-import java.util.List;
+package net.anyflow.lannister.http;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import com.google.common.collect.Lists;
 
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.EventLoopGroup;
@@ -29,23 +25,18 @@ import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
 import io.netty.util.concurrent.DefaultThreadFactory;
 import net.anyflow.lannister.Settings;
-import net.anyflow.menton.general.TaskCompletionInformer;
-import net.anyflow.menton.general.TaskCompletionListener;
 
-public class WebServer implements TaskCompletionInformer {
+public class WebServer {
 
 	private static final Logger logger = LoggerFactory.getLogger(WebServer.class);
 	private final EventLoopGroup bossGroup;
 	private final EventLoopGroup workerGroup;
-	private final List<TaskCompletionListener> taskCompletionListeners;
 
 	public WebServer() {
-		taskCompletionListeners = Lists.newArrayList();
-
-		bossGroup = new NioEventLoopGroup(Settings.SELF.getInt("menton.system.bossThreadCount", 0),
-				new DefaultThreadFactory("menton/boss"));
-		workerGroup = new NioEventLoopGroup(Settings.SELF.getInt("menton.system.workerThreadCount", 0),
-				new DefaultThreadFactory("menton/worker"));
+		bossGroup = new NioEventLoopGroup(Settings.SELF.getInt("lannister.web.system.bossThreadCount", 0),
+				new DefaultThreadFactory("lannister.web/boss"));
+		workerGroup = new NioEventLoopGroup(Settings.SELF.getInt("lannister.web.system.workerThreadCount", 0),
+				new DefaultThreadFactory("lannister.web/worker"));
 	}
 
 	public EventLoopGroup bossGroup() {
@@ -82,11 +73,11 @@ public class WebServer implements TaskCompletionInformer {
 				bootstrap.bind(Settings.SELF.httpsPort()).sync();
 			}
 
-			logger.info("Menton server started: [HTTP port={}, HTTPS port={}]", Settings.SELF.httpPort(),
+			logger.info("Lannister HTTP server started [http.port={}, https.port={}]", Settings.SELF.httpPort(),
 					Settings.SELF.httpsPort());
 		}
 		catch (Exception e) {
-			logger.error("Menton server failed to start...", e);
+			logger.error("Lannister HTTP server failed to start...", e);
 
 			shutdown();
 
@@ -105,25 +96,6 @@ public class WebServer implements TaskCompletionInformer {
 			logger.debug("Worker event loop group shutdowned");
 		}
 
-		logger.debug("Menton server stopped");
-		inform();
-	}
-
-	@Override
-	public void register(TaskCompletionListener taskCompletionListener) {
-		taskCompletionListeners.add(taskCompletionListener);
-	}
-
-	@Override
-	public void deregister(TaskCompletionListener taskCompletionListener) {
-		taskCompletionListeners.remove(taskCompletionListener);
-
-	}
-
-	@Override
-	public void inform() {
-		for (TaskCompletionListener taskCompletionListener : taskCompletionListeners) {
-			taskCompletionListener.taskCompleted(this, false);
-		}
+		logger.debug("Lannister HTTP server stopped");
 	}
 }

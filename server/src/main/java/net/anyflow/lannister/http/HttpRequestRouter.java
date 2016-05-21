@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 The Menton Project
+ * Copyright 2016 The Lannister Project
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package net.anyflow.menton.http;
+package net.anyflow.lannister.http;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -39,9 +39,6 @@ import io.netty.handler.codec.http.HttpUtil;
 import io.netty.handler.codec.http.HttpVersion;
 import net.anyflow.lannister.Settings;
 
-/**
- * @author anyflow
- */
 public class HttpRequestRouter extends SimpleChannelInboundHandler<FullHttpRequest> {
 
 	private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(HttpRequestRouter.class);
@@ -50,12 +47,6 @@ public class HttpRequestRouter extends SimpleChannelInboundHandler<FullHttpReque
 		return Settings.SELF.webResourceExtensionToMimes().keySet().stream().anyMatch(s -> path.endsWith("." + s));
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see io.netty.channel.SimpleChannelInboundHandler#channelRead0(io.netty.
-	 * channel.ChannelHandlerContext, java.lang.Object)
-	 */
 	@Override
 	protected void channelRead0(ChannelHandlerContext ctx, FullHttpRequest request) throws Exception {
 		if (HttpHeaderValues.WEBSOCKET.toString().equalsIgnoreCase(request.headers().get(HttpHeaderNames.UPGRADE))
@@ -63,7 +54,7 @@ public class HttpRequestRouter extends SimpleChannelInboundHandler<FullHttpReque
 						.equalsIgnoreCase(request.headers().get(HttpHeaderNames.CONNECTION))) {
 
 			if (ctx.pipeline().get(WebsocketFrameHandler.class) == null) {
-				logger.error("No WebSocket Handler available.");
+				logger.error("No WebSocket Handler available");
 
 				ctx.channel()
 						.writeAndFlush(new DefaultFullHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.FORBIDDEN))
@@ -102,11 +93,6 @@ public class HttpRequestRouter extends SimpleChannelInboundHandler<FullHttpReque
 		}
 	}
 
-	/**
-	 * @param response
-	 * @param webResourceRequestPath
-	 * @throws IOException
-	 */
 	private void handleWebResourceRequest(ChannelHandlerContext ctx, FullHttpRequest rawRequest, HttpResponse response,
 			String webResourceRequestPath) throws IOException {
 		InputStream is = Thread.currentThread().getContextClassLoader().getResourceAsStream(webResourceRequestPath);
@@ -145,7 +131,7 @@ public class HttpRequestRouter extends SimpleChannelInboundHandler<FullHttpReque
 
 		setDefaultHeaders(rawRequest, response);
 
-		if ("true".equalsIgnoreCase(Settings.SELF.getProperty("menton.logging.writeHttpResponse"))) {
+		if ("true".equalsIgnoreCase(Settings.SELF.getProperty("lannister.web.logging.writeHttpResponse"))) {
 			logger.info(response.toString());
 		}
 
@@ -180,7 +166,7 @@ public class HttpRequestRouter extends SimpleChannelInboundHandler<FullHttpReque
 
 			handler.initialize(request, response);
 
-			if ("true".equalsIgnoreCase(Settings.SELF.getProperty("menton.logging.writeHttpRequest"))) {
+			if ("true".equalsIgnoreCase(Settings.SELF.getProperty("lannister.web.logging.writeHttpRequest"))) {
 				logger.info(request.toString());
 			}
 
@@ -189,7 +175,7 @@ public class HttpRequestRouter extends SimpleChannelInboundHandler<FullHttpReque
 
 		setDefaultHeaders(rawRequest, response);
 
-		if ("true".equalsIgnoreCase(Settings.SELF.getProperty("menton.logging.writeHttpResponse"))) {
+		if ("true".equalsIgnoreCase(Settings.SELF.getProperty("lannister.web.logging.writeHttpResponse"))) {
 			logger.info(response.toString());
 		}
 
@@ -209,15 +195,14 @@ public class HttpRequestRouter extends SimpleChannelInboundHandler<FullHttpReque
 
 	protected static void setDefaultHeaders(FullHttpRequest request, HttpResponse response) {
 		response.headers().add(HttpHeaderNames.SERVER,
-
-				net.anyflow.lannister.Settings.SELF.getProperty("menton.version"));
+				"lannister " + net.anyflow.lannister.Settings.SELF.getProperty("lannister.version"));
 
 		boolean keepAlive = request.headers().get(HttpHeaderNames.CONNECTION) == HttpHeaderValues.KEEP_ALIVE.toString();
 		if (keepAlive) {
 			response.headers().set(HttpHeaderNames.CONNECTION, HttpHeaderValues.KEEP_ALIVE);
 		}
 
-		if (Settings.SELF.getProperty("menton.httpServer.allowCrossDomain", "false").equalsIgnoreCase("true")) {
+		if (Settings.SELF.getProperty("lannister.web.httpServer.allowCrossDomain", "false").equalsIgnoreCase("true")) {
 			response.headers().add(HttpHeaderNames.ACCESS_CONTROL_ALLOW_ORIGIN, "*");
 			response.headers().add(HttpHeaderNames.ACCESS_CONTROL_ALLOW_METHODS, "POST, GET, PUT, DELETE");
 			response.headers().add(HttpHeaderNames.ACCESS_CONTROL_ALLOW_HEADERS, "X-PINGARUNER");

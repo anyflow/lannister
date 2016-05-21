@@ -23,8 +23,8 @@ import org.junit.Test;
 import io.netty.handler.codec.http.HttpResponseStatus;
 import io.netty.util.CharsetUtil;
 import net.anyflow.lannister.TestSuite;
-import net.anyflow.menton.http.HttpClient;
-import net.anyflow.menton.http.HttpResponse;
+import net.anyflow.lannister.http.HttpClient;
+import net.anyflow.lannister.http.HttpResponse;
 
 public class TopicsTest {
 

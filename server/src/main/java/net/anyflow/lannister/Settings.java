@@ -61,7 +61,7 @@ public class Settings extends java.util.Properties {
 		}
 
 		try {
-			webResourceExtensionToMimes = (new ObjectMapper()).readValue(getProperty("menton.httpServer.MIME"),
+			webResourceExtensionToMimes = (new ObjectMapper()).readValue(getProperty("lannister.web.httpServer.MIME"),
 					Map.class);
 		}
 		catch (IOException e) {
@@ -121,21 +121,21 @@ public class Settings extends java.util.Properties {
 	}
 
 	public Integer httpPort() {
-		return tryParse(getProperty("menton.httpServer.http.port", null));
+		return tryParse(getProperty("lannister.web.httpServer.http.port", null));
 	}
 
 	public Integer httpsPort() {
-		return tryParse(getProperty("menton.httpServer.https.port", null));
+		return tryParse(getProperty("lannister.web.httpServer.https.port", null));
 	}
 
 	public File certChainFile() {
-		String certFilePath = getProperty("menton.ssl.certChainFilePath", null);
+		String certFilePath = getProperty("lannister.web.ssl.certChainFilePath", null);
 
 		return "self".equalsIgnoreCase(certFilePath) ? ssc.certificate() : new File(certFilePath);
 	}
 
 	public File privateKeyFile() {
-		String privateKeyFilePath = getProperty("menton.ssl.privateKeyFilePath", null);
+		String privateKeyFilePath = getProperty("lannister.web.ssl.privateKeyFilePath", null);
 
 		return "self".equalsIgnoreCase(privateKeyFilePath) ? ssc.privateKey() : new File(privateKeyFilePath);
 	}
@@ -144,7 +144,7 @@ public class Settings extends java.util.Properties {
 	 * @return context root path
 	 */
 	public String httpContextRoot() {
-		String ret = getProperty("menton.httpServer.contextRoot", "/");
+		String ret = getProperty("lannister.web.httpServer.contextRoot", "/");
 
 		if (ret.equalsIgnoreCase("") || ret.charAt(ret.length() - 1) != '/') {
 			ret += "/";
@@ -154,11 +154,11 @@ public class Settings extends java.util.Properties {
 	}
 
 	public String webResourcePhysicalRootPath() {
-		return this.getProperty("menton.httpServer.webResourcePhysicalRootPath", null);
+		return this.getProperty("lannister.web.httpServer.webResourcePhysicalRootPath", null);
 	}
 
 	public void setWebResourcePhysicalRootPath(String physicalRootPath) {
-		this.setProperty("menton.httpServer.webResourcePhysicalRootPath", physicalRootPath);
+		this.setProperty("lannister.web.httpServer.webResourcePhysicalRootPath", physicalRootPath);
 	}
 
 	public String version() {
