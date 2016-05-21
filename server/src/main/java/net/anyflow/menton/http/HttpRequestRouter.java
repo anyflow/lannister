@@ -39,9 +39,6 @@ import io.netty.handler.codec.http.HttpUtil;
 import io.netty.handler.codec.http.HttpVersion;
 import net.anyflow.lannister.Settings;
 
-/**
- * @author anyflow
- */
 public class HttpRequestRouter extends SimpleChannelInboundHandler<FullHttpRequest> {
 
 	private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(HttpRequestRouter.class);
@@ -50,12 +47,6 @@ public class HttpRequestRouter extends SimpleChannelInboundHandler<FullHttpReque
 		return Settings.SELF.webResourceExtensionToMimes().keySet().stream().anyMatch(s -> path.endsWith("." + s));
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see io.netty.channel.SimpleChannelInboundHandler#channelRead0(io.netty.
-	 * channel.ChannelHandlerContext, java.lang.Object)
-	 */
 	@Override
 	protected void channelRead0(ChannelHandlerContext ctx, FullHttpRequest request) throws Exception {
 		if (HttpHeaderValues.WEBSOCKET.toString().equalsIgnoreCase(request.headers().get(HttpHeaderNames.UPGRADE))
@@ -102,11 +93,6 @@ public class HttpRequestRouter extends SimpleChannelInboundHandler<FullHttpReque
 		}
 	}
 
-	/**
-	 * @param response
-	 * @param webResourceRequestPath
-	 * @throws IOException
-	 */
 	private void handleWebResourceRequest(ChannelHandlerContext ctx, FullHttpRequest rawRequest, HttpResponse response,
 			String webResourceRequestPath) throws IOException {
 		InputStream is = Thread.currentThread().getContextClassLoader().getResourceAsStream(webResourceRequestPath);
