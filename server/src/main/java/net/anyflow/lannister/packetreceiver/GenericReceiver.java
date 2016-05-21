@@ -33,7 +33,7 @@ public class GenericReceiver extends SimpleChannelInboundHandler<MqttMessage> {
 
 	@Override
 	protected void channelRead0(ChannelHandlerContext ctx, MqttMessage msg) throws Exception {
-		if (msg.decoderResult().isSuccess() == false) {
+		if (!msg.decoderResult().isSuccess()) {
 			logger.error("decoding MQTT message failed : {}", msg.decoderResult().cause().getMessage());
 
 			Session session = Session.NEXUS.get(ctx.channel().id());

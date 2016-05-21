@@ -159,7 +159,7 @@ public class HttpRequestRouter extends SimpleChannelInboundHandler<FullHttpReque
 
 			String webResourcePath = handler.getClass().getAnnotation(HttpRequestHandler.Handles.class)
 					.webResourcePath();
-			if ("none".equals(webResourcePath) == false) {
+			if (!"none".equals(webResourcePath)) {
 				handleWebResourceRequest(ctx, rawRequest, response, webResourcePath);
 				return;
 			}

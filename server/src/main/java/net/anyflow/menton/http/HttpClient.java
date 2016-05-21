@@ -72,8 +72,8 @@ public class HttpClient implements IHttpClient {
 
 		httpRequest = new HttpRequest(new DefaultFullHttpRequest(HttpVersion.HTTP_1_1, HttpMethod.GET, uri));
 
-		if (httpRequest().uriObject().getScheme().equalsIgnoreCase("http") == false
-				&& httpRequest().uriObject().getScheme().equalsIgnoreCase("https") == false) {
+		if (!httpRequest().uriObject().getScheme().equalsIgnoreCase("http")
+				&& !httpRequest().uriObject().getScheme().equalsIgnoreCase("https")) {
 			String message = "HTTP(S) is supported only.";
 			logger.error(message);
 			throw new UnsupportedOperationException(message);
@@ -268,20 +268,20 @@ public class HttpClient implements IHttpClient {
 	}
 
 	protected static void setDefaultHeaders(HttpRequest httpRequest) {
-		if (httpRequest.headers().contains(HttpHeaderNames.HOST) == false) {
+		if (!httpRequest.headers().contains(HttpHeaderNames.HOST)) {
 			httpRequest.headers().set(HttpHeaderNames.HOST, httpRequest.uriObject().getHost());
 		}
-		if (httpRequest.headers().contains(HttpHeaderNames.CONNECTION) == false) {
+		if (!httpRequest.headers().contains(HttpHeaderNames.CONNECTION)) {
 			httpRequest.headers().set(HttpHeaderNames.CONNECTION, HttpHeaderValues.KEEP_ALIVE);
 		}
-		if (httpRequest.headers().contains(HttpHeaderNames.ACCEPT_ENCODING) == false) {
+		if (!httpRequest.headers().contains(HttpHeaderNames.ACCEPT_ENCODING)) {
 			httpRequest.headers().set(HttpHeaderNames.ACCEPT_ENCODING,
 					HttpHeaderValues.GZIP + ", " + HttpHeaderValues.DEFLATE);
 		}
-		if (httpRequest.headers().contains(HttpHeaderNames.ACCEPT_CHARSET) == false) {
+		if (!httpRequest.headers().contains(HttpHeaderNames.ACCEPT_CHARSET)) {
 			httpRequest.headers().set(HttpHeaderNames.ACCEPT_CHARSET, "utf-8");
 		}
-		if (httpRequest.headers().contains(HttpHeaderNames.CONTENT_TYPE) == false) {
+		if (!httpRequest.headers().contains(HttpHeaderNames.CONTENT_TYPE)) {
 			httpRequest.headers().set(HttpHeaderNames.CONTENT_TYPE, HttpHeaderValues.APPLICATION_X_WWW_FORM_URLENCODED);
 		}
 	}

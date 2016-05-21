@@ -152,8 +152,7 @@ public class HttpRequest extends DefaultFullHttpRequest {
 	 *         returns null.
 	 */
 	public String parameter(String name) {
-
-		if (parameters().containsKey(name) == false || parameters.get(name).size() <= 0) { return null; }
+		if (!parameters().containsKey(name) || parameters.get(name).size() <= 0) { return null; }
 
 		return parameters().get(name).get(0);
 	}
@@ -221,7 +220,7 @@ public class HttpRequest extends DefaultFullHttpRequest {
 
 		DecoderResult result = this.decoderResult();
 
-		if (result.isSuccess() == false) {
+		if (!result.isSuccess()) {
 			buf.append("\r\n").append(".. WITH DECODER FAILURE:");
 			buf.append("\r\n   ").append(result.cause());
 		}
@@ -282,9 +281,8 @@ public class HttpRequest extends DefaultFullHttpRequest {
 			address += Strings.isNullOrEmpty(parameters) ? "" : "?" + parameters;
 		}
 		else if ((HttpMethod.POST.equals(method()) || HttpMethod.PUT.equals(method()))
-				&& (headers().contains(HttpHeaderNames.CONTENT_TYPE) == false
-						|| headers().get(HttpHeaderNames.CONTENT_TYPE)
-								.startsWith(HttpHeaderValues.APPLICATION_X_WWW_FORM_URLENCODED.toString()))) {
+				&& (!headers().contains(HttpHeaderNames.CONTENT_TYPE) || headers().get(HttpHeaderNames.CONTENT_TYPE)
+						.startsWith(HttpHeaderValues.APPLICATION_X_WWW_FORM_URLENCODED.toString()))) {
 			ByteBuf content = Unpooled.copiedBuffer(convertParametersToString(), CharsetUtil.UTF_8);
 
 			headers().set(HttpHeaderNames.CONTENT_LENGTH, content.readableBytes());

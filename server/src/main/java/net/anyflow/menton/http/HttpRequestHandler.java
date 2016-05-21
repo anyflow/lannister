@@ -23,6 +23,7 @@ import java.lang.annotation.Target;
 import java.net.URISyntaxException;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Stream;
 
 import org.reflections.Reflections;
 
@@ -93,7 +94,7 @@ public abstract class HttpRequestHandler {
 		for (String criterion : handlerClassMap.keySet()) {
 			MatchedCriterion mc = match(requestedPath, httpMethod, criterion);
 
-			if (mc.result == true) {
+			if (mc.matched) {
 				mc.requestHandlerClass = handlerClassMap.get(criterion);
 				return mc;
 			}
@@ -104,41 +105,48 @@ public abstract class HttpRequestHandler {
 					.getSubTypesOf(HttpRequestHandler.class);
 		}
 
-		MatchedCriterion ret = null;
-		for (Class<? extends HttpRequestHandler> item : requestHandlerClasses) {
-			HttpRequestHandler.Handles annotation = item.getAnnotation(HttpRequestHandler.Handles.class);
+		final ReturnWrapper wrapper = new ReturnWrapper();
+		requestHandlerClasses.stream().anyMatch(c -> {
+			HttpRequestHandler.Handles annotation = c.getAnnotation(HttpRequestHandler.Handles.class);
+			if (annotation == null) { return false; }
 
-			if (annotation == null) {
-				continue;
+			return Stream.of(annotation.httpMethods()).anyMatch(m -> {
+				if (!m.equalsIgnoreCase(httpMethod)) { return false; }
+
+				return Stream.of(annotation.paths()).anyMatch(p -> {
+					return wrapper.setValueIfMatch(requestedPath, c, m, p);
+				});
+			});
+		});
+
+		return wrapper.value == null ? new MatchedCriterion() : wrapper.value;
+	}
+
+	private static class ReturnWrapper {
+		private MatchedCriterion value = null;
+
+		private boolean setValueIfMatch(String requestedPath, Class<? extends HttpRequestHandler> handlerClass,
+				String methodToCheck, String pathToCheck) {
+			String path = (pathToCheck.charAt(0) == '/') ? pathToCheck : Settings.SELF.httpContextRoot() + pathToCheck;
+			String criterion = path + "/" + methodToCheck;
+
+			MatchedCriterion mc = match(requestedPath, methodToCheck, criterion);
+
+			if (mc.matched) {
+				handlerClassMap.put(criterion, handlerClass);
+				mc.requestHandlerClass = handlerClass;
+				this.value = mc;
+
+				return true;
 			}
-
-			for (String method : annotation.httpMethods()) {
-				if (method.equalsIgnoreCase(httpMethod) == false) {
-					continue;
-				}
-
-				for (String rawPath : annotation.paths()) {
-					String path = (rawPath.charAt(0) == '/') ? rawPath : Settings.SELF.httpContextRoot() + rawPath;
-					String criterion = path + "/" + method;
-
-					MatchedCriterion mc = match(requestedPath, method, criterion);
-
-					if (mc.result == true) {
-						handlerClassMap.put(criterion, item);
-						mc.requestHandlerClass = item;
-
-						ret = mc;
-						break;
-					}
-				}
+			else {
+				return false;
 			}
-		}
-
-		return ret == null ? new MatchedCriterion() : ret;
+		};
 	}
 
 	protected static class MatchedCriterion {
-		private boolean result;
+		private boolean matched = false;
 		private Class<? extends HttpRequestHandler> requestHandlerClass;
 		private String criterionPath;
 		private String criterionHttpMethod;
@@ -176,10 +184,10 @@ public abstract class HttpRequestHandler {
 			if (criterionTokens[i].startsWith("{") && criterionTokens[i].endsWith("}")) {
 				ret.pathParameters.put(criterionTokens[i].substring(1, criterionTokens[i].length() - 1), testTokens[i]);
 			}
-			else if (criterionTokens[i].equalsIgnoreCase(testTokens[i]) == false) { return ret; }
+			else if (!criterionTokens[i].equalsIgnoreCase(testTokens[i])) { return ret; }
 		}
 
-		ret.result = true;
+		ret.matched = true;
 		ret.criterionHttpMethod = httpMethod;
 		ret.criterionPath = criterion.replace("/" + httpMethod, "");
 

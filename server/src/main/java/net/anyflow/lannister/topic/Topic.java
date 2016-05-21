@@ -131,12 +131,12 @@ public class Topic implements com.hazelcast.nio.serialization.Portable {
 	public void removeInboundMessageStatus(String clientId, int messageId) {
 		String messageKey = Message.key(clientId, messageId);
 		inboundMessageStatuses.remove(messageKey);
-		releaseMessageRef(messageKey);
+		release(messageKey);
 	}
 
 	public void addInboundMessageStatus(String clientId, int messageId, Status status) {
 		InboundMessageStatus messageStatus = new InboundMessageStatus(clientId, messageId, status);
-		addMessageRef(messageStatus.key());
+		retain(messageStatus.key());
 
 		inboundMessageStatuses.put(messageStatus.key(), messageStatus);
 	}
@@ -215,7 +215,7 @@ public class Topic implements com.hazelcast.nio.serialization.Portable {
 				.forEach(s -> subscribers.put(s.clientId(), new TopicSubscriber(s.clientId(), name)));
 	}
 
-	public void addMessageRef(String messageKey) {
+	public void retain(String messageKey) {
 		messageReferenceCountsLock.lock();
 
 		try {
@@ -232,7 +232,7 @@ public class Topic implements com.hazelcast.nio.serialization.Portable {
 		}
 	}
 
-	public void releaseMessageRef(String messageKey) {
+	public void release(String messageKey) {
 		messageReferenceCountsLock.lock();
 
 		try {
