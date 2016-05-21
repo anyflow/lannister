@@ -151,7 +151,7 @@ public class ConnectReceiver extends SimpleChannelInboundHandler<MqttConnectMess
 	}
 
 	private Message newWill(String clientId, MqttConnectMessage conn) {
-		if (conn.variableHeader().isWillFlag() == false) { return null; } // [MQTT-3.1.2-12]
+		if (!conn.variableHeader().isWillFlag()) { return null; } // [MQTT-3.1.2-12]
 
 		return new Message(-1, conn.payload().willTopic(), clientId, conn.payload().willMessage().getBytes(),
 				MqttQoS.valueOf(conn.variableHeader().willQos()), conn.variableHeader().isWillRetain());
@@ -162,22 +162,22 @@ public class ConnectReceiver extends SimpleChannelInboundHandler<MqttConnectMess
 		String userName = msg.variableHeader().hasUserName() ? msg.payload().userName() : null;
 		String password = msg.variableHeader().hasPassword() ? msg.payload().password() : null;
 
-		if (Plugins.SELF.get(ServiceChecker.class).isServiceAvailable() == false) {
+		if (!Plugins.SELF.get(ServiceChecker.class).isServiceAvailable()) {
 			sendNoneAcceptMessage(ctx, MqttConnectReturnCode.CONNECTION_REFUSED_SERVER_UNAVAILABLE);
 			return false;
 		}
 
-		if (Plugins.SELF.get(Authenticator.class).isValid(clientId) == false) {
+		if (!Plugins.SELF.get(Authenticator.class).isValid(clientId)) {
 			sendNoneAcceptMessage(ctx, MqttConnectReturnCode.CONNECTION_REFUSED_IDENTIFIER_REJECTED); // [MQTT-3.1.3-9]
 			return false;
 		}
 
-		if (Plugins.SELF.get(Authenticator.class).isValid(clientId, userName, password) == false) {
+		if (!Plugins.SELF.get(Authenticator.class).isValid(clientId, userName, password)) {
 			sendNoneAcceptMessage(ctx, MqttConnectReturnCode.CONNECTION_REFUSED_BAD_USER_NAME_OR_PASSWORD);
 			return false;
 		}
 
-		if (Plugins.SELF.get(Authorizer.class).isAuthorized(clientId, userName) == false) {
+		if (!Plugins.SELF.get(Authorizer.class).isAuthorized(clientId, userName)) {
 			sendNoneAcceptMessage(ctx, MqttConnectReturnCode.CONNECTION_REFUSED_NOT_AUTHORIZED);
 			return false;
 		}

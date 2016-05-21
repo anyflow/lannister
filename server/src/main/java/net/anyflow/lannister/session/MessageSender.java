@@ -44,7 +44,7 @@ public class MessageSender {
 	}
 
 	protected ChannelFuture send(MqttMessage message) {
-		if (session.isConnected(true) == false) {
+		if (!session.isConnected(true)) {
 			logger.error("Message is not sent - Channel is inactive or out of the node. [{}]", message);
 			return null;
 		}

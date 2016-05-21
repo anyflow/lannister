@@ -51,7 +51,7 @@ public class HttpClientHandler extends SimpleChannelInboundHandler<FullHttpRespo
 	 */
 	@Override
 	protected void channelRead0(ChannelHandlerContext ctx, FullHttpResponse msg) throws Exception {
-		if (ctx.channel().isActive() == false) { return; }
+		if (!ctx.channel().isActive()) { return; }
 
 		response = HttpResponse.createFrom(msg, ctx.channel());
 

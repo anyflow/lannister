@@ -67,14 +67,14 @@ public class TopicSubscriber implements com.hazelcast.nio.serialization.Portable
 
 		outboundMessageStatuses.put(messageStatus.messageId(), messageStatus);
 
-		Topic.NEXUS.get(topicName).addMessageRef(messageStatus.inboundMessageKey());
+		Topic.NEXUS.get(topicName).retain(messageStatus.inboundMessageKey());
 	}
 
 	public OutboundMessageStatus removeOutboundMessageStatus(int messageId) {
 		OutboundMessageStatus ret = outboundMessageStatuses.remove(messageId);
 		if (ret == null) { return null; }
 
-		Topic.NEXUS.get(topicName).releaseMessageRef(ret.inboundMessageKey());
+		Topic.NEXUS.get(topicName).release(ret.inboundMessageKey());
 
 		return ret;
 	}
