@@ -37,7 +37,7 @@ public class Hazelcast {
 	@SuppressWarnings("unused")
 	private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(Hazelcast.class);
 
-	public static Hazelcast SELF;
+	public static final Hazelcast SELF;
 
 	static {
 		SELF = new Hazelcast();
