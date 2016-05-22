@@ -70,11 +70,11 @@ public abstract class HttpRequestHandler {
 	}
 
 	protected static MatchedCriterion findRequestHandler(String requestedPath, String httpMethod) {
-		for (String criterion : handlerClassMap.keySet()) {
-			MatchedCriterion mc = match(requestedPath, httpMethod, criterion);
+		for (Map.Entry<String, Class<? extends HttpRequestHandler>> item : handlerClassMap.entrySet()) {
+			MatchedCriterion mc = match(requestedPath, httpMethod, item.getKey());
 
 			if (mc.matched) {
-				mc.requestHandlerClass = handlerClassMap.get(criterion);
+				mc.requestHandlerClass = handlerClassMap.get(item.getKey());
 				return mc;
 			}
 		}
@@ -106,7 +106,8 @@ public abstract class HttpRequestHandler {
 
 		private boolean setValueIfMatch(String requestedPath, Class<? extends HttpRequestHandler> handlerClass,
 				String methodToCheck, String pathToCheck) {
-			String path = (pathToCheck.charAt(0) == '/') ? pathToCheck : Settings.SELF.httpContextRoot() + pathToCheck;
+			String path = (pathToCheck.charAt(0) == '/') ? pathToCheck
+					: Settings.INSTANCE.httpContextRoot() + pathToCheck;
 			String criterion = path + "/" + methodToCheck;
 
 			MatchedCriterion mc = match(requestedPath, methodToCheck, criterion);

@@ -46,7 +46,7 @@ public class PubAckReceiver extends SimpleChannelInboundHandler<MqttPubAckMessag
 			logger.error("None exist session message [message={}]", msg.toString());
 
 			ctx.channel().disconnect().addListener(ChannelFutureListener.CLOSE).addListener(fs -> // [MQTT-4.8.0-1]
-			Plugins.SELF.get(DisconnectEventListener.class).disconnected(new AbnormalDisconnectEventArgs()));
+			Plugins.INSTANCE.get(DisconnectEventListener.class).disconnected(new AbnormalDisconnectEventArgs()));
 			return;
 		}
 
@@ -67,7 +67,7 @@ public class PubAckReceiver extends SimpleChannelInboundHandler<MqttPubAckMessag
 		OutboundMessageStatus status = topicSubscriber.outboundMessageStatuses().get(messageId);
 
 		if (status != null) {
-			Plugins.SELF.get(DeliveredEventListener.class).delivered(new DeliveredEventArgs() {
+			Plugins.INSTANCE.get(DeliveredEventListener.class).delivered(new DeliveredEventArgs() {
 				@Override
 				public String clientId() {
 					return clientId;

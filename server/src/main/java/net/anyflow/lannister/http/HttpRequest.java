@@ -158,7 +158,6 @@ public class HttpRequest extends DefaultFullHttpRequest {
 	}
 
 	public HttpRequest addParameter(String name, String value) {
-
 		List<String> values = parameters().get(name);
 		if (values == null) {
 			values = new ArrayList<String>();
@@ -174,8 +173,17 @@ public class HttpRequest extends DefaultFullHttpRequest {
 	}
 
 	@Override
-	public String toString() {
+	public boolean equals(Object o) {
+		return super.equals(o); // Just for removing FindBugs issue
+	}
 
+	@Override
+	public int hashCode() {
+		return super.hashCode(); // Just for removing FindBugs issue
+	}
+
+	@Override
+	public String toString() {
 		StringBuilder buf = new StringBuilder();
 
 		buf.append("\r\n");

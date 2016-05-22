@@ -16,6 +16,6 @@
 
 package net.anyflow.lannister.plugin;
 
-public interface Plugin {
+public interface Plugin extends Cloneable {
 	Plugin clone();
 }

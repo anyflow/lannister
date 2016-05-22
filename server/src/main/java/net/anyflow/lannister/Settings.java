@@ -33,14 +33,10 @@ public class Settings extends java.util.Properties {
 
 	private final static String CONFIG_NAME = "lannister.cfg";
 
-	public final static Settings SELF;
-
-	static {
-		SELF = new Settings();
-	}
+	public final static Settings INSTANCE = new Settings();
 
 	private Map<String, String> webResourceExtensionToMimes;
-	private SelfSignedCertificate ssc;
+	private transient SelfSignedCertificate ssc;
 	private java.util.Properties gitProperties;
 
 	@SuppressWarnings("unchecked")
@@ -70,7 +66,7 @@ public class Settings extends java.util.Properties {
 
 	}
 
-	public Integer getInt(String key, Integer defaultValue) {
+	public int getInt(String key, Integer defaultValue) {
 		String valueString = this.getProperty(key.trim());
 
 		if (valueString == null) { return defaultValue; }
@@ -175,5 +171,10 @@ public class Settings extends java.util.Properties {
 
 	public String buildTime() {
 		return this.gitProperties.getProperty("git.build.time");
+	}
+
+	@Override
+	public boolean equals(Object o) {
+		return o instanceof Settings; // JUST TO REMOVE FINDBUGS ERROR
 	}
 }

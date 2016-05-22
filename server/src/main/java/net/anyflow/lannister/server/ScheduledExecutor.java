@@ -36,20 +36,20 @@ public class ScheduledExecutor extends ChannelInboundHandlerAdapter {
 
 	@Override
 	public void handlerAdded(ChannelHandlerContext ctx) throws Exception {
-		int $sysPublisherInterval = Settings.SELF.getInt("annister.sys.intervalSeconds", 2);
+		int $sysPublisherInterval = Settings.INSTANCE.getInt("annister.sys.intervalSeconds", 2);
 		ctx.executor().scheduleAtFixedRate(new $SysPublisher(), 0, $sysPublisherInterval, TimeUnit.SECONDS);
 
-		int sessionExpiratorInterval = Settings.SELF
+		int sessionExpiratorInterval = Settings.INSTANCE
 				.getInt("lannister.sessionExpirationHandlerExecutionIntervalSeconds", 0);
 		ctx.executor().scheduleAtFixedRate(new SessionExpirator(), 0, sessionExpiratorInterval, TimeUnit.SECONDS);
 	}
 
-	class $SysPublisher implements Runnable {
+	static class $SysPublisher implements Runnable {
 		@Override
 		public void run() {
-			String requesterId = Settings.SELF.getProperty("lannister.broker.id", "lannister_broker_id");
+			String requesterId = Settings.INSTANCE.getProperty("lannister.broker.id", "lannister_broker_id");
 
-			Statistics.SELF.data().entrySet().stream().forEach(e -> {
+			Statistics.INSTANCE.data().entrySet().stream().forEach(e -> {
 				byte[] msg = e.getValue().value().getBytes(CharsetUtil.UTF_8);
 
 				Topic.NEXUS.publish(new Message(-1, e.getKey(), requesterId, msg, MqttQoS.AT_MOST_ONCE, false));
@@ -57,7 +57,7 @@ public class ScheduledExecutor extends ChannelInboundHandlerAdapter {
 		}
 	}
 
-	class SessionExpirator implements Runnable {
+	static class SessionExpirator implements Runnable {
 		@Override
 		public void run() {
 			List<Session> disposes = Lists.newArrayList();

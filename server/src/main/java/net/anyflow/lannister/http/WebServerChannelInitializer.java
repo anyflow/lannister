@@ -43,13 +43,13 @@ class WebServerChannelInitializer extends ChannelInitializer<SocketChannel> {
 
 	@Override
 	protected void initChannel(SocketChannel ch) throws Exception {
-		if ("true".equalsIgnoreCase(Settings.SELF.getProperty("lannister.web.logging.writelogOfNettyLogger"))) {
+		if ("true".equalsIgnoreCase(Settings.INSTANCE.getProperty("lannister.web.logging.writelogOfNettyLogger"))) {
 			ch.pipeline().addLast("log", new LoggingHandler("lannister.web/server", LogLevel.DEBUG));
 		}
 
 		if (useSsl) {
 			SslContext sslCtx = SslContextBuilder
-					.forServer(Settings.SELF.certChainFile(), Settings.SELF.privateKeyFile()).build();
+					.forServer(Settings.INSTANCE.certChainFile(), Settings.INSTANCE.privateKeyFile()).build();
 
 			logger.debug("SSL Provider : {}", SslContext.defaultServerProvider());
 

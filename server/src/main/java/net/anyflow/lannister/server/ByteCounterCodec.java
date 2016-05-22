@@ -14,16 +14,16 @@ public class ByteCounterCodec extends MessageToMessageCodec<ByteBuf, ByteBuf> {
 
 	@Override
 	protected void encode(ChannelHandlerContext ctx, ByteBuf msg, List<Object> out) throws Exception {
-		Statistics.SELF.add(Criterion.BYTE_SENT, msg.retain().readableBytes());
-		Statistics.SELF.add(Criterion.MESSAGES_SENT, 1);
+		Statistics.INSTANCE.add(Criterion.BYTE_SENT, msg.retain().readableBytes());
+		Statistics.INSTANCE.add(Criterion.MESSAGES_SENT, 1);
 
 		out.add(msg);
 	}
 
 	@Override
 	protected void decode(ChannelHandlerContext ctx, ByteBuf msg, List<Object> out) throws Exception {
-		Statistics.SELF.add(Criterion.BYTE_RECEIVED, msg.retain().readableBytes());
-		Statistics.SELF.add(Criterion.MESSAGES_RECEIVED, 1);
+		Statistics.INSTANCE.add(Criterion.BYTE_RECEIVED, msg.retain().readableBytes());
+		Statistics.INSTANCE.add(Criterion.MESSAGES_RECEIVED, 1);
 
 		out.add(msg);
 	}

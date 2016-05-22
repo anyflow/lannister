@@ -40,7 +40,7 @@ public class Topic implements com.hazelcast.nio.serialization.Portable {
 
 	private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(Topic.class);
 
-	public static Topics NEXUS;
+	public static final Topics NEXUS = new Topics(Session.NEXUS);
 	public static final int ID = 6;
 
 	@JsonProperty
@@ -65,12 +65,12 @@ public class Topic implements com.hazelcast.nio.serialization.Portable {
 	public Topic(String name) {
 		this.name = name;
 		this.retainedMessage = null;
-		this.subscribers = Hazelcast.SELF.generator().getMap(subscribersName());
-		this.messages = Hazelcast.SELF.generator().getMap(messagesName());
-		this.inboundMessageStatuses = Hazelcast.SELF.generator().getMap(inboundMessageStatusesName());
-		this.messageReferenceCounts = Hazelcast.SELF.generator().getMap(inboundMessageReferenceCountsName());
+		this.subscribers = Hazelcast.INSTANCE.getMap(subscribersName());
+		this.messages = Hazelcast.INSTANCE.getMap(messagesName());
+		this.inboundMessageStatuses = Hazelcast.INSTANCE.getMap(inboundMessageStatusesName());
+		this.messageReferenceCounts = Hazelcast.INSTANCE.getMap(inboundMessageReferenceCountsName());
 
-		this.messageReferenceCountsLock = Hazelcast.SELF.generator().getLock(messageReferenceCountsLockName());
+		this.messageReferenceCountsLock = Hazelcast.INSTANCE.getLock(messageReferenceCountsLockName());
 	}
 
 	private String subscribersName() {
@@ -145,7 +145,7 @@ public class Topic implements com.hazelcast.nio.serialization.Portable {
 		InboundMessageStatus messageStatus = inboundMessageStatuses.get(Message.key(clientId, messageId));
 		if (status == null) {
 			logger.error("Inbound message status does not exist [clientId={}, messageId={}, status={}", clientId,
-					messageId, status);
+					messageId, null);
 			throw new IllegalArgumentException();
 		}
 
@@ -293,11 +293,11 @@ public class Topic implements com.hazelcast.nio.serialization.Portable {
 		name = reader.readUTF("name");
 		retainedMessage = reader.readPortable("retainedMessage");
 
-		subscribers = Hazelcast.SELF.generator().getMap(subscribersName());
-		messages = Hazelcast.SELF.generator().getMap(messagesName());
-		inboundMessageStatuses = Hazelcast.SELF.generator().getMap(inboundMessageStatusesName());
-		messageReferenceCounts = Hazelcast.SELF.generator().getMap(inboundMessageReferenceCountsName());
-		messageReferenceCountsLock = Hazelcast.SELF.generator().getLock(messageReferenceCountsLockName());
+		subscribers = Hazelcast.INSTANCE.getMap(subscribersName());
+		messages = Hazelcast.INSTANCE.getMap(messagesName());
+		inboundMessageStatuses = Hazelcast.INSTANCE.getMap(inboundMessageStatusesName());
+		messageReferenceCounts = Hazelcast.INSTANCE.getMap(inboundMessageReferenceCountsName());
+		messageReferenceCountsLock = Hazelcast.INSTANCE.getLock(messageReferenceCountsLockName());
 	}
 
 	public static ClassDefinition classDefinition() {

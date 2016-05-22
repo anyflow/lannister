@@ -37,13 +37,9 @@ import net.anyflow.lannister.Application;
 public class Plugins {
 	private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(Plugins.class);
 
-	public static Plugins SELF;
+	public static final Plugins INSTANCE = new Plugins();
 
 	private Map<Class<? extends Plugin>, Plugin> plugins;
-
-	static {
-		SELF = new Plugins();
-	}
 
 	private Plugins() {
 		plugins = Maps.newHashMap();

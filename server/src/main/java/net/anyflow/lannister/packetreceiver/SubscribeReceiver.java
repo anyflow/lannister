@@ -59,7 +59,7 @@ public class SubscribeReceiver extends SimpleChannelInboundHandler<MqttSubscribe
 			logger.error("None exist session message [message={}]", msg.toString());
 
 			ctx.channel().disconnect().addListener(ChannelFutureListener.CLOSE).addListener(fs -> // [MQTT-4.8.0-1]
-			Plugins.SELF.get(DisconnectEventListener.class).disconnected(new AbnormalDisconnectEventArgs()));
+			Plugins.INSTANCE.get(DisconnectEventListener.class).disconnected(new AbnormalDisconnectEventArgs()));
 			return;
 		}
 
@@ -159,7 +159,7 @@ public class SubscribeReceiver extends SimpleChannelInboundHandler<MqttSubscribe
 			return false;
 		}
 
-		if (!Plugins.SELF.get(SubscribeEventListener.class).allowSubscribe(args)) {
+		if (!Plugins.INSTANCE.get(SubscribeEventListener.class).allowSubscribe(args)) {
 			session.dispose(true);
 			return false;
 		}
@@ -168,17 +168,17 @@ public class SubscribeReceiver extends SimpleChannelInboundHandler<MqttSubscribe
 	}
 
 	private void publishStatic$Sys(Session session, Collection<TopicSubscription> topicSubscriptions) {
-		String requesterId = Settings.SELF.getProperty("lannister.broker.id", "lannister_broker_id");
+		String requesterId = Settings.INSTANCE.getProperty("lannister.broker.id", "lannister_broker_id");
 
 		topicSubscriptions.stream().forEach(ts -> {
 			Statistics.$SYS_STATIC_TOPICS.stream().forEach(t -> {
 				if (!TopicMatcher.match(ts.topicFilter(), t)) { return; }
 
-				byte[] msg = Statistics.SELF.getStatic(t).getBytes(CharsetUtil.UTF_8);
+				byte[] msg = Statistics.INSTANCE.getStatic(t).getBytes(CharsetUtil.UTF_8);
 
 				session.send(MessageFactory.publish(new Message(-1, t, requesterId, msg, MqttQoS.AT_MOST_ONCE, false),
 						false)).addListener(f -> {
-					Statistics.SELF.add(Statistics.Criterion.MESSAGES_PUBLISH_SENT, 1);
+					Statistics.INSTANCE.add(Statistics.Criterion.MESSAGES_PUBLISH_SENT, 1);
 				});
 			});
 		});

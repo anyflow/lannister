@@ -43,14 +43,14 @@ public class PublishReceiver extends SimpleChannelInboundHandler<MqttPublishMess
 	@Override
 	protected void channelRead0(ChannelHandlerContext ctx, MqttPublishMessage msg) throws Exception {
 		logger.debug("packet incoming [message={}]", msg.toString());
-		Statistics.SELF.add(Statistics.Criterion.MESSAGES_PUBLISH_RECEIVED, 1);
+		Statistics.INSTANCE.add(Statistics.Criterion.MESSAGES_PUBLISH_RECEIVED, 1);
 
 		Session session = Session.NEXUS.get(ctx.channel().id());
 		if (session == null) {
 			logger.error("None exist session message [message={}]", msg.toString());
 
 			ctx.channel().disconnect().addListener(ChannelFutureListener.CLOSE).addListener(fs -> // [MQTT-4.8.0-1]
-			Plugins.SELF.get(DisconnectEventListener.class).disconnected(new AbnormalDisconnectEventArgs()));
+			Plugins.INSTANCE.get(DisconnectEventListener.class).disconnected(new AbnormalDisconnectEventArgs()));
 			return;
 		}
 
@@ -63,7 +63,7 @@ public class PublishReceiver extends SimpleChannelInboundHandler<MqttPublishMess
 
 		Message message = Message.newMessage(session.clientId(), msg);
 
-		if (!Plugins.SELF.get(PublishEventListener.class).allowPublish(new PublishEventArgs() {
+		if (!Plugins.INSTANCE.get(PublishEventListener.class).allowPublish(new PublishEventArgs() {
 			@Override
 			public IMessage message() {
 				return message;

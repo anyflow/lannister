@@ -21,11 +21,7 @@ public class DefaultSubscribeEventListener implements SubscribeEventListener {
 	private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory
 			.getLogger(DefaultSubscribeEventListener.class);
 
-	public static DefaultSubscribeEventListener SHARED;
-
-	static {
-		SHARED = new DefaultSubscribeEventListener();
-	}
+	public static final DefaultSubscribeEventListener SHARED = new DefaultSubscribeEventListener();
 
 	@Override
 	public Plugin clone() {
