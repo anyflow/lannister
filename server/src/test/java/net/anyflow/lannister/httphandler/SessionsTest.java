@@ -20,12 +20,18 @@ import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
+import com.jayway.jsonpath.JsonPath;
+
 import io.netty.handler.codec.http.HttpResponseStatus;
+import io.netty.handler.codec.mqtt.MqttConnectReturnCode;
 import io.netty.util.CharsetUtil;
 import net.anyflow.lannister.Settings;
 import net.anyflow.lannister.TestSuite;
+import net.anyflow.lannister.TestUtil;
+import net.anyflow.lannister.client.MqttClient;
 import net.anyflow.lannister.http.HttpClient;
 import net.anyflow.lannister.http.HttpResponse;
+import net.anyflow.lannister.message.ConnectOptions;
 
 public class SessionsTest {
 
@@ -36,21 +42,67 @@ public class SessionsTest {
 
 	@Test
 	public void testLive() throws Exception {
-		HttpClient client = new HttpClient("http://localhost:" + Settings.INSTANCE.httpPort() + "/sessions?filter=live");
-		HttpResponse res = client.get();
+		ConnectOptions options = new ConnectOptions();
+		options.clientId(TestUtil.newClientId());
+
+		MqttClient client = new MqttClient("mqtt://localhost:" + Settings.INSTANCE.mqttPort());
+		MqttConnectReturnCode ret = client.connectOptions(options).connect();
+
+		Assert.assertEquals(MqttConnectReturnCode.CONNECTION_ACCEPTED, ret);
+
+		Assert.assertTrue(client.isConnected());
+
+		HttpClient httpClient = new HttpClient(
+				"http://localhost:" + Settings.INSTANCE.httpPort() + "/sessions?filter=live");
+		HttpResponse res = httpClient.get();
 
 		Assert.assertEquals(HttpResponseStatus.OK, res.status());
+		Assert.assertEquals(new Integer(1), JsonPath.read(res.content().toString(CharsetUtil.UTF_8), "$.length()"));
+
 		Assert.assertTrue(res.content().toString(CharsetUtil.UTF_8).startsWith("{"));
 		Assert.assertTrue(res.content().toString(CharsetUtil.UTF_8).endsWith("}"));
+
+		client.disconnect(true);
+
+		Assert.assertFalse(client.isConnected());
 	}
 
 	@Test
 	public void testAll() throws Exception {
-		HttpClient client = new HttpClient("http://localhost:" + Settings.INSTANCE.httpPort() + "/sessions?filter=all");
-		HttpResponse res = client.get();
+		ConnectOptions options = new ConnectOptions();
+		options.clientId(TestUtil.newClientId());
+
+		MqttClient client = new MqttClient("mqtt://localhost:" + Settings.INSTANCE.mqttPort());
+		MqttConnectReturnCode ret = client.connectOptions(options).connect();
+
+		Assert.assertEquals(MqttConnectReturnCode.CONNECTION_ACCEPTED, ret);
+
+		Assert.assertTrue(client.isConnected());
+
+		options = new ConnectOptions();
+		options.clientId(TestUtil.newClientId());
+		options.cleanSession(false);
+
+		MqttClient client2 = new MqttClient("mqtt://localhost:" + Settings.INSTANCE.mqttPort());
+		ret = client2.connectOptions(options).connect();
+
+		Assert.assertEquals(MqttConnectReturnCode.CONNECTION_ACCEPTED, ret);
+
+		Assert.assertTrue(client2.isConnected());
+
+		client2.disconnect(true);
+
+		Assert.assertFalse(client2.isConnected());
+
+		HttpClient httpClient = new HttpClient(
+				"http://localhost:" + Settings.INSTANCE.httpPort() + "/sessions?filter=all");
+		HttpResponse res = httpClient.get();
 
 		Assert.assertEquals(HttpResponseStatus.OK, res.status());
-		Assert.assertTrue(res.content().toString(CharsetUtil.UTF_8).startsWith("{"));
-		Assert.assertTrue(res.content().toString(CharsetUtil.UTF_8).endsWith("}"));
+		Assert.assertEquals(new Integer(2), JsonPath.read(res.content().toString(CharsetUtil.UTF_8), "$.length()"));
+
+		client.disconnect(true);
+
+		Assert.assertFalse(client.isConnected());
 	}
 }

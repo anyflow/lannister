@@ -20,7 +20,7 @@ public class IndexTest {
 
 	@Test
 	public void testService() throws Exception {
-		HttpClient client = new HttpClient("http://localhost:" + Settings.SELF.httpPort() + "/home");
+		HttpClient client = new HttpClient("http://localhost:" + Settings.INSTANCE.httpPort() + "/home");
 		HttpResponse res = client.get();
 
 		Assert.assertEquals(HttpResponseStatus.OK, res.status());
