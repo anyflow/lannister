@@ -80,8 +80,7 @@ public abstract class HttpRequestHandler {
 		}
 
 		if (requestHandlerClasses == null) {
-			requestHandlerClasses = (new Reflections(requestHandlerPakcageRoot))
-					.getSubTypesOf(HttpRequestHandler.class);
+			requestHandlerClasses = new Reflections(requestHandlerPakcageRoot).getSubTypesOf(HttpRequestHandler.class);
 		}
 
 		final ReturnWrapper wrapper = new ReturnWrapper();

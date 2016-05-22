@@ -81,4 +81,11 @@ public class TopicSubscriptionInterceptor implements MapInterceptor {
 	public int hashCode() {
 		return clientId.hashCode();
 	}
+
+	@Override
+	public boolean equals(Object o) {
+		if (o == null) { return false; }
+
+		return clientId.equals(o.toString());
+	}
 }

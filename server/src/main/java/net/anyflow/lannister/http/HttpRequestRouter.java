@@ -99,7 +99,7 @@ public class HttpRequestRouter extends SimpleChannelInboundHandler<FullHttpReque
 
 		try {
 			if (is == null) {
-				String rootPath = (new File(Settings.INSTANCE.webResourcePhysicalRootPath(), webResourceRequestPath))
+				String rootPath = new File(Settings.INSTANCE.webResourcePhysicalRootPath(), webResourceRequestPath)
 						.getPath();
 				try {
 					is = new FileInputStream(rootPath);
@@ -149,7 +149,7 @@ public class HttpRequestRouter extends SimpleChannelInboundHandler<FullHttpReque
 			throws InstantiationException, IllegalAccessException, IOException, URISyntaxException {
 
 		HttpRequestHandler.MatchedCriterion mc = HttpRequestHandler
-				.findRequestHandler((new URI(rawRequest.uri())).getPath(), rawRequest.method().toString());
+				.findRequestHandler(new URI(rawRequest.uri()).getPath(), rawRequest.method().toString());
 
 		if (mc.requestHandlerClass() == null) {
 			response.setStatus(HttpResponseStatus.NOT_FOUND);

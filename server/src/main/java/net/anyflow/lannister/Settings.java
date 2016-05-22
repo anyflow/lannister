@@ -57,7 +57,7 @@ public class Settings extends java.util.Properties {
 		}
 
 		try {
-			webResourceExtensionToMimes = (new ObjectMapper()).readValue(getProperty("lannister.web.httpServer.MIME"),
+			webResourceExtensionToMimes = new ObjectMapper().readValue(getProperty("lannister.web.httpServer.MIME"),
 					Map.class);
 		}
 		catch (IOException e) {
@@ -176,5 +176,10 @@ public class Settings extends java.util.Properties {
 	@Override
 	public boolean equals(Object o) {
 		return o instanceof Settings; // JUST TO REMOVE FINDBUGS ERROR
+	}
+
+	@Override
+	public int hashCode() {
+		return version().hashCode(); // JUST TO REMOVE FINDBUGS ERROR
 	}
 }

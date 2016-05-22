@@ -102,7 +102,7 @@ public class Plugins {
 		CodeSource codeSource = Application.class.getProtectionDomain().getCodeSource();
 
 		try {
-			return (new File(codeSource.getLocation().toURI().getPath())).getParentFile().getPath();
+			return new File(codeSource.getLocation().toURI().getPath()).getParentFile().getPath();
 		}
 		catch (URISyntaxException e) {
 			logger.error(e.getMessage(), e);

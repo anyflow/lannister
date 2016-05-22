@@ -50,7 +50,6 @@ import io.netty.util.CharsetUtil;
  * @author anyflow
  */
 public class HttpRequest extends DefaultFullHttpRequest {
-
 	private static final Logger logger = LoggerFactory.getLogger(HttpRequest.class);
 
 	private final Map<String, List<String>> parameters;
@@ -128,7 +127,7 @@ public class HttpRequest extends DefaultFullHttpRequest {
 		Map<String, List<String>> ret = Maps.newHashMap();
 
 		if (HttpMethod.GET.equals(method()) || HttpMethod.DELETE.equals(method())) {
-			ret.putAll((new QueryStringDecoder(uri())).parameters());
+			ret.putAll(new QueryStringDecoder(uri()).parameters());
 			return ret;
 		}
 		else if (headers().contains(HttpHeaderNames.CONTENT_TYPE)
@@ -136,7 +135,7 @@ public class HttpRequest extends DefaultFullHttpRequest {
 						.startsWith(HttpHeaderValues.APPLICATION_X_WWW_FORM_URLENCODED.toString())
 				&& (HttpMethod.POST.equals(method()) || HttpMethod.PUT.equals(method()))) {
 
-			ret.putAll((new QueryStringDecoder("/dummy?" + content().toString(CharsetUtil.UTF_8))).parameters());
+			ret.putAll(new QueryStringDecoder("/dummy?" + content().toString(CharsetUtil.UTF_8)).parameters());
 		}
 
 		return ret;
@@ -174,12 +173,13 @@ public class HttpRequest extends DefaultFullHttpRequest {
 
 	@Override
 	public boolean equals(Object o) {
-		return super.equals(o); // Just for removing FindBugs issue
+		return toString().equals(o.toString()); // Just for removing FindBugs
+												// issue
 	}
 
 	@Override
 	public int hashCode() {
-		return super.hashCode(); // Just for removing FindBugs issue
+		return toString().hashCode(); // Just for removing FindBugs issue
 	}
 
 	@Override
@@ -281,7 +281,7 @@ public class HttpRequest extends DefaultFullHttpRequest {
 	}
 
 	private void normalizeParameters() {
-		String address = (new StringBuilder()).append(uriObject().getScheme()).append("://")
+		String address = new StringBuilder().append(uriObject().getScheme()).append("://")
 				.append(uriObject().getAuthority()).append(uriObject().getPath()).toString();
 
 		if (HttpMethod.GET.equals(method()) || HttpMethod.DELETE.equals(method())) {

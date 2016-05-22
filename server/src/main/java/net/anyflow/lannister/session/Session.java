@@ -147,7 +147,7 @@ public class Session implements com.hazelcast.nio.serialization.Portable {
 	public boolean isExpired() {
 		if (keepAliveSeconds == 0) { return false; }
 
-		return ((new Date()).getTime() - lastIncomingTime.getTime()) > keepAliveSeconds * 1.5 * 1000;
+		return (new Date().getTime() - lastIncomingTime.getTime()) > keepAliveSeconds * 1.5 * 1000;
 	}
 
 	public void setLastIncomingTime(Date lastIncomingTime) {

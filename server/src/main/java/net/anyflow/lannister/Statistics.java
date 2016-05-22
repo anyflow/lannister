@@ -133,7 +133,7 @@ public class Statistics {
 
 	private void initializeCriterions() {
 		if (criterions.get(Criterion.BROKER_START_TIME) == null) {
-			criterions.set(Criterion.BROKER_START_TIME, (new Date()).getTime());
+			criterions.set(Criterion.BROKER_START_TIME, new Date().getTime());
 		}
 
 		initialize(Criterion.BYTE_RECEIVED);
@@ -206,15 +206,15 @@ public class Statistics {
 		data.put("$SYS/broker/time", new SysValue() {
 			@Override
 			public String value() {
-				return (new Date()).toString();
+				return new Date().toString();
 			}
 		});
 
 		data.put("$SYS/broker/uptime", new SysValue() {
 			@Override
 			public String value() {
-				return Double.toString((double) ((new Date()).getTime() - criterions.get(Criterion.BROKER_START_TIME))
-						/ (double) 1000);
+				return Double.toString(
+						(double) (new Date().getTime() - criterions.get(Criterion.BROKER_START_TIME)) / (double) 1000);
 			}
 		});
 	}

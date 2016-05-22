@@ -33,7 +33,7 @@ public class Sessions extends HttpRequestHandler {
 
 	private String liveString() {
 		try {
-			return (new ObjectMapper())
+			return new ObjectMapper()
 					.writeValueAsString(Session.NEXUS.map().values().stream().filter(s -> s.isConnected(false))
 							.collect(Collectors.toMap(Session::clientId, Function.identity())));
 		}
@@ -45,7 +45,7 @@ public class Sessions extends HttpRequestHandler {
 
 	private String allString() {
 		try {
-			return (new ObjectMapper()).writeValueAsString(Session.NEXUS.map());
+			return new ObjectMapper().writeValueAsString(Session.NEXUS.map());
 		}
 		catch (JsonProcessingException e) {
 			logger.error(e.getMessage(), e);

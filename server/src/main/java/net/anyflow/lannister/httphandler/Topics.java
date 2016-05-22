@@ -30,7 +30,7 @@ public class Topics extends HttpRequestHandler {
 
 	private String allString() {
 		try {
-			return (new ObjectMapper()).writeValueAsString(Topic.NEXUS.map());
+			return new ObjectMapper().writeValueAsString(Topic.NEXUS.map());
 		}
 		catch (JsonProcessingException e) {
 			logger.error(e.getMessage(), e);
