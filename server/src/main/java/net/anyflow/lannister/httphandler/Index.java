@@ -16,7 +16,7 @@
 
 package net.anyflow.lannister.httphandler;
 
-import net.anyflow.menton.http.HttpRequestHandler;
+import net.anyflow.lannister.http.HttpRequestHandler;
 
 @HttpRequestHandler.Handles(paths = { "/", "/index", "home" }, httpMethods = { "GET" }, webResourcePath = "/index.html")
 public class Index extends HttpRequestHandler {

@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 The Menton Project
+ * Copyright 2016 The Lannister Project
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,21 +14,14 @@
  * limitations under the License.
  */
 
-package net.anyflow.menton.http;
+package net.anyflow.lannister.http;
 
-/**
- * @author Park Hyunjeong
- */
 public class HttpConstants {
 
 	public static final String MESSAGE_404_NOT_FOUND = "404 NOT FOUND";
 	public static final String FAILED_TO_FIND_REQUEST_HANDLER = "Failed to find the request handler.";
 
 	public static final class HeaderValues {
-
-		/**
-		 * {@code "application/json"}
-		 */
 		public static final String APPLICATION_JSON = "application/json";
 	}
 

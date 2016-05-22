@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 The Menton Project
+ * Copyright 2016 The Lannister Project
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package net.anyflow.menton.http;
+package net.anyflow.lannister.http;
 
 import java.util.List;
 
@@ -23,7 +23,6 @@ import io.netty.handler.codec.MessageToMessageDecoder;
 import io.netty.handler.codec.http.websocketx.WebSocketFrame;
 
 public abstract class WebsocketFrameHandler extends MessageToMessageDecoder<WebSocketFrame> {
-
 	public static final List<String> DEFAULT_SUBPROTOCOLS = null;
 	public static final boolean ALLOW_EXTENSIONS = false;
 	public static final int MAX_FRAME_SIZE = 65536;

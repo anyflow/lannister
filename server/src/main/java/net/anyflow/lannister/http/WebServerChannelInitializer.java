@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 The Menton Project
+ * Copyright 2016 The Lannister Project
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package net.anyflow.menton.http;
+package net.anyflow.lannister.http;
 
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.socket.SocketChannel;
@@ -43,8 +43,8 @@ class WebServerChannelInitializer extends ChannelInitializer<SocketChannel> {
 
 	@Override
 	protected void initChannel(SocketChannel ch) throws Exception {
-		if ("true".equalsIgnoreCase(Settings.SELF.getProperty("menton.logging.writelogOfNettyLogger"))) {
-			ch.pipeline().addLast("log", new LoggingHandler("menton/server", LogLevel.DEBUG));
+		if ("true".equalsIgnoreCase(Settings.SELF.getProperty("lannister.web.logging.writelogOfNettyLogger"))) {
+			ch.pipeline().addLast("log", new LoggingHandler("lannister.web/server", LogLevel.DEBUG));
 		}
 
 		if (useSsl) {

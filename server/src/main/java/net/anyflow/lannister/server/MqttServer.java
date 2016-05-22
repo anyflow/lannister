@@ -65,12 +65,12 @@ public class MqttServer {
 			}
 
 			logger.info(
-					"Lannister server started: [MQTT tcp.port={}, tcp.ssl.port={}, websocket.port={}, websocket.ssl.port={}]",
+					"Lannister MQTT server started [tcp.port={}, tcp.ssl.port={}, websocket.port={}, websocket.ssl.port={}]",
 					Settings.SELF.mqttPort(), Settings.SELF.mqttsPort(), Settings.SELF.websocketPort(),
 					Settings.SELF.websocketSslPort());
 		}
 		catch (Exception e) {
-			logger.error("Lannister failed to start", e);
+			logger.error("Lannister MQTT server failed to start", e);
 
 			shutdown();
 
@@ -103,6 +103,6 @@ public class MqttServer {
 			logger.info("Worker event loop group shutdowned");
 		}
 
-		logger.info("Lannister server shutdowned");
+		logger.info("Lannister MQTT server stopped");
 	}
 }

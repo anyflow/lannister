@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 The Menton Project
+ * Copyright 2016 The Lannister Project
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package net.anyflow.menton.http;
+package net.anyflow.lannister.http;
 
 import java.net.URISyntaxException;
 
@@ -49,9 +49,6 @@ import io.netty.handler.ssl.util.InsecureTrustManagerFactory;
 import io.netty.util.concurrent.DefaultThreadFactory;
 import net.anyflow.lannister.Settings;
 
-/**
- * @author anyflow
- */
 public class HttpClient implements IHttpClient {
 
 	private static final Logger logger = LoggerFactory.getLogger(HttpClient.class);
@@ -80,32 +77,16 @@ public class HttpClient implements IHttpClient {
 		}
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see net.anyflow.menton.http.I#httpRequest()
-	 */
 	@Override
 	public HttpRequest httpRequest() {
 		return httpRequest;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see net.anyflow.menton.http.I#get()
-	 */
 	@Override
 	public HttpResponse get() {
 		return get(null);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see
-	 * net.anyflow.menton.http.I#get(net.anyflow.menton.http.MessageReceiver)
-	 */
 	@Override
 	public HttpResponse get(final MessageReceiver receiver) {
 		httpRequest().setMethod(HttpMethod.GET);
@@ -113,22 +94,11 @@ public class HttpClient implements IHttpClient {
 		return request(receiver);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see net.anyflow.menton.http.I#post()
-	 */
 	@Override
 	public HttpResponse post() {
 		return post(null);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see
-	 * net.anyflow.menton.http.I#post(net.anyflow.menton.http.MessageReceiver)
-	 */
 	@Override
 	public HttpResponse post(final MessageReceiver receiver) {
 		httpRequest().setMethod(HttpMethod.POST);
@@ -136,22 +106,11 @@ public class HttpClient implements IHttpClient {
 		return request(receiver);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see net.anyflow.menton.http.I#put()
-	 */
 	@Override
 	public HttpResponse put() {
 		return put(null);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see
-	 * net.anyflow.menton.http.I#put(net.anyflow.menton.http.MessageReceiver)
-	 */
 	@Override
 	public HttpResponse put(final MessageReceiver receiver) {
 		httpRequest().setMethod(HttpMethod.PUT);
@@ -159,22 +118,11 @@ public class HttpClient implements IHttpClient {
 		return request(receiver);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see net.anyflow.menton.http.I#delete()
-	 */
 	@Override
 	public HttpResponse delete() {
 		return delete(null);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see
-	 * net.anyflow.menton.http.I#delete(net.anyflow.menton.http.MessageReceiver)
-	 */
 	@Override
 	public HttpResponse delete(final MessageReceiver receiver) {
 		httpRequest().setMethod(HttpMethod.DELETE);
@@ -182,12 +130,6 @@ public class HttpClient implements IHttpClient {
 		return request(receiver);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see net.anyflow.menton.http.I#setOption(io.netty.channel.ChannelOption,
-	 * T)
-	 */
 	@Override
 	public <T> IHttpClient setOption(ChannelOption<T> option, T value) {
 		bootstrap.option(option, value);
@@ -195,13 +137,6 @@ public class HttpClient implements IHttpClient {
 		return this;
 	}
 
-	/**
-	 * request.
-	 * 
-	 * @param receiver
-	 * @return if receiver is not null the request processed successfully,
-	 *         returns HttpResponse instance, otherwise null.
-	 */
 	private HttpResponse request(final MessageReceiver receiver) {
 		httpRequest().normalize();
 		setDefaultHeaders(httpRequest());
@@ -217,8 +152,8 @@ public class HttpClient implements IHttpClient {
 			@Override
 			protected void initChannel(SocketChannel ch) throws Exception {
 
-				if ("true".equalsIgnoreCase(Settings.SELF.getProperty("menton.logging.writelogOfNettyLogger"))) {
-					ch.pipeline().addLast("log", new LoggingHandler("menton/server", LogLevel.DEBUG));
+				if ("true".equalsIgnoreCase(Settings.SELF.getProperty("lannister.web.logging.writelogOfNettyLogger"))) {
+					ch.pipeline().addLast("log", new LoggingHandler("lannister.web/server", LogLevel.DEBUG));
 				}
 
 				if ("https".equalsIgnoreCase(httpRequest().uriObject().getScheme())) {
@@ -264,7 +199,6 @@ public class HttpClient implements IHttpClient {
 
 			return null;
 		}
-
 	}
 
 	protected static void setDefaultHeaders(HttpRequest httpRequest) {
