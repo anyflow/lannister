@@ -49,8 +49,8 @@ public class HtmlGenerator {
 
 		String ret = htmlTemplate;
 
-		for (String key : values.keySet()) {
-			ret = ret.replace(openMarker + key + closeMarker, values.get(key));
+		for (Map.Entry<String, String> item : values.entrySet()) {
+			ret = ret.replace(openMarker + item.getKey() + closeMarker, item.getValue());
 		}
 
 		return ret;

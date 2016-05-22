@@ -27,12 +27,13 @@ import com.hazelcast.nio.serialization.PortableWriter;
 
 import io.netty.handler.codec.mqtt.MqttPublishMessage;
 import io.netty.handler.codec.mqtt.MqttQoS;
+import io.netty.util.CharsetUtil;
 import io.netty.util.internal.StringUtil;
 import net.anyflow.lannister.NettyUtil;
 import net.anyflow.lannister.plugin.IMessage;
 import net.anyflow.lannister.serialization.SerializableFactory;
 
-public class Message implements com.hazelcast.nio.serialization.Portable, IMessage {
+public class Message implements com.hazelcast.nio.serialization.Portable, IMessage, Cloneable {
 	public final static int ID = 1;
 
 	public static final int MAX_MESSAGE_ID_NUM = 0xffff;
@@ -141,8 +142,9 @@ public class Message implements com.hazelcast.nio.serialization.Portable, IMessa
 	@Override
 	public String toString() {
 		return new StringBuilder(StringUtil.simpleClassName(this)).append('[').append("id=").append(id)
-				.append(", topeName=").append(topicName).append(", message=").append(new String(message))
-				.append(", QoS=").append(qos).append(", retain=").append(isRetain).append(']').toString();
+				.append(", topeName=").append(topicName).append(", message=")
+				.append(new String(message, CharsetUtil.UTF_8)).append(", QoS=").append(qos).append(", retain=")
+				.append(isRetain).append(']').toString();
 	}
 
 	public String key() {

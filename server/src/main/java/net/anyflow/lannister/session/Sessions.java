@@ -38,8 +38,8 @@ public class Sessions implements MessageListener<Notification> {
 	private final Map<ChannelId, String> clientIds; // KEY:channelId
 	private final Map<String, ChannelHandlerContext> ctxs; // KEY:clientlId
 
-	public Sessions() {
-		sessions = Hazelcast.SELF.generator().getMap("sessions");
+	protected Sessions() {
+		sessions = Hazelcast.INSTANCE.getMap("sessions");
 		clientIds = Maps.newHashMap();
 		ctxs = Maps.newHashMap();
 	}

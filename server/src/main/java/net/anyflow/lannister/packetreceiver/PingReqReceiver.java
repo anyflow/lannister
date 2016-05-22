@@ -24,7 +24,7 @@ public class PingReqReceiver {
 	@SuppressWarnings("unused")
 	private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(PingReqReceiver.class);
 
-	public static PingReqReceiver SHARED = new PingReqReceiver();
+	public static final PingReqReceiver SHARED = new PingReqReceiver();
 
 	private PingReqReceiver() {
 	}

@@ -25,7 +25,7 @@ public class PubRelReceiver {
 
 	private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(PubRelReceiver.class);
 
-	public static PubRelReceiver SHARED = new PubRelReceiver();
+	public static final PubRelReceiver SHARED = new PubRelReceiver();
 
 	private PubRelReceiver() {
 	}

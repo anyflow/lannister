@@ -30,7 +30,7 @@ public class PubRecReceiver {
 
 	private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(PubRecReceiver.class);
 
-	public static PubRecReceiver SHARED = new PubRecReceiver();
+	public static final PubRecReceiver SHARED = new PubRecReceiver();
 
 	private PubRecReceiver() {
 	}
@@ -53,7 +53,7 @@ public class PubRecReceiver {
 		}
 
 		if (status.status() == OutboundMessageStatus.Status.PUBLISHED) {
-			Plugins.SELF.get(DeliveredEventListener.class).delivered(new DeliveredEventArgs() {
+			Plugins.INSTANCE.get(DeliveredEventListener.class).delivered(new DeliveredEventArgs() {
 				@Override
 				public String clientId() {
 					return session.clientId();

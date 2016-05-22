@@ -45,7 +45,7 @@ public class GenericReceiver extends SimpleChannelInboundHandler<MqttMessage> {
 					logger.debug("packet outgoing [{}]", msg);
 
 					ctx.channel().disconnect().addListener(ChannelFutureListener.CLOSE).addListener(fs -> // [MQTT-3.2.2-5]
-					Plugins.SELF.get(DisconnectEventListener.class).disconnected(new AbnormalDisconnectEventArgs()));
+					Plugins.INSTANCE.get(DisconnectEventListener.class).disconnected(new AbnormalDisconnectEventArgs()));
 				});
 			}
 			return;
@@ -58,7 +58,7 @@ public class GenericReceiver extends SimpleChannelInboundHandler<MqttMessage> {
 				logger.error("None exist session message : {}", msg.toString());
 
 				ctx.channel().disconnect().addListener(ChannelFutureListener.CLOSE).addListener(fs -> // [MQTT-4.8.0-1]
-				Plugins.SELF.get(DisconnectEventListener.class).disconnected(new AbnormalDisconnectEventArgs()));
+				Plugins.INSTANCE.get(DisconnectEventListener.class).disconnected(new AbnormalDisconnectEventArgs()));
 				return;
 			}
 
@@ -116,7 +116,7 @@ public class GenericReceiver extends SimpleChannelInboundHandler<MqttMessage> {
 		}
 		else {
 			ctx.channel().disconnect().addListener(ChannelFutureListener.CLOSE).addListener(fs -> // [MQTT-3.2.2-5]
-			Plugins.SELF.get(DisconnectEventListener.class).disconnected(new AbnormalDisconnectEventArgs()));
+			Plugins.INSTANCE.get(DisconnectEventListener.class).disconnected(new AbnormalDisconnectEventArgs()));
 		}
 	}
 }

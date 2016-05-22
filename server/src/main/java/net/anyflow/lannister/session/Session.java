@@ -53,7 +53,7 @@ public class Session implements com.hazelcast.nio.serialization.Portable {
 
 	private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(Session.class);
 
-	public static Sessions NEXUS;
+	public static final Sessions NEXUS = new Sessions();
 	public static final int ID = 4;
 
 	@JsonProperty
@@ -91,7 +91,7 @@ public class Session implements com.hazelcast.nio.serialization.Portable {
 		this.lastIncomingTime = new Date();
 		this.cleanSession = cleanSession;
 		this.will = will; // [MQTT-3.1.2-9]
-		this.topicSubscriptions = Hazelcast.SELF.generator().getMap(topicSubscriptionsName());
+		this.topicSubscriptions = Hazelcast.INSTANCE.getMap(topicSubscriptionsName());
 		this.topicSubscriptions.addInterceptor(new TopicSubscriptionInterceptor(clientId));
 
 		this.messageSender = new MessageSender(this);
@@ -203,7 +203,7 @@ public class Session implements com.hazelcast.nio.serialization.Portable {
 		ChannelId channelId = null;
 		ChannelHandlerContext ctx = NEXUS.channelHandlerContext(clientId);
 		if (ctx != null) {
-			ctx.channel().disconnect().addListener(ChannelFutureListener.CLOSE).addListener(fs -> Plugins.SELF
+			ctx.channel().disconnect().addListener(ChannelFutureListener.CLOSE).addListener(fs -> Plugins.INSTANCE
 					.get(DisconnectEventListener.class).disconnected(new AbnormalDisconnectEventArgs()));
 
 			channelId = ctx.channel().id();
@@ -213,7 +213,7 @@ public class Session implements com.hazelcast.nio.serialization.Portable {
 
 		NEXUS.remove(this);
 
-		Plugins.SELF.get(DisconnectEventListener.class).disconnected(new DisconnectEventArgs() {
+		Plugins.INSTANCE.get(DisconnectEventListener.class).disconnected(new DisconnectEventArgs() {
 			@Override
 			public String clientId() {
 				return clientId;
@@ -271,7 +271,7 @@ public class Session implements com.hazelcast.nio.serialization.Portable {
 		createTime = new Date(reader.readLong("createTime"));
 		lastIncomingTime = new Date(reader.readLong("lastIncomingTime"));
 
-		topicSubscriptions = Hazelcast.SELF.generator().getMap(topicSubscriptionsName());
+		topicSubscriptions = Hazelcast.INSTANCE.getMap(topicSubscriptionsName());
 
 		messageSender = new MessageSender(this);
 	}

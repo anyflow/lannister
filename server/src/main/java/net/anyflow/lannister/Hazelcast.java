@@ -21,6 +21,10 @@ import com.google.common.collect.Sets;
 import com.hazelcast.config.Config;
 import com.hazelcast.config.SerializerConfig;
 import com.hazelcast.core.HazelcastInstance;
+import com.hazelcast.core.ILock;
+import com.hazelcast.core.IMap;
+import com.hazelcast.core.ITopic;
+import com.hazelcast.core.IdGenerator;
 
 import net.anyflow.lannister.message.InboundMessageStatus;
 import net.anyflow.lannister.message.Message;
@@ -37,13 +41,9 @@ public class Hazelcast {
 	@SuppressWarnings("unused")
 	private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(Hazelcast.class);
 
-	public static final Hazelcast SELF;
+	public static final Hazelcast INSTANCE = new Hazelcast();
 
-	static {
-		SELF = new Hazelcast();
-	}
-
-	private final HazelcastInstance generator;
+	private final HazelcastInstance substance;
 
 	private Hazelcast() {
 		Config config = new Config();
@@ -61,14 +61,26 @@ public class Hazelcast {
 		config.getSerializationConfig().getSerializerConfigs().add(new SerializerConfig().setTypeClass(JsonNode.class)
 				.setImplementation(JsonSerializer.makePlain(JsonNode.class)));
 
-		generator = com.hazelcast.core.Hazelcast.newHazelcastInstance(config);
-	}
-
-	public HazelcastInstance generator() {
-		return generator;
+		substance = com.hazelcast.core.Hazelcast.newHazelcastInstance(config);
 	}
 
 	public void shutdown() {
-		generator.shutdown();
+		substance.shutdown();
+	}
+
+	public ILock getLock(String key) {
+		return substance.getLock(key);
+	}
+
+	public <E> ITopic<E> getTopic(String name) {
+		return substance.getTopic(name);
+	}
+
+	public IdGenerator getIdGenerator(String name) {
+		return substance.getIdGenerator(name);
+	}
+
+	public <K, V> IMap<K, V> getMap(String name) {
+		return substance.getMap(name);
 	}
 }

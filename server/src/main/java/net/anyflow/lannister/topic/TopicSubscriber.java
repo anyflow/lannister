@@ -49,7 +49,7 @@ public class TopicSubscriber implements com.hazelcast.nio.serialization.Portable
 	public TopicSubscriber(String clientId, String topicName) {
 		this.clientId = clientId;
 		this.topicName = topicName;
-		this.outboundMessageStatuses = Hazelcast.SELF.generator().getMap(messageStatusesName());
+		this.outboundMessageStatuses = Hazelcast.INSTANCE.getMap(messageStatusesName());
 	}
 
 	private String messageStatusesName() {
@@ -111,7 +111,7 @@ public class TopicSubscriber implements com.hazelcast.nio.serialization.Portable
 		topicName = reader.readUTF("topicName");
 		clientId = reader.readUTF("clientId");
 
-		outboundMessageStatuses = Hazelcast.SELF.generator().getMap(messageStatusesName());
+		outboundMessageStatuses = Hazelcast.INSTANCE.getMap(messageStatusesName());
 	}
 
 	public static ClassDefinition classDefinition() {

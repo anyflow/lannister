@@ -44,7 +44,7 @@ public class HttpRequestRouter extends SimpleChannelInboundHandler<FullHttpReque
 	private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(HttpRequestRouter.class);
 
 	private boolean isWebResourcePath(String path) {
-		return Settings.SELF.webResourceExtensionToMimes().keySet().stream().anyMatch(s -> path.endsWith("." + s));
+		return Settings.INSTANCE.webResourceExtensionToMimes().keySet().stream().anyMatch(s -> path.endsWith("." + s));
 	}
 
 	@Override
@@ -97,41 +97,48 @@ public class HttpRequestRouter extends SimpleChannelInboundHandler<FullHttpReque
 			String webResourceRequestPath) throws IOException {
 		InputStream is = Thread.currentThread().getContextClassLoader().getResourceAsStream(webResourceRequestPath);
 
-		if (is == null) {
-			String rootPath = (new File(Settings.SELF.webResourcePhysicalRootPath(), webResourceRequestPath)).getPath();
-			try {
-				is = new FileInputStream(rootPath);
+		try {
+			if (is == null) {
+				String rootPath = (new File(Settings.INSTANCE.webResourcePhysicalRootPath(), webResourceRequestPath))
+						.getPath();
+				try {
+					is = new FileInputStream(rootPath);
+				}
+				catch (FileNotFoundException e) {
+					is = null;
+				}
 			}
-			catch (FileNotFoundException e) {
-				is = null;
+
+			if (is == null) {
+				response.setStatus(HttpResponseStatus.NOT_FOUND);
+			}
+			else {
+				ByteArrayOutputStream buffer = new ByteArrayOutputStream();
+
+				int nRead;
+				byte[] data = new byte[16384];
+
+				while ((nRead = is.read(data, 0, data.length)) != -1) {
+					buffer.write(data, 0, nRead);
+				}
+
+				buffer.flush();
+				response.content().writeBytes(buffer.toByteArray());
+
+				String ext = Files.getFileExtension(webResourceRequestPath);
+				response.headers().set(HttpHeaderNames.CONTENT_TYPE,
+						Settings.INSTANCE.webResourceExtensionToMimes().get(ext));
 			}
 		}
-
-		if (is == null) {
-			response.setStatus(HttpResponseStatus.NOT_FOUND);
-		}
-		else {
-			ByteArrayOutputStream buffer = new ByteArrayOutputStream();
-
-			int nRead;
-			byte[] data = new byte[16384];
-
-			while ((nRead = is.read(data, 0, data.length)) != -1) {
-				buffer.write(data, 0, nRead);
+		finally {
+			if (is != null) {
+				is.close();
 			}
-
-			buffer.flush();
-			response.content().writeBytes(buffer.toByteArray());
-
-			String ext = Files.getFileExtension(webResourceRequestPath);
-			response.headers().set(HttpHeaderNames.CONTENT_TYPE, Settings.SELF.webResourceExtensionToMimes().get(ext));
-
-			is.close();
 		}
 
 		setDefaultHeaders(rawRequest, response);
 
-		if ("true".equalsIgnoreCase(Settings.SELF.getProperty("lannister.web.logging.writeHttpResponse"))) {
+		if ("true".equalsIgnoreCase(Settings.INSTANCE.getProperty("lannister.web.logging.writeHttpResponse"))) {
 			logger.info(response.toString());
 		}
 
@@ -166,7 +173,7 @@ public class HttpRequestRouter extends SimpleChannelInboundHandler<FullHttpReque
 
 			handler.initialize(request, response);
 
-			if ("true".equalsIgnoreCase(Settings.SELF.getProperty("lannister.web.logging.writeHttpRequest"))) {
+			if ("true".equalsIgnoreCase(Settings.INSTANCE.getProperty("lannister.web.logging.writeHttpRequest"))) {
 				logger.info(request.toString());
 			}
 
@@ -175,7 +182,7 @@ public class HttpRequestRouter extends SimpleChannelInboundHandler<FullHttpReque
 
 		setDefaultHeaders(rawRequest, response);
 
-		if ("true".equalsIgnoreCase(Settings.SELF.getProperty("lannister.web.logging.writeHttpResponse"))) {
+		if ("true".equalsIgnoreCase(Settings.INSTANCE.getProperty("lannister.web.logging.writeHttpResponse"))) {
 			logger.info(response.toString());
 		}
 
@@ -195,14 +202,16 @@ public class HttpRequestRouter extends SimpleChannelInboundHandler<FullHttpReque
 
 	protected static void setDefaultHeaders(FullHttpRequest request, HttpResponse response) {
 		response.headers().add(HttpHeaderNames.SERVER,
-				"lannister " + net.anyflow.lannister.Settings.SELF.getProperty("lannister.version"));
+				"lannister " + net.anyflow.lannister.Settings.INSTANCE.getProperty("lannister.version"));
 
-		boolean keepAlive = request.headers().get(HttpHeaderNames.CONNECTION) == HttpHeaderValues.KEEP_ALIVE.toString();
+		boolean keepAlive = HttpHeaderValues.KEEP_ALIVE.toString()
+				.equals(request.headers().get(HttpHeaderNames.CONNECTION));
 		if (keepAlive) {
 			response.headers().set(HttpHeaderNames.CONNECTION, HttpHeaderValues.KEEP_ALIVE);
 		}
 
-		if (Settings.SELF.getProperty("lannister.web.httpServer.allowCrossDomain", "false").equalsIgnoreCase("true")) {
+		if (Settings.INSTANCE.getProperty("lannister.web.httpServer.allowCrossDomain", "false")
+				.equalsIgnoreCase("true")) {
 			response.headers().add(HttpHeaderNames.ACCESS_CONTROL_ALLOW_ORIGIN, "*");
 			response.headers().add(HttpHeaderNames.ACCESS_CONTROL_ALLOW_METHODS, "POST, GET, PUT, DELETE");
 			response.headers().add(HttpHeaderNames.ACCESS_CONTROL_ALLOW_HEADERS, "X-PINGARUNER");

@@ -36,7 +36,7 @@ public class SessionsTest {
 
 	@Test
 	public void testLive() throws Exception {
-		HttpClient client = new HttpClient("http://localhost:" + Settings.SELF.httpPort() + "/sessions?filter=live");
+		HttpClient client = new HttpClient("http://localhost:" + Settings.INSTANCE.httpPort() + "/sessions?filter=live");
 		HttpResponse res = client.get();
 
 		Assert.assertEquals(HttpResponseStatus.OK, res.status());
@@ -46,7 +46,7 @@ public class SessionsTest {
 
 	@Test
 	public void testAll() throws Exception {
-		HttpClient client = new HttpClient("http://localhost:" + Settings.SELF.httpPort() + "/sessions?filter=all");
+		HttpClient client = new HttpClient("http://localhost:" + Settings.INSTANCE.httpPort() + "/sessions?filter=all");
 		HttpResponse res = client.get();
 
 		Assert.assertEquals(HttpResponseStatus.OK, res.status());

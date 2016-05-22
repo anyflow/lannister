@@ -33,9 +33,9 @@ public class WebServer {
 	private final EventLoopGroup workerGroup;
 
 	public WebServer() {
-		bossGroup = new NioEventLoopGroup(Settings.SELF.getInt("lannister.web.system.bossThreadCount", 0),
+		bossGroup = new NioEventLoopGroup(Settings.INSTANCE.getInt("lannister.web.system.bossThreadCount", 0),
 				new DefaultThreadFactory("lannister.web/boss"));
-		workerGroup = new NioEventLoopGroup(Settings.SELF.getInt("lannister.web.system.workerThreadCount", 0),
+		workerGroup = new NioEventLoopGroup(Settings.INSTANCE.getInt("lannister.web.system.workerThreadCount", 0),
 				new DefaultThreadFactory("lannister.web/worker"));
 	}
 
@@ -55,26 +55,26 @@ public class WebServer {
 			final Class<? extends WebsocketFrameHandler> websocketFrameHandlerClass) throws Exception {
 		HttpRequestHandler.setRequestHandlerPakcageRoot(requestHandlerPakcageRoot);
 		try {
-			if (Settings.SELF.httpPort() != null) {
+			if (Settings.INSTANCE.httpPort() != null) {
 				ServerBootstrap bootstrap = new ServerBootstrap();
 
 				bootstrap.group(bossGroup, workerGroup).channel(NioServerSocketChannel.class)
 						.childHandler(new WebServerChannelInitializer(false, websocketFrameHandlerClass));
 
-				bootstrap.bind(Settings.SELF.httpPort()).sync();
+				bootstrap.bind(Settings.INSTANCE.httpPort()).sync();
 			}
 
-			if (Settings.SELF.httpsPort() != null) {
+			if (Settings.INSTANCE.httpsPort() != null) {
 				ServerBootstrap bootstrap = new ServerBootstrap();
 
 				bootstrap.group(bossGroup, workerGroup).channel(NioServerSocketChannel.class)
 						.childHandler(new WebServerChannelInitializer(true, websocketFrameHandlerClass));
 
-				bootstrap.bind(Settings.SELF.httpsPort()).sync();
+				bootstrap.bind(Settings.INSTANCE.httpsPort()).sync();
 			}
 
-			logger.info("Lannister HTTP server started [http.port={}, https.port={}]", Settings.SELF.httpPort(),
-					Settings.SELF.httpsPort());
+			logger.info("Lannister HTTP server started [http.port={}, https.port={}]", Settings.INSTANCE.httpPort(),
+					Settings.INSTANCE.httpsPort());
 		}
 		catch (Exception e) {
 			logger.error("Lannister HTTP server failed to start...", e);

@@ -22,7 +22,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Strings;
-import com.google.common.primitives.Ints;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
@@ -95,9 +94,8 @@ public class HttpResponse extends DefaultFullHttpResponse {
 			}
 		}
 
-		if ("false".equalsIgnoreCase(
-				Settings.SELF.getProperty("lannister.web.logging.logWebResourceHttpResponseContent", "false"))
-				&& Settings.SELF.webResourceExtensionToMimes()
+		if (!Settings.INSTANCE.getBoolean("lannister.web.logging.logWebResourceHttpResponseContent", false)
+				&& Settings.INSTANCE.webResourceExtensionToMimes()
 						.containsValue(headers().get(HttpHeaderNames.CONTENT_TYPE))) {
 			buf.append("Content: WEB RESOURCE CONTENT");
 			return buf.toString();
@@ -105,7 +103,7 @@ public class HttpResponse extends DefaultFullHttpResponse {
 
 		String content = this.content().toString(CharsetUtil.UTF_8);
 
-		int size = Ints.tryParse(Settings.SELF.getProperty("lannister.web.logging.httpResponseContentSize", "100"));
+		int size = Settings.INSTANCE.getInt("lannister.web.logging.httpResponseContentSize", 100);
 
 		if (size < 0) {
 			buf.append("Content:\r\n   ").append(content);

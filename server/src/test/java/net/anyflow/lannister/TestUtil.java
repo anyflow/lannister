@@ -34,7 +34,7 @@ public class TestUtil {
 		return new ChannelId() {
 			private static final long serialVersionUID = 3931333967922160660L;
 
-			Long idPostfix = Hazelcast.SELF.generator().getIdGenerator("unittest_embeddedchannel").newId();
+			Long idPostfix = Hazelcast.INSTANCE.getIdGenerator("unittest_embeddedchannel").newId();
 
 			@Override
 			public int compareTo(ChannelId o) {

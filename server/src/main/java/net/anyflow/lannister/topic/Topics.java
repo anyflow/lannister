@@ -31,9 +31,9 @@ public class Topics {
 	private final IMap<String, Topic> topics;
 	private final ITopic<Notification> notifier;
 
-	public Topics(Sessions sessions) {
-		this.topics = Hazelcast.SELF.generator().getMap("topics");
-		this.notifier = Hazelcast.SELF.generator().getTopic("publishNotifier");
+	protected Topics(Sessions sessions) {
+		this.topics = Hazelcast.INSTANCE.getMap("topics");
+		this.notifier = Hazelcast.INSTANCE.getTopic("publishNotifier");
 		this.notifier.addMessageListener(sessions);
 	}
 
@@ -81,7 +81,7 @@ public class Topics {
 	}
 
 	protected void persist(Topic topic) {
-		if (topic == null && topics.get(topic) == null) {
+		if (topic == null || topics.get(topic.name()) == null) {
 			logger.error("Null or new topic can not bepersisted.");
 			return;
 		}

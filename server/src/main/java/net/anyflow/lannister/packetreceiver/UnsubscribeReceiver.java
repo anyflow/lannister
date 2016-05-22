@@ -44,7 +44,7 @@ public class UnsubscribeReceiver extends SimpleChannelInboundHandler<MqttUnsubsc
 			logger.error("None exist session message [message={}]", msg.toString());
 
 			ctx.channel().disconnect().addListener(ChannelFutureListener.CLOSE).addListener(fs -> // [MQTT-4.8.0-1]
-			Plugins.SELF.get(DisconnectEventListener.class).disconnected(new AbnormalDisconnectEventArgs()));
+			Plugins.INSTANCE.get(DisconnectEventListener.class).disconnected(new AbnormalDisconnectEventArgs()));
 			return;
 		}
 
@@ -59,7 +59,7 @@ public class UnsubscribeReceiver extends SimpleChannelInboundHandler<MqttUnsubsc
 
 		topicFilters.stream().forEach(tf -> session.topicSubscriptions().remove(tf));
 
-		Plugins.SELF.get(UnsubscribeEventListener.class).unsubscribed(new UnsubscribeEventArgs() {
+		Plugins.INSTANCE.get(UnsubscribeEventListener.class).unsubscribed(new UnsubscribeEventArgs() {
 			@Override
 			public String clientId() {
 				return session.clientId();

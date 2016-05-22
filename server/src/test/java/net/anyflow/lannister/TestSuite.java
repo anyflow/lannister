@@ -48,6 +48,6 @@ public class TestSuite {
 
 	@AfterClass
 	public static void tearDown() {
-		Application.instance().shutdown();
+		Application.INSTANCE.shutdown();
 	}
 }
