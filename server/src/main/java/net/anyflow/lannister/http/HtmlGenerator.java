@@ -39,8 +39,7 @@ public class HtmlGenerator {
 	}
 
 	public static String generate(Map<String, String> values, String htmlPath) throws IOException {
-		return replace(values,
-				tidy(Thread.currentThread().getContextClassLoader().getResourceAsStream("html/error.htm")));
+		return replace(values, tidy(Thread.currentThread().getContextClassLoader().getResourceAsStream(htmlPath)));
 	}
 
 	private static String replace(Map<String, String> values, String htmlTemplate) {

@@ -20,7 +20,6 @@ import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
-import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelId;
 import io.netty.channel.embedded.EmbeddedChannel;
 import io.netty.handler.codec.mqtt.MqttConnAckMessage;
@@ -41,7 +40,6 @@ import net.anyflow.lannister.plugin.Authorizer;
 import net.anyflow.lannister.plugin.Plugin;
 import net.anyflow.lannister.plugin.Plugins;
 import net.anyflow.lannister.plugin.ServiceChecker;
-import net.anyflow.lannister.session.Session;
 
 //TODO invalid version(e.g. 2) mqtt connect, server seems process nothing
 public class ConnectReceiverTest {
@@ -184,21 +182,6 @@ public class ConnectReceiverTest {
 				MqttConnectReturnCode.CONNECTION_REFUSED_NOT_AUTHORIZED);
 
 		Plugins.INSTANCE.put(Authorizer.class, prev);
-	}
-
-	@Test
-	public void cleanSessionOnExistConnectedSession() throws Exception {
-		String clientId = TestUtil.newClientId();
-
-		executeNormalChannelRead0(clientId, true, null);
-
-		ChannelHandlerContext ctx = Session.NEXUS.ctxs().values().stream().findAny().orElse(null);
-		Assert.assertNotNull(ctx);
-
-		MqttConnAckMessage ret = executeNormalChannelRead0(clientId, true, ctx.channel().id());
-
-		Assert.assertNull(ret);
-		Assert.assertNull(Session.NEXUS.get(clientId));
 	}
 
 	@Test

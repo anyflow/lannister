@@ -1,12 +1,12 @@
 /*
- * Copyright 2014 Luca Burgazzoli
- *
+ * Copyright 2016 The Lannister Project
+ * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- *
+ * 
  *     http://www.apache.org/licenses/LICENSE-2.0
- *
+ * 
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -14,11 +14,17 @@
  * limitations under the License.
  */
 
-package net.anyflow.lannister.serialization;
+package net.anyflow.lannister.httphandler;
 
-public class HazelcastSerializationConstants {
-	public static final int TYPEID_JSON_PLAIN = 100;
-	public static final int TYPEID_JSON_BINARY = 101;
-	public static final int TYPEID_FST = 102;
-	public static final int TYPEID_KRYO = 103;
+import net.anyflow.lannister.http.HttpRequestHandler;
+
+@HttpRequestHandler.Handles(paths = { "/", "/index", "home" }, httpMethods = { "GET" }, webResourcePath = "/index.html")
+public class Index extends HttpRequestHandler {
+	@SuppressWarnings("unused")
+	private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(Index.class);
+
+	@Override
+	public String service() {
+		return null;
+	}
 }
