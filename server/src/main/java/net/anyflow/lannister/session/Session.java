@@ -211,6 +211,10 @@ public class Session implements com.hazelcast.nio.serialization.Portable {
 
 		logger.debug("Session disposed [clientId={}/channelId={}]", clientId, ctx == null ? "null" : channelId);
 
+		if (cleanSession) {
+			this.topicSubscriptions.destroy();
+		}
+
 		NEXUS.remove(this);
 
 		Plugins.INSTANCE.get(DisconnectEventListener.class).disconnected(new DisconnectEventArgs() {
