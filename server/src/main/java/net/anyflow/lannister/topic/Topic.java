@@ -17,9 +17,11 @@
 package net.anyflow.lannister.topic;
 
 import java.io.IOException;
+import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.google.common.collect.Lists;
 import com.hazelcast.core.ILock;
 import com.hazelcast.core.IMap;
 import com.hazelcast.nio.serialization.ClassDefinition;
@@ -278,7 +280,12 @@ public class Topic implements com.hazelcast.nio.serialization.Portable {
 
 	@Override
 	public void writePortable(PortableWriter writer) throws IOException {
-		writer.writeUTF("name", name);
+		List<String> nullChecker = Lists.newArrayList();
+
+		if (name != null) {
+			writer.writeUTF("name", name);
+			nullChecker.add("name");
+		}
 
 		if (retainedMessage != null) {
 			writer.writePortable("retainedMessage", retainedMessage);
@@ -286,11 +293,16 @@ public class Topic implements com.hazelcast.nio.serialization.Portable {
 		else {
 			writer.writeNullPortable("retainedMessage", SerializableFactory.ID, Message.ID);
 		}
+
+		writer.writeUTFArray("nullChecker", nullChecker.toArray(new String[0]));
 	}
 
 	@Override
 	public void readPortable(PortableReader reader) throws IOException {
-		name = reader.readUTF("name");
+		List<String> nullChecker = Lists.newArrayList(reader.readUTFArray("nullChecker"));
+
+		if (nullChecker.contains("name")) name = reader.readUTF("name");
+
 		retainedMessage = reader.readPortable("retainedMessage");
 
 		subscribers = Hazelcast.INSTANCE.getMap(subscribersName());
@@ -302,6 +314,6 @@ public class Topic implements com.hazelcast.nio.serialization.Portable {
 
 	public static ClassDefinition classDefinition() {
 		return new ClassDefinitionBuilder(SerializableFactory.ID, ID).addUTFField("name")
-				.addPortableField("retainedMessage", Message.classDefinition()).build();
+				.addPortableField("retainedMessage", Message.classDefinition()).addUTFArrayField("nullChecker").build();
 	}
 }

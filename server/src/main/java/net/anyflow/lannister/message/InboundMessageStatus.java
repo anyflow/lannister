@@ -18,9 +18,11 @@ package net.anyflow.lannister.message;
 
 import java.io.IOException;
 import java.util.Date;
+import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.google.common.collect.Lists;
 import com.hazelcast.nio.serialization.ClassDefinition;
 import com.hazelcast.nio.serialization.ClassDefinitionBuilder;
 import com.hazelcast.nio.serialization.PortableReader;
@@ -67,21 +69,31 @@ public class InboundMessageStatus extends MessageStatus {
 
 	@Override
 	public void writePortable(PortableWriter writer) throws IOException {
-		super.writePortable(writer);
+		List<String> nullChecker = Lists.newArrayList();
 
-		writer.writeByte("targetStatus", status.value());
+		writePortable(nullChecker, writer);
+
+		if (status != null) {
+			writer.writeByte("targetStatus", status.value());
+			nullChecker.add("id");
+		}
+
+		writer.writeUTFArray("nullChecker", nullChecker.toArray(new String[0]));
 	}
 
 	@Override
 	public void readPortable(PortableReader reader) throws IOException {
-		super.readPortable(reader);
+		List<String> nullChecker = Lists.newArrayList(reader.readUTFArray("nullChecker"));
 
-		status = Status.valueOf(reader.readByte("targetStatus"));
+		readPortable(nullChecker, reader);
+
+		if (nullChecker.contains("status")) status = Status.valueOf(reader.readByte("targetStatus"));
 	}
 
 	public static ClassDefinition classDefinition() {
 		return new ClassDefinitionBuilder(SerializableFactory.ID, ID).addUTFField("clientId").addIntField("messageId")
-				.addByteField("targetStatus").addLongField("createTime").addLongField("updateTime").build();
+				.addByteField("targetStatus").addLongField("createTime").addLongField("updateTime")
+				.addUTFArrayField("nullChecker").build();
 	}
 
 	public enum Status {

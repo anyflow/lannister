@@ -16,6 +16,8 @@
 
 package net.anyflow.lannister.packetreceiver;
 
+import java.net.InetSocketAddress;
+
 import com.google.common.base.Strings;
 
 import io.netty.channel.ChannelFutureListener;
@@ -70,14 +72,19 @@ public class ConnectReceiver extends SimpleChannelInboundHandler<MqttConnectMess
 		session = Session.NEXUS.get(clientId); // [MQTT-3.1.2-4]
 		boolean sessionPresent = !cleanSession && session != null; // [MQTT-3.2.2-1],[MQTT-3.2.2-2],[MQTT-3.2.2-3]
 
+		String clientIp = ctx.channel().remoteAddress() instanceof InetSocketAddress
+				? ((InetSocketAddress) ctx.channel().remoteAddress()).getAddress().getHostAddress() : "0.0.0.0";
+		int clientPort = ctx.channel().remoteAddress() instanceof InetSocketAddress
+				? ((InetSocketAddress) ctx.channel().remoteAddress()).getPort() : -1;
+
 		if (cleanSession) {
 			if (session != null) {
 				session.dispose(false); // [MQTT-3.1.4-2]
 			}
-			session = newSession(msg, cleanSession, clientId); // [MQTT-3.1.2-6]
+			session = newSession(msg, cleanSession, clientId, clientIp, clientPort); // [MQTT-3.1.2-6]
 		}
 		else if (session == null) { // [MQTT-3.1.2-4]
-			session = newSession(msg, cleanSession, clientId);
+			session = newSession(msg, cleanSession, clientId, clientIp, clientPort);
 		}
 
 		Session.NEXUS.put(session, ctx);
@@ -146,8 +153,10 @@ public class ConnectReceiver extends SimpleChannelInboundHandler<MqttConnectMess
 		}
 	}
 
-	private Session newSession(MqttConnectMessage msg, boolean cleanSession, String clientId) {
-		return new Session(clientId, msg.variableHeader().keepAliveTimeSeconds(), cleanSession, newWill(clientId, msg));
+	private Session newSession(MqttConnectMessage msg, boolean cleanSession, String clientId, String clientIp,
+			int clientPort) {
+		return new Session(clientId, clientIp, clientPort, msg.variableHeader().keepAliveTimeSeconds(), cleanSession,
+				newWill(clientId, msg));
 	}
 
 	private Message newWill(String clientId, MqttConnectMessage conn) {

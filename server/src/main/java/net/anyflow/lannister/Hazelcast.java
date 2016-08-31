@@ -16,10 +16,13 @@
 
 package net.anyflow.lannister;
 
+import java.io.IOException;
+
 import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.collect.Sets;
 import com.hazelcast.config.Config;
 import com.hazelcast.config.SerializerConfig;
+import com.hazelcast.config.XmlConfigBuilder;
 import com.hazelcast.core.HazelcastInstance;
 import com.hazelcast.core.ILock;
 import com.hazelcast.core.IMap;
@@ -38,15 +41,22 @@ import net.anyflow.lannister.topic.TopicSubscriber;
 import net.anyflow.lannister.topic.TopicSubscription;
 
 public class Hazelcast {
-	@SuppressWarnings("unused")
 	private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(Hazelcast.class);
 
 	public static final Hazelcast INSTANCE = new Hazelcast();
+	private static final String CONFIG_NAME = "hazelcast.config.xml";
 
 	private final HazelcastInstance substance;
 
 	private Hazelcast() {
-		Config config = new Config();
+		Config config;
+		try {
+			config = new XmlConfigBuilder(Application.class.getClassLoader().getResource(CONFIG_NAME)).build();
+		}
+		catch (IOException e) {
+			logger.error(e.getMessage(), e);
+			throw new RuntimeException(e);
+		}
 
 		config.setProperty("hazelcast.shutdownhook.enabled", "false");
 

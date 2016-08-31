@@ -18,6 +18,7 @@ package net.anyflow.lannister.message;
 
 import java.io.IOException;
 import java.util.Date;
+import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -31,7 +32,7 @@ public abstract class MessageStatus implements com.hazelcast.nio.serialization.P
 	@JsonProperty
 	private String clientId;
 	@JsonProperty
-	private int messageId;
+	private Integer messageId;
 	@JsonFormat(shape = JsonFormat.Shape.STRING, pattern = Literals.DATE_DEFAULT_FORMAT, timezone = Literals.DATE_DEFAULT_TIMEZONE)
 	@JsonProperty
 	private Date createTime;
@@ -69,19 +70,32 @@ public abstract class MessageStatus implements com.hazelcast.nio.serialization.P
 		return updateTime;
 	}
 
-	@Override
-	public void writePortable(PortableWriter writer) throws IOException {
-		writer.writeUTF("clientId", clientId);
-		writer.writeInt("messageId", messageId);
-		writer.writeLong("createTime", createTime.getTime());
-		writer.writeLong("updateTime", updateTime.getTime());
+	protected void writePortable(List<String> nullChecker, PortableWriter writer) throws IOException {
+		if (clientId != null) {
+			writer.writeUTF("clientId", clientId);
+			nullChecker.add("clientId");
+		}
+
+		if (messageId != null) {
+			writer.writeInt("messageId", messageId);
+			nullChecker.add("messageId");
+		}
+
+		if (createTime != null) {
+			writer.writeLong("createTime", createTime.getTime());
+			nullChecker.add("createTime");
+		}
+
+		if (updateTime != null) {
+			writer.writeLong("updateTime", updateTime.getTime());
+			nullChecker.add("updateTime");
+		}
 	}
 
-	@Override
-	public void readPortable(PortableReader reader) throws IOException {
-		clientId = reader.readUTF("clientId");
-		messageId = reader.readInt("messageId");
-		createTime = new Date(reader.readLong("createTime"));
-		updateTime = new Date(reader.readLong("updateTime"));
+	public void readPortable(List<String> nullChecker, PortableReader reader) throws IOException {
+		if (nullChecker.contains("clientId")) clientId = reader.readUTF("clientId");
+		if (nullChecker.contains("messageId")) messageId = reader.readInt("messageId");
+		if (nullChecker.contains("createTime")) createTime = new Date(reader.readLong("createTime"));
+		if (nullChecker.contains("updateTime")) updateTime = new Date(reader.readLong("updateTime"));
 	}
 }

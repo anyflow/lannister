@@ -20,7 +20,7 @@
 		<dependency>
 			<groupId>com.hazelcast</groupId>
 			<artifactId>hazelcast</artifactId>
-			<version>3.6.2</version>
+			<version>3.7</version>
 		</dependency>
 
 		<dependency>
@@ -70,7 +70,7 @@
 		<dependency>
 			<groupId>io.netty</groupId>
 			<artifactId>netty-tcnative-boringssl-static</artifactId>
-			<version>1.1.33.Fork17</version>
+			<version>1.1.33.Fork21</version>
 		</dependency>
 
 		<dependency>
@@ -98,6 +98,7 @@
 				<targetPath>../conf/</targetPath>
 				<includes>
 					<include>lannister.cfg</include>
+					<include>hazelcast.config.xml</include>					
 					<include>log4j.xml</include>
 				</includes>
 			</resource>
@@ -119,6 +120,7 @@
 				<directory>src/test/resources</directory>
 				<includes>
 					<include>lannister.cfg</include>
+					<include>hazelcast.config.xml</include>					
 					<include>log4j.xml</include>
 				</includes>
 			</testResource>

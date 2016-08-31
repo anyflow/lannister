@@ -17,10 +17,12 @@
 package net.anyflow.lannister.topic;
 
 import java.io.IOException;
+import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Lists;
 import com.hazelcast.core.IMap;
 import com.hazelcast.nio.serialization.ClassDefinition;
 import com.hazelcast.nio.serialization.ClassDefinitionBuilder;
@@ -102,20 +104,33 @@ public class TopicSubscriber implements com.hazelcast.nio.serialization.Portable
 
 	@Override
 	public void writePortable(PortableWriter writer) throws IOException {
-		writer.writeUTF("topicName", topicName);
-		writer.writeUTF("clientId", clientId);
+		List<String> nullChecker = Lists.newArrayList();
+
+		if (topicName != null) {
+			writer.writeUTF("topicName", topicName);
+			nullChecker.add("topicName");
+		}
+
+		if (clientId != null) {
+			writer.writeUTF("clientId", clientId);
+			nullChecker.add("clientId");
+		}
+
+		writer.writeUTFArray("nullChecker", nullChecker.toArray(new String[0]));
 	}
 
 	@Override
 	public void readPortable(PortableReader reader) throws IOException {
-		topicName = reader.readUTF("topicName");
-		clientId = reader.readUTF("clientId");
+		List<String> nullChecker = Lists.newArrayList(reader.readUTFArray("nullChecker"));
+
+		if (nullChecker.contains("topicName")) topicName = reader.readUTF("topicName");
+		if (nullChecker.contains("clientId")) clientId = reader.readUTF("clientId");
 
 		outboundMessageStatuses = Hazelcast.INSTANCE.getMap(messageStatusesName());
 	}
 
 	public static ClassDefinition classDefinition() {
 		return new ClassDefinitionBuilder(SerializableFactory.ID, ID).addUTFField("topicName").addUTFField("clientId")
-				.build();
+				.addUTFArrayField("nullChecker").build();
 	}
 }

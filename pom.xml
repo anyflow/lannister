@@ -5,7 +5,7 @@
 
 	<groupId>net.anyflow</groupId>
 	<artifactId>lannister</artifactId>
-	<version>0.9.5.1-SNAPSHOT</version>
+	<version>0.9.5.2-SNAPSHOT</version>
 	<name>lannister</name>
 	<description>MQTT broker with full spec support and Clustering/WebSocket/SSL based on Java - Netty/Hazelcast</description>
 	<packaging>pom</packaging>
@@ -79,7 +79,7 @@
 		<dependency>
 			<groupId>io.netty</groupId>
 			<artifactId>netty-all</artifactId>
-			<version>4.1.1.Final</version>
+			<version>4.1.4.Final</version>
 		</dependency>
 	</dependencies>
 
@@ -188,6 +188,7 @@
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-site-plugin</artifactId>
+				<version>3.5.1</version>
 				<configuration>
 					<reportPlugins>
 						<plugin>
