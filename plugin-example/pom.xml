@@ -4,10 +4,12 @@
 	<parent>
 		<groupId>net.anyflow</groupId>
 		<artifactId>lannister</artifactId>
-		<version>0.9.5.1-SNAPSHOT</version>
+		<version>0.9.5.2-SNAPSHOT</version>
 	</parent>
+	
 	<artifactId>lannister-plugin-example</artifactId>
 	<name>lannister plugin example</name>
+	
 	<packaging>jar</packaging>
 
 	<repositories>

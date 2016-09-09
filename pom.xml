@@ -38,9 +38,8 @@
 
 
 	<profiles>
-		<!-- Just for fixing compile time error on pom.xml -->
 		<profile>
-			<id>dummy.profile</id>
+			<id>lannister.local</id>
 			<activation>
 				<activeByDefault>true</activeByDefault>
 			</activation>
@@ -49,6 +48,13 @@
 				<github.global.server>github</github.global.server>
 			</properties>
 		</profile>
+		<profile>
+			<id>lannister.docker</id>
+			<properties>
+				<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+				<github.global.server>github</github.global.server>
+			</properties>
+		</profile>		
 	</profiles>
 
 	<dependencies>

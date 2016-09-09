@@ -49,6 +49,10 @@ public class Hazelcast {
 	private final HazelcastInstance substance;
 
 	private Hazelcast() {
+		substance = com.hazelcast.core.Hazelcast.newHazelcastInstance(createConfig());
+	}
+
+	private Config createConfig() {
 		Config config;
 		try {
 			config = new XmlConfigBuilder(Application.class.getClassLoader().getResource(CONFIG_NAME)).build();
@@ -57,8 +61,6 @@ public class Hazelcast {
 			logger.error(e.getMessage(), e);
 			throw new RuntimeException(e);
 		}
-
-		config.setProperty("hazelcast.shutdownhook.enabled", "false");
 
 		config.getSerializationConfig().addPortableFactory(SerializableFactory.ID, new SerializableFactory());
 
@@ -71,7 +73,7 @@ public class Hazelcast {
 		config.getSerializationConfig().getSerializerConfigs().add(new SerializerConfig().setTypeClass(JsonNode.class)
 				.setImplementation(JsonSerializer.makePlain(JsonNode.class)));
 
-		substance = com.hazelcast.core.Hazelcast.newHazelcastInstance(config);
+		return config;
 	}
 
 	public void shutdown() {

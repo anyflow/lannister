@@ -22,6 +22,12 @@
 	
 	<properties>
 		<property name="hazelcast.logging.type">slf4j</property>
+		<property name="hazelcast.shutdownhook.enabled">false</property>
+		<property name="hazelcast.max.no.heartbeat.seconds">15</property>
+		<property name="hazelcast.restart.on.max.idle">true</property>
+		<property name="hazelcast.client.heartbeat.interval">5000</property>
+		<property name="hazelcast.client.heartbeat.timeout">30000</property>
+		<property name="hazelcast.client.max.no.heartbeat.seconds">15</property>
 	</properties>
 	
 	<network>

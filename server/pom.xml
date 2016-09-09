@@ -4,12 +4,34 @@
 
 	<artifactId>lannister-server</artifactId>
 	<name>lannister server</name>
+	
 	<parent>
 		<groupId>net.anyflow</groupId>
 		<artifactId>lannister</artifactId>
-		<version>0.9.5.1-SNAPSHOT</version>
+		<version>0.9.5.2-SNAPSHOT</version>
 	</parent>
 
+	<profiles>
+		<profile>
+			<id>lannister.local</id>
+			<activation>
+				<activeByDefault>true</activeByDefault>
+			</activation>
+			<properties>
+				<env>local</env>
+				<lannister.home>${project.build.directory}</lannister.home>
+				<log.path>${project.build.directory}/logs</log.path>
+			</properties>
+		</profile>
+		
+		<profile>
+			<id>lannister.docker</id>
+			<properties>
+				<env>docker</env>
+			</properties>
+		</profile>
+	</profiles>
+	
 	<dependencies>
 		<dependency>
 			<groupId>net.anyflow</groupId>
