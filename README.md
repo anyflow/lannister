@@ -43,12 +43,19 @@ cd lannister
 
 # Build all(interface, server, plugin-example) projects
 mvn install
-# Change directory to lannister server
-cd server
+
 # Run lannister server directed by lannister.cfg/log4j.xml files in conf directory
-mvn exec:java
+mvn exec:java -pl server
 ```
 ## Version History
+##### version 0.9.5.1 / Sep 11, 2016
+- Externalize Hazelcast config - Add hazelcast.config.xml
+- Add docker file and docker property - Run maven with profile (mvn -Plannister.docker)
+- Add null checker in hazelcast serialization logics
+- Fix bug - subscriptions remaining on disposing (clean) session
+- Update Hazelcast version to 3.7.1
+- Update Netty version to 4.1.5
+
 ##### version 0.9.5.0 / May 21, 2016
 - Code Review, Test based on chapter 3.2 of Spec v3.1.1 Mandatory normative statements
 - Add $SYS Required Topics
