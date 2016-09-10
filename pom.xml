@@ -5,7 +5,7 @@
 
 	<groupId>net.anyflow</groupId>
 	<artifactId>lannister</artifactId>
-	<version>0.9.5.2-SNAPSHOT</version>
+	<version>0.9.5.1-SNAPSHOT</version>
 	<name>lannister</name>
 	<description>MQTT broker with full spec support and Clustering/WebSocket/SSL based on Java - Netty/Hazelcast</description>
 	<packaging>pom</packaging>
