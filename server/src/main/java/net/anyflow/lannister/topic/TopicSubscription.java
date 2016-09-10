@@ -86,7 +86,7 @@ public class TopicSubscription implements com.hazelcast.nio.serialization.Portab
 
 		if (topicFilter != null) {
 			writer.writeUTF("topicFilter", topicFilter);
-			nullChecker.add("topicName");
+			nullChecker.add("topicFilter");
 		}
 
 		if (qos != null) {
@@ -102,7 +102,7 @@ public class TopicSubscription implements com.hazelcast.nio.serialization.Portab
 		List<String> nullChecker = Lists.newArrayList(reader.readUTFArray("nullChecker"));
 
 		if (nullChecker.contains("topicFilter")) topicFilter = reader.readUTF("topicFilter");
-		if (nullChecker.contains("clientId")) qos = MqttQoS.valueOf(reader.readInt("qos"));
+		if (nullChecker.contains("qos")) qos = MqttQoS.valueOf(reader.readInt("qos"));
 	}
 
 	public static ClassDefinition classDefinition() {
