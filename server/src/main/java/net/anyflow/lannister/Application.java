@@ -57,10 +57,12 @@ public class Application {
 			});
 
 			logger.info("Lannister bootstrapping completed");
-			logger.info("version        : {}", Settings.INSTANCE.version());
+			logger.info("build version  : {}", Settings.INSTANCE.version());
 			logger.info("build time     : {}", Settings.INSTANCE.buildTime());
 			logger.info("commit ID      : {}", Settings.INSTANCE.commitId());
 			logger.info("commit ID desc : {}", Settings.INSTANCE.commitIdDescribe());
+			logger.info("commit message : {}", Settings.INSTANCE.commitMessage());
+
 			return true;
 		}
 		catch (Exception e) {

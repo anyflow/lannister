@@ -158,7 +158,7 @@ public class Settings extends java.util.Properties {
 	}
 
 	public String version() {
-		return getProperty("lannister.version");
+		return this.gitProperties.getProperty("git.build.version");
 	}
 
 	public String commitId() {
@@ -167,6 +167,10 @@ public class Settings extends java.util.Properties {
 
 	public String commitIdDescribe() {
 		return this.gitProperties.getProperty("git.commit.id.describe");
+	}
+
+	public String commitMessage() {
+		return this.gitProperties.getProperty("git.commit.message.short");
 	}
 
 	public String buildTime() {
