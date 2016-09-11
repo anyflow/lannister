@@ -13,7 +13,7 @@ High performance MQTT broker w/ full specifications support, Clustering, WebSock
 3. Clustering
    * Topic / Message / Message Status / Session redundant
    * No SPOF(peer-to-peer based : No master and slave)
-   * Easy Scaling out   
+   * Easy Scaling out
 4. WebSocket
 5. SSL (TCP / WebSocket both)
 6. $SYS
@@ -44,17 +44,21 @@ cd lannister
 # Build all(interface, server, plugin-example) projects
 mvn install
 
-# Run lannister server directed by lannister.cfg/log4j.xml files in conf directory
+# Run lannister server directed by lannister.cfg/hazelcast.config.xml/log4j.xml files in conf directory
 mvn exec:java -pl server
 ```
 ## Version History
 ##### version 0.9.5.1 / Sep 11, 2016
+- Start clustering TEST/FIX
+  - Fix failing subscription on existing topic 
 - Externalize Hazelcast config - Add hazelcast.config.xml
 - Add docker file and docker property - Run maven with profile (mvn -Plannister.docker)
 - Add null checker in hazelcast serialization logics
 - Fix bug - subscriptions remaining on disposing (clean) session
+- Change WebSocket(s) ports to 9001, 9002
 - Update Hazelcast version to 3.7.1
 - Update Netty version to 4.1.5
+- Add PMD / Findbugs / Jacoco / surefire reports
 
 ##### version 0.9.5.0 / May 21, 2016
 - Code Review, Test based on chapter 3.2 of Spec v3.1.1 Mandatory normative statements
@@ -64,8 +68,8 @@ mvn exec:java -pl server
 - Code Review, Test based on chapter 3.1 of Spec v3.1.1 Mandatory normative statements
 - Implement full features of Protocol Specification MQTT version 3.1.1
 - Add clustering
-- Add WebSocket _(default port: 2883)_
-- Add SSL _(default port: 8883, default WebSocket SSL port: 9883)_
+- Add WebSocket _(default port: 9001)_
+- Add SSL _(default port: 8883, default WebSocket SSL port: 9002)_
 - Add plugin's : Framework & Default / Example Plugins
 - Add admin HTTP REST APIs : listing topics, sessions
 

@@ -22,5 +22,5 @@ RUN ln -s /opt/lannister/logs/output.log output.log
 
 EXPOSE 1883
 EXPOSE 8883
-EXPOSE 2883
-EXPOSE 9883
+EXPOSE 9001
+EXPOSE 9002

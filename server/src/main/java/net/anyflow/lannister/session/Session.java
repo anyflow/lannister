@@ -220,6 +220,10 @@ public class Session implements com.hazelcast.nio.serialization.Portable {
 		logger.debug("Session disposed [clientId={}/channelId={}]", clientId, ctx == null ? "null" : channelId);
 
 		if (cleanSession) {
+			this.topicSubscriptions.values().stream().forEach(ts -> {
+				Topic.NEXUS.getMatches(ts.topicFilter()).forEach(t -> t.subscribers().remove(clientId));
+			});
+
 			this.topicSubscriptions.destroy();
 		}
 
