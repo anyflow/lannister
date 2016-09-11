@@ -56,8 +56,7 @@
 <ul>
 <li>Topic / Message / Message Status / Session redundant</li>
 <li>No SPOF(peer-to-peer based : No master and slave)</li>
-<li>Easy Scaling out<br>
-</li>
+<li>Easy Scaling out</li>
 </ul>
 </li>
 <li>WebSocket</li>
@@ -93,18 +92,41 @@
 
 <span class="pl-c"># Clone lannister source</span>
 <span class="pl-smi">git</span> <span class="pl-smi">clone</span> <span class="pl-smi">https</span><span class="pl-k">:</span><span class="pl-k">//</span><span class="pl-smi">github.com</span><span class="pl-k">/</span><span class="pl-smi">anyflow</span><span class="pl-k">/</span><span class="pl-smi">lannister.git</span>
+
 <span class="pl-c"># Change directory to lannister</span>
 <span class="pl-smi">cd</span> <span class="pl-smi">lannister</span>
 
 <span class="pl-c"># Build all(interface, server, plugin-example) projects</span>
 <span class="pl-smi">mvn</span> <span class="pl-smi">install</span>
-<span class="pl-c"># Change directory to lannister server</span>
-<span class="pl-smi">cd</span> <span class="pl-smi">server</span>
-<span class="pl-c"># Run lannister server directed by lannister.cfg/log4j.xml files in conf directory</span>
-<span class="pl-smi">mvn</span> <span class="pl-smi">exec</span><span class="pl-k">:</span><span class="pl-smi">java</span></pre></div>
+
+<span class="pl-c"># Run lannister server directed by lannister.cfg/hazelcast.config.xml/log4j.xml files in conf directory</span>
+<span class="pl-smi">mvn</span> <span class="pl-smi">exec</span><span class="pl-k">:</span><span class="pl-smi">java</span> <span class="pl-k">-</span><span class="pl-smi">pl</span> <span class="pl-smi">server</span></pre></div>
 
 <h2>
 <a id="version-history" class="anchor" href="#version-history" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Version History</h2>
+
+<h5>
+<a id="version-0951--sep-11-2016" class="anchor" href="#version-0951--sep-11-2016" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>version 0.9.5.1 / Sep 11, 2016</h5>
+
+<ul>
+<li>Externalize Hazelcast config - Add hazelcast.config.xml</li>
+<li>Add docker file and docker property - Run maven with profile (mvn install -Plannister.docker)</li>
+<li>Add null checker in hazelcast serialization logics</li>
+<li>Change WebSocket(ssl) ports to 9001(9002)</li>
+<li>Update Hazelcast version to 3.7.1</li>
+<li>Update Netty version to 4.1.5</li>
+<li>Add PMD / Findbugs / Jacoco / surefire reports</li>
+<li>Start clustering TEST/FIX
+
+<ul>
+<li>Fix subscription failing on existing topic in clustered state</li>
+</ul>
+</li>
+<li>Fix subscriptions remaining on disposing (clean) session</li>
+<li>Fix reconnect failing persisted session<br>
+</li>
+<li>Fix remaining no subscriber topic</li>
+</ul>
 
 <h5>
 <a id="version-0950--may-21-2016" class="anchor" href="#version-0950--may-21-2016" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>version 0.9.5.0 / May 21, 2016</h5>
