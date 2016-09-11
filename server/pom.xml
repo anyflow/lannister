@@ -1,14 +1,37 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 
 	<artifactId>lannister-server</artifactId>
 	<name>lannister server</name>
+	
 	<parent>
 		<groupId>net.anyflow</groupId>
 		<artifactId>lannister</artifactId>
-		<version>0.9.5.0-SNAPSHOT</version>
+		<version>0.9.5.1-SNAPSHOT</version>
 	</parent>
 
+	<profiles>
+		<profile>
+			<id>lannister.local</id>
+			<activation>
+				<activeByDefault>true</activeByDefault>
+			</activation>
+			<properties>
+				<env>local</env>
+				<lannister.home>${project.build.directory}</lannister.home>
+				<log.path>${project.build.directory}/logs</log.path>
+			</properties>
+		</profile>
+		
+		<profile>
+			<id>lannister.docker</id>
+			<properties>
+				<env>docker</env>
+			</properties>
+		</profile>
+	</profiles>
+	
 	<dependencies>
 		<dependency>
 			<groupId>net.anyflow</groupId>
@@ -19,7 +42,7 @@
 		<dependency>
 			<groupId>com.hazelcast</groupId>
 			<artifactId>hazelcast</artifactId>
-			<version>3.6.2</version>
+			<version>3.7.1</version>
 		</dependency>
 
 		<dependency>
@@ -53,13 +76,13 @@
 			<artifactId>jackson-dataformat-smile</artifactId>
 			<version>2.7.4</version>
 		</dependency>
-		<!-- for menton -->
+		<!-- for lannister.web -->
 		<dependency>
 			<groupId>net.sf.jtidy</groupId>
 			<artifactId>jtidy</artifactId>
 			<version>r938</version>
 		</dependency>
-		<!-- for menton -->
+		<!-- for lannister.web -->
 		<dependency>
 			<groupId>org.reflections</groupId>
 			<artifactId>reflections</artifactId>
@@ -69,13 +92,19 @@
 		<dependency>
 			<groupId>io.netty</groupId>
 			<artifactId>netty-tcnative-boringssl-static</artifactId>
-			<version>1.1.33.Fork15</version>
+			<version>1.1.33.Fork22</version>
 		</dependency>
 
 		<dependency>
 			<groupId>org.javassist</groupId>
 			<artifactId>javassist</artifactId>
 			<version>3.19.0-GA</version>
+		</dependency>
+
+		<dependency>
+			<groupId>com.jayway.jsonpath</groupId>
+			<artifactId>json-path</artifactId>
+			<version>2.2.0</version>
 		</dependency>
 	</dependencies>
 
@@ -91,6 +120,7 @@
 				<targetPath>../conf/</targetPath>
 				<includes>
 					<include>lannister.cfg</include>
+					<include>hazelcast.config.xml</include>					
 					<include>log4j.xml</include>
 				</includes>
 			</resource>
@@ -112,6 +142,7 @@
 				<directory>src/test/resources</directory>
 				<includes>
 					<include>lannister.cfg</include>
+					<include>hazelcast.config.xml</include>					
 					<include>log4j.xml</include>
 				</includes>
 			</testResource>

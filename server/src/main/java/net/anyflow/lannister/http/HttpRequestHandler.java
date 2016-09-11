@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 The Menton Project
+ * Copyright 2016 The Lannister Project
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package net.anyflow.menton.http;
+package net.anyflow.lannister.http;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
@@ -23,6 +23,7 @@ import java.lang.annotation.Target;
 import java.net.URISyntaxException;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Stream;
 
 import org.reflections.Reflections;
 
@@ -30,12 +31,6 @@ import com.google.common.collect.Maps;
 
 import net.anyflow.lannister.Settings;
 
-/**
- * Base class for request handler. The class contains common stuffs for
- * generating business logic.
- * 
- * @author anyflow
- */
 public abstract class HttpRequestHandler {
 
 	private static final Map<String, Class<? extends HttpRequestHandler>> handlerClassMap = Maps.newHashMap();
@@ -45,31 +40,16 @@ public abstract class HttpRequestHandler {
 	private HttpRequest request;
 	private HttpResponse response;
 
-	/**
-	 * @author anyflow
-	 */
 	@Retention(RetentionPolicy.RUNTIME)
 	@Target({ ElementType.TYPE, ElementType.METHOD })
 	public @interface Handles {
-
-		/**
-		 * @return supported paths
-		 */
 		String[] paths();
 
-		/**
-		 * supported http methods
-		 * 
-		 * @return http method string
-		 */
 		String[] httpMethods();
 
 		String webResourcePath() default "none";
 	}
 
-	/**
-	 * @return processed response body string
-	 */
 	public abstract String service();
 
 	protected void initialize(HttpRequest request, HttpResponse response) throws URISyntaxException {
@@ -90,55 +70,62 @@ public abstract class HttpRequestHandler {
 	}
 
 	protected static MatchedCriterion findRequestHandler(String requestedPath, String httpMethod) {
-		for (String criterion : handlerClassMap.keySet()) {
-			MatchedCriterion mc = match(requestedPath, httpMethod, criterion);
+		for (Map.Entry<String, Class<? extends HttpRequestHandler>> item : handlerClassMap.entrySet()) {
+			MatchedCriterion mc = match(requestedPath, httpMethod, item.getKey());
 
-			if (mc.result == true) {
-				mc.requestHandlerClass = handlerClassMap.get(criterion);
+			if (mc.matched) {
+				mc.requestHandlerClass = handlerClassMap.get(item.getKey());
 				return mc;
 			}
 		}
 
 		if (requestHandlerClasses == null) {
-			requestHandlerClasses = (new Reflections(requestHandlerPakcageRoot))
-					.getSubTypesOf(HttpRequestHandler.class);
+			requestHandlerClasses = new Reflections(requestHandlerPakcageRoot).getSubTypesOf(HttpRequestHandler.class);
 		}
 
-		MatchedCriterion ret = null;
-		for (Class<? extends HttpRequestHandler> item : requestHandlerClasses) {
-			HttpRequestHandler.Handles annotation = item.getAnnotation(HttpRequestHandler.Handles.class);
+		final ReturnWrapper wrapper = new ReturnWrapper();
+		requestHandlerClasses.stream().anyMatch(c -> {
+			HttpRequestHandler.Handles annotation = c.getAnnotation(HttpRequestHandler.Handles.class);
+			if (annotation == null) { return false; }
 
-			if (annotation == null) {
-				continue;
+			return Stream.of(annotation.httpMethods()).anyMatch(m -> {
+				if (!m.equalsIgnoreCase(httpMethod)) { return false; }
+
+				return Stream.of(annotation.paths()).anyMatch(p -> {
+					return wrapper.setValueIfMatch(requestedPath, c, m, p);
+				});
+			});
+		});
+
+		return wrapper.value == null ? new MatchedCriterion() : wrapper.value;
+	}
+
+	private static class ReturnWrapper {
+		private MatchedCriterion value = null;
+
+		private boolean setValueIfMatch(String requestedPath, Class<? extends HttpRequestHandler> handlerClass,
+				String methodToCheck, String pathToCheck) {
+			String path = (pathToCheck.charAt(0) == '/') ? pathToCheck
+					: Settings.INSTANCE.httpContextRoot() + pathToCheck;
+			String criterion = path + "/" + methodToCheck;
+
+			MatchedCriterion mc = match(requestedPath, methodToCheck, criterion);
+
+			if (mc.matched) {
+				handlerClassMap.put(criterion, handlerClass);
+				mc.requestHandlerClass = handlerClass;
+				this.value = mc;
+
+				return true;
 			}
-
-			for (String method : annotation.httpMethods()) {
-				if (method.equalsIgnoreCase(httpMethod) == false) {
-					continue;
-				}
-
-				for (String rawPath : annotation.paths()) {
-					String path = (rawPath.charAt(0) == '/') ? rawPath : Settings.SELF.httpContextRoot() + rawPath;
-					String criterion = path + "/" + method;
-
-					MatchedCriterion mc = match(requestedPath, method, criterion);
-
-					if (mc.result == true) {
-						handlerClassMap.put(criterion, item);
-						mc.requestHandlerClass = item;
-
-						ret = mc;
-						break;
-					}
-				}
+			else {
+				return false;
 			}
-		}
-
-		return ret == null ? new MatchedCriterion() : ret;
+		};
 	}
 
 	protected static class MatchedCriterion {
-		private boolean result;
+		private boolean matched = false;
 		private Class<? extends HttpRequestHandler> requestHandlerClass;
 		private String criterionPath;
 		private String criterionHttpMethod;
@@ -176,10 +163,10 @@ public abstract class HttpRequestHandler {
 			if (criterionTokens[i].startsWith("{") && criterionTokens[i].endsWith("}")) {
 				ret.pathParameters.put(criterionTokens[i].substring(1, criterionTokens[i].length() - 1), testTokens[i]);
 			}
-			else if (criterionTokens[i].equalsIgnoreCase(testTokens[i]) == false) { return ret; }
+			else if (!criterionTokens[i].equalsIgnoreCase(testTokens[i])) { return ret; }
 		}
 
-		ret.result = true;
+		ret.matched = true;
 		ret.criterionHttpMethod = httpMethod;
 		ret.criterionPath = criterion.replace("/" + httpMethod, "");
 

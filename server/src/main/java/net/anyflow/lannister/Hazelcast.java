@@ -16,11 +16,18 @@
 
 package net.anyflow.lannister;
 
+import java.io.IOException;
+
 import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.collect.Sets;
 import com.hazelcast.config.Config;
 import com.hazelcast.config.SerializerConfig;
+import com.hazelcast.config.XmlConfigBuilder;
 import com.hazelcast.core.HazelcastInstance;
+import com.hazelcast.core.ILock;
+import com.hazelcast.core.IMap;
+import com.hazelcast.core.ITopic;
+import com.hazelcast.core.IdGenerator;
 
 import net.anyflow.lannister.message.InboundMessageStatus;
 import net.anyflow.lannister.message.Message;
@@ -34,21 +41,26 @@ import net.anyflow.lannister.topic.TopicSubscriber;
 import net.anyflow.lannister.topic.TopicSubscription;
 
 public class Hazelcast {
-	@SuppressWarnings("unused")
 	private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(Hazelcast.class);
 
-	public static Hazelcast SELF;
+	public static final Hazelcast INSTANCE = new Hazelcast();
+	private static final String CONFIG_NAME = "hazelcast.config.xml";
 
-	static {
-		SELF = new Hazelcast();
-	}
-
-	private final HazelcastInstance generator;
+	private final HazelcastInstance substance;
 
 	private Hazelcast() {
-		Config config = new Config();
+		substance = com.hazelcast.core.Hazelcast.newHazelcastInstance(createConfig());
+	}
 
-		config.setProperty("hazelcast.shutdownhook.enabled", "false");
+	private Config createConfig() {
+		Config config;
+		try {
+			config = new XmlConfigBuilder(Application.class.getClassLoader().getResource(CONFIG_NAME)).build();
+		}
+		catch (IOException e) {
+			logger.error(e.getMessage(), e);
+			throw new RuntimeException(e);
+		}
 
 		config.getSerializationConfig().addPortableFactory(SerializableFactory.ID, new SerializableFactory());
 
@@ -61,14 +73,26 @@ public class Hazelcast {
 		config.getSerializationConfig().getSerializerConfigs().add(new SerializerConfig().setTypeClass(JsonNode.class)
 				.setImplementation(JsonSerializer.makePlain(JsonNode.class)));
 
-		generator = com.hazelcast.core.Hazelcast.newHazelcastInstance(config);
-	}
-
-	public HazelcastInstance generator() {
-		return generator;
+		return config;
 	}
 
 	public void shutdown() {
-		generator.shutdown();
+		substance.shutdown();
+	}
+
+	public ILock getLock(String key) {
+		return substance.getLock(key);
+	}
+
+	public <E> ITopic<E> getTopic(String name) {
+		return substance.getTopic(name);
+	}
+
+	public IdGenerator getIdGenerator(String name) {
+		return substance.getIdGenerator(name);
+	}
+
+	public <K, V> IMap<K, V> getMap(String name) {
+		return substance.getMap(name);
 	}
 }

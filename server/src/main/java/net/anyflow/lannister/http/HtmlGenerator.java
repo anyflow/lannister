@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 The Menton Project
+ * Copyright 2016 The Lannister Project
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package net.anyflow.menton.http;
+package net.anyflow.lannister.http;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -39,8 +39,7 @@ public class HtmlGenerator {
 	}
 
 	public static String generate(Map<String, String> values, String htmlPath) throws IOException {
-		return replace(values,
-				tidy(Thread.currentThread().getContextClassLoader().getResourceAsStream("html/error.htm")));
+		return replace(values, tidy(Thread.currentThread().getContextClassLoader().getResourceAsStream(htmlPath)));
 	}
 
 	private static String replace(Map<String, String> values, String htmlTemplate) {
@@ -49,8 +48,8 @@ public class HtmlGenerator {
 
 		String ret = htmlTemplate;
 
-		for (String key : values.keySet()) {
-			ret = ret.replace(openMarker + key + closeMarker, values.get(key));
+		for (Map.Entry<String, String> item : values.entrySet()) {
+			ret = ret.replace(openMarker + item.getKey() + closeMarker, item.getValue());
 		}
 
 		return ret;

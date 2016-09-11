@@ -37,7 +37,7 @@ public class TopicTest {
 		String topicName = "testTopic";
 		String message = "test message";
 
-		MqttClient client = new MqttClient("mqtt://localhost:" + Settings.SELF.mqttPort());
+		MqttClient client = new MqttClient("mqtt://localhost:" + Settings.INSTANCE.mqttPort());
 		client.connectOptions(options).connect();
 
 		client.subscribe(new MqttTopicSubscription(topicName, MqttQoS.EXACTLY_ONCE));
@@ -49,7 +49,7 @@ public class TopicTest {
 
 		String publisherId = TestUtil.newClientId();
 
-		MqttClient publisher = new MqttClient("mqtt://localhost:" + Settings.SELF.mqttPort());
+		MqttClient publisher = new MqttClient("mqtt://localhost:" + Settings.INSTANCE.mqttPort());
 
 		ConnectOptions pubOptions = new ConnectOptions();
 		pubOptions.clientId(publisherId);

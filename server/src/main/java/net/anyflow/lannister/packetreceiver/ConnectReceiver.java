@@ -16,6 +16,8 @@
 
 package net.anyflow.lannister.packetreceiver;
 
+import java.net.InetSocketAddress;
+
 import com.google.common.base.Strings;
 
 import io.netty.channel.ChannelFutureListener;
@@ -25,6 +27,7 @@ import io.netty.handler.codec.mqtt.MqttConnAckMessage;
 import io.netty.handler.codec.mqtt.MqttConnectMessage;
 import io.netty.handler.codec.mqtt.MqttConnectReturnCode;
 import io.netty.handler.codec.mqtt.MqttQoS;
+import io.netty.util.CharsetUtil;
 import net.anyflow.lannister.AbnormalDisconnectEventArgs;
 import net.anyflow.lannister.Hazelcast;
 import net.anyflow.lannister.Settings;
@@ -69,14 +72,19 @@ public class ConnectReceiver extends SimpleChannelInboundHandler<MqttConnectMess
 		session = Session.NEXUS.get(clientId); // [MQTT-3.1.2-4]
 		boolean sessionPresent = !cleanSession && session != null; // [MQTT-3.2.2-1],[MQTT-3.2.2-2],[MQTT-3.2.2-3]
 
+		String clientIp = ctx.channel().remoteAddress() instanceof InetSocketAddress
+				? ((InetSocketAddress) ctx.channel().remoteAddress()).getAddress().getHostAddress() : "0.0.0.0";
+		int clientPort = ctx.channel().remoteAddress() instanceof InetSocketAddress
+				? ((InetSocketAddress) ctx.channel().remoteAddress()).getPort() : -1;
+
 		if (cleanSession) {
 			if (session != null) {
 				session.dispose(false); // [MQTT-3.1.4-2]
 			}
-			session = newSession(msg, cleanSession, clientId); // [MQTT-3.1.2-6]
+			session = newSession(msg, cleanSession, clientId, clientIp, clientPort); // [MQTT-3.1.2-6]
 		}
 		else if (session == null) { // [MQTT-3.1.2-4]
-			session = newSession(msg, cleanSession, clientId);
+			session = newSession(msg, cleanSession, clientId, clientIp, clientPort);
 		}
 
 		Session.NEXUS.put(session, ctx);
@@ -88,7 +96,7 @@ public class ConnectReceiver extends SimpleChannelInboundHandler<MqttConnectMess
 				sessionPresent); // [MQTT-3.1.4-4]
 
 		session.send(acceptMsg).addListener(f -> { // [MQTT-3.2.0-1]
-			Plugins.SELF.get(ConnectEventListener.class).connectHandled(new ConnectEventArgs() {
+			Plugins.INSTANCE.get(ConnectEventListener.class).connectHandled(new ConnectEventArgs() {
 				@Override
 				public String clientId() {
 					return sessionFinal.clientId();
@@ -131,9 +139,8 @@ public class ConnectReceiver extends SimpleChannelInboundHandler<MqttConnectMess
 
 	private String generateClientId(ChannelHandlerContext ctx, boolean cleanSession) {
 		if (cleanSession) {
-			if (Settings.SELF.getBoolean("mqtt.acceptEmptyClientId", true)) {
-				return "Lannister_"
-						+ Long.toString(Hazelcast.SELF.generator().getIdGenerator("clientIdGenerator").newId()); // [MQTT-3.1.3-6],[MQTT-3.1.3-7]
+			if (Settings.INSTANCE.getBoolean("mqtt.acceptEmptyClientId", true)) {
+				return "Lannister_" + Long.toString(Hazelcast.INSTANCE.getIdGenerator("clientIdGenerator").newId()); // [MQTT-3.1.3-6],[MQTT-3.1.3-7]
 			}
 			else {
 				sendNoneAcceptMessage(ctx, MqttConnectReturnCode.CONNECTION_REFUSED_IDENTIFIER_REJECTED);
@@ -146,14 +153,17 @@ public class ConnectReceiver extends SimpleChannelInboundHandler<MqttConnectMess
 		}
 	}
 
-	private Session newSession(MqttConnectMessage msg, boolean cleanSession, String clientId) {
-		return new Session(clientId, msg.variableHeader().keepAliveTimeSeconds(), cleanSession, newWill(clientId, msg));
+	private Session newSession(MqttConnectMessage msg, boolean cleanSession, String clientId, String clientIp,
+			int clientPort) {
+		return new Session(clientId, clientIp, clientPort, msg.variableHeader().keepAliveTimeSeconds(), cleanSession,
+				newWill(clientId, msg));
 	}
 
 	private Message newWill(String clientId, MqttConnectMessage conn) {
-		if (conn.variableHeader().isWillFlag() == false) { return null; } // [MQTT-3.1.2-12]
+		if (!conn.variableHeader().isWillFlag()) { return null; } // [MQTT-3.1.2-12]
 
-		return new Message(-1, conn.payload().willTopic(), clientId, conn.payload().willMessage().getBytes(),
+		return new Message(-1, conn.payload().willTopic(), clientId,
+				conn.payload().willMessage().getBytes(CharsetUtil.UTF_8),
 				MqttQoS.valueOf(conn.variableHeader().willQos()), conn.variableHeader().isWillRetain());
 	}
 
@@ -162,22 +172,22 @@ public class ConnectReceiver extends SimpleChannelInboundHandler<MqttConnectMess
 		String userName = msg.variableHeader().hasUserName() ? msg.payload().userName() : null;
 		String password = msg.variableHeader().hasPassword() ? msg.payload().password() : null;
 
-		if (Plugins.SELF.get(ServiceChecker.class).isServiceAvailable() == false) {
+		if (!Plugins.INSTANCE.get(ServiceChecker.class).isServiceAvailable()) {
 			sendNoneAcceptMessage(ctx, MqttConnectReturnCode.CONNECTION_REFUSED_SERVER_UNAVAILABLE);
 			return false;
 		}
 
-		if (Plugins.SELF.get(Authenticator.class).isValid(clientId) == false) {
+		if (!Plugins.INSTANCE.get(Authenticator.class).isValid(clientId)) {
 			sendNoneAcceptMessage(ctx, MqttConnectReturnCode.CONNECTION_REFUSED_IDENTIFIER_REJECTED); // [MQTT-3.1.3-9]
 			return false;
 		}
 
-		if (Plugins.SELF.get(Authenticator.class).isValid(clientId, userName, password) == false) {
+		if (!Plugins.INSTANCE.get(Authenticator.class).isValid(clientId, userName, password)) {
 			sendNoneAcceptMessage(ctx, MqttConnectReturnCode.CONNECTION_REFUSED_BAD_USER_NAME_OR_PASSWORD);
 			return false;
 		}
 
-		if (Plugins.SELF.get(Authorizer.class).isAuthorized(clientId, userName) == false) {
+		if (!Plugins.INSTANCE.get(Authorizer.class).isAuthorized(clientId, userName)) {
 			sendNoneAcceptMessage(ctx, MqttConnectReturnCode.CONNECTION_REFUSED_NOT_AUTHORIZED);
 			return false;
 		}
@@ -191,7 +201,7 @@ public class ConnectReceiver extends SimpleChannelInboundHandler<MqttConnectMess
 		MqttConnAckMessage msg = MessageFactory.connack(returnCode, false); // [MQTT-3.2.2-4]
 
 		ctx.channel().writeAndFlush(msg).addListener(f -> {
-			Plugins.SELF.get(ConnectEventListener.class).connectHandled(new ConnectEventArgs() {
+			Plugins.INSTANCE.get(ConnectEventListener.class).connectHandled(new ConnectEventArgs() {
 				@Override
 				public String clientId() {
 					return null;
@@ -214,7 +224,7 @@ public class ConnectReceiver extends SimpleChannelInboundHandler<MqttConnectMess
 			});
 
 			ctx.channel().disconnect().addListener(ChannelFutureListener.CLOSE).addListener(fs -> // [MQTT-3.2.2-5],[MQTT-3.1.4-5]
-			Plugins.SELF.get(DisconnectEventListener.class).disconnected(new AbnormalDisconnectEventArgs()));
+			Plugins.INSTANCE.get(DisconnectEventListener.class).disconnected(new AbnormalDisconnectEventArgs()));
 		});
 	}
 }

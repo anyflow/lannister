@@ -25,7 +25,7 @@ public class PubCompReceiver {
 
 	private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(PubCompReceiver.class);
 
-	public static PubCompReceiver SHARED = new PubCompReceiver();
+	public static final PubCompReceiver SHARED = new PubCompReceiver();
 
 	private PubCompReceiver() {
 	}

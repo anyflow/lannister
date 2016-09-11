@@ -17,9 +17,11 @@
 package net.anyflow.lannister.topic;
 
 import java.io.IOException;
+import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.google.common.collect.Lists;
 import com.hazelcast.nio.serialization.ClassDefinition;
 import com.hazelcast.nio.serialization.ClassDefinitionBuilder;
 import com.hazelcast.nio.serialization.PortableReader;
@@ -46,7 +48,9 @@ public class TopicSubscription implements com.hazelcast.nio.serialization.Portab
 		this.qos = qos;
 	}
 
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
+	 * 
 	 * @see net.anyflow.lannister.topic.ITopicSubscription#topicFilter()
 	 */
 	@Override
@@ -54,7 +58,9 @@ public class TopicSubscription implements com.hazelcast.nio.serialization.Portab
 		return topicFilter;
 	}
 
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
+	 * 
 	 * @see net.anyflow.lannister.topic.ITopicSubscription#qos()
 	 */
 	@Override
@@ -76,18 +82,31 @@ public class TopicSubscription implements com.hazelcast.nio.serialization.Portab
 
 	@Override
 	public void writePortable(PortableWriter writer) throws IOException {
-		writer.writeUTF("topicFilter", topicFilter);
-		writer.writeInt("qos", qos.value());
+		List<String> nullChecker = Lists.newArrayList();
+
+		if (topicFilter != null) {
+			writer.writeUTF("topicFilter", topicFilter);
+			nullChecker.add("topicFilter");
+		}
+
+		if (qos != null) {
+			writer.writeInt("qos", qos.value());
+			nullChecker.add("qos");
+		}
+
+		writer.writeUTFArray("nullChecker", nullChecker.toArray(new String[0]));
 	}
 
 	@Override
 	public void readPortable(PortableReader reader) throws IOException {
-		topicFilter = reader.readUTF("topicFilter");
-		qos = MqttQoS.valueOf(reader.readInt("qos"));
+		List<String> nullChecker = Lists.newArrayList(reader.readUTFArray("nullChecker"));
+
+		if (nullChecker.contains("topicFilter")) topicFilter = reader.readUTF("topicFilter");
+		if (nullChecker.contains("qos")) qos = MqttQoS.valueOf(reader.readInt("qos"));
 	}
 
 	public static ClassDefinition classDefinition() {
 		return new ClassDefinitionBuilder(SerializableFactory.ID, ID).addUTFField("topicFilter").addIntField("qos")
-				.build();
+				.addUTFArrayField("nullChecker").build();
 	}
 }

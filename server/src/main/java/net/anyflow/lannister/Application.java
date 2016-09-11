@@ -16,28 +16,18 @@
 
 package net.anyflow.lannister;
 
+import net.anyflow.lannister.http.WebServer;
 import net.anyflow.lannister.server.MqttServer;
-import net.anyflow.lannister.session.Session;
-import net.anyflow.lannister.session.Sessions;
 import net.anyflow.lannister.topic.Topic;
-import net.anyflow.lannister.topic.Topics;
-import net.anyflow.menton.http.WebServer;
 
 public class Application {
 
 	private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(Application.class);
 
-	private static Application INSTANCE;
+	public static final Application INSTANCE = new Application();
 
 	private MqttServer mqttServer;
 	private WebServer webServer;
-
-	public static Application instance() {
-		if (INSTANCE == null) {
-			INSTANCE = new Application();
-		}
-		return INSTANCE;
-	}
 
 	private Application() {
 		// Do nothing
@@ -49,8 +39,9 @@ public class Application {
 
 			logger.info("Lannister bootstrapping started");
 
-			Session.NEXUS = new Sessions();
-			Topic.NEXUS = new Topics(Session.NEXUS);
+			Topic.NEXUS.get(""); // TODO Just for initializing Topic.NEXUS. If
+									// absent, NoClassDefFound Error occur in
+									// Statistics.. I don't know why
 
 			mqttServer = new MqttServer();
 			mqttServer.start();
@@ -66,10 +57,10 @@ public class Application {
 			});
 
 			logger.info("Lannister bootstrapping completed");
-			logger.info("version        : {}", Settings.SELF.version());
-			logger.info("build time     : {}", Settings.SELF.buildTime());
-			logger.info("commit ID      : {}", Settings.SELF.commitId());
-			logger.info("commit ID desc : {}", Settings.SELF.commitIdDescribe());
+			logger.info("version        : {}", Settings.INSTANCE.version());
+			logger.info("build time     : {}", Settings.INSTANCE.buildTime());
+			logger.info("commit ID      : {}", Settings.INSTANCE.commitId());
+			logger.info("commit ID desc : {}", Settings.INSTANCE.commitIdDescribe());
 			return true;
 		}
 		catch (Exception e) {
@@ -84,13 +75,11 @@ public class Application {
 		try {
 			webServer.shutdown();
 			mqttServer.shutdown();
-			Hazelcast.SELF.shutdown();
+			Hazelcast.INSTANCE.shutdown();
 		}
 		catch (Exception e) {
 			logger.error(e.getMessage(), e);
 		}
-
-		Application.INSTANCE = null;
 
 		logger.info("Lannister shutdowned gracefully");
 	}
@@ -98,7 +87,7 @@ public class Application {
 	public static void main(String[] args) {
 		Thread.currentThread().setName("main thread");
 
-		if (!instance().start()) {
+		if (!INSTANCE.start()) {
 			System.exit(-1);
 		}
 	}

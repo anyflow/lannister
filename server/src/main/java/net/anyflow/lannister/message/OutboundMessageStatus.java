@@ -18,9 +18,11 @@ package net.anyflow.lannister.message;
 
 import java.io.IOException;
 import java.util.Date;
+import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.google.common.collect.Lists;
 import com.hazelcast.nio.serialization.ClassDefinition;
 import com.hazelcast.nio.serialization.ClassDefinitionBuilder;
 import com.hazelcast.nio.serialization.PortableReader;
@@ -82,26 +84,41 @@ public class OutboundMessageStatus extends MessageStatus {
 
 	@Override
 	public void writePortable(PortableWriter writer) throws IOException {
-		super.writePortable(writer);
+		List<String> nullChecker = Lists.newArrayList();
 
-		writer.writeUTF("inboundMessageKey", inboundMessageKey);
-		writer.writeByte("status", status.value());
-		writer.writeInt("qos", qos.value());
+		writePortable(nullChecker, writer);
+
+		if (inboundMessageKey != null) {
+			writer.writeUTF("inboundMessageKey", inboundMessageKey);
+			nullChecker.add("inboundMessageKey");
+		}
+		if (status != null) {
+			writer.writeByte("status", status.value());
+			nullChecker.add("status");
+		}
+		if (qos != null) {
+			writer.writeInt("qos", qos.value());
+			nullChecker.add("qos");
+		}
+
+		writer.writeUTFArray("nullChecker", nullChecker.toArray(new String[0]));
 	}
 
 	@Override
 	public void readPortable(PortableReader reader) throws IOException {
-		super.readPortable(reader);
+		List<String> nullChecker = Lists.newArrayList(reader.readUTFArray("nullChecker"));
 
-		inboundMessageKey = reader.readUTF("inboundMessageKey");
-		status = Status.valueOf(reader.readByte("status"));
-		qos = MqttQoS.valueOf(reader.readInt("qos"));
+		readPortable(nullChecker, reader);
+
+		if (nullChecker.contains("inboundMessageKey")) inboundMessageKey = reader.readUTF("inboundMessageKey");
+		if (nullChecker.contains("status")) status = Status.valueOf(reader.readByte("status"));
+		if (nullChecker.contains("qos")) qos = MqttQoS.valueOf(reader.readInt("qos"));
 	}
 
 	public static ClassDefinition classDefinition() {
 		return new ClassDefinitionBuilder(SerializableFactory.ID, ID).addUTFField("clientId").addIntField("messageId")
 				.addLongField("createTime").addLongField("updateTime").addUTFField("inboundMessageKey")
-				.addByteField("status").addIntField("qos").build();
+				.addByteField("status").addIntField("qos").addUTFArrayField("nullChecker").build();
 	}
 
 	public enum Status {

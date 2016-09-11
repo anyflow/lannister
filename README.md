@@ -13,7 +13,7 @@ High performance MQTT broker w/ full specifications support, Clustering, WebSock
 3. Clustering
    * Topic / Message / Message Status / Session redundant
    * No SPOF(peer-to-peer based : No master and slave)
-   * Easy Scaling out   
+   * Easy Scaling out
 4. WebSocket
 5. SSL (TCP / WebSocket both)
 6. $SYS
@@ -38,17 +38,31 @@ Lannister is **under CONSTRUCTION**. But the most of features above are implemen
 
 # Clone lannister source
 git clone https://github.com/anyflow/lannister.git
+
 # Change directory to lannister
 cd lannister
 
 # Build all(interface, server, plugin-example) projects
 mvn install
-# Change directory to lannister server
-cd server
-# Run lannister server directed by lannister.cfg/log4j.xml files in conf directory
-mvn exec:java
+
+# Run lannister server directed by lannister.cfg/hazelcast.config.xml/log4j.xml files in conf directory
+mvn exec:java -pl server
 ```
 ## Version History
+##### version 0.9.5.1 / Sep 11, 2016
+- Externalize Hazelcast config - Add hazelcast.config.xml
+- Add docker file and docker property - Run maven with profile (mvn install -Plannister.docker)
+- Add null checker in hazelcast serialization logics
+- Change WebSocket(ssl) ports to 9001(9002)
+- Update Hazelcast version to 3.7.1
+- Update Netty version to 4.1.5
+- Add PMD / Findbugs / Jacoco / surefire reports
+- Start clustering TEST/FIX
+  - Fix subscription failing on existing topic in clustered state
+- Fix subscriptions remaining on disposing (clean) session
+- Fix reconnect failing persisted session  
+- Fix remaining no subscriber topic
+
 ##### version 0.9.5.0 / May 21, 2016
 - Code Review, Test based on chapter 3.2 of Spec v3.1.1 Mandatory normative statements
 - Add $SYS Required Topics

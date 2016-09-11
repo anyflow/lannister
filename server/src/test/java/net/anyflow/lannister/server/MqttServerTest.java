@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 The Menton Project
+ * Copyright 2016 The Lannister Project
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -41,7 +41,7 @@ public class MqttServerTest {
 		ConnectOptions options = new ConnectOptions();
 		options.clientId(TestUtil.newClientId());
 
-		MqttClient client = new MqttClient("mqtt://localhost:" + Settings.SELF.mqttPort());
+		MqttClient client = new MqttClient("mqtt://localhost:" + Settings.INSTANCE.mqttPort());
 		MqttConnectReturnCode ret = client.connectOptions(options).connect();
 
 		Assert.assertEquals(MqttConnectReturnCode.CONNECTION_ACCEPTED, ret);
@@ -58,7 +58,7 @@ public class MqttServerTest {
 		ConnectOptions options = new ConnectOptions();
 		options.clientId(TestUtil.newClientId());
 
-		MqttClient client = new MqttClient("mqtts://localhost:" + Settings.SELF.mqttsPort(), true);
+		MqttClient client = new MqttClient("mqtts://localhost:" + Settings.INSTANCE.mqttsPort(), true);
 		MqttConnectReturnCode ret = client.connectOptions(options).connect();
 
 		Assert.assertEquals(MqttConnectReturnCode.CONNECTION_ACCEPTED, ret);

@@ -35,7 +35,7 @@ import net.anyflow.lannister.topic.Topics;
 public class MessageSender {
 	private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(MessageSender.class);
 
-	private final static int RESPONSE_TIMEOUT_SECONDS = Settings.SELF.getInt("lannister.responseTimeoutSeconds", 60);
+	private final static int RESPONSE_TIMEOUT_SECONDS = Settings.INSTANCE.getInt("lannister.responseTimeoutSeconds", 60);
 
 	private final Session session;
 
@@ -44,7 +44,7 @@ public class MessageSender {
 	}
 
 	protected ChannelFuture send(MqttMessage message) {
-		if (session.isConnected(true) == false) {
+		if (!session.isConnected(true)) {
 			logger.error("Message is not sent - Channel is inactive or out of the node. [{}]", message);
 			return null;
 		}
@@ -63,7 +63,7 @@ public class MessageSender {
 		if (!session.isConnected(true)) { return; }
 
 		send(MessageFactory.publish(message, false)).addListener(f -> { // [MQTT-3.3.1-2]
-			Statistics.SELF.add(Statistics.Criterion.MESSAGES_PUBLISH_SENT, 1);
+			Statistics.INSTANCE.add(Statistics.Criterion.MESSAGES_PUBLISH_SENT, 1);
 
 			switch (message.qos()) {
 			case AT_MOST_ONCE:
@@ -161,7 +161,7 @@ public class MessageSender {
 				case PUBLISHED:
 					send(MessageFactory.publish(message, s.status() == OutboundMessageStatus.Status.PUBLISHED)) // [MQTT-3.3.1-1]
 							.addListener(f -> {
-						Statistics.SELF.add(Statistics.Criterion.MESSAGES_PUBLISH_SENT, 1);
+						Statistics.INSTANCE.add(Statistics.Criterion.MESSAGES_PUBLISH_SENT, 1);
 					});
 					break;
 

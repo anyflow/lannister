@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 The Menton Project
+ * Copyright 2016 The Lannister Project
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package net.anyflow.menton.http;
+package net.anyflow.lannister.http;
 
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -50,7 +50,6 @@ import io.netty.util.CharsetUtil;
  * @author anyflow
  */
 public class HttpRequest extends DefaultFullHttpRequest {
-
 	private static final Logger logger = LoggerFactory.getLogger(HttpRequest.class);
 
 	private final Map<String, List<String>> parameters;
@@ -128,7 +127,7 @@ public class HttpRequest extends DefaultFullHttpRequest {
 		Map<String, List<String>> ret = Maps.newHashMap();
 
 		if (HttpMethod.GET.equals(method()) || HttpMethod.DELETE.equals(method())) {
-			ret.putAll((new QueryStringDecoder(uri())).parameters());
+			ret.putAll(new QueryStringDecoder(uri()).parameters());
 			return ret;
 		}
 		else if (headers().contains(HttpHeaderNames.CONTENT_TYPE)
@@ -136,7 +135,7 @@ public class HttpRequest extends DefaultFullHttpRequest {
 						.startsWith(HttpHeaderValues.APPLICATION_X_WWW_FORM_URLENCODED.toString())
 				&& (HttpMethod.POST.equals(method()) || HttpMethod.PUT.equals(method()))) {
 
-			ret.putAll((new QueryStringDecoder("/dummy?" + content().toString(CharsetUtil.UTF_8))).parameters());
+			ret.putAll(new QueryStringDecoder("/dummy?" + content().toString(CharsetUtil.UTF_8)).parameters());
 		}
 
 		return ret;
@@ -152,14 +151,12 @@ public class HttpRequest extends DefaultFullHttpRequest {
 	 *         returns null.
 	 */
 	public String parameter(String name) {
-
-		if (parameters().containsKey(name) == false || parameters.get(name).size() <= 0) { return null; }
+		if (!parameters().containsKey(name) || parameters.get(name).size() <= 0) { return null; }
 
 		return parameters().get(name).get(0);
 	}
 
 	public HttpRequest addParameter(String name, String value) {
-
 		List<String> values = parameters().get(name);
 		if (values == null) {
 			values = new ArrayList<String>();
@@ -175,8 +172,18 @@ public class HttpRequest extends DefaultFullHttpRequest {
 	}
 
 	@Override
-	public String toString() {
+	public boolean equals(Object o) {
+		return toString().equals(o.toString()); // Just for removing FindBugs
+												// issue
+	}
 
+	@Override
+	public int hashCode() {
+		return toString().hashCode(); // Just for removing FindBugs issue
+	}
+
+	@Override
+	public String toString() {
 		StringBuilder buf = new StringBuilder();
 
 		buf.append("\r\n");
@@ -221,7 +228,7 @@ public class HttpRequest extends DefaultFullHttpRequest {
 
 		DecoderResult result = this.decoderResult();
 
-		if (result.isSuccess() == false) {
+		if (!result.isSuccess()) {
 			buf.append("\r\n").append(".. WITH DECODER FAILURE:");
 			buf.append("\r\n   ").append(result.cause());
 		}
@@ -274,7 +281,7 @@ public class HttpRequest extends DefaultFullHttpRequest {
 	}
 
 	private void normalizeParameters() {
-		String address = (new StringBuilder()).append(uriObject().getScheme()).append("://")
+		String address = new StringBuilder().append(uriObject().getScheme()).append("://")
 				.append(uriObject().getAuthority()).append(uriObject().getPath()).toString();
 
 		if (HttpMethod.GET.equals(method()) || HttpMethod.DELETE.equals(method())) {
@@ -282,9 +289,8 @@ public class HttpRequest extends DefaultFullHttpRequest {
 			address += Strings.isNullOrEmpty(parameters) ? "" : "?" + parameters;
 		}
 		else if ((HttpMethod.POST.equals(method()) || HttpMethod.PUT.equals(method()))
-				&& (headers().contains(HttpHeaderNames.CONTENT_TYPE) == false
-						|| headers().get(HttpHeaderNames.CONTENT_TYPE)
-								.startsWith(HttpHeaderValues.APPLICATION_X_WWW_FORM_URLENCODED.toString()))) {
+				&& (!headers().contains(HttpHeaderNames.CONTENT_TYPE) || headers().get(HttpHeaderNames.CONTENT_TYPE)
+						.startsWith(HttpHeaderValues.APPLICATION_X_WWW_FORM_URLENCODED.toString()))) {
 			ByteBuf content = Unpooled.copiedBuffer(convertParametersToString(), CharsetUtil.UTF_8);
 
 			headers().set(HttpHeaderNames.CONTENT_LENGTH, content.readableBytes());

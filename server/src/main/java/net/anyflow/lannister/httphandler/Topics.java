@@ -20,8 +20,8 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Strings;
 
+import net.anyflow.lannister.http.HttpRequestHandler;
 import net.anyflow.lannister.topic.Topic;
-import net.anyflow.menton.http.HttpRequestHandler;
 
 @HttpRequestHandler.Handles(paths = { "topics" }, httpMethods = { "GET" })
 public class Topics extends HttpRequestHandler {
@@ -30,7 +30,7 @@ public class Topics extends HttpRequestHandler {
 
 	private String allString() {
 		try {
-			return (new ObjectMapper()).writeValueAsString(Topic.NEXUS.map());
+			return new ObjectMapper().writeValueAsString(Topic.NEXUS.map());
 		}
 		catch (JsonProcessingException e) {
 			logger.error(e.getMessage(), e);

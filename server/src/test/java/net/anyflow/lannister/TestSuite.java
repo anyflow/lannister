@@ -22,6 +22,7 @@ import org.junit.runner.RunWith;
 import org.junit.runners.Suite;
 import org.junit.runners.Suite.SuiteClasses;
 
+import net.anyflow.lannister.httphandler.IndexTest;
 import net.anyflow.lannister.httphandler.SessionsTest;
 import net.anyflow.lannister.httphandler.TopicsTest;
 import net.anyflow.lannister.packetreceiver.ConnectReceiverTest;
@@ -32,8 +33,9 @@ import net.anyflow.lannister.topic.TopicMatcherTest;
 import net.anyflow.lannister.topic.TopicTest;
 
 @RunWith(Suite.class)
-@SuiteClasses({ NettyUtilTest.class, SessionsTest.class, ConnectReceiverTest.class, TopicMatcherTest.class,
-		TopicsTest.class, MqttServerTest.class, TopicTest.class, WillTest.class, SessionExpiratorTest.class })
+@SuiteClasses({ NettyUtilTest.class, IndexTest.class, SessionsTest.class, ConnectReceiverTest.class,
+		TopicMatcherTest.class, TopicsTest.class, MqttServerTest.class, TopicTest.class, WillTest.class,
+		SessionExpiratorTest.class })
 public class TestSuite {
 
 	private static boolean SETUP_CALLED = false;
@@ -48,6 +50,6 @@ public class TestSuite {
 
 	@AfterClass
 	public static void tearDown() {
-		Application.instance().shutdown();
+		Application.INSTANCE.shutdown();
 	}
 }

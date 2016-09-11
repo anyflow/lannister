@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 The Menton Project
+ * Copyright 2016 The Lannister Project
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -52,7 +52,7 @@ public class WillTest {
 				new Message(-1, willTopic, null, message.getBytes(CharsetUtil.UTF_8), MqttQoS.AT_LEAST_ONCE, false));
 		options.cleanSession(false);
 
-		MqttClient client0 = new MqttClient("mqtt://localhost:" + Settings.SELF.mqttPort());
+		MqttClient client0 = new MqttClient("mqtt://localhost:" + Settings.INSTANCE.mqttPort());
 		MqttConnectReturnCode ret = client0.connectOptions(options).connect();
 
 		Assert.assertEquals(MqttConnectReturnCode.CONNECTION_ACCEPTED, ret);
@@ -81,7 +81,7 @@ public class WillTest {
 		ConnectOptions options1 = new ConnectOptions();
 		options1.clientId(client1Id);
 
-		MqttClient client1 = new MqttClient("mqtt://localhost:" + Settings.SELF.mqttPort());
+		MqttClient client1 = new MqttClient("mqtt://localhost:" + Settings.INSTANCE.mqttPort());
 		ret = client1.connectOptions(options1).receiver(m -> {
 			wrapper.setMessage(m);
 
@@ -126,7 +126,7 @@ public class WillTest {
 				new Message(-1, willTopic, null, message.getBytes(CharsetUtil.UTF_8), MqttQoS.AT_LEAST_ONCE, false));
 		options.cleanSession(false);
 
-		MqttClient client0 = new MqttClient("mqtt://localhost:" + Settings.SELF.mqttPort());
+		MqttClient client0 = new MqttClient("mqtt://localhost:" + Settings.INSTANCE.mqttPort());
 		MqttConnectReturnCode ret = client0.connectOptions(options).connect();
 
 		Assert.assertEquals(MqttConnectReturnCode.CONNECTION_ACCEPTED, ret);

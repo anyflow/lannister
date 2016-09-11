@@ -42,7 +42,7 @@ public class SessionExpiratorTest {
 		ConnectOptions options = new ConnectOptions();
 		options.clientId(clientId);
 
-		MqttClient client = new MqttClient("mqtt://localhost:" + Settings.SELF.mqttPort());
+		MqttClient client = new MqttClient("mqtt://localhost:" + Settings.INSTANCE.mqttPort());
 		MqttConnectReturnCode ret = client.connectOptions(options).connect();
 
 		Assert.assertTrue(ret == MqttConnectReturnCode.CONNECTION_ACCEPTED);
@@ -55,7 +55,7 @@ public class SessionExpiratorTest {
 
 		Assert.assertTrue(session.isExpired());
 
-		int expireTimeout = Settings.SELF.getInt("lannister.sessionExpirationHandlerExecutionIntervalSeconds", 1);
+		int expireTimeout = Settings.INSTANCE.getInt("lannister.sessionExpirationHandlerExecutionIntervalSeconds", 1);
 
 		Thread.sleep((expireTimeout + 2) * 1000);
 

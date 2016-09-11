@@ -30,15 +30,15 @@ public class MqttServer {
 	private final EventLoopGroup workerGroup;
 
 	public MqttServer() {
-		bossGroup = new NioEventLoopGroup(Settings.SELF.getInt("lannister.system.bossThreadCount", 0),
+		bossGroup = new NioEventLoopGroup(Settings.INSTANCE.getInt("lannister.system.bossThreadCount", 0),
 				new DefaultThreadFactory("lannister/boss"));
-		workerGroup = new NioEventLoopGroup(Settings.SELF.getInt("lannister.system.workerThreadCount", 0),
+		workerGroup = new NioEventLoopGroup(Settings.INSTANCE.getInt("lannister.system.workerThreadCount", 0),
 				new DefaultThreadFactory("lannister/worker"));
 	}
 
 	public void start() throws Exception {
-		if (Settings.SELF.mqttPort() == null && Settings.SELF.mqttsPort() == null
-				&& Settings.SELF.websocketPort() == null && Settings.SELF.websocketSslPort() == null) {
+		if (Settings.INSTANCE.mqttPort() == null && Settings.INSTANCE.mqttsPort() == null
+				&& Settings.INSTANCE.websocketPort() == null && Settings.INSTANCE.websocketSslPort() == null) {
 			logger.info("No MQTT port(s) arranged");
 			shutdown();
 			return;
@@ -47,30 +47,30 @@ public class MqttServer {
 		try {
 			ScheduledExecutor scheduledExecutor = new ScheduledExecutor();
 
-			if (Settings.SELF.mqttPort() != null) {
-				executeBootstrap(scheduledExecutor, Settings.SELF.mqttPort(), false, false);
+			if (Settings.INSTANCE.mqttPort() != null) {
+				executeBootstrap(scheduledExecutor, Settings.INSTANCE.mqttPort(), false, false);
 				scheduledExecutor = null;
 			}
-			if (Settings.SELF.mqttsPort() != null) {
-				executeBootstrap(scheduledExecutor, Settings.SELF.mqttsPort(), false, true);
+			if (Settings.INSTANCE.mqttsPort() != null) {
+				executeBootstrap(scheduledExecutor, Settings.INSTANCE.mqttsPort(), false, true);
 				scheduledExecutor = null;
 			}
-			if (Settings.SELF.websocketPort() != null) {
-				executeBootstrap(scheduledExecutor, Settings.SELF.websocketPort(), true, false);
+			if (Settings.INSTANCE.websocketPort() != null) {
+				executeBootstrap(scheduledExecutor, Settings.INSTANCE.websocketPort(), true, false);
 				scheduledExecutor = null;
 			}
-			if (Settings.SELF.websocketSslPort() != null) {
-				executeBootstrap(scheduledExecutor, Settings.SELF.websocketSslPort(), true, true);
+			if (Settings.INSTANCE.websocketSslPort() != null) {
+				executeBootstrap(scheduledExecutor, Settings.INSTANCE.websocketSslPort(), true, true);
 				scheduledExecutor = null;
 			}
 
 			logger.info(
-					"Lannister server started: [MQTT tcp.port={}, tcp.ssl.port={}, websocket.port={}, websocket.ssl.port={}]",
-					Settings.SELF.mqttPort(), Settings.SELF.mqttsPort(), Settings.SELF.websocketPort(),
-					Settings.SELF.websocketSslPort());
+					"Lannister MQTT server started [tcp.port={}, tcp.ssl.port={}, websocket.port={}, websocket.ssl.port={}]",
+					Settings.INSTANCE.mqttPort(), Settings.INSTANCE.mqttsPort(), Settings.INSTANCE.websocketPort(),
+					Settings.INSTANCE.websocketSslPort());
 		}
 		catch (Exception e) {
-			logger.error("Lannister failed to start", e);
+			logger.error("Lannister MQTT server failed to start", e);
 
 			shutdown();
 
@@ -103,6 +103,6 @@ public class MqttServer {
 			logger.info("Worker event loop group shutdowned");
 		}
 
-		logger.info("Lannister server shutdowned");
+		logger.info("Lannister MQTT server stopped");
 	}
 }

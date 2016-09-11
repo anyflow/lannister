@@ -17,9 +17,11 @@
 package net.anyflow.lannister.topic;
 
 import java.io.IOException;
+import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.google.common.collect.Lists;
 import com.hazelcast.core.ILock;
 import com.hazelcast.core.IMap;
 import com.hazelcast.nio.serialization.ClassDefinition;
@@ -40,7 +42,7 @@ public class Topic implements com.hazelcast.nio.serialization.Portable {
 
 	private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(Topic.class);
 
-	public static Topics NEXUS;
+	public static final Topics NEXUS = new Topics(Session.NEXUS);
 	public static final int ID = 6;
 
 	@JsonProperty
@@ -65,12 +67,14 @@ public class Topic implements com.hazelcast.nio.serialization.Portable {
 	public Topic(String name) {
 		this.name = name;
 		this.retainedMessage = null;
-		this.subscribers = Hazelcast.SELF.generator().getMap(subscribersName());
-		this.messages = Hazelcast.SELF.generator().getMap(messagesName());
-		this.inboundMessageStatuses = Hazelcast.SELF.generator().getMap(inboundMessageStatusesName());
-		this.messageReferenceCounts = Hazelcast.SELF.generator().getMap(inboundMessageReferenceCountsName());
+		this.subscribers = Hazelcast.INSTANCE.getMap(subscribersName());
+		this.subscribers.addInterceptor(new TopicSubscriberInterceptor(name));
 
-		this.messageReferenceCountsLock = Hazelcast.SELF.generator().getLock(messageReferenceCountsLockName());
+		this.messages = Hazelcast.INSTANCE.getMap(messagesName());
+		this.inboundMessageStatuses = Hazelcast.INSTANCE.getMap(inboundMessageStatusesName());
+		this.messageReferenceCounts = Hazelcast.INSTANCE.getMap(inboundMessageReferenceCountsName());
+
+		this.messageReferenceCountsLock = Hazelcast.INSTANCE.getLock(messageReferenceCountsLockName());
 	}
 
 	private String subscribersName() {
@@ -131,12 +135,12 @@ public class Topic implements com.hazelcast.nio.serialization.Portable {
 	public void removeInboundMessageStatus(String clientId, int messageId) {
 		String messageKey = Message.key(clientId, messageId);
 		inboundMessageStatuses.remove(messageKey);
-		releaseMessageRef(messageKey);
+		release(messageKey);
 	}
 
 	public void addInboundMessageStatus(String clientId, int messageId, Status status) {
 		InboundMessageStatus messageStatus = new InboundMessageStatus(clientId, messageId, status);
-		addMessageRef(messageStatus.key());
+		retain(messageStatus.key());
 
 		inboundMessageStatuses.put(messageStatus.key(), messageStatus);
 	}
@@ -145,7 +149,7 @@ public class Topic implements com.hazelcast.nio.serialization.Portable {
 		InboundMessageStatus messageStatus = inboundMessageStatuses.get(Message.key(clientId, messageId));
 		if (status == null) {
 			logger.error("Inbound message status does not exist [clientId={}, messageId={}, status={}", clientId,
-					messageId, status);
+					messageId, null);
 			throw new IllegalArgumentException();
 		}
 
@@ -215,7 +219,7 @@ public class Topic implements com.hazelcast.nio.serialization.Portable {
 				.forEach(s -> subscribers.put(s.clientId(), new TopicSubscriber(s.clientId(), name)));
 	}
 
-	public void addMessageRef(String messageKey) {
+	public void retain(String messageKey) {
 		messageReferenceCountsLock.lock();
 
 		try {
@@ -232,7 +236,7 @@ public class Topic implements com.hazelcast.nio.serialization.Portable {
 		}
 	}
 
-	public void releaseMessageRef(String messageKey) {
+	public void release(String messageKey) {
 		messageReferenceCountsLock.lock();
 
 		try {
@@ -278,7 +282,12 @@ public class Topic implements com.hazelcast.nio.serialization.Portable {
 
 	@Override
 	public void writePortable(PortableWriter writer) throws IOException {
-		writer.writeUTF("name", name);
+		List<String> nullChecker = Lists.newArrayList();
+
+		if (name != null) {
+			writer.writeUTF("name", name);
+			nullChecker.add("name");
+		}
 
 		if (retainedMessage != null) {
 			writer.writePortable("retainedMessage", retainedMessage);
@@ -286,22 +295,27 @@ public class Topic implements com.hazelcast.nio.serialization.Portable {
 		else {
 			writer.writeNullPortable("retainedMessage", SerializableFactory.ID, Message.ID);
 		}
+
+		writer.writeUTFArray("nullChecker", nullChecker.toArray(new String[0]));
 	}
 
 	@Override
 	public void readPortable(PortableReader reader) throws IOException {
-		name = reader.readUTF("name");
+		List<String> nullChecker = Lists.newArrayList(reader.readUTFArray("nullChecker"));
+
+		if (nullChecker.contains("name")) name = reader.readUTF("name");
+
 		retainedMessage = reader.readPortable("retainedMessage");
 
-		subscribers = Hazelcast.SELF.generator().getMap(subscribersName());
-		messages = Hazelcast.SELF.generator().getMap(messagesName());
-		inboundMessageStatuses = Hazelcast.SELF.generator().getMap(inboundMessageStatusesName());
-		messageReferenceCounts = Hazelcast.SELF.generator().getMap(inboundMessageReferenceCountsName());
-		messageReferenceCountsLock = Hazelcast.SELF.generator().getLock(messageReferenceCountsLockName());
+		subscribers = Hazelcast.INSTANCE.getMap(subscribersName());
+		messages = Hazelcast.INSTANCE.getMap(messagesName());
+		inboundMessageStatuses = Hazelcast.INSTANCE.getMap(inboundMessageStatusesName());
+		messageReferenceCounts = Hazelcast.INSTANCE.getMap(inboundMessageReferenceCountsName());
+		messageReferenceCountsLock = Hazelcast.INSTANCE.getLock(messageReferenceCountsLockName());
 	}
 
 	public static ClassDefinition classDefinition() {
 		return new ClassDefinitionBuilder(SerializableFactory.ID, ID).addUTFField("name")
-				.addPortableField("retainedMessage", Message.classDefinition()).build();
+				.addPortableField("retainedMessage", Message.classDefinition()).addUTFArrayField("nullChecker").build();
 	}
 }

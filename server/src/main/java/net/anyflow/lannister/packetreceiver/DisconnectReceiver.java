@@ -23,7 +23,7 @@ public class DisconnectReceiver {
 	@SuppressWarnings("unused")
 	private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(DisconnectReceiver.class);
 
-	public static DisconnectReceiver SHARED = new DisconnectReceiver();
+	public static final DisconnectReceiver SHARED = new DisconnectReceiver();
 
 	private DisconnectReceiver() {
 	}

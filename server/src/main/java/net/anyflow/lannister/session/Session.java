@@ -19,12 +19,14 @@ package net.anyflow.lannister.session;
 import java.io.IOException;
 import java.util.Collection;
 import java.util.Date;
+import java.util.List;
 import java.util.stream.Stream;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.google.common.collect.Lists;
 import com.hazelcast.core.IMap;
 import com.hazelcast.nio.serialization.ClassDefinition;
 import com.hazelcast.nio.serialization.ClassDefinitionBuilder;
@@ -53,23 +55,27 @@ public class Session implements com.hazelcast.nio.serialization.Portable {
 
 	private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(Session.class);
 
-	public static Sessions NEXUS;
+	public static final Sessions NEXUS = new Sessions();
 	public static final int ID = 4;
 
 	@JsonProperty
 	private String clientId;
 	@JsonProperty
-	private boolean isConnected;
+	private String ip;
+	@JsonProperty
+	private Integer port;
+	@JsonProperty
+	private Boolean isConnected;
 	@JsonProperty
 	private IMap<String, TopicSubscription> topicSubscriptions;
 	@JsonProperty
-	private int currentMessageId;
+	private Integer currentMessageId;
 	@JsonProperty
 	private Message will;
 	@JsonProperty
-	private boolean cleanSession;
+	private Boolean cleanSession;
 	@JsonProperty
-	private int keepAliveSeconds;
+	private Integer keepAliveSeconds;
 	@JsonFormat(shape = JsonFormat.Shape.STRING, pattern = Literals.DATE_DEFAULT_FORMAT, timezone = Literals.DATE_DEFAULT_TIMEZONE)
 	@JsonProperty
 	private Date createTime;
@@ -82,8 +88,10 @@ public class Session implements com.hazelcast.nio.serialization.Portable {
 	public Session() { // just for serialization
 	}
 
-	public Session(String clientId, int keepAliveSeconds, boolean cleanSession, Message will) {
+	public Session(String clientId, String ip, Integer port, int keepAliveSeconds, boolean cleanSession, Message will) {
 		this.clientId = clientId;
+		this.ip = ip;
+		this.port = port;
 		this.isConnected = true;
 		this.createTime = new Date();
 		this.currentMessageId = 0;
@@ -91,7 +99,7 @@ public class Session implements com.hazelcast.nio.serialization.Portable {
 		this.lastIncomingTime = new Date();
 		this.cleanSession = cleanSession;
 		this.will = will; // [MQTT-3.1.2-9]
-		this.topicSubscriptions = Hazelcast.SELF.generator().getMap(topicSubscriptionsName());
+		this.topicSubscriptions = Hazelcast.INSTANCE.getMap(topicSubscriptionsName());
 		this.topicSubscriptions.addInterceptor(new TopicSubscriptionInterceptor(clientId));
 
 		this.messageSender = new MessageSender(this);
@@ -147,7 +155,7 @@ public class Session implements com.hazelcast.nio.serialization.Portable {
 	public boolean isExpired() {
 		if (keepAliveSeconds == 0) { return false; }
 
-		return ((new Date()).getTime() - lastIncomingTime.getTime()) > keepAliveSeconds * 1.5 * 1000;
+		return (new Date().getTime() - lastIncomingTime.getTime()) > keepAliveSeconds * 1.5 * 1000;
 	}
 
 	public void setLastIncomingTime(Date lastIncomingTime) {
@@ -203,7 +211,7 @@ public class Session implements com.hazelcast.nio.serialization.Portable {
 		ChannelId channelId = null;
 		ChannelHandlerContext ctx = NEXUS.channelHandlerContext(clientId);
 		if (ctx != null) {
-			ctx.channel().disconnect().addListener(ChannelFutureListener.CLOSE).addListener(fs -> Plugins.SELF
+			ctx.channel().disconnect().addListener(ChannelFutureListener.CLOSE).addListener(fs -> Plugins.INSTANCE
 					.get(DisconnectEventListener.class).disconnected(new AbnormalDisconnectEventArgs()));
 
 			channelId = ctx.channel().id();
@@ -211,9 +219,17 @@ public class Session implements com.hazelcast.nio.serialization.Portable {
 
 		logger.debug("Session disposed [clientId={}/channelId={}]", clientId, ctx == null ? "null" : channelId);
 
+		if (cleanSession) {
+			this.topicSubscriptions.values().stream().forEach(ts -> {
+				Topic.NEXUS.getMatches(ts.topicFilter()).forEach(t -> t.subscribers().remove(clientId));
+			});
+
+			this.topicSubscriptions.destroy();
+		}
+
 		NEXUS.remove(this);
 
-		Plugins.SELF.get(DisconnectEventListener.class).disconnected(new DisconnectEventArgs() {
+		Plugins.INSTANCE.get(DisconnectEventListener.class).disconnected(new DisconnectEventArgs() {
 			@Override
 			public String clientId() {
 				return clientId;
@@ -245,41 +261,88 @@ public class Session implements com.hazelcast.nio.serialization.Portable {
 
 	@Override
 	public void writePortable(PortableWriter writer) throws IOException {
-		writer.writeUTF("clientId", clientId);
-		writer.writeBoolean("isConnected", isConnected);
-		writer.writeInt("currentMessageId", currentMessageId);
+		List<String> nullChecker = Lists.newArrayList();
+
+		if (clientId != null) {
+			writer.writeUTF("clientId", clientId);
+			nullChecker.add("clientId");
+		}
+
+		if (ip != null) {
+			writer.writeUTF("ip", ip);
+			nullChecker.add("ip");
+		}
+
+		if (port != null) {
+			writer.writeInt("port", port);
+			nullChecker.add("port");
+		}
+
+		if (isConnected != null) {
+			writer.writeBoolean("isConnected", isConnected);
+			nullChecker.add("isConnected");
+		}
+
+		if (currentMessageId != null) {
+			writer.writeInt("currentMessageId", currentMessageId);
+			nullChecker.add("currentMessageId");
+		}
+
 		if (will != null) {
 			writer.writePortable("will", will);
 		}
 		else {
 			writer.writeNullPortable("will", SerializableFactory.ID, Message.ID);
 		}
-		writer.writeBoolean("isCleanSession", cleanSession);
-		writer.writeInt("keepAliveSeconds", keepAliveSeconds);
-		writer.writeLong("createTime", createTime.getTime());
-		writer.writeLong("lastIncomingTime", lastIncomingTime.getTime());
+
+		if (cleanSession != null) {
+			writer.writeBoolean("cleanSession", cleanSession);
+			nullChecker.add("cleanSession");
+		}
+
+		if (keepAliveSeconds != null) {
+			writer.writeInt("keepAliveSeconds", keepAliveSeconds);
+			nullChecker.add("keepAliveSeconds");
+		}
+
+		if (createTime != null) {
+			writer.writeLong("createTime", createTime.getTime());
+			nullChecker.add("createTime");
+		}
+
+		if (lastIncomingTime != null) {
+			writer.writeLong("lastIncomingTime", lastIncomingTime.getTime());
+			nullChecker.add("lastIncomingTime");
+		}
+
+		writer.writeUTFArray("nullChecker", nullChecker.toArray(new String[0]));
 	}
 
 	@Override
 	public void readPortable(PortableReader reader) throws IOException {
-		clientId = reader.readUTF("clientId");
-		isConnected = reader.readBoolean("isConnected");
-		currentMessageId = reader.readInt("currentMessageId");
-		will = reader.readPortable("will");
-		cleanSession = reader.readBoolean("isCleanSession");
-		keepAliveSeconds = reader.readInt("keepAliveSeconds");
-		createTime = new Date(reader.readLong("createTime"));
-		lastIncomingTime = new Date(reader.readLong("lastIncomingTime"));
+		List<String> nullChecker = Lists.newArrayList(reader.readUTFArray("nullChecker"));
 
-		topicSubscriptions = Hazelcast.SELF.generator().getMap(topicSubscriptionsName());
+		if (nullChecker.contains("clientId")) clientId = reader.readUTF("clientId");
+		if (nullChecker.contains("ip")) ip = reader.readUTF("ip");
+		if (nullChecker.contains("port")) port = reader.readInt("port");
+		if (nullChecker.contains("isConnected")) isConnected = reader.readBoolean("isConnected");
+		if (nullChecker.contains("currentMessageId")) currentMessageId = reader.readInt("currentMessageId");
+		will = reader.readPortable("will");
+		if (nullChecker.contains("cleanSession")) cleanSession = reader.readBoolean("cleanSession");
+		if (nullChecker.contains("keepAliveSeconds")) keepAliveSeconds = reader.readInt("keepAliveSeconds");
+		if (nullChecker.contains("createTime")) createTime = new Date(reader.readLong("createTime"));
+		if (nullChecker.contains("lastIncomingTime")) lastIncomingTime = new Date(reader.readLong("lastIncomingTime"));
+
+		topicSubscriptions = Hazelcast.INSTANCE.getMap(topicSubscriptionsName());
 
 		messageSender = new MessageSender(this);
 	}
 
 	public static ClassDefinition classDefinition() {
-		return new ClassDefinitionBuilder(SerializableFactory.ID, ID).addUTFField("clientId")
-				.addBooleanField("isConnected").addIntField("currentMessageId")
-				.addPortableField("will", Message.classDefinition()).addBooleanField("isCleanSession")
-				.addIntField("keepAliveSeconds").addLongField("createTime").addLongField("lastIncomingTime").build();
+		return new ClassDefinitionBuilder(SerializableFactory.ID, ID).addUTFField("clientId").addUTFField("ip")
+				.addIntField("port").addBooleanField("isConnected").addIntField("currentMessageId")
+				.addPortableField("will", Message.classDefinition()).addBooleanField("cleanSession")
+				.addIntField("keepAliveSeconds").addLongField("createTime").addLongField("lastIncomingTime")
+				.addUTFArrayField("nullChecker").build();
 	}
 }

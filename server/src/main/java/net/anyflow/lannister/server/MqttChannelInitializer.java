@@ -38,13 +38,13 @@ public class MqttChannelInitializer extends ChannelInitializer<SocketChannel> {
 
 		ch.pipeline().addLast(ByteCounterCodec.class.getName(), new ByteCounterCodec());
 
-		if ("true".equalsIgnoreCase(Settings.SELF.getProperty("netty.logger"))) {
+		if ("true".equalsIgnoreCase(Settings.INSTANCE.getProperty("netty.logger"))) {
 			ch.pipeline().addLast(LoggingHandler.class.getName(), new LoggingHandler(LogLevel.DEBUG));
 		}
 
 		if (useSsl) {
 			SslContext sslCtx = SslContextBuilder
-					.forServer(Settings.SELF.certChainFile(), Settings.SELF.privateKeyFile()).build();
+					.forServer(Settings.INSTANCE.certChainFile(), Settings.INSTANCE.privateKeyFile()).build();
 
 			logger.debug("SSL Provider : {}", SslContext.defaultServerProvider());
 
@@ -52,7 +52,7 @@ public class MqttChannelInitializer extends ChannelInitializer<SocketChannel> {
 		}
 
 		if (useWebSocket) {
-			String websocketPath = Settings.SELF.getProperty("lannister.websocket.path", "/");
+			String websocketPath = Settings.INSTANCE.getProperty("lannister.websocket.path", "/");
 
 			ch.pipeline().addLast(HttpServerCodec.class.getName(), new HttpServerCodec());
 			ch.pipeline().addLast(HttpObjectAggregator.class.getName(), new HttpObjectAggregator(1048576));
@@ -62,7 +62,7 @@ public class MqttChannelInitializer extends ChannelInitializer<SocketChannel> {
 			ch.pipeline().addLast(new MqttWebSocketCodec());
 		}
 
-		int maxBytesInMessage = Settings.SELF.getInt("lannister.maxBytesInMessage", 8092);
+		int maxBytesInMessage = Settings.INSTANCE.getInt("lannister.maxBytesInMessage", 8092);
 
 		ch.pipeline().addLast(MqttDecoder.class.getName(), new MqttDecoder(maxBytesInMessage));
 		ch.pipeline().addLast(MqttEncoder.class.getName(), MqttEncoder.INSTANCE);

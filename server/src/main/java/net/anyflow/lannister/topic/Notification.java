@@ -17,7 +17,9 @@
 package net.anyflow.lannister.topic;
 
 import java.io.IOException;
+import java.util.List;
 
+import com.google.common.collect.Lists;
 import com.hazelcast.nio.serialization.ClassDefinition;
 import com.hazelcast.nio.serialization.ClassDefinitionBuilder;
 import com.hazelcast.nio.serialization.PortableReader;
@@ -66,7 +68,12 @@ public class Notification implements com.hazelcast.nio.serialization.Portable {
 
 	@Override
 	public void writePortable(PortableWriter writer) throws IOException {
-		writer.writeUTF("clientId", clientId);
+		List<String> nullChecker = Lists.newArrayList();
+
+		if (clientId != null) {
+			writer.writeUTF("clientId", clientId);
+			nullChecker.add("clientId");
+		}
 
 		if (topic != null) {
 			writer.writePortable("topic", topic);
@@ -81,11 +88,16 @@ public class Notification implements com.hazelcast.nio.serialization.Portable {
 		else {
 			writer.writeNullPortable("message", SerializableFactory.ID, Message.ID);
 		}
+
+		writer.writeUTFArray("nullChecker", nullChecker.toArray(new String[0]));
 	}
 
 	@Override
 	public void readPortable(PortableReader reader) throws IOException {
-		clientId = reader.readUTF("clientId");
+		List<String> nullChecker = Lists.newArrayList(reader.readUTFArray("nullChecker"));
+
+		if (nullChecker.contains("clientId")) clientId = reader.readUTF("clientId");
+
 		topic = reader.readPortable("topic");
 		message = reader.readPortable("message");
 	}
@@ -93,6 +105,6 @@ public class Notification implements com.hazelcast.nio.serialization.Portable {
 	public static ClassDefinition classDefinition() {
 		return new ClassDefinitionBuilder(SerializableFactory.ID, ID).addUTFField("clientId")
 				.addPortableField("topic", Topic.classDefinition())
-				.addPortableField("message", Message.classDefinition()).build();
+				.addPortableField("message", Message.classDefinition()).addUTFArrayField("nullChecker").build();
 	}
 }

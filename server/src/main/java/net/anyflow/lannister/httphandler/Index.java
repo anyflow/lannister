@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 The Menton Project
+ * Copyright 2016 The Lannister Project
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,9 +14,17 @@
  * limitations under the License.
  */
 
-package net.anyflow.menton.http;
+package net.anyflow.lannister.httphandler;
 
-public interface MessageReceiver {
+import net.anyflow.lannister.http.HttpRequestHandler;
 
-	void messageReceived(HttpRequest request, HttpResponse response);
+@HttpRequestHandler.Handles(paths = { "/", "/index", "home" }, httpMethods = { "GET" }, webResourcePath = "/index.html")
+public class Index extends HttpRequestHandler {
+	@SuppressWarnings("unused")
+	private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(Index.class);
+
+	@Override
+	public String service() {
+		return null;
+	}
 }

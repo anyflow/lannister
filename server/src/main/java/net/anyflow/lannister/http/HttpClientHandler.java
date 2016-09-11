@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 The Menton Project
+ * Copyright 2016 The Lannister Project
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package net.anyflow.menton.http;
+package net.anyflow.lannister.http;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -23,9 +23,6 @@ import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
 import io.netty.handler.codec.http.FullHttpResponse;
 
-/**
- * @author anyflow
- */
 public class HttpClientHandler extends SimpleChannelInboundHandler<FullHttpResponse> {
 
 	private static final Logger logger = LoggerFactory.getLogger(HttpClientHandler.class);
@@ -43,15 +40,9 @@ public class HttpClientHandler extends SimpleChannelInboundHandler<FullHttpRespo
 		return response;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see io.netty.channel.SimpleChannelInboundHandler#channelRead0(io.netty
-	 * .channel.ChannelHandlerContext, java.lang.Object)
-	 */
 	@Override
 	protected void channelRead0(ChannelHandlerContext ctx, FullHttpResponse msg) throws Exception {
-		if (ctx.channel().isActive() == false) { return; }
+		if (!ctx.channel().isActive()) { return; }
 
 		response = HttpResponse.createFrom(msg, ctx.channel());
 

@@ -16,6 +16,9 @@
 
 package net.anyflow.lannister.topic;
 
+import java.util.List;
+import java.util.stream.Collectors;
+
 import com.google.common.collect.ImmutableMap;
 import com.hazelcast.core.IMap;
 import com.hazelcast.core.ITopic;
@@ -31,9 +34,9 @@ public class Topics {
 	private final IMap<String, Topic> topics;
 	private final ITopic<Notification> notifier;
 
-	public Topics(Sessions sessions) {
-		this.topics = Hazelcast.SELF.generator().getMap("topics");
-		this.notifier = Hazelcast.SELF.generator().getTopic("publishNotifier");
+	protected Topics(Sessions sessions) {
+		this.topics = Hazelcast.INSTANCE.getMap("topics");
+		this.notifier = Hazelcast.INSTANCE.getTopic("publishNotifier");
 		this.notifier.addMessageListener(sessions);
 	}
 
@@ -81,7 +84,7 @@ public class Topics {
 	}
 
 	protected void persist(Topic topic) {
-		if (topic == null && topics.get(topic) == null) {
+		if (topic == null || topics.get(topic.name()) == null) {
 			logger.error("Null or new topic can not bepersisted.");
 			return;
 		}
@@ -101,7 +104,7 @@ public class Topics {
 		return topics.put(topic.name(), topic);
 	}
 
-	protected Topic remove(Topic topic) {
+	public Topic remove(Topic topic) {
 		if (topic == null) {
 			logger.error("Null topic tried to be removed.");
 			return null;
@@ -122,5 +125,10 @@ public class Topics {
 		topic.publish(message);
 
 		return topic;
+	}
+
+	public List<Topic> getMatches(String topicFilter) {
+		return topics.values().stream().filter(topic -> TopicMatcher.match(topicFilter, topic.name()))
+				.collect(Collectors.toList());
 	}
 }

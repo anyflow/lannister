@@ -57,7 +57,7 @@ public class MessageFactory {
 
 		MqttConnectPayload payload = new MqttConnectPayload(Strings.nullToEmpty(options.clientId()),
 				options.will() == null ? "" : options.will().topicName(),
-				options.will() == null ? "" : new String(options.will().message()),
+				options.will() == null ? "" : new String(options.will().message(), CharsetUtil.UTF_8),
 				Strings.nullToEmpty(options.userName()), Strings.nullToEmpty(options.password()));
 
 		return new MqttConnectMessage(fixedHeader, variableHeader, payload);

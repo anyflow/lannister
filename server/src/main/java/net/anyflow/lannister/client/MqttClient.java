@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 The Menton Project
+ * Copyright 2016 The Lannister Project
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -99,7 +99,7 @@ public class MqttClient {
 		send(MessageFactory.connect(options));
 
 		synchronized (sharedObject.locker()) {
-			int timeout = Settings.SELF.getInt("lannister.client.responseTimeoutSeconds", 15);
+			int timeout = Settings.INSTANCE.getInt("lannister.client.responseTimeoutSeconds", 15);
 
 			sharedObject.locker().wait(timeout * 1000);
 		}

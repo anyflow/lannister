@@ -38,14 +38,15 @@ public class Sessions implements MessageListener<Notification> {
 	private final Map<ChannelId, String> clientIds; // KEY:channelId
 	private final Map<String, ChannelHandlerContext> ctxs; // KEY:clientlId
 
-	public Sessions() {
-		sessions = Hazelcast.SELF.generator().getMap("sessions");
+	protected Sessions() {
+		sessions = Hazelcast.INSTANCE.getMap("sessions");
 		clientIds = Maps.newHashMap();
 		ctxs = Maps.newHashMap();
 	}
 
 	public void put(Session session, ChannelHandlerContext ctx) {
 		synchronized (this) {
+			session.setConnected(true);
 			sessions.put(session.clientId(), session); // [MQTT-3.1.2-4]
 			clientIds.put(ctx.channel().id(), session.clientId());
 			ctxs.put(session.clientId(), ctx);
@@ -101,7 +102,7 @@ public class Sessions implements MessageListener<Notification> {
 		Notification notified = message.getMessageObject();
 
 		Session session = get(notified.clientId());
-		if (session == null || session.isConnected(true) == false) { return; }
+		if (session == null || !session.isConnected(true)) { return; }
 
 		session.sendPublish(notified.topic(), notified.message());// [MQTT-3.3.1-8],[MQTT-3.3.1-9]
 	}

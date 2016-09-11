@@ -14,27 +14,22 @@
  * limitations under the License.
  */
 
-package net.anyflow.lannister.session;
+package net.anyflow.lannister.topic;
 
 import com.hazelcast.map.MapInterceptor;
 
 import io.netty.util.concurrent.GlobalEventExecutor;
-import net.anyflow.lannister.plugin.ITopicSubscription;
-import net.anyflow.lannister.topic.Topic;
-import net.anyflow.lannister.topic.TopicMatcher;
-import net.anyflow.lannister.topic.TopicSubscriber;
 
-public class TopicSubscriptionInterceptor implements MapInterceptor {
+public class TopicSubscriberInterceptor implements MapInterceptor {
 	@SuppressWarnings("unused")
-	private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory
-			.getLogger(TopicSubscriptionInterceptor.class);
+	private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(TopicSubscriberInterceptor.class);
 
-	private static final long serialVersionUID = -7359310249499933518L;
+	private static final long serialVersionUID = -258619017472206696L;
 
-	private String clientId;
+	private String topicName;
 
-	protected TopicSubscriptionInterceptor(String clientId) {
-		this.clientId = clientId;
+	protected TopicSubscriberInterceptor(String topicName) {
+		this.topicName = topicName;
 	}
 
 	@Override
@@ -59,35 +54,28 @@ public class TopicSubscriptionInterceptor implements MapInterceptor {
 
 	@Override
 	public void afterPut(Object value) {
-		ITopicSubscription topicSubscription = (ITopicSubscription) value;
-
-		GlobalEventExecutor.INSTANCE.submit(() -> {
-			Topic.NEXUS.map().values().stream()
-					.filter(t -> TopicMatcher.match(topicSubscription.topicFilter(), t.name()))
-					.forEach(t -> t.subscribers().put(clientId, new TopicSubscriber(clientId, t.name())));
-		});
+		// DO NOTHING
 	}
 
 	@Override
 	public void afterRemove(Object value) {
-		ITopicSubscription topicSubscription = (ITopicSubscription) value;
-
 		GlobalEventExecutor.INSTANCE.submit(() -> {
-			Topic.NEXUS.map().values().stream()
-					.filter(t -> TopicMatcher.match(topicSubscription.topicFilter(), t.name()))
-					.forEach(t -> t.subscribers().remove(clientId));
+			Topic topic = Topic.NEXUS.get(topicName);
+			if (topicName.startsWith("$SYS") || topic == null || topic.subscribers().size() > 0) { return; }
+
+			Topic.NEXUS.remove(topic);
 		});
 	}
 
 	@Override
 	public int hashCode() {
-		return clientId.hashCode();
+		return topicName.hashCode();
 	}
 
 	@Override
 	public boolean equals(Object o) {
 		if (o == null) { return false; }
 
-		return clientId.equals(o.toString());
+		return topicName.equals(o.toString());
 	}
 }
