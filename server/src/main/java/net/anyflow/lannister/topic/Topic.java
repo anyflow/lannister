@@ -68,6 +68,8 @@ public class Topic implements com.hazelcast.nio.serialization.Portable {
 		this.name = name;
 		this.retainedMessage = null;
 		this.subscribers = Hazelcast.INSTANCE.getMap(subscribersName());
+		this.subscribers.addInterceptor(new TopicSubscriberInterceptor(name));
+
 		this.messages = Hazelcast.INSTANCE.getMap(messagesName());
 		this.inboundMessageStatuses = Hazelcast.INSTANCE.getMap(inboundMessageStatusesName());
 		this.messageReferenceCounts = Hazelcast.INSTANCE.getMap(inboundMessageReferenceCountsName());
