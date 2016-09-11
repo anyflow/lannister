@@ -46,6 +46,7 @@ public class Sessions implements MessageListener<Notification> {
 
 	public void put(Session session, ChannelHandlerContext ctx) {
 		synchronized (this) {
+			session.setConnected(true);
 			sessions.put(session.clientId(), session); // [MQTT-3.1.2-4]
 			clientIds.put(ctx.channel().id(), session.clientId());
 			ctxs.put(session.clientId(), ctx);
