@@ -1,17 +1,19 @@
 <?xml version="1.0"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project 
+	xmlns="http://maven.apache.org/POM/4.0.0" 
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 	<parent>
 		<groupId>net.anyflow</groupId>
 		<artifactId>lannister</artifactId>
 		<version>0.9.5.2-SNAPSHOT</version>
 	</parent>
-	
 	<artifactId>lannister-plugin-example</artifactId>
-	<name>lannister plugin example</name>
-	
+	<name>Lannister plugin example</name>
 	<packaging>jar</packaging>
-
+	<properties>
+		<site.basedir>${project.parent.basedir}</site.basedir>
+	</properties>
 	<repositories>
 		<repository>
 			<id>lannister-interface-mvn-repo</id>
@@ -22,7 +24,6 @@
 			</snapshots>
 		</repository>
 	</repositories>
-
 	<dependencies>
 		<dependency>
 			<groupId>net.anyflow</groupId>
@@ -30,7 +31,6 @@
 			<version>${project.version}</version>
 		</dependency>
 	</dependencies>
-
 	<build>
 		<plugins>
 			<plugin>

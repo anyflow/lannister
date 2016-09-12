@@ -1,15 +1,16 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
-
 	<artifactId>lannister-server</artifactId>
-	<name>lannister server</name>
-	
+	<name>Lannister server</name>
 	<parent>
 		<groupId>net.anyflow</groupId>
 		<artifactId>lannister</artifactId>
 		<version>0.9.5.2-SNAPSHOT</version>
 	</parent>
-
+	<properties>
+		<site.basedir>${project.parent.basedir}</site.basedir>
+	</properties>
 	<profiles>
 		<profile>
 			<id>lannister.local</id>
@@ -22,7 +23,6 @@
 				<log.path>${project.build.directory}/logs</log.path>
 			</properties>
 		</profile>
-		
 		<profile>
 			<id>lannister.docker</id>
 			<properties>
@@ -30,26 +30,22 @@
 			</properties>
 		</profile>
 	</profiles>
-	
 	<dependencies>
 		<dependency>
 			<groupId>net.anyflow</groupId>
 			<artifactId>lannister-interface</artifactId>
 			<version>${project.version}</version>
 		</dependency>
-
 		<dependency>
 			<groupId>com.hazelcast</groupId>
 			<artifactId>hazelcast</artifactId>
 			<version>3.7.1</version>
 		</dependency>
-
 		<dependency>
 			<groupId>com.google.guava</groupId>
 			<artifactId>guava</artifactId>
 			<version>17.0</version>
 		</dependency>
-
 		<!-- the core, which includes Streaming API, shared low-level abstractions 
 			(but NOT data-binding) -->
 		<dependency>
@@ -87,31 +83,26 @@
 			<artifactId>reflections</artifactId>
 			<version>0.9.10</version>
 		</dependency>
-
 		<dependency>
 			<groupId>io.netty</groupId>
 			<artifactId>netty-tcnative-boringssl-static</artifactId>
 			<version>1.1.33.Fork22</version>
 		</dependency>
-
 		<dependency>
 			<groupId>org.javassist</groupId>
 			<artifactId>javassist</artifactId>
 			<version>3.19.0-GA</version>
 		</dependency>
-
 		<dependency>
 			<groupId>com.jayway.jsonpath</groupId>
 			<artifactId>json-path</artifactId>
 			<version>2.2.0</version>
 		</dependency>
 	</dependencies>
-
 	<build>
 		<filters>
 			<filter>src/main/filters/${env}.properties</filter>
 		</filters>
-
 		<resources>
 			<resource>
 				<filtering>true</filtering>
@@ -119,11 +110,10 @@
 				<targetPath>../conf/</targetPath>
 				<includes>
 					<include>lannister.cfg</include>
-					<include>hazelcast.config.xml</include>					
+					<include>hazelcast.config.xml</include>
 					<include>log4j.xml</include>
 				</includes>
 			</resource>
-
 			<resource>
 				<filtering>true</filtering>
 				<directory>src/main/resources</directory>
@@ -134,27 +124,17 @@
 				</includes>
 			</resource>
 		</resources>
-
 		<testResources>
 			<testResource>
 				<filtering>true</filtering>
 				<directory>src/test/resources</directory>
 				<includes>
 					<include>lannister.cfg</include>
-					<include>hazelcast.config.xml</include>					
+					<include>hazelcast.config.xml</include>
 					<include>log4j.xml</include>
 				</includes>
 			</testResource>
 		</testResources>
-
-		<extensions>
-			<extension>
-				<groupId>kr.motd.maven</groupId>
-				<artifactId>os-maven-plugin</artifactId>
-				<version>1.4.0.Final</version>
-			</extension>
-		</extensions>
-
 		<plugins>
 			<!-- for jar packaging -->
 			<plugin>
@@ -226,32 +206,6 @@
 							<overWriteSnapshots>false</overWriteSnapshots>
 							<overWriteIfNewer>true</overWriteIfNewer>
 						</configuration>
-					</execution>
-				</executions>
-			</plugin>
-			<plugin>
-				<groupId>com.github.github</groupId>
-				<artifactId>site-maven-plugin</artifactId>
-				<version>0.12</version>
-				<configuration>
-					<message>Maven artifacts for ${project.version}</message>  <!-- git commit message -->
-					<noJekyll>true</noJekyll>                                  <!-- disable webpage processing -->
-					<outputDirectory>${project.build.directory}/mvn-repo</outputDirectory> <!-- matches distribution management repository url above -->
-					<branch>refs/heads/server-mvn-repo</branch>
-					<includes>
-						<include>**/*</include>
-					</includes>
-					<repositoryName>lannister</repositoryName>
-					<repositoryOwner>anyflow</repositoryOwner>
-				</configuration>
-				<executions>
-					<!-- run site-maven-plugin's 'site' target as part of the build's normal 
-						'deploy' phase -->
-					<execution>
-						<goals>
-							<goal>site</goal>
-						</goals>
-						<phase>deploy</phase>
 					</execution>
 				</executions>
 			</plugin>

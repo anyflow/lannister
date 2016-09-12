@@ -1,0 +1,14 @@
+<project>
+  <publishDate position="right"/>
+  <version position="right"/>
+  <skin>
+    <groupId>org.apache.maven.skins</groupId>
+    <artifactId>maven-fluido-skin</artifactId>
+    <version>1.5</version>
+  </skin>  
+  <body>
+    <menu ref="modules" />
+    <menu ref="reports" />
+    <menu ref="parent" />
+  </body>  
+</project>
