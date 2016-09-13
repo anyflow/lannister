@@ -36,6 +36,8 @@
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<env>local</env>
+		<jacoco.reportPath>${project.build.directory}/target/jacoco.exec</jacoco.reportPath>
+		<jacoco.itReportPath>${project.build.directory}/target/jacoco-it.exec</jacoco.itReportPath>
 	</properties>
 	<profiles>
 		<profile>
@@ -155,6 +157,57 @@
 					</execution>
 				</executions>
 			</plugin>
+			<plugin>
+				<groupId>org.jacoco</groupId>
+				<artifactId>jacoco-maven-plugin</artifactId>
+				<version>0.7.7.201606060606</version>
+				<executions>
+					<execution>
+						<id>default-prepare-agent</id>
+						<goals>
+							<goal>prepare-agent</goal>
+						</goals>
+					</execution>
+					<execution>
+						<id>default-report</id>
+						<phase>prepare-package</phase>
+						<goals>
+							<goal>report</goal>
+						</goals>
+					</execution>
+					<execution>
+						<id>post-unit-test</id>
+						<phase>test</phase>
+						<goals>
+							<goal>report</goal>
+						</goals>
+						<configuration>
+							<dataFile>${jacoco.reportPath}</dataFile>
+						</configuration>
+					</execution>
+					<execution>
+						<id>default-check</id>
+						<goals>
+							<goal>check</goal>
+						</goals>
+					</execution>
+					<execution>
+						<id>jacoco-site</id>
+						<phase>post-integration-test</phase>
+						<goals>
+							<goal>report</goal>
+						</goals>
+						<configuration>
+							<dataFile>${jacoco.itReportPath}</dataFile>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-site-plugin</artifactId>
+				<version>3.5.1</version>
+			</plugin>
 		</plugins>
 	</build>
 	<reporting>
@@ -171,7 +224,15 @@
 				<reportSets>
 					<reportSet>
 						<reports>
+							<report>summary</report>
 							<report>index</report>
+							<report>dependencies</report>
+							<report>project-team</report>
+							<report>license</report>
+							<report>scm</report>
+							<report>cim</report>
+							<report>mailing-list</report>
+							<report>issue-tracking</report>
 						</reports>
 					</reportSet>
 				</reportSets>
@@ -180,14 +241,6 @@
 				<groupId>org.jacoco</groupId>
 				<artifactId>jacoco-maven-plugin</artifactId>
 				<version>0.7.7.201606060606</version>
-				<reportSets>
-					<reportSet>
-						<reports>
-							<!-- select non-aggregate reports -->
-							<report>report</report>
-						</reports>
-					</reportSet>
-				</reportSets>
 			</plugin>
 			<plugin>
 				<groupId>org.codehaus.mojo</groupId>
