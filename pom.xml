@@ -10,6 +10,30 @@
 	<url>https://github.com/anyflow/lannister</url>
 	<description>MQTT broker with full spec support and Clustering/WebSocket/SSL based on Java - Netty/Hazelcast</description>
 	<packaging>pom</packaging>
+	<licenses>
+		<license>
+			<name>The Apache Software License, Version 2.0</name>
+			<url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+			<distribution>repo</distribution>
+			<comments>A business-friendly OSS license</comments>
+		</license>
+	</licenses>
+	<developers>
+		<developer>
+			<id>anyflow</id>
+			<name>Park Hyunjeong</name>
+			<url>http://github.com/anyflow/</url>
+			<timezone>9</timezone>
+		</developer>
+	</developers>
+	<issueManagement>
+		<system>GitHub</system>
+		<url>https://github.com/anyflow/lannister/issues</url>
+	</issueManagement>
+	<ciManagement>
+		<system>travis-ci</system>
+		<url>https://travis-ci.org/anyflow/lannister</url>
+	</ciManagement>
 	<distributionManagement>
 		<repository>
 			<id>internal.repo</id>
@@ -36,8 +60,6 @@
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<env>local</env>
-		<jacoco.reportPath>${project.build.directory}/target/jacoco.exec</jacoco.reportPath>
-		<jacoco.itReportPath>${project.build.directory}/target/jacoco-it.exec</jacoco.itReportPath>
 	</properties>
 	<profiles>
 		<profile>
@@ -133,31 +155,6 @@
 				</configuration>
 			</plugin>
 			<plugin>
-				<artifactId>maven-resources-plugin</artifactId>
-				<version>3.0.1</version>
-				<executions>
-					<execution>
-						<id>copy-sitedescriptor</id>
-						<!-- fetch site.xml before creating site documentation -->
-						<phase>pre-site</phase>
-						<goals>
-							<goal>copy-resources</goal>
-						</goals>
-						<configuration>
-							<outputDirectory>${basedir}/src/site/</outputDirectory>
-							<resources>
-								<resource>
-									<directory>${site.basedir}/src/site/</directory>
-									<includes>
-										<include>**/site.xml</include>
-									</includes>
-								</resource>
-							</resources>
-						</configuration>
-					</execution>
-				</executions>
-			</plugin>
-			<plugin>
 				<groupId>org.jacoco</groupId>
 				<artifactId>jacoco-maven-plugin</artifactId>
 				<version>0.7.7.201606060606</version>
@@ -169,26 +166,10 @@
 						</goals>
 					</execution>
 					<execution>
-						<id>default-report</id>
-						<phase>prepare-package</phase>
-						<goals>
-							<goal>report</goal>
-						</goals>
-					</execution>
-					<execution>
 						<id>post-unit-test</id>
 						<phase>test</phase>
 						<goals>
 							<goal>report</goal>
-						</goals>
-						<configuration>
-							<dataFile>${jacoco.reportPath}</dataFile>
-						</configuration>
-					</execution>
-					<execution>
-						<id>default-check</id>
-						<goals>
-							<goal>check</goal>
 						</goals>
 					</execution>
 					<execution>
@@ -197,9 +178,6 @@
 						<goals>
 							<goal>report</goal>
 						</goals>
-						<configuration>
-							<dataFile>${jacoco.itReportPath}</dataFile>
-						</configuration>
 					</execution>
 				</executions>
 			</plugin>
@@ -221,18 +199,28 @@
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-project-info-reports-plugin</artifactId>
 				<version>2.9</version>
+				<configuration>
+					<dependencyLocationsEnabled>false</dependencyLocationsEnabled>
+				</configuration>
 				<reportSets>
 					<reportSet>
 						<reports>
 							<report>summary</report>
 							<report>index</report>
 							<report>dependencies</report>
+							<report>dependency-convergence</report>
+							<report>dependency-info</report>
+							<report>dependency-management</report>
 							<report>project-team</report>
 							<report>license</report>
 							<report>scm</report>
 							<report>cim</report>
 							<report>mailing-list</report>
 							<report>issue-tracking</report>
+							<report>help</report>
+							<report>plugins</report>
+							<report>plugin-management</report>
+							<report>distribution-management</report>
 						</reports>
 					</reportSet>
 				</reportSets>
@@ -256,6 +244,16 @@
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-pmd-plugin</artifactId>
 				<version>3.6</version>
+			</plugin>
+			<plugin>
+				<groupId>org.codehaus.mojo</groupId>
+				<artifactId>jdepend-maven-plugin</artifactId>
+				<version>2.0</version>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-changelog-plugin</artifactId>
+				<version>2.3</version>
 			</plugin>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
