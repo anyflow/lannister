@@ -59,24 +59,22 @@
 	</modules>
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-		<env>local</env>
+		<github.global.server>github</github.global.server>
 	</properties>
 	<profiles>
 		<profile>
-			<id>lannister.local</id>
+			<id>default</id>
 			<activation>
 				<activeByDefault>true</activeByDefault>
 			</activation>
 			<properties>
-				<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-				<github.global.server>github</github.global.server>
+				<env>default</env>
 			</properties>
 		</profile>
 		<profile>
-			<id>lannister.docker</id>
+			<id>docker</id>
 			<properties>
-				<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-				<github.global.server>github</github.global.server>
+				<env>docker</env>
 			</properties>
 		</profile>
 	</profiles>

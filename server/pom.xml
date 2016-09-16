@@ -12,23 +12,6 @@
 	<properties>
 		<site.basedir>${project.parent.basedir}</site.basedir>
 	</properties>
-	<profiles>
-		<profile>
-			<id>lannister.default</id>
-			<activation>
-				<activeByDefault>true</activeByDefault>
-			</activation>
-			<properties>
-				<env>default</env>
-			</properties>
-		</profile>
-		<profile>
-			<id>lannister.docker</id>
-			<properties>
-				<env>docker</env>
-			</properties>
-		</profile>
-	</profiles>
 	<dependencies>
 		<dependency>
 			<groupId>net.anyflow</groupId>
@@ -214,6 +197,26 @@
 							<overWriteSnapshots>false</overWriteSnapshots>
 							<overWriteIfNewer>true</overWriteIfNewer>
 						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+			<!-- create archive for deploy -->
+			<plugin>
+				<artifactId>maven-assembly-plugin</artifactId>
+				<configuration>
+					<finalName>[${maven.build.timestamp}]${project.build.finalName}</finalName>
+					<workDirectory>target/assembly/work</workDirectory>
+					<descriptors>
+						<descriptor>${project.basedir}/src/main/assembly/dep.xml</descriptor>
+					</descriptors>
+				</configuration>
+				<executions>
+					<execution>
+						<id>assembly</id>
+						<phase>deploy</phase>
+						<goals>
+							<goal>single</goal>
+						</goals>
 					</execution>
 				</executions>
 			</plugin>

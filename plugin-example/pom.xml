@@ -14,16 +14,6 @@
 	<properties>
 		<site.basedir>${project.parent.basedir}</site.basedir>
 	</properties>
-	<repositories>
-		<repository>
-			<id>lannister-interface-mvn-repo</id>
-			<url>https://raw.github.com/anyflow/lannister/interface-mvn-repo/</url>
-			<snapshots>
-				<enabled>true</enabled>
-				<updatePolicy>always</updatePolicy>
-			</snapshots>
-		</repository>
-	</repositories>
 	<dependencies>
 		<dependency>
 			<groupId>net.anyflow</groupId>
