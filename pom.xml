@@ -9,23 +9,28 @@
 	<name>Lannister</name>
 	<url>https://github.com/anyflow/lannister</url>
 	<description>MQTT broker with full spec support and Clustering/WebSocket/SSL based on Java - Netty/Hazelcast</description>
-	<packaging>pom</packaging>
+  <organization>
+    <name>anyflow.net</name>
+    <url>https://github.com/anyflow</url>
+  </organization>
+	<developers>
+		<developer>
+			<id>anyflow</id>
+			<name>Park Hyunjeong</name>
+			<url>http://anyflow.net</url>
+			<timezone>Asia/Seoul</timezone>
+      <roles>
+        <role>leader</role>
+      </roles>			
+		</developer>
+	</developers>
 	<licenses>
 		<license>
 			<name>The Apache Software License, Version 2.0</name>
 			<url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
 			<distribution>repo</distribution>
-			<comments>A business-friendly OSS license</comments>
 		</license>
 	</licenses>
-	<developers>
-		<developer>
-			<id>anyflow</id>
-			<name>Park Hyunjeong</name>
-			<url>http://github.com/anyflow/</url>
-			<timezone>9</timezone>
-		</developer>
-	</developers>
 	<issueManagement>
 		<system>GitHub</system>
 		<url>https://github.com/anyflow/lannister/issues</url>
@@ -47,8 +52,8 @@
 		</site>
 	</distributionManagement>
 	<scm>
+		<url>http://github.com/anyflow/lannister</url>
 		<connection>scm:git:git@github.com:anyflow/lannister.git</connection>
-		<url>scm:git:git@github.com:anyflow/lannister.git</url>
 		<developerConnection>scm:git:git@github.com:anyflow/lannister.git</developerConnection>
 		<tag>HEAD</tag>
 	</scm>
@@ -57,7 +62,10 @@
 		<module>plugin-example</module>
 		<module>server</module>
 	</modules>
-	<properties>
+	<mailingLists>
+	</mailingLists>
+	<packaging>pom</packaging>
+		<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<github.global.server>github</github.global.server>
 	</properties>
@@ -184,6 +192,32 @@
 				<artifactId>maven-site-plugin</artifactId>
 				<version>3.5.1</version>
 			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-resources-plugin</artifactId>
+				<version>3.0.1</version>
+				<executions>
+					<execution>
+						<!-- Copy the readme file to the site source files so that a page is generated from it. -->
+						<id>copy-readme</id>
+						<phase>pre-site</phase>
+						<goals>
+							<goal>copy-resources</goal>
+						</goals>
+						<configuration>
+							<outputDirectory>${basedir}/src/site/markdown</outputDirectory>
+							<resources>
+								<resource>
+									<directory>${basedir}</directory>
+									<includes>
+										<include>README.md</include>
+									</includes>
+								</resource>
+							</resources>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
 		</plugins>
 	</build>
 	<reporting>
@@ -203,22 +237,14 @@
 				<reportSets>
 					<reportSet>
 						<reports>
-							<report>summary</report>
 							<report>index</report>
-							<report>dependencies</report>
-							<report>dependency-convergence</report>
-							<report>dependency-info</report>
-							<report>dependency-management</report>
-							<report>project-team</report>
+							<report>summary</report>
 							<report>license</report>
 							<report>scm</report>
 							<report>cim</report>
-							<report>mailing-list</report>
 							<report>issue-tracking</report>
-							<report>help</report>
-							<report>plugins</report>
-							<report>plugin-management</report>
-							<report>distribution-management</report>
+							<report>mailing-list</report>
+							<report>dependencies</report>
 						</reports>
 					</reportSet>
 				</reportSets>

@@ -19,8 +19,7 @@
     </fluidoSkin>
   </custom>
   <body>
-    <menu ref="modules" />
-    <menu ref="reports" />
     <menu ref="parent" />
+    <menu ref="reports" />
   </body>
 </project>

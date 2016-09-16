@@ -33,6 +33,7 @@ High performance MQTT broker w/ full specifications support, Clustering, WebSock
 
 ## Getting Started
 Lannister is **under CONSTRUCTION**. But the most of features above are implemented and tested. You can run and test Lannister simply via,
+
 ```{r, engine='bash', count_lines}
 # The below commands require Java 8 and Maven 3
 
@@ -48,6 +49,7 @@ mvn install
 # Run lannister server directed by lannister.cfg/hazelcast.config.xml/log4j.xml files in conf directory
 mvn exec:java -pl server
 ```
+
 ## Version History
 ##### version 0.9.5.1 / Sep 11, 2016
 - Externalize Hazelcast config - Add hazelcast.config.xml

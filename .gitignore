@@ -17,3 +17,6 @@
 **/buildinfo.properties
 
 upload_coverage.sh
+
+# Copied from root to site source files by maven-resources-plugin
+/src/site/markdown/README.md
