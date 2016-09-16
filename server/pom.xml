@@ -11,19 +11,15 @@
 	</parent>
 	<properties>
 		<site.basedir>${project.parent.basedir}</site.basedir>
-		<jacoco.reportPath>${project.build.directory}/jacoco.exec</jacoco.reportPath>
-		<jacoco.itReportPath>${project.build.directory}/jacoco-it.exec</jacoco.itReportPath>
 	</properties>
 	<profiles>
 		<profile>
-			<id>lannister.local</id>
+			<id>lannister.default</id>
 			<activation>
 				<activeByDefault>true</activeByDefault>
 			</activation>
 			<properties>
-				<env>local</env>
-				<lannister.home>${project.build.directory}</lannister.home>
-				<log.path>${project.build.directory}/logs</log.path>
+				<env>default</env>
 			</properties>
 		</profile>
 		<profile>
