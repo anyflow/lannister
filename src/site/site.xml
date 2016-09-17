@@ -19,8 +19,8 @@
     </fluidoSkin>
   </custom>
   <body>
-    <menu name="MAIN">
-      <item name="README" href="README.html" />
+    <menu name="OVERVIEW">
+      <item name="Introduction" href="index.html" />
     </menu>
     <menu ref="modules" />
     <menu ref="reports" />

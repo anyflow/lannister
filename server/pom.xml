@@ -9,6 +9,12 @@
 		<artifactId>lannister</artifactId>
 		<version>0.9.5.2-SNAPSHOT</version>
 	</parent>
+  <scm>
+		<url>https://github.com/anyflow/lannister/tree/master/server</url>
+		<connection>scm:git:git@github.com:anyflow/lannister.git</connection>
+		<developerConnection>scm:git:git@github.com:anyflow/lannister.git</developerConnection>
+		<tag>HEAD</tag>
+  </scm>	
 	<properties>
 		<site.basedir>${project.parent.basedir}</site.basedir>
 	</properties>
@@ -222,4 +228,25 @@
 			</plugin>
 		</plugins>
 	</build>
+	<reporting>
+		<plugins>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-project-info-reports-plugin</artifactId>
+				<version>2.9</version>
+				<configuration>
+					<dependencyLocationsEnabled>false</dependencyLocationsEnabled>
+				</configuration>
+				<reportSets>
+					<reportSet>
+						<reports>
+							<report>index</report>
+							<report>summary</report>
+							<report>dependencies</report>
+						</reports>
+					</reportSet>
+				</reportSets>
+			</plugin>
+		</plugins>
+	</reporting>
 </project>
