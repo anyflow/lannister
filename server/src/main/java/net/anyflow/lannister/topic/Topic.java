@@ -172,33 +172,18 @@ public class Topic implements com.hazelcast.nio.serialization.Portable {
 		return subscriptionQos.value() <= publishQos.value() ? subscriptionQos : publishQos;
 	}
 
-	public void broadcast(Message message) {
-		assert name.equals(message.topicName());
+	public void publish(Session session, Message message) {
+		assert session != null;
+		assert message != null;
 
-		subscribers.keySet().stream().filter(id -> Session.NEXUS.get(id) != null).forEach(id -> {
-			Session session = Session.NEXUS.get(id);
+		message.setId(session.nextMessageId()); // [MQTT-2.3.1-2]
 
-			Message toSend = message.clone();
+		if (message.qos() != MqttQoS.AT_MOST_ONCE) {
+			Topic.NEXUS.get(message.topicName()).subscribers().get(session.clientId()).addOutboundMessageStatus(
+					message.id(), message.key(), OutboundMessageStatus.Status.TO_PUBLISH, message.qos()); // [MQTT-3.1.2-5]
+		}
 
-			// TODO what if returned topicSubscriptions are multiple?
-			TopicSubscription subscription = session.matches(name).findAny().orElse(null);
-			assert subscription != null;
-
-			toSend.setQos(adjustQoS(subscription.qos(), message.qos()));
-			toSend.setId(session.nextMessageId()); // [MQTT-2.3.1-2]
-
-			if (toSend.qos() != MqttQoS.AT_MOST_ONCE) {
-				Topic.NEXUS.get(toSend.topicName()).subscribers().get(session.clientId()).addOutboundMessageStatus(
-						toSend.id(), message.key(), OutboundMessageStatus.Status.TO_PUBLISH, toSend.qos()); // [MQTT-3.1.2-5]
-			}
-
-			if (session.isConnected(true)) {
-				session.sendPublish(this, toSend); // [MQTT-3.3.1-8],[MQTT-3.3.1-9]
-			}
-			else {
-				NEXUS.notifier().publish(new Notification(id, this, toSend));
-			}
-		});
+		NEXUS.notifier().publish(new Notification(session.clientId(), this, message));
 	}
 
 	protected void publish(Message message) {
@@ -209,7 +194,19 @@ public class Topic implements com.hazelcast.nio.serialization.Portable {
 		}
 
 		putMessage(message.publisherId(), message);
-		broadcast(message);
+
+		subscribers.keySet().stream().filter(id -> Session.NEXUS.get(id) != null).forEach(id -> {
+			Session session = Session.NEXUS.get(id);
+
+			Message toSend = message.clone();
+
+			TopicSubscription subscription = session.matches(name);
+			assert subscription != null;
+
+			toSend.setQos(adjustQoS(subscription.qos(), message.qos()));
+
+			publish(session, toSend);
+		});
 	}
 
 	public void addSubscribers() {

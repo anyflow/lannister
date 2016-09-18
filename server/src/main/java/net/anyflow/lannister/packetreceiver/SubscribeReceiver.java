@@ -20,6 +20,7 @@ import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
@@ -43,6 +44,7 @@ import net.anyflow.lannister.plugin.Plugins;
 import net.anyflow.lannister.plugin.SubscribeEventArgs;
 import net.anyflow.lannister.plugin.SubscribeEventListener;
 import net.anyflow.lannister.session.Session;
+import net.anyflow.lannister.topic.Topic;
 import net.anyflow.lannister.topic.TopicMatcher;
 import net.anyflow.lannister.topic.TopicSubscription;
 
@@ -83,20 +85,20 @@ public class SubscribeReceiver extends SimpleChannelInboundHandler<MqttSubscribe
 
 		session.send(MessageFactory.suback(msg.variableHeader().messageId(), grantedQoss)); // [MQTT-2.3.1-7],[MQTT-2.3.1-7],[MQTT-3.8.4-1],[MQTT-3.8.4-2]
 
-		sendRetainedMessage(session, topicSubscriptions);
+		sendRetainedMessage(session, topicSubscriptions.keySet());
 
 		publishStatic$Sys(session, topicSubscriptions.values());
-
-		// TODO [MQTT-3.3.1-7]
 	}
 
-	private void sendRetainedMessage(Session session, Map<String, TopicSubscription> topicSubscriptions) {
-		session.topics(topicSubscriptions.values()).forEach(topic -> {
+	private void sendRetainedMessage(Session session, Set<String> topicFilters) {
+		Collection<Topic> topics = Topic.NEXUS.matches(topicFilters);
+
+		topics.forEach(topic -> {
 			if (topic.retainedMessage() == null) { return; }
 
 			topic.putMessage(topic.retainedMessage().publisherId(), topic.retainedMessage());
 
-			session.sendPublish(topic, topic.retainedMessage()); // [MQTT-3.3.1-6],[MQTT-3.3.1-8]
+			topic.publish(session, topic.retainedMessage().clone()); // [MQTT-3.3.1-6],[MQTT-3.3.1-8]
 		});
 	}
 
@@ -178,8 +180,8 @@ public class SubscribeReceiver extends SimpleChannelInboundHandler<MqttSubscribe
 
 				session.send(MessageFactory.publish(new Message(-1, t, requesterId, msg, MqttQoS.AT_MOST_ONCE, false),
 						false)).addListener(f -> {
-					Statistics.INSTANCE.add(Statistics.Criterion.MESSAGES_PUBLISH_SENT, 1);
-				});
+							Statistics.INSTANCE.add(Statistics.Criterion.MESSAGES_PUBLISH_SENT, 1);
+						});
 			});
 		});
 	}

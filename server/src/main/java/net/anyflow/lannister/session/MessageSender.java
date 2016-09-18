@@ -35,7 +35,8 @@ import net.anyflow.lannister.topic.Topics;
 public class MessageSender {
 	private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(MessageSender.class);
 
-	private final static int RESPONSE_TIMEOUT_SECONDS = Settings.INSTANCE.getInt("lannister.responseTimeoutSeconds", 60);
+	private final static int RESPONSE_TIMEOUT_SECONDS = Settings.INSTANCE.getInt("lannister.responseTimeoutSeconds",
+			60);
 
 	private final Session session;
 
@@ -161,8 +162,8 @@ public class MessageSender {
 				case PUBLISHED:
 					send(MessageFactory.publish(message, s.status() == OutboundMessageStatus.Status.PUBLISHED)) // [MQTT-3.3.1-1]
 							.addListener(f -> {
-						Statistics.INSTANCE.add(Statistics.Criterion.MESSAGES_PUBLISH_SENT, 1);
-					});
+								Statistics.INSTANCE.add(Statistics.Criterion.MESSAGES_PUBLISH_SENT, 1);
+							});
 					break;
 
 				case PUBRECED:

@@ -17,10 +17,8 @@
 package net.anyflow.lannister.session;
 
 import java.io.IOException;
-import java.util.Collection;
 import java.util.Date;
 import java.util.List;
-import java.util.stream.Stream;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -168,8 +166,9 @@ public class Session implements com.hazelcast.nio.serialization.Portable {
 		return topicSubscriptions;
 	}
 
-	public Stream<TopicSubscription> matches(String topicName) {
-		return topicSubscriptions.values().stream().filter(t -> TopicMatcher.match(t.topicFilter(), topicName));
+	public TopicSubscription matches(String topicName) {
+		return topicSubscriptions.values().stream().filter(t -> TopicMatcher.match(t.topicFilter(), topicName))
+				.max((p1, p2) -> p1.qos().compareTo(p2.qos())).orElse(null); // [MQTT-3.3.5-1]
 	}
 
 	public ChannelFuture send(MqttMessage message) {
@@ -182,10 +181,6 @@ public class Session implements com.hazelcast.nio.serialization.Portable {
 
 	public void completeRemainedMessages() {
 		messageSender.completeRemainedMessages();
-	}
-
-	public Stream<Topic> topics(Collection<TopicSubscription> topicSubscriptions) {
-		return Topic.NEXUS.map().values().parallelStream().filter(t -> this.matches(t.name()).count() > 0);
 	}
 
 	public int nextMessageId() {
@@ -221,7 +216,7 @@ public class Session implements com.hazelcast.nio.serialization.Portable {
 
 		if (cleanSession) {
 			this.topicSubscriptions.values().stream().forEach(ts -> {
-				Topic.NEXUS.getMatches(ts.topicFilter()).forEach(t -> t.subscribers().remove(clientId));
+				Topic.NEXUS.matches(ts.topicFilter()).forEach(t -> t.subscribers().remove(clientId));
 			});
 
 			this.topicSubscriptions.destroy();
