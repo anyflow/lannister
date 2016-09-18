@@ -16,6 +16,8 @@
 
 package net.anyflow.lannister.httphandler;
 
+import java.util.stream.Collectors;
+
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Strings;
@@ -28,16 +30,6 @@ public class Topics extends HttpRequestHandler {
 
 	private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(Topics.class);
 
-	private String allString() {
-		try {
-			return new ObjectMapper().writeValueAsString(Topic.NEXUS.map());
-		}
-		catch (JsonProcessingException e) {
-			logger.error(e.getMessage(), e);
-			return null;
-		}
-	}
-
 	@Override
 	public String service() {
 		String filter = Strings.nullToEmpty(httpRequest().parameter("filter"));
@@ -45,9 +37,32 @@ public class Topics extends HttpRequestHandler {
 		switch (filter) {
 		case "":
 		case "all":
-			return allString();
+			return all();
+		case "nosys":
+			return nosys();
 
 		default:
+			return null;
+		}
+	}
+
+	private String all() {
+		try {
+			return new ObjectMapper().writeValueAsString(Topic.NEXUS.map().values());
+		}
+		catch (JsonProcessingException e) {
+			logger.error(e.getMessage(), e);
+			return null;
+		}
+	}
+
+	private String nosys() {
+		try {
+			return new ObjectMapper().writeValueAsString(Topic.NEXUS.map().values().stream()
+					.filter(t -> !t.name().startsWith("$SYS")).collect(Collectors.toList()));
+		}
+		catch (JsonProcessingException e) {
+			logger.error(e.getMessage(), e);
 			return null;
 		}
 	}

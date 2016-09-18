@@ -39,7 +39,17 @@ public class TopicsTest {
 		HttpResponse res = client.get();
 
 		Assert.assertEquals(HttpResponseStatus.OK, res.status());
-		Assert.assertTrue(res.content().toString(CharsetUtil.UTF_8).startsWith("{"));
-		Assert.assertTrue(res.content().toString(CharsetUtil.UTF_8).endsWith("}"));
+		Assert.assertTrue(res.content().toString(CharsetUtil.UTF_8).startsWith("["));
+		Assert.assertTrue(res.content().toString(CharsetUtil.UTF_8).endsWith("]"));
+	}
+
+	@Test
+	public void testNosys() throws Exception {
+		HttpClient client = new HttpClient("http://localhost:8090/topics?filter=nosys");
+		HttpResponse res = client.get();
+
+		Assert.assertEquals(HttpResponseStatus.OK, res.status());
+		Assert.assertTrue(res.content().toString(CharsetUtil.UTF_8).startsWith("["));
+		Assert.assertTrue(res.content().toString(CharsetUtil.UTF_8).endsWith("]"));
 	}
 }

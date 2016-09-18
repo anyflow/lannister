@@ -16,7 +16,6 @@
 
 package net.anyflow.lannister.httphandler;
 
-import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -33,9 +32,8 @@ public class Sessions extends HttpRequestHandler {
 
 	private String liveString() {
 		try {
-			return new ObjectMapper()
-					.writeValueAsString(Session.NEXUS.map().values().stream().filter(s -> s.isConnected(false))
-							.collect(Collectors.toMap(Session::clientId, Function.identity())));
+			return new ObjectMapper().writeValueAsString(Session.NEXUS.map().values().stream()
+					.filter(s -> s.isConnected(false)).collect(Collectors.toList()));
 		}
 		catch (JsonProcessingException e) {
 			logger.error(e.getMessage(), e);
@@ -45,7 +43,7 @@ public class Sessions extends HttpRequestHandler {
 
 	private String allString() {
 		try {
-			return new ObjectMapper().writeValueAsString(Session.NEXUS.map());
+			return new ObjectMapper().writeValueAsString(Session.NEXUS.map().values());
 		}
 		catch (JsonProcessingException e) {
 			logger.error(e.getMessage(), e);
