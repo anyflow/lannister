@@ -175,7 +175,7 @@ public class Session implements com.hazelcast.nio.serialization.Portable {
 		return messageSender.send(message);
 	}
 
-	public void sendPublish(Topic topic, Message message) {
+	protected void sendPublish(Topic topic, Message message) {
 		messageSender.sendPublish(topic, message);
 	}
 

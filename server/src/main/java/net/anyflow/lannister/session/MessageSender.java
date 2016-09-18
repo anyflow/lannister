@@ -151,7 +151,7 @@ public class MessageSender {
 				if (intervalSeconds < RESPONSE_TIMEOUT_SECONDS) { return; }
 
 				Topic topic = Topic.NEXUS.get(s.clientId(), s.messageId(), Topics.ClientType.SUBSCRIBER);
-				Message message = topic.messages().get(s.inboundMessageKey());
+				Message message = topic.messages().get(s.messageKey());
 
 				message.setQos(s.qos());
 				message.setId(s.messageId()); // [MQTT-2.3.1-4]
