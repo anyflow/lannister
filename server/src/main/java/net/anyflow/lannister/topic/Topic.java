@@ -227,7 +227,7 @@ public class Topic implements com.hazelcast.nio.serialization.Portable {
 		NEXUS.notifier().publish(new Notification(session.clientId(), this, message));
 	}
 
-	public void addSubscribers() {
+	public void updateSubscribers() {
 		Session.NEXUS.map().values().stream()
 				.filter(s -> s.topicSubscriptions().values().stream()
 						.anyMatch(ts -> TopicMatcher.match(ts.topicFilter(), name)))

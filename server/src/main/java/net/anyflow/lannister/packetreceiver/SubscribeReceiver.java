@@ -31,11 +31,7 @@ import io.netty.channel.SimpleChannelInboundHandler;
 import io.netty.handler.codec.mqtt.MqttQoS;
 import io.netty.handler.codec.mqtt.MqttSubscribeMessage;
 import io.netty.handler.codec.mqtt.MqttTopicSubscription;
-import io.netty.util.CharsetUtil;
 import net.anyflow.lannister.AbnormalDisconnectEventArgs;
-import net.anyflow.lannister.Settings;
-import net.anyflow.lannister.Statistics;
-import net.anyflow.lannister.message.Message;
 import net.anyflow.lannister.message.MessageFactory;
 import net.anyflow.lannister.plugin.DefaultSubscribeEventListener;
 import net.anyflow.lannister.plugin.DisconnectEventListener;
@@ -86,8 +82,6 @@ public class SubscribeReceiver extends SimpleChannelInboundHandler<MqttSubscribe
 		session.send(MessageFactory.suback(msg.variableHeader().messageId(), grantedQoss)); // [MQTT-2.3.1-7],[MQTT-2.3.1-7],[MQTT-3.8.4-1],[MQTT-3.8.4-2]
 
 		sendRetainedMessage(session, topicSubscriptions.keySet());
-
-		publishStatic$Sys(session, topicSubscriptions.values());
 	}
 
 	private void sendRetainedMessage(Session session, Set<String> topicFilters) {
@@ -167,22 +161,5 @@ public class SubscribeReceiver extends SimpleChannelInboundHandler<MqttSubscribe
 		}
 
 		return true;
-	}
-
-	private void publishStatic$Sys(Session session, Collection<TopicSubscription> topicSubscriptions) {
-		String requesterId = Settings.INSTANCE.getProperty("lannister.broker.id", "lannister_broker_id");
-
-		topicSubscriptions.stream().forEach(ts -> {
-			Statistics.$SYS_STATIC_TOPICS.stream().forEach(t -> {
-				if (!TopicMatcher.match(ts.topicFilter(), t)) { return; }
-
-				byte[] msg = Statistics.INSTANCE.getStatic(t).getBytes(CharsetUtil.UTF_8);
-
-				session.send(MessageFactory.publish(new Message(-1, t, requesterId, msg, MqttQoS.AT_MOST_ONCE, false),
-						false)).addListener(f -> {
-							Statistics.INSTANCE.add(Statistics.Criterion.MESSAGES_PUBLISH_SENT, 1);
-						});
-			});
-		});
 	}
 }

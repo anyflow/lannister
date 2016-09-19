@@ -101,7 +101,7 @@ public class Topics {
 			return null;
 		}
 
-		topic.addSubscribers();
+		topic.updateSubscribers();
 
 		// TODO should be added in case of no subscriber & no retained Message?
 		return topics.put(topic.name(), topic);

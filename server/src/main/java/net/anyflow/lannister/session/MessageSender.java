@@ -126,7 +126,7 @@ public class MessageSender {
 					break;
 
 				default:
-					logger.error("Invalid Outbound Message Status [status={}, clientId={}, topic={}, messageId={}]",
+					logger.error("Invalid Inbound Message Status [status={}, clientId={}, topic={}, messageId={}]",
 							s.status(), session.clientId(), message.topicName(), message.id());
 					break;
 				}
@@ -141,7 +141,7 @@ public class MessageSender {
 		ctx.executor().submit(() -> {
 			Date now = new Date();
 
-			Stream<OutboundMessageStatus> statuses = Topic.NEXUS.map().values().parallelStream()
+			Stream<OutboundMessageStatus> statuses = Topic.NEXUS.map().values().stream()
 					.filter(t -> t.subscribers().containsKey(session.clientId()))
 					.map(t -> t.subscribers().get(session.clientId())).map(s -> s.outboundMessageStatuses())
 					.flatMap(s -> s.values().stream());
@@ -162,6 +162,8 @@ public class MessageSender {
 				case PUBLISHED:
 					send(MessageFactory.publish(message, s.status() == OutboundMessageStatus.Status.PUBLISHED)) // [MQTT-3.3.1-1]
 							.addListener(f -> {
+								topic.subscribers().get(session.clientId()).setOutboundMessageStatus(message.id(),
+										OutboundMessageStatus.Status.PUBLISHED);
 								Statistics.INSTANCE.add(Statistics.Criterion.MESSAGES_PUBLISH_SENT, 1);
 							});
 					break;
