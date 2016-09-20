@@ -5,7 +5,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>net.anyflow</groupId>
 	<artifactId>lannister</artifactId>
-	<version>0.9.5.2-SNAPSHOT</version>
+	<version>0.9.6-SNAPSHOT</version>
 	<name>Lannister</name>
 	<url>https://github.com/anyflow/lannister</url>
 	<description>MQTT broker with full spec support and Clustering/WebSocket/SSL based on Java - Netty/Hazelcast</description>

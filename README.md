@@ -5,7 +5,7 @@
 High performance MQTT broker w/ full specifications support, Clustering, WebSocket, SSL on Java - [Netty](https://github.com/netty/netty) & [Hazelcast](https://github.com/hazelcast/hazelcast) **under CONSTRUCTION**.
 
 ## Features
-1. Full Protocol Specifications([MQTT Version 3.1](http://public.dhe.ibm.com/software/dw/webservices/ws-mqtt/mqtt-v3r1.html), [MQTT Version 3.1.1](http://docs.oasis-open.org/mqtt/mqtt/v3.1.1/os/mqtt-v3.1.1-os.html)) Support includes
+1. Full Protocol Specifications([MQTT Version 3.1.1](http://docs.oasis-open.org/mqtt/mqtt/v3.1.1/os/mqtt-v3.1.1-os.html), [MQTT Version 3.1](http://public.dhe.ibm.com/software/dw/webservices/ws-mqtt/mqtt-v3r1.html)) Support includes
    * QoS 0,1,2 on Publish / Subscribe
    * Clean / Persistent Session
    * Retained / Will Message
@@ -65,7 +65,7 @@ For more information, visit http://anyflow.github.io/lannister/
 
 
 ## Version History
-##### version 0.9.5.2 / Sep 21, 2016
+##### version 0.9.6 / Sep 21, 2016
 - Open project site(http://anyflow.github.io/lannister/)
 - Open deploy repository(https://github.com/anyflow/lannister/tree/deploy-repo)
 - Add nosys filter in topics REST API(`/topics?filter=nosys`)
