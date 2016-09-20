@@ -32,44 +32,46 @@ import net.anyflow.lannister.session.Session;
 import net.anyflow.lannister.topic.Topic;
 
 public class ScheduledExecutor extends ChannelInboundHandlerAdapter {
-	private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(ScheduledExecutor.class);
+    private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(ScheduledExecutor.class);
 
-	@Override
-	public void handlerAdded(ChannelHandlerContext ctx) throws Exception {
-		int $sysPublisherInterval = Settings.INSTANCE.getInt("annister.sys.intervalSeconds", 2);
-		ctx.executor().scheduleAtFixedRate(new $SysPublisher(), 0, $sysPublisherInterval, TimeUnit.SECONDS);
+    @Override
+    public void handlerAdded(ChannelHandlerContext ctx) throws Exception {
+        int $sysPublisherInterval = Settings.INSTANCE.getInt("annister.sys.intervalSeconds", 2);
+        ctx.executor().scheduleAtFixedRate(new $SysPublisher(), 0, $sysPublisherInterval, TimeUnit.SECONDS);
 
-		int sessionExpiratorInterval = Settings.INSTANCE
-				.getInt("lannister.sessionExpirationHandlerExecutionIntervalSeconds", 0);
-		ctx.executor().scheduleAtFixedRate(new SessionExpirator(), 0, sessionExpiratorInterval, TimeUnit.SECONDS);
-	}
+        int sessionExpiratorInterval = Settings.INSTANCE
+                .getInt("lannister.sessionExpirationHandlerExecutionIntervalSeconds", 0);
+        ctx.executor().scheduleAtFixedRate(new SessionExpirator(), 0, sessionExpiratorInterval, TimeUnit.SECONDS);
+    }
 
-	static class $SysPublisher implements Runnable {
-		@Override
-		public void run() {
-			String requesterId = Settings.INSTANCE.getProperty("lannister.broker.id", "lannister_broker_id");
+    static class $SysPublisher implements Runnable {
+        @Override
+        public void run() {
+            String requesterId = Settings.INSTANCE.getProperty("lannister.broker.id", "lannister_broker_id");
 
-			Statistics.INSTANCE.data().entrySet().stream().forEach(e -> {
-				byte[] msg = e.getValue().value().getBytes(CharsetUtil.UTF_8);
+            Statistics.INSTANCE.data().entrySet().stream().forEach(e -> {
+                byte[] msg = e.getValue().value().getBytes(CharsetUtil.UTF_8);
 
-				Topic.NEXUS.publish(new Message(-1, e.getKey(), requesterId, msg, MqttQoS.AT_MOST_ONCE, false));
-			});
-		}
-	}
+                Topic.NEXUS.publish(new Message(-1, e.getKey(), requesterId, msg, MqttQoS.AT_MOST_ONCE, false));
+            });
+        }
+    }
 
-	static class SessionExpirator implements Runnable {
-		@Override
-		public void run() {
-			List<Session> disposes = Lists.newArrayList();
+    static class SessionExpirator implements Runnable {
+        @Override
+        public void run() {
+            List<Session> disposes = Lists.newArrayList();
 
-			Session.NEXUS.ctxs().keySet().stream().filter(id -> {
-				Session s = Session.NEXUS.get(id);
-				return s.isExpired();
-			}).forEach(id -> disposes.add(Session.NEXUS.get(id)));
+            Session.NEXUS.ctxs().keySet().stream().filter(id -> {
+                Session s = Session.NEXUS.get(id);
+                return s.isExpired();
+            }).forEach(id -> disposes.add(Session.NEXUS.get(id)));
 
-			disposes.stream().forEach(s -> s.dispose(true)); // [MQTT-3.1.2-24]
+            disposes.stream().forEach(s -> s.dispose(true)); // [MQTT-3.1.2-24]
 
-			logger.debug("SessionExpirationHandler executed [dispose count={}]", disposes.size());
-		}
-	}
+            if (disposes.size() > 0) {
+                logger.debug("SessionExpirationHandler executed [dispose count={}]", disposes.size());
+            }
+        }
+    }
 }

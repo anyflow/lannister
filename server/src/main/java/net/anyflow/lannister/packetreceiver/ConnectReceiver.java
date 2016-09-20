@@ -17,7 +17,6 @@
 package net.anyflow.lannister.packetreceiver;
 
 import java.net.InetSocketAddress;
-import java.util.Collection;
 
 import com.google.common.base.Strings;
 
@@ -34,7 +33,6 @@ import net.anyflow.lannister.Hazelcast;
 import net.anyflow.lannister.Settings;
 import net.anyflow.lannister.message.Message;
 import net.anyflow.lannister.message.MessageFactory;
-import net.anyflow.lannister.message.OutboundMessageStatus;
 import net.anyflow.lannister.plugin.Authenticator;
 import net.anyflow.lannister.plugin.Authorizer;
 import net.anyflow.lannister.plugin.ConnectEventArgs;
@@ -45,7 +43,6 @@ import net.anyflow.lannister.plugin.Plugins;
 import net.anyflow.lannister.plugin.ServiceChecker;
 import net.anyflow.lannister.session.Session;
 import net.anyflow.lannister.topic.Topic;
-import net.anyflow.lannister.topic.TopicSubscriber;
 
 public class ConnectReceiver extends SimpleChannelInboundHandler<MqttConnectMessage> {
 
@@ -124,25 +121,6 @@ public class ConnectReceiver extends SimpleChannelInboundHandler<MqttConnectMess
 			if (!sessionFinal.cleanSession()) {
 				sessionFinal.completeRemainedMessages(); // [MQTT-4.4.0-1]
 			}
-		});
-
-		sendStoredMessages(session);
-	}
-
-	private void sendStoredMessages(Session session) {
-		assert session != null;
-
-		if (session.cleanSession()) { return; }
-
-		Collection<Topic> topics = Topic.NEXUS.matches(session.topicSubscriptions().keySet());
-		topics.stream().forEach(t -> {
-			TopicSubscriber ts = t.subscribers().get(session.clientId());
-			if (ts == null) { return; }
-
-			ts.outboundMessageStatuses().values().stream()
-					.filter(s -> s.status() != OutboundMessageStatus.Status.TO_PUBLISH).forEach(s -> {
-						t.publish(session, s.messageKey());
-					});
 		});
 	}
 
