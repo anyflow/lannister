@@ -111,15 +111,6 @@
 					<include>shutdown.sh</include>
 				</includes>
 			</resource>
-			<resource>
-				<filtering>false</filtering>
-				<directory>${project.basedir}/../</directory>
-				<targetPath>${project.build.directory}</targetPath>
-				<includes>
-					<include>LICENSE</include>
-					<include>README.md</include>
-				</includes>
-			</resource>
 		</resources>
 		<testResources>
 			<testResource>
@@ -206,11 +197,32 @@
 					</execution>
 				</executions>
 			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-antrun-plugin</artifactId>
+				<version>1.8</version>
+				<executions>
+					<execution>
+						<id>deploy</id>
+						<configuration>
+							<target>
+								<echo>Copying README.md / LICENSE...</echo>
+								<copy file="../LICENSE" todir="${project.build.directory}"/>
+								<copy file="../README.md" todir="${project.build.directory}"/>
+							</target>
+						</configuration>
+						<phase>package</phase>
+						<goals>
+							<goal>run</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
 			<!-- create archive for deploy -->
 			<plugin>
 				<artifactId>maven-assembly-plugin</artifactId>
 				<configuration>
-					<finalName>[${maven.build.timestamp}]${project.build.finalName}</finalName>
+					<finalName>${project.build.finalName}</finalName>
 					<workDirectory>target/assembly/work</workDirectory>
 					<descriptors>
 						<descriptor>${project.basedir}/src/main/assembly/dep.xml</descriptor>
