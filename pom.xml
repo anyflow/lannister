@@ -9,19 +9,19 @@
 	<name>Lannister</name>
 	<url>https://github.com/anyflow/lannister</url>
 	<description>MQTT broker with full spec support and Clustering/WebSocket/SSL based on Java - Netty/Hazelcast</description>
-  <organization>
-    <name>anyflow.net</name>
-    <url>https://github.com/anyflow</url>
-  </organization>
+	<organization>
+		<name>anyflow.net</name>
+		<url>https://github.com/anyflow</url>
+	</organization>
 	<developers>
 		<developer>
 			<id>anyflow</id>
 			<name>Park Hyunjeong</name>
 			<url>http://anyflow.net</url>
 			<timezone>Asia/Seoul</timezone>
-      <roles>
-        <role>leader</role>
-      </roles>			
+			<roles>
+				<role>leader</role>
+			</roles>
 		</developer>
 	</developers>
 	<licenses>
@@ -62,10 +62,9 @@
 		<module>plugin-example</module>
 		<module>server</module>
 	</modules>
-	<mailingLists>
-	</mailingLists>
+	<mailingLists></mailingLists>
 	<packaging>pom</packaging>
-		<properties>
+	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<github.global.server>github</github.global.server>
 	</properties>
@@ -154,6 +153,26 @@
 				</configuration>
 			</plugin>
 			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-antrun-plugin</artifactId>
+				<version>1.8</version>
+				<inherited>false</inherited>
+				<executions>
+					<execution>
+						<configuration>
+							<target>
+								<echo>Copying README.md to site/index...</echo>
+								<copy file="./README.md" tofile="./src/site/markdown/index.md" overwrite="true"/>
+							</target>
+						</configuration>
+						<phase>package</phase>
+						<goals>
+							<goal>run</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+			<plugin>
 				<artifactId>maven-deploy-plugin</artifactId>
 				<version>2.8.1</version>
 				<configuration>
@@ -212,7 +231,7 @@
 					<reportSet>
 						<reports>
 							<report>summary</report>
-              <report>project-team</report>							
+							<report>project-team</report>
 							<report>license</report>
 							<report>scm</report>
 							<report>cim</report>
