@@ -9,7 +9,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="Date-Revision-yyyymmdd" content="20160921" />
     <meta http-equiv="Content-Language" content="en" />
-    <title>Lannister &#x2013; Lannister</title>
+    <title>Lannister &#x2013; Project Information</title>
     <link rel="stylesheet" href="./css/apache-maven-fluido-1.5.min.css" />
     <link rel="stylesheet" href="./css/site.css" />
     <link rel="stylesheet" href="./css/print.css" media="print" />
@@ -156,10 +156,12 @@
                 <ul class="nav nav-list">
                     <li class="nav-header">OVERVIEW</li>
                               
-      <li class="active">
+      <li>
   
-            <a href="#"><span class="none"></span>Introduction</a>
-          </li>
+                          <a href="index.html" title="Introduction">
+          <span class="none"></span>
+        Introduction</a>
+            </li>
                               <li class="nav-header">Modules</li>
                               
       <li>
@@ -183,13 +185,62 @@
         Lannister server</a>
             </li>
                               <li class="nav-header">Project Documentation</li>
-                                                                                                                                                                                            
+                                                                                                                                                                                                
+      <li class="active">
+  
+            <a href="#"><span class="icon-chevron-down"></span>Project Information</a>
+                  <ul class="nav nav-list">
+                    
       <li>
   
-                          <a href="project-info.html" title="Project Information">
-          <span class="icon-chevron-right"></span>
-        Project Information</a>
-                  </li>
+                          <a href="project-summary.html" title="Summary">
+          <span class="none"></span>
+        Summary</a>
+            </li>
+                    
+      <li>
+  
+                          <a href="team-list.html" title="Team">
+          <span class="none"></span>
+        Team</a>
+            </li>
+                    
+      <li>
+  
+                          <a href="license.html" title="Licenses">
+          <span class="none"></span>
+        Licenses</a>
+            </li>
+                    
+      <li>
+  
+                          <a href="source-repository.html" title="Source Code Management">
+          <span class="none"></span>
+        Source Code Management</a>
+            </li>
+                    
+      <li>
+  
+                          <a href="integration.html" title="CI Management">
+          <span class="none"></span>
+        CI Management</a>
+            </li>
+                    
+      <li>
+  
+                          <a href="issue-tracking.html" title="Issue Management">
+          <span class="none"></span>
+        Issue Management</a>
+            </li>
+                    
+      <li>
+  
+                          <a href="dependencies.html" title="Dependencies">
+          <span class="none"></span>
+        Dependencies</a>
+            </li>
+              </ul>
+        </li>
                                                                                                                                                                               
       <li>
   
@@ -217,168 +268,36 @@
                 
         <div id="bodyColumn"  class="span10" >
                                   
-            <h1>Lannister</h1>
-<p><a class="externalLink" href="https://travis-ci.org/anyflow/lannister"><img src="https://travis-ci.org/anyflow/lannister.svg?branch=master" alt="Build Status" /></a> <a class="externalLink" href="https://www.codacy.com/app/anyflow/lannister?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=anyflow/lannister&amp;utm_campaign=Badge_Grade"><img src="https://api.codacy.com/project/badge/Grade/8d72feca76504d89a9846beecbbbc34b" alt="Codacy Badge" /></a> <a class="externalLink" href="https://www.codacy.com/app/anyflow/lannister?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=anyflow/lannister&amp;utm_campaign=Badge_Coverage"><img src="https://api.codacy.com/project/badge/Coverage/8d72feca76504d89a9846beecbbbc34b" alt="Codacy Badge" /></a></p>
-<p>High performance MQTT broker w/ full specifications support, Clustering, WebSocket, SSL on Java - <a class="externalLink" href="https://github.com/netty/netty">Netty</a> &amp; <a class="externalLink" href="https://github.com/hazelcast/hazelcast">Hazelcast</a> <b>under CONSTRUCTION</b>.</p>
+            <div class="section">
+<h2><a name="Project_Information"></a>Project Information</h2>
+<p>This document provides an overview of the various documents and links that are part of this project's general information. All of this content is automatically generated by <a class="externalLink" href="http://maven.apache.org">Maven</a> on behalf of the project.</p>
 <div class="section">
-<h2><a name="Features"></a>Features</h2>
-
-<ol style="list-style-type: decimal">
-  
-<li>Full Protocol Specifications(<a class="externalLink" href="http://public.dhe.ibm.com/software/dw/webservices/ws-mqtt/mqtt-v3r1.html">MQTT Version 3.1</a>, <a class="externalLink" href="http://docs.oasis-open.org/mqtt/mqtt/v3.1.1/os/mqtt-v3.1.1-os.html">MQTT Version 3.1.1</a>) Support includes</li>
-</ol>
-
-<ul>
-  
-<li>QoS 0,1,2 on Publish / Subscribe</li>
-  
-<li>Clean / Persistent Session</li>
-  
-<li>Retained / Will Message</li>
-</ul>
-
-<ol style="list-style-type: decimal">
-  
-<li>1000K connections per node</li>
-  
-<li>Clustering</li>
-</ol>
-
-<ul>
-  
-<li>Topic / Message / Message Status / Session redundant</li>
-  
-<li>No SPOF(peer-to-peer based : No master and slave)</li>
-  
-<li>Easy Scaling out</li>
-</ul>
-
-<ol style="list-style-type: decimal">
-  
-<li>WebSocket</li>
-  
-<li>SSL (TCP / WebSocket both)</li>
-  
-<li>$SYS</li>
-  
-<li>Plugin Support</li>
-</ol>
-
-<ul>
-  
-<li>Authenticator</li>
-  
-<li>Authorizer</li>
-  
-<li>ServiceChecker</li>
-  
-<li>ConnectEventListener</li>
-  
-<li>DisconnectEventListener</li>
-  
-<li>PublishEventListener</li>
-  
-<li>DeliveredEventListener</li>
-  
-<li>SubscribeEventListener</li>
-  
-<li>UnsubscribeEventListener</li>
-</ul>
-
-<ol style="list-style-type: decimal">
-  
-<li>HTTP REST APIs for admin, client</li>
-  
-<li>Web admin Dashboard <i>(arranged for Lannister version 1.1)</i></li>
-  
-<li>Data Persistence <i>(arranged for Lannister version 1.1)</i></li>
-</ol></div>
-<div class="section">
-<h2><a name="Getting_Started"></a>Getting Started</h2>
-<p>Lannister is <b>under CONSTRUCTION</b>. But the most of features above are implemented and tested. You can run and test Lannister simply via,</p>
-
-<div class="source">
-<div class="source"><pre class="prettyprint"># The below commands require Java 8 and Maven 3
-
-# Clone lannister source
-git clone https://github.com/anyflow/lannister.git
-
-# Change directory to lannister
-cd lannister
-
-# Build all(interface, server, plugin-example) projects
-mvn install
-
-# Run lannister server directed by lannister.cfg/hazelcast.config.xml/log4j.xml files in conf directory
-mvn exec:java -pl server
-</pre></div></div></div>
-<div class="section">
-<h2><a name="Version_History"></a>Version History</h2>
-<div class="section">
-<div class="section">
-<div class="section">
-<h5><a name="version_0.9.5.1__Sep_11_2016"></a>version 0.9.5.1 / Sep 11, 2016</h5>
-
-<ul>
-  
-<li>Externalize Hazelcast config - Add hazelcast.config.xml</li>
-  
-<li>Add docker file and docker property - Run maven with profile (mvn install -Plannister.docker)</li>
-  
-<li>Add null checker in hazelcast serialization logics</li>
-  
-<li>Change WebSocket(ssl) ports to 9001(9002)</li>
-  
-<li>Update Hazelcast version to 3.7.1</li>
-  
-<li>Update Netty version to 4.1.5</li>
-  
-<li>Add PMD / Findbugs / Jacoco / surefire reports</li>
-  
-<li>Start clustering TEST/FIX</li>
-  
-<li>Fix subscription failing on existing topic in clustered state</li>
-  
-<li>Fix subscriptions remaining on disposing (clean) session</li>
-  
-<li>Fix reconnect failing persisted session</li>
-  
-<li>Fix remaining no subscriber topic</li>
-</ul></div>
-<div class="section">
-<h5><a name="version_0.9.5.0__May_21_2016"></a>version 0.9.5.0 / May 21, 2016</h5>
-
-<ul>
-  
-<li>Code Review, Test based on chapter 3.2 of Spec v3.1.1 Mandatory normative statements</li>
-  
-<li>Add $SYS Required Topics</li>
-</ul></div>
-<div class="section">
-<h5><a name="version_0.9.5-beta1__May_16_2016"></a>version 0.9.5-beta1 / May 16, 2016</h5>
-
-<ul>
-  
-<li>Code Review, Test based on chapter 3.1 of Spec v3.1.1 Mandatory normative statements</li>
-  
-<li>Implement full features of Protocol Specification MQTT version 3.1.1</li>
-  
-<li>Add clustering</li>
-  
-<li>Add WebSocket <i>(default port: 2883)</i></li>
-  
-<li>Add SSL <i>(default port: 8883, default WebSocket SSL port: 9883)</i></li>
-  
-<li>Add plugin&#x2019;s : Framework &amp; Default / Example Plugins</li>
-  
-<li>Add admin HTTP REST APIs : listing topics, sessions</li>
-</ul></div></div></div></div>
-<div class="section">
-<h2><a name="Author"></a>Author</h2>
-<p>Park Hyunjeong / <a class="externalLink" href="mailto:anyflow@gmail.com">anyflow@gmail.com</a></p></div>
-<div class="section">
-<h2><a name="License"></a>License</h2>
-<p>Lannister is released under version 2.0 of the <a class="externalLink" href="http://www.apache.org/licenses/LICENSE-2.0">Apache License</a>.</p></div>
+<h3><a name="Overview"></a>Overview</h3>
+<table border="0" class="table table-striped">
+<tr class="a">
+<th>Document</th>
+<th>Description</th></tr>
+<tr class="b">
+<td><a href="project-summary.html">Summary</a></td>
+<td>This document lists other related information of this project</td></tr>
+<tr class="a">
+<td><a href="team-list.html">Team</a></td>
+<td>This document provides information on the members of this project. These are the individuals who have contributed to the project in one form or another.</td></tr>
+<tr class="b">
+<td><a href="license.html">Licenses</a></td>
+<td>This document lists the project license(s).</td></tr>
+<tr class="a">
+<td><a href="source-repository.html">Source Code Management</a></td>
+<td>This document lists ways to access the online source repository.</td></tr>
+<tr class="b">
+<td><a href="integration.html">CI Management</a></td>
+<td>This is a link to the definitions of all continuous integration processes that builds and tests code on a frequent, regular basis.</td></tr>
+<tr class="a">
+<td><a href="issue-tracking.html">Issue Management</a></td>
+<td>This document provides information on the issue management system used in this project.</td></tr>
+<tr class="b">
+<td><a href="dependencies.html">Dependencies</a></td>
+<td>This document lists the project's dependencies and provides information on each dependency.</td></tr></table></div></div>
                   </div>
             </div>
           </div>
