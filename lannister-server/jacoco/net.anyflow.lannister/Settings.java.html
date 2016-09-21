@@ -1,0 +1,202 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>Settings.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">Lannister server</a> &gt; <a href="index.source.html" class="el_package">net.anyflow.lannister</a> &gt; <span class="el_source">Settings.java</span></div><h1>Settings.java</h1><pre class="source lang-java linenums">/*
+ * Copyright 2016 The Lannister Project
+ * 
+ * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ * 
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package net.anyflow.lannister;
+
+import java.io.File;
+import java.io.IOException;
+import java.security.cert.CertificateException;
+import java.util.List;
+import java.util.Map;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.base.Strings;
+import com.google.common.collect.Lists;
+
+import io.netty.handler.ssl.util.SelfSignedCertificate;
+
+public class Settings extends java.util.Properties {
+
+	private static final long serialVersionUID = -3232325711649130464L;
+
+<span class="fc" id="L35">	protected static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(Settings.class);</span>
+
+	private final static String CONFIG_NAME = &quot;lannister.cfg&quot;;
+
+<span class="fc" id="L39">	public final static Settings INSTANCE = new Settings();</span>
+
+	private Map&lt;String, String&gt; webResourceExtensionToMimes;
+	private transient SelfSignedCertificate ssc;
+	private java.util.Properties gitProperties;
+
+	@SuppressWarnings(&quot;unchecked&quot;)
+<span class="fc" id="L46">	private Settings() {</span>
+<span class="fc" id="L47">		gitProperties = new java.util.Properties();</span>
+
+		try {
+<span class="fc" id="L50">			load(Application.class.getClassLoader().getResourceAsStream(CONFIG_NAME));</span>
+<span class="fc" id="L51">			gitProperties.load(Application.class.getClassLoader().getResourceAsStream(&quot;git.properties&quot;));</span>
+
+<span class="fc" id="L53">			ssc = new SelfSignedCertificate();</span>
+		}
+<span class="nc" id="L55">		catch (IOException e) {</span>
+<span class="nc" id="L56">			logger.error(&quot;Settings instantiation failed.&quot;, e);</span>
+		}
+<span class="nc" id="L58">		catch (CertificateException e) {</span>
+<span class="nc" id="L59">			logger.error(e.getMessage(), e);</span>
+<span class="pc" id="L60">		}</span>
+
+		try {
+<span class="fc" id="L63">			webResourceExtensionToMimes = new ObjectMapper().readValue(getProperty(&quot;lannister.web.httpServer.MIME&quot;),</span>
+					Map.class);
+		}
+<span class="nc" id="L66">		catch (IOException e) {</span>
+<span class="nc" id="L67">			logger.error(e.getMessage(), e);</span>
+<span class="fc" id="L68">		}</span>
+
+<span class="fc" id="L70">	}</span>
+
+	public int getInt(String key, Integer defaultValue) {
+<span class="fc" id="L73">		String valueString = this.getProperty(key.trim());</span>
+
+<span class="fc bfc" id="L75" title="All 2 branches covered.">		if (valueString == null) { return defaultValue; }</span>
+
+		try {
+<span class="fc" id="L78">			return Integer.parseInt(valueString.trim());</span>
+		}
+<span class="fc" id="L80">		catch (NumberFormatException e) {</span>
+<span class="fc" id="L81">			return defaultValue;</span>
+		}
+	}
+
+	public boolean getBoolean(String key, boolean defaultValue) {
+<span class="fc" id="L86">		String valueString = this.getProperty(key.trim());</span>
+
+<span class="pc bpc" id="L88" title="1 of 2 branches missed.">		if (valueString == null) { return defaultValue; }</span>
+
+<span class="fc" id="L90">		return &quot;true&quot;.equalsIgnoreCase(valueString.trim());</span>
+	}
+
+	public Map&lt;String, String&gt; webResourceExtensionToMimes() {
+<span class="fc" id="L94">		return webResourceExtensionToMimes;</span>
+	}
+
+	public static Integer tryParse(String text) {
+		try {
+<span class="fc" id="L99">			return Integer.parseInt(text);</span>
+		}
+<span class="nc" id="L101">		catch (NumberFormatException e) {</span>
+<span class="nc" id="L102">			return null;</span>
+		}
+	}
+
+	public Integer mqttPort() {
+<span class="fc" id="L107">		return tryParse(getProperty(&quot;lannister.tcp.port&quot;, null));</span>
+	}
+
+	public Integer mqttsPort() {
+<span class="fc" id="L111">		return tryParse(getProperty(&quot;lannister.tcp.ssl.port&quot;, null));</span>
+	}
+
+	public Integer websocketPort() {
+<span class="fc" id="L115">		return tryParse(getProperty(&quot;lannister.websocket.port&quot;, null));</span>
+	}
+
+	public Integer websocketSslPort() {
+<span class="fc" id="L119">		return tryParse(getProperty(&quot;lannister.websocket.ssl.port&quot;, null));</span>
+	}
+
+	public Integer httpPort() {
+<span class="fc" id="L123">		return tryParse(getProperty(&quot;lannister.web.httpServer.http.port&quot;, null));</span>
+	}
+
+	public Integer httpsPort() {
+<span class="fc" id="L127">		return tryParse(getProperty(&quot;lannister.web.httpServer.https.port&quot;, null));</span>
+	}
+
+	public File certChainFile() {
+<span class="fc" id="L131">		String certFilePath = getProperty(&quot;lannister.ssl.certChainFilePath&quot;, null);</span>
+
+<span class="pc bpc" id="L133" title="1 of 2 branches missed.">		return &quot;self&quot;.equalsIgnoreCase(certFilePath) ? ssc.certificate() : new File(certFilePath);</span>
+	}
+
+	public File privateKeyFile() {
+<span class="fc" id="L137">		String privateKeyFilePath = getProperty(&quot;lannister.ssl.privateKeyFilePath&quot;, null);</span>
+
+<span class="pc bpc" id="L139" title="1 of 2 branches missed.">		return &quot;self&quot;.equalsIgnoreCase(privateKeyFilePath) ? ssc.privateKey() : new File(privateKeyFilePath);</span>
+	}
+
+	public List&lt;String&gt; bannedTopicFilters() {
+<span class="fc" id="L143">		List&lt;String&gt; ret = Lists.newArrayList();</span>
+
+<span class="fc" id="L145">		String tokens = getProperty(&quot;lannister.subscribe.banned_topicfilters&quot;, &quot;&quot;);</span>
+<span class="pc bpc" id="L146" title="1 of 2 branches missed.">		if (Strings.isNullOrEmpty(tokens)) { return ret; }</span>
+
+<span class="fc" id="L148">		return Lists.newArrayList(tokens.split(&quot;,&quot;));</span>
+	}
+
+	/**
+	 * @return context root path
+	 */
+	public String httpContextRoot() {
+<span class="fc" id="L155">		String ret = getProperty(&quot;lannister.web.httpServer.contextRoot&quot;, &quot;/&quot;);</span>
+
+<span class="pc bpc" id="L157" title="2 of 4 branches missed.">		if (ret.equalsIgnoreCase(&quot;&quot;) || ret.charAt(ret.length() - 1) != '/') {</span>
+<span class="nc" id="L158">			ret += &quot;/&quot;;</span>
+		}
+
+<span class="fc" id="L161">		return ret;</span>
+	}
+
+	public String webResourcePhysicalRootPath() {
+<span class="fc" id="L165">		return this.getProperty(&quot;lannister.web.httpServer.webResourcePhysicalRootPath&quot;, null);</span>
+	}
+
+	public void setWebResourcePhysicalRootPath(String physicalRootPath) {
+<span class="nc" id="L169">		this.setProperty(&quot;lannister.web.httpServer.webResourcePhysicalRootPath&quot;, physicalRootPath);</span>
+<span class="nc" id="L170">	}</span>
+
+	public String version() {
+<span class="fc" id="L173">		return this.gitProperties.getProperty(&quot;git.build.version&quot;);</span>
+	}
+
+	public String commitId() {
+<span class="fc" id="L177">		return this.gitProperties.getProperty(&quot;git.commit.id&quot;);</span>
+	}
+
+	public String commitIdDescribe() {
+<span class="fc" id="L181">		return this.gitProperties.getProperty(&quot;git.commit.id.describe&quot;);</span>
+	}
+
+	public String commitMessage() {
+<span class="fc" id="L185">		return this.gitProperties.getProperty(&quot;git.commit.message.short&quot;);</span>
+	}
+
+	public String buildTime() {
+<span class="fc" id="L189">		return this.gitProperties.getProperty(&quot;git.build.time&quot;);</span>
+	}
+
+	@Override
+	public boolean equals(Object o) {
+<span class="nc" id="L194">		return o instanceof Settings; // JUST TO REMOVE FINDBUGS ERROR</span>
+	}
+
+	@Override
+	public int hashCode() {
+<span class="nc" id="L199">		return version().hashCode(); // JUST TO REMOVE FINDBUGS ERROR</span>
+	}
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.7.7.201606060606</span></div></body></html>

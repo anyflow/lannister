@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>Topics.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">Lannister server</a> &gt; <a href="index.source.html" class="el_package">net.anyflow.lannister.httphandler</a> &gt; <span class="el_source">Topics.java</span></div><h1>Topics.java</h1><pre class="source lang-java linenums">/*
+ * Copyright 2016 The Lannister Project
+ * 
+ * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ * 
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package net.anyflow.lannister.httphandler;
+
+import java.util.stream.Collectors;
+
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.base.Strings;
+
+import net.anyflow.lannister.http.HttpRequestHandler;
+import net.anyflow.lannister.topic.Topic;
+
+@HttpRequestHandler.Handles(paths = { &quot;topics&quot; }, httpMethods = { &quot;GET&quot; })
+<span class="fc" id="L29">public class Topics extends HttpRequestHandler {</span>
+
+<span class="fc" id="L31">	private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(Topics.class);</span>
+
+	@Override
+	public String service() {
+<span class="fc" id="L35">		String filter = Strings.nullToEmpty(httpRequest().parameter(&quot;filter&quot;));</span>
+
+<span class="pc bpc" id="L37" title="7 of 13 branches missed.">		switch (filter) {</span>
+		case &quot;&quot;:
+		case &quot;all&quot;:
+<span class="fc" id="L40">			return all();</span>
+		case &quot;nosys&quot;:
+<span class="fc" id="L42">			return nosys();</span>
+
+		default:
+<span class="nc" id="L45">			return null;</span>
+		}
+	}
+
+	private String all() {
+		try {
+<span class="fc" id="L51">			return new ObjectMapper().writeValueAsString(Topic.NEXUS.map().values());</span>
+		}
+<span class="nc" id="L53">		catch (JsonProcessingException e) {</span>
+<span class="nc" id="L54">			logger.error(e.getMessage(), e);</span>
+<span class="nc" id="L55">			return null;</span>
+		}
+	}
+
+	private String nosys() {
+		try {
+<span class="fc" id="L61">			return new ObjectMapper().writeValueAsString(Topic.NEXUS.map().values().stream()</span>
+<span class="fc bfc" id="L62" title="All 2 branches covered.">					.filter(t -&gt; !t.name().startsWith(&quot;$SYS&quot;)).collect(Collectors.toList()));</span>
+		}
+<span class="nc" id="L64">		catch (JsonProcessingException e) {</span>
+<span class="nc" id="L65">			logger.error(e.getMessage(), e);</span>
+<span class="nc" id="L66">			return null;</span>
+		}
+	}
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.7.7.201606060606</span></div></body></html>

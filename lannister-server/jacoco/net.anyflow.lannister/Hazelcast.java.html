@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>Hazelcast.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">Lannister server</a> &gt; <a href="index.source.html" class="el_package">net.anyflow.lannister</a> &gt; <span class="el_source">Hazelcast.java</span></div><h1>Hazelcast.java</h1><pre class="source lang-java linenums">/*
+ * Copyright 2016 The Lannister Project
+ * 
+ * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ * 
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package net.anyflow.lannister;
+
+import java.io.IOException;
+
+import com.fasterxml.jackson.databind.JsonNode;
+import com.google.common.collect.Sets;
+import com.hazelcast.config.Config;
+import com.hazelcast.config.SerializerConfig;
+import com.hazelcast.config.XmlConfigBuilder;
+import com.hazelcast.core.HazelcastInstance;
+import com.hazelcast.core.ILock;
+import com.hazelcast.core.IMap;
+import com.hazelcast.core.ITopic;
+import com.hazelcast.core.IdGenerator;
+
+import net.anyflow.lannister.message.InboundMessageStatus;
+import net.anyflow.lannister.message.Message;
+import net.anyflow.lannister.message.OutboundMessageStatus;
+import net.anyflow.lannister.serialization.JsonSerializer;
+import net.anyflow.lannister.serialization.SerializableFactory;
+import net.anyflow.lannister.session.Session;
+import net.anyflow.lannister.topic.Notification;
+import net.anyflow.lannister.topic.Topic;
+import net.anyflow.lannister.topic.TopicSubscriber;
+import net.anyflow.lannister.topic.TopicSubscription;
+
+public class Hazelcast {
+<span class="fc" id="L44">	private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(Hazelcast.class);</span>
+
+<span class="fc" id="L46">	public static final Hazelcast INSTANCE = new Hazelcast();</span>
+	private static final String CONFIG_NAME = &quot;hazelcast.config.xml&quot;;
+
+	private final HazelcastInstance substance;
+
+<span class="fc" id="L51">	private Hazelcast() {</span>
+<span class="fc" id="L52">		substance = com.hazelcast.core.Hazelcast.newHazelcastInstance(createConfig());</span>
+<span class="fc" id="L53">	}</span>
+
+	private Config createConfig() {
+		Config config;
+		try {
+<span class="fc" id="L58">			config = new XmlConfigBuilder(Application.class.getClassLoader().getResource(CONFIG_NAME)).build();</span>
+		}
+<span class="nc" id="L60">		catch (IOException e) {</span>
+<span class="nc" id="L61">			logger.error(e.getMessage(), e);</span>
+<span class="nc" id="L62">			throw new RuntimeException(e);</span>
+<span class="fc" id="L63">		}</span>
+
+<span class="fc" id="L65">		config.getSerializationConfig().addPortableFactory(SerializableFactory.ID, new SerializableFactory());</span>
+
+<span class="fc" id="L67">		config.getSerializationConfig()</span>
+<span class="fc" id="L68">				.setClassDefinitions(Sets.newHashSet(Message.classDefinition(), InboundMessageStatus.classDefinition(),</span>
+<span class="fc" id="L69">						OutboundMessageStatus.classDefinition(), Session.classDefinition(),</span>
+<span class="fc" id="L70">						Notification.classDefinition(), Topic.classDefinition(), TopicSubscriber.classDefinition(),</span>
+<span class="fc" id="L71">						TopicSubscription.classDefinition()));</span>
+
+<span class="fc" id="L73">		config.getSerializationConfig().getSerializerConfigs().add(new SerializerConfig().setTypeClass(JsonNode.class)</span>
+<span class="fc" id="L74">				.setImplementation(JsonSerializer.makePlain(JsonNode.class)));</span>
+
+<span class="fc" id="L76">		return config;</span>
+	}
+
+	public void shutdown() {
+<span class="fc" id="L80">		substance.shutdown();</span>
+<span class="fc" id="L81">	}</span>
+
+	public ILock getLock(String key) {
+<span class="fc" id="L84">		return substance.getLock(key);</span>
+	}
+
+	public &lt;E&gt; ITopic&lt;E&gt; getTopic(String name) {
+<span class="fc" id="L88">		return substance.getTopic(name);</span>
+	}
+
+	public IdGenerator getIdGenerator(String name) {
+<span class="fc" id="L92">		return substance.getIdGenerator(name);</span>
+	}
+
+	public &lt;K, V&gt; IMap&lt;K, V&gt; getMap(String name) {
+<span class="fc" id="L96">		return substance.getMap(name);</span>
+	}
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.7.7.201606060606</span></div></body></html>

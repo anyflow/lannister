@@ -1,0 +1,126 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>TopicMatcher.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">Lannister server</a> &gt; <a href="index.source.html" class="el_package">net.anyflow.lannister.topic</a> &gt; <span class="el_source">TopicMatcher.java</span></div><h1>TopicMatcher.java</h1><pre class="source lang-java linenums">package net.anyflow.lannister.topic;
+
+import java.io.UnsupportedEncodingException;
+import java.util.List;
+
+import com.google.common.base.Strings;
+
+import net.anyflow.lannister.Settings;
+
+<span class="nc" id="L10">public class TopicMatcher {</span>
+
+<span class="fc" id="L12">	private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(TopicMatcher.class);</span>
+
+	private static final String SEPARATOR = &quot;/&quot;;
+	private static final String MULTI_LEVEL_WILDCARD = &quot;#&quot;;
+	private static final String SINGLE_LEVEL_WILDCARD = &quot;+&quot;;
+
+	private static final int MIN_LENGTH = 1;
+	private static final int MAX_LENGTH = 65535;
+	private static final char NULL = '\u0000';
+
+	private static final int INDEX_NOT_FOUND = -1;
+
+<span class="fc" id="L24">	private static final List&lt;String&gt; BANNED_TOPICFILTERS = Settings.INSTANCE.bannedTopicFilters();</span>
+
+	public static final String MULTI_LEVEL_WILDCARD_PATTERN = SEPARATOR + MULTI_LEVEL_WILDCARD;
+	public static final String TOPIC_WILDCARDS = MULTI_LEVEL_WILDCARD + SINGLE_LEVEL_WILDCARD;
+
+	public static boolean isValid(String topicFilter, boolean allowWildcard) {
+<span class="pc bpc" id="L30" title="1 of 2 branches missed.">		if (topicFilter == null) { return false; }</span>
+<span class="pc bpc" id="L31" title="1 of 2 branches missed.">		if (BANNED_TOPICFILTERS.contains(topicFilter)) { return false; }</span>
+
+<span class="fc" id="L33">		int length = 0;</span>
+		try {
+<span class="fc" id="L35">			length = topicFilter.getBytes(&quot;UTF-8&quot;).length;</span>
+		}
+<span class="nc" id="L37">		catch (UnsupportedEncodingException e) {</span>
+<span class="nc" id="L38">			logger.error(e.getMessage(), e);</span>
+<span class="nc" id="L39">			return false;</span>
+<span class="fc" id="L40">		}</span>
+
+<span class="pc bpc" id="L42" title="1 of 4 branches missed.">		if (length &lt; MIN_LENGTH || length &gt; MAX_LENGTH) {</span>
+<span class="fc" id="L43">			logger.error(&quot;Invalid topic length [length={}&quot;, length);</span>
+<span class="fc" id="L44">			return false;</span>
+		}
+
+<span class="fc bfc" id="L47" title="All 2 branches covered.">		if (allowWildcard) {</span>
+<span class="fc bfc" id="L48" title="All 4 branches covered.">			if (topicFilter.equals(MULTI_LEVEL_WILDCARD) || topicFilter.equals(SINGLE_LEVEL_WILDCARD)) { return true; }</span>
+
+<span class="pc bpc" id="L50" title="1 of 4 branches missed.">			if (countMatches(topicFilter, MULTI_LEVEL_WILDCARD) &gt; 1 || (topicFilter.contains(MULTI_LEVEL_WILDCARD)</span>
+<span class="fc bfc" id="L51" title="All 2 branches covered.">					&amp;&amp; !topicFilter.endsWith(MULTI_LEVEL_WILDCARD_PATTERN))) {</span>
+<span class="fc" id="L52">				logger.error(&quot;Invalid usage of multi-level wildcard in topic string: {}&quot;, topicFilter);</span>
+<span class="fc" id="L53">				return false;</span>
+			}
+		}
+
+<span class="fc" id="L57">		return isValidSingleLevelWildcard(topicFilter);</span>
+	}
+
+	private static int countMatches(String str, String sub) {
+<span class="pc bpc" id="L61" title="2 of 4 branches missed.">		if (Strings.isNullOrEmpty(str) || Strings.isNullOrEmpty(sub)) { return 0; }</span>
+
+<span class="fc" id="L63">		int count = 0;</span>
+<span class="fc" id="L64">		int idx = 0;</span>
+<span class="fc bfc" id="L65" title="All 2 branches covered.">		while ((idx = str.indexOf(sub, idx)) != INDEX_NOT_FOUND) {</span>
+<span class="fc" id="L66">			count++;</span>
+<span class="fc" id="L67">			idx += sub.length();</span>
+		}
+
+<span class="fc" id="L70">		return count;</span>
+	}
+
+	private static boolean isValidSingleLevelWildcard(String topicString) {
+<span class="fc" id="L74">		char singleLevelWildcardChar = SINGLE_LEVEL_WILDCARD.charAt(0);</span>
+<span class="fc" id="L75">		char topicLevelSeparatorChar = SEPARATOR.charAt(0);</span>
+
+<span class="fc" id="L77">		char[] chars = topicString.toCharArray();</span>
+<span class="fc" id="L78">		int length = chars.length;</span>
+<span class="fc" id="L79">		char prev = NULL;</span>
+<span class="fc" id="L80">		char next = NULL;</span>
+
+<span class="fc bfc" id="L82" title="All 2 branches covered.">		for (int i = 0; i &lt; length; i++) {</span>
+<span class="fc bfc" id="L83" title="All 2 branches covered.">			prev = (i - 1 &gt;= 0) ? chars[i - 1] : NULL;</span>
+<span class="fc bfc" id="L84" title="All 2 branches covered.">			next = (i + 1 &lt; length) ? chars[i + 1] : NULL;</span>
+
+<span class="fc bfc" id="L86" title="All 10 branches covered.">			if ((chars[i] == singleLevelWildcardChar) &amp;&amp; (prev != topicLevelSeparatorChar &amp;&amp; prev != NULL</span>
+					|| next != topicLevelSeparatorChar &amp;&amp; next != NULL)) {
+<span class="fc" id="L88">				logger.error(&quot;Invalid usage of single-level wildcard in topic string '{}'!&quot;, topicString);</span>
+<span class="fc" id="L89">				return false;</span>
+			}
+		}
+
+<span class="fc" id="L93">		return true;</span>
+	}
+
+	public static boolean match(String topicFilter, String topicName) {
+<span class="fc bfc" id="L97" title="All 4 branches covered.">		if (!TopicMatcher.isValid(topicFilter, true) || !TopicMatcher.isValid(topicName, false)) { return false; }</span>
+
+<span class="fc bfc" id="L99" title="All 4 branches covered.">		if ((topicFilter.startsWith(MULTI_LEVEL_WILDCARD) || topicFilter.startsWith(SINGLE_LEVEL_WILDCARD))</span>
+<span class="pc bpc" id="L100" title="1 of 2 branches missed.">				&amp;&amp; topicName.startsWith(&quot;$&quot;)) { return false; } // [MQTT-4.7.2-1]</span>
+
+<span class="fc" id="L102">		String[] tfs = topicFilter.split(&quot;/&quot;);</span>
+<span class="fc" id="L103">		String[] tns = topicName.split(&quot;/&quot;);</span>
+
+<span class="fc bfc" id="L105" title="All 2 branches covered.">		for (int i = 0; i &lt; tns.length; ++i) {</span>
+<span class="fc bfc" id="L106" title="All 2 branches covered.">			if (i &gt;= tfs.length) {</span>
+<span class="fc" id="L107">				return false;</span>
+			}
+<span class="fc bfc" id="L109" title="All 2 branches covered.">			else if (tfs[i].equals(MULTI_LEVEL_WILDCARD)) {</span>
+<span class="fc" id="L110">				return true;</span>
+			}
+<span class="fc bfc" id="L112" title="All 2 branches covered.">			else if (tfs[i].equals(SINGLE_LEVEL_WILDCARD)) {</span>
+<span class="fc" id="L113">				continue;</span>
+			}
+<span class="fc bfc" id="L115" title="All 2 branches covered.">			else if (tfs[i].equals(tns[i])) {</span>
+<span class="fc" id="L116">				continue;</span>
+			}
+			else {
+<span class="fc" id="L119">				return false;</span>
+			}
+		}
+
+<span class="fc" id="L123">		return true;</span>
+	}
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.7.7.201606060606</span></div></body></html>

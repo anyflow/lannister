@@ -1,0 +1,110 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>PublishReceiver.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">Lannister server</a> &gt; <a href="index.source.html" class="el_package">net.anyflow.lannister.packetreceiver</a> &gt; <span class="el_source">PublishReceiver.java</span></div><h1>PublishReceiver.java</h1><pre class="source lang-java linenums">/*
+ * Copyright 2016 The Lannister Project
+ * 
+ * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ * 
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package net.anyflow.lannister.packetreceiver;
+
+import java.util.Date;
+
+import io.netty.channel.ChannelFutureListener;
+import io.netty.channel.ChannelHandlerContext;
+import io.netty.channel.SimpleChannelInboundHandler;
+import io.netty.handler.codec.mqtt.MqttPublishMessage;
+import net.anyflow.lannister.AbnormalDisconnectEventArgs;
+import net.anyflow.lannister.Statistics;
+import net.anyflow.lannister.message.InboundMessageStatus;
+import net.anyflow.lannister.message.Message;
+import net.anyflow.lannister.message.MessageFactory;
+import net.anyflow.lannister.plugin.DisconnectEventListener;
+import net.anyflow.lannister.plugin.IMessage;
+import net.anyflow.lannister.plugin.Plugins;
+import net.anyflow.lannister.plugin.PublishEventArgs;
+import net.anyflow.lannister.plugin.PublishEventListener;
+import net.anyflow.lannister.session.Session;
+import net.anyflow.lannister.topic.Topic;
+import net.anyflow.lannister.topic.TopicMatcher;
+
+<span class="fc" id="L39">public class PublishReceiver extends SimpleChannelInboundHandler&lt;MqttPublishMessage&gt; {</span>
+
+<span class="fc" id="L41">	private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(PublishReceiver.class);</span>
+
+	@Override
+	protected void channelRead0(ChannelHandlerContext ctx, MqttPublishMessage msg) throws Exception {
+<span class="fc" id="L45">		logger.debug(&quot;packet incoming [message={}]&quot;, msg.toString());</span>
+<span class="fc" id="L46">		Statistics.INSTANCE.add(Statistics.Criterion.MESSAGES_PUBLISH_RECEIVED, 1);</span>
+
+<span class="fc" id="L48">		Session session = Session.NEXUS.get(ctx.channel().id());</span>
+<span class="pc bpc" id="L49" title="1 of 2 branches missed.">		if (session == null) {</span>
+<span class="nc" id="L50">			logger.error(&quot;None exist session message [message={}]&quot;, msg.toString());</span>
+
+<span class="nc" id="L52">			ctx.channel().disconnect().addListener(ChannelFutureListener.CLOSE).addListener(fs -&gt; // [MQTT-4.8.0-1]</span>
+<span class="nc" id="L53">			Plugins.INSTANCE.get(DisconnectEventListener.class).disconnected(new AbnormalDisconnectEventArgs()));</span>
+<span class="nc" id="L54">			return;</span>
+		}
+
+<span class="fc" id="L57">		session.setLastIncomingTime(new Date());</span>
+
+<span class="pc bpc" id="L59" title="1 of 2 branches missed.">		if (!TopicMatcher.isValid(msg.variableHeader().topicName(), false)) {</span>
+<span class="nc" id="L60">			session.dispose(true);</span>
+<span class="nc" id="L61">			return;</span>
+		}
+
+<span class="fc" id="L64">		Message message = Message.newMessage(session.clientId(), msg);</span>
+
+<span class="pc bpc" id="L66" title="1 of 2 branches missed.">		if (!Plugins.INSTANCE.get(PublishEventListener.class).allowPublish(new PublishEventArgs() {</span>
+			@Override
+			public IMessage message() {
+<span class="fc" id="L69">				return message;</span>
+			}
+		})) {
+<span class="nc" id="L72">			session.dispose(true);</span>
+<span class="nc" id="L73">			return;</span>
+		}
+
+		// TODO What to do when sender re-publish message corrensponds to
+		// unacked status?
+
+		// TODO Until it has received the corresponding PUBREL packet, the
+		// Receiver MUST acknowledge any subsequent PUBLISH packet with the same
+		// Packet Identifier by sending a PUBREC. It MUST NOT cause duplicate
+		// messages to be delivered to any onward recipients in this
+		// case.[MQTT-4.3.3-2].
+
+<span class="fc" id="L85">		final Topic topic = Topic.NEXUS.publish(message);</span>
+
+<span class="pc bpc" id="L87" title="3 of 4 branches missed.">		switch (msg.fixedHeader().qosLevel()) {</span>
+		case AT_MOST_ONCE:
+<span class="nc" id="L89">			return; // QoS 0 do not send any acknowledge packet [MQTT-3.3.4-1]</span>
+
+		case AT_LEAST_ONCE:
+<span class="nc" id="L92">			session.send(MessageFactory.puback(msg.variableHeader().messageId())).addListener(</span>
+<span class="nc" id="L93">					f -&gt; topic.removeInboundMessageStatus(session.clientId(), msg.variableHeader().messageId())); // [MQTT-3.3.4-1],[MQTT-2.3.1-6]</span>
+<span class="nc" id="L94">			logger.debug(&quot;Inbound message status REMOVED [clientId={}, messageId={}]&quot;, session.clientId(),</span>
+<span class="nc" id="L95">					msg.variableHeader().messageId());</span>
+<span class="nc" id="L96">			return;</span>
+
+		case EXACTLY_ONCE:
+<span class="fc" id="L99">			session.send(MessageFactory.pubrec(msg.variableHeader().messageId()))</span>
+<span class="fc" id="L100">					.addListener(f -&gt; topic.setInboundMessageStatus(session.clientId(),</span>
+<span class="fc" id="L101">							msg.variableHeader().messageId(), InboundMessageStatus.Status.PUBRECED)); // [MQTT-3.3.4-1],[MQTT-2.3.1-6]</span>
+<span class="fc" id="L102">			return;</span>
+
+		default:
+<span class="nc" id="L105">			session.dispose(true); // [MQTT-3.3.1-4]</span>
+<span class="nc" id="L106">			return;</span>
+		}
+	}
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.7.7.201606060606</span></div></body></html>

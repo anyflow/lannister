@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>PubRecReceiver.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">Lannister server</a> &gt; <a href="index.source.html" class="el_package">net.anyflow.lannister.packetreceiver</a> &gt; <span class="el_source">PubRecReceiver.java</span></div><h1>PubRecReceiver.java</h1><pre class="source lang-java linenums">/*
+ * Copyright 2016 The Lannister Project
+ * 
+ * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ * 
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package net.anyflow.lannister.packetreceiver;
+
+import net.anyflow.lannister.message.MessageFactory;
+import net.anyflow.lannister.message.OutboundMessageStatus;
+import net.anyflow.lannister.plugin.DeliveredEventArgs;
+import net.anyflow.lannister.plugin.DeliveredEventListener;
+import net.anyflow.lannister.plugin.Plugins;
+import net.anyflow.lannister.session.Session;
+import net.anyflow.lannister.topic.Topic;
+import net.anyflow.lannister.topic.TopicSubscriber;
+import net.anyflow.lannister.topic.Topics.ClientType;
+
+public class PubRecReceiver {
+
+<span class="nc" id="L31">	private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(PubRecReceiver.class);</span>
+
+<span class="nc" id="L33">	public static final PubRecReceiver SHARED = new PubRecReceiver();</span>
+
+<span class="nc" id="L35">	private PubRecReceiver() {</span>
+<span class="nc" id="L36">	}</span>
+
+	protected void handle(Session session, int messageId) {
+<span class="nc" id="L39">		Topic topic = Topic.NEXUS.get(session.clientId(), messageId, ClientType.SUBSCRIBER);</span>
+<span class="nc bnc" id="L40" title="All 2 branches missed.">		if (topic == null) {</span>
+<span class="nc" id="L41">			logger.error(&quot;Topic does not exist [clientId={}, messageId={}]&quot;, session.clientId(), messageId);</span>
+<span class="nc" id="L42">			session.dispose(true); // [MQTT-3.3.5-2]</span>
+<span class="nc" id="L43">			return;</span>
+		}
+
+<span class="nc" id="L46">		final TopicSubscriber topicSubscriber = topic.subscribers().get(session.clientId());</span>
+
+<span class="nc" id="L48">		OutboundMessageStatus status = topicSubscriber.outboundMessageStatuses().get(messageId);</span>
+
+<span class="nc bnc" id="L50" title="All 4 branches missed.">		if (status == null || status.status() == OutboundMessageStatus.Status.TO_PUBLISH) {</span>
+<span class="nc" id="L51">			session.dispose(true);</span>
+<span class="nc" id="L52">			return;</span>
+		}
+
+<span class="nc bnc" id="L55" title="All 2 branches missed.">		if (status.status() == OutboundMessageStatus.Status.PUBLISHED) {</span>
+<span class="nc" id="L56">			Plugins.INSTANCE.get(DeliveredEventListener.class).delivered(new DeliveredEventArgs() {</span>
+				@Override
+				public String clientId() {
+<span class="nc" id="L59">					return session.clientId();</span>
+				}
+
+				@Override
+				public int messageId() {
+<span class="nc" id="L64">					return messageId;</span>
+				}
+			});
+		}
+
+<span class="nc" id="L69">		topicSubscriber.setOutboundMessageStatus(messageId, OutboundMessageStatus.Status.PUBRECED);</span>
+
+<span class="nc" id="L71">		session.send(MessageFactory.pubrel(messageId));</span>
+<span class="nc" id="L72">	}</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.7.7.201606060606</span></div></body></html>

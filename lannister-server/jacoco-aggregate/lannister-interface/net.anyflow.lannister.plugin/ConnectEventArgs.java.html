@@ -28,9 +28,9 @@ public interface ConnectEventArgs {
 	MqttConnectReturnCode returnCode();
 
 	default public String log() {
-<span class="nc" id="L31">		return (new StringBuilder()).append(&quot;clientId=&quot;).append(clientId()).append(&quot;, will=&quot;).append(will())</span>
-<span class="nc" id="L32">				.append(&quot;, cleanSession=&quot;).append(cleanSession()).append(&quot;, returnCode=&quot;).append(returnCode())</span>
-<span class="nc" id="L33">				.toString();</span>
+<span class="fc" id="L31">		return (new StringBuilder()).append(&quot;clientId=&quot;).append(clientId()).append(&quot;, will=&quot;).append(will())</span>
+<span class="fc" id="L32">				.append(&quot;, cleanSession=&quot;).append(cleanSession()).append(&quot;, returnCode=&quot;).append(returnCode())</span>
+<span class="fc" id="L33">				.toString();</span>
 	}
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.7.7.201606060606</span></div></body></html>

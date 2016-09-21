@@ -1,0 +1,109 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>MqttServer.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">Lannister server</a> &gt; <a href="index.source.html" class="el_package">net.anyflow.lannister.server</a> &gt; <span class="el_source">MqttServer.java</span></div><h1>MqttServer.java</h1><pre class="source lang-java linenums">/*
+ * Copyright 2016 The Lannister Project
+ * 
+ * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ * 
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package net.anyflow.lannister.server;
+
+import io.netty.bootstrap.ServerBootstrap;
+import io.netty.channel.EventLoopGroup;
+import io.netty.channel.nio.NioEventLoopGroup;
+import io.netty.channel.socket.nio.NioServerSocketChannel;
+import io.netty.util.concurrent.DefaultThreadFactory;
+import net.anyflow.lannister.Settings;
+
+public class MqttServer {
+<span class="fc" id="L27">	private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(MqttServer.class);</span>
+
+	private final EventLoopGroup bossGroup;
+	private final EventLoopGroup workerGroup;
+
+<span class="fc" id="L32">	public MqttServer() {</span>
+<span class="fc" id="L33">		bossGroup = new NioEventLoopGroup(Settings.INSTANCE.getInt(&quot;lannister.system.bossThreadCount&quot;, 0),</span>
+				new DefaultThreadFactory(&quot;lannister/boss&quot;));
+<span class="fc" id="L35">		workerGroup = new NioEventLoopGroup(Settings.INSTANCE.getInt(&quot;lannister.system.workerThreadCount&quot;, 0),</span>
+				new DefaultThreadFactory(&quot;lannister/worker&quot;));
+<span class="fc" id="L37">	}</span>
+
+	public void start() throws Exception {
+<span class="pc bpc" id="L40" title="3 of 4 branches missed.">		if (Settings.INSTANCE.mqttPort() == null &amp;&amp; Settings.INSTANCE.mqttsPort() == null</span>
+<span class="nc bnc" id="L41" title="All 4 branches missed.">				&amp;&amp; Settings.INSTANCE.websocketPort() == null &amp;&amp; Settings.INSTANCE.websocketSslPort() == null) {</span>
+<span class="nc" id="L42">			logger.info(&quot;No MQTT port(s) arranged&quot;);</span>
+<span class="nc" id="L43">			shutdown();</span>
+<span class="nc" id="L44">			return;</span>
+		}
+
+		try {
+<span class="fc" id="L48">			ScheduledExecutor scheduledExecutor = new ScheduledExecutor();</span>
+
+<span class="pc bpc" id="L50" title="1 of 2 branches missed.">			if (Settings.INSTANCE.mqttPort() != null) {</span>
+<span class="fc" id="L51">				executeBootstrap(scheduledExecutor, Settings.INSTANCE.mqttPort(), false, false);</span>
+<span class="fc" id="L52">				scheduledExecutor = null;</span>
+			}
+<span class="pc bpc" id="L54" title="1 of 2 branches missed.">			if (Settings.INSTANCE.mqttsPort() != null) {</span>
+<span class="fc" id="L55">				executeBootstrap(scheduledExecutor, Settings.INSTANCE.mqttsPort(), false, true);</span>
+<span class="fc" id="L56">				scheduledExecutor = null;</span>
+			}
+<span class="pc bpc" id="L58" title="1 of 2 branches missed.">			if (Settings.INSTANCE.websocketPort() != null) {</span>
+<span class="fc" id="L59">				executeBootstrap(scheduledExecutor, Settings.INSTANCE.websocketPort(), true, false);</span>
+<span class="fc" id="L60">				scheduledExecutor = null;</span>
+			}
+<span class="pc bpc" id="L62" title="1 of 2 branches missed.">			if (Settings.INSTANCE.websocketSslPort() != null) {</span>
+<span class="fc" id="L63">				executeBootstrap(scheduledExecutor, Settings.INSTANCE.websocketSslPort(), true, true);</span>
+<span class="fc" id="L64">				scheduledExecutor = null;</span>
+			}
+
+<span class="fc" id="L67">			logger.info(</span>
+					&quot;Lannister MQTT server started [tcp.port={}, tcp.ssl.port={}, websocket.port={}, websocket.ssl.port={}]&quot;,
+<span class="fc" id="L69">					Settings.INSTANCE.mqttPort(), Settings.INSTANCE.mqttsPort(), Settings.INSTANCE.websocketPort(),</span>
+<span class="fc" id="L70">					Settings.INSTANCE.websocketSslPort());</span>
+		}
+<span class="nc" id="L72">		catch (Exception e) {</span>
+<span class="nc" id="L73">			logger.error(&quot;Lannister MQTT server failed to start&quot;, e);</span>
+
+<span class="nc" id="L75">			shutdown();</span>
+
+<span class="nc" id="L77">			throw e;</span>
+<span class="fc" id="L78">		}</span>
+<span class="fc" id="L79">	}</span>
+
+	private void executeBootstrap(ScheduledExecutor scheduledExecutor, int port, boolean useWebSocket, boolean useSsl)
+			throws InterruptedException {
+<span class="fc" id="L83">		ServerBootstrap bootstrap = new ServerBootstrap();</span>
+
+<span class="fc" id="L85">		bootstrap = bootstrap.group(bossGroup, workerGroup).channel(NioServerSocketChannel.class);</span>
+
+<span class="fc bfc" id="L87" title="All 2 branches covered.">		if (scheduledExecutor != null) {</span>
+<span class="fc" id="L88">			bootstrap.handler(scheduledExecutor);</span>
+		}
+
+<span class="fc" id="L91">		bootstrap.childHandler(new MqttChannelInitializer(useWebSocket, useSsl));</span>
+<span class="fc" id="L92">		bootstrap.bind(port).sync();</span>
+<span class="fc" id="L93">	}</span>
+
+	public void shutdown() {
+<span class="pc bpc" id="L96" title="1 of 2 branches missed.">		if (bossGroup != null) {</span>
+<span class="fc" id="L97">			bossGroup.shutdownGracefully().awaitUninterruptibly();</span>
+<span class="fc" id="L98">			logger.info(&quot;Boss event loop group shutdowned&quot;);</span>
+		}
+
+<span class="pc bpc" id="L101" title="1 of 2 branches missed.">		if (workerGroup != null) {</span>
+<span class="fc" id="L102">			workerGroup.shutdownGracefully().awaitUninterruptibly();</span>
+<span class="fc" id="L103">			logger.info(&quot;Worker event loop group shutdowned&quot;);</span>
+		}
+
+<span class="fc" id="L106">		logger.info(&quot;Lannister MQTT server stopped&quot;);</span>
+<span class="fc" id="L107">	}</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.7.7.201606060606</span></div></body></html>

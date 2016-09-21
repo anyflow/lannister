@@ -1,0 +1,166 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>SubscribeReceiver.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">Lannister server</a> &gt; <a href="index.source.html" class="el_package">net.anyflow.lannister.packetreceiver</a> &gt; <span class="el_source">SubscribeReceiver.java</span></div><h1>SubscribeReceiver.java</h1><pre class="source lang-java linenums">/*
+ * Copyright 2016 The Lannister Project
+ * 
+ * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ * 
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package net.anyflow.lannister.packetreceiver;
+
+import java.util.Collection;
+import java.util.Date;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
+import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
+
+import io.netty.channel.ChannelFutureListener;
+import io.netty.channel.ChannelHandlerContext;
+import io.netty.channel.SimpleChannelInboundHandler;
+import io.netty.handler.codec.mqtt.MqttQoS;
+import io.netty.handler.codec.mqtt.MqttSubscribeMessage;
+import io.netty.handler.codec.mqtt.MqttTopicSubscription;
+import net.anyflow.lannister.AbnormalDisconnectEventArgs;
+import net.anyflow.lannister.message.MessageFactory;
+import net.anyflow.lannister.plugin.DefaultSubscribeEventListener;
+import net.anyflow.lannister.plugin.DisconnectEventListener;
+import net.anyflow.lannister.plugin.ITopicSubscription;
+import net.anyflow.lannister.plugin.Plugins;
+import net.anyflow.lannister.plugin.SubscribeEventArgs;
+import net.anyflow.lannister.plugin.SubscribeEventListener;
+import net.anyflow.lannister.session.Session;
+import net.anyflow.lannister.topic.Topic;
+import net.anyflow.lannister.topic.TopicMatcher;
+import net.anyflow.lannister.topic.TopicSubscription;
+
+<span class="fc" id="L47">public class SubscribeReceiver extends SimpleChannelInboundHandler&lt;MqttSubscribeMessage&gt; {</span>
+
+<span class="fc" id="L49">	private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(SubscribeReceiver.class);</span>
+
+	@Override
+	protected void channelRead0(ChannelHandlerContext ctx, MqttSubscribeMessage msg) throws Exception {
+<span class="fc" id="L53">		logger.debug(&quot;packet incoming [message={}]&quot;, msg.toString());</span>
+
+<span class="fc" id="L55">		Session session = Session.NEXUS.get(ctx.channel().id());</span>
+<span class="pc bpc" id="L56" title="1 of 2 branches missed.">		if (session == null) {</span>
+<span class="nc" id="L57">			logger.error(&quot;None exist session message [message={}]&quot;, msg.toString());</span>
+
+<span class="nc" id="L59">			ctx.channel().disconnect().addListener(ChannelFutureListener.CLOSE).addListener(fs -&gt; // [MQTT-4.8.0-1]</span>
+<span class="nc" id="L60">			Plugins.INSTANCE.get(DisconnectEventListener.class).disconnected(new AbnormalDisconnectEventArgs()));</span>
+<span class="nc" id="L61">			return;</span>
+		}
+
+<span class="fc" id="L64">		session.setLastIncomingTime(new Date());</span>
+
+<span class="fc" id="L66">		List&lt;MqttTopicSubscription&gt; topicSubs = msg.payload().topicSubscriptions();</span>
+
+<span class="pc bpc" id="L68" title="2 of 4 branches missed.">		if (topicSubs == null || topicSubs.isEmpty()) {</span>
+<span class="nc" id="L69">			session.dispose(true); // [MQTT-4.8.0-1]</span>
+<span class="nc" id="L70">			return;</span>
+		}
+
+		// TODO multiple sub checking (granted QoS)
+<span class="fc" id="L74">		Map.Entry&lt;List&lt;Integer&gt;, Map&lt;String, TopicSubscription&gt;&gt; returns = generateReturns(topicSubs);</span>
+<span class="fc" id="L75">		List&lt;Integer&gt; grantedQoss = returns.getKey();</span>
+<span class="fc" id="L76">		Map&lt;String, TopicSubscription&gt; topicSubscriptions = returns.getValue();</span>
+
+<span class="pc bpc" id="L78" title="1 of 2 branches missed.">		if (!executePlugins(session, topicSubscriptions.values())) { return; }</span>
+
+<span class="fc" id="L80">		session.topicSubscriptions().putAll(topicSubscriptions);</span>
+
+<span class="fc" id="L82">		session.send(MessageFactory.suback(msg.variableHeader().messageId(), grantedQoss)); // [MQTT-2.3.1-7],[MQTT-2.3.1-7],[MQTT-3.8.4-1],[MQTT-3.8.4-2]</span>
+
+<span class="fc" id="L84">		sendRetainedMessage(session, topicSubscriptions.keySet());</span>
+<span class="fc" id="L85">	}</span>
+
+	private void sendRetainedMessage(Session session, Set&lt;String&gt; topicFilters) {
+<span class="fc" id="L88">		Collection&lt;Topic&gt; topics = Topic.NEXUS.matches(topicFilters);</span>
+
+<span class="fc" id="L90">		topics.forEach(topic -&gt; {</span>
+<span class="nc bnc" id="L91" title="All 2 branches missed.">			if (topic.retainedMessage() == null) { return; }</span>
+
+<span class="nc" id="L93">			topic.putMessage(topic.retainedMessage().publisherId(), topic.retainedMessage());</span>
+
+<span class="nc" id="L95">			topic.publish(session, topic.retainedMessage().clone()); // [MQTT-3.3.1-6],[MQTT-3.3.1-8]</span>
+<span class="nc" id="L96">		});</span>
+<span class="fc" id="L97">	}</span>
+
+	private Map.Entry&lt;List&lt;Integer&gt;, Map&lt;String, TopicSubscription&gt;&gt; generateReturns(
+			List&lt;MqttTopicSubscription&gt; topicSubs) {
+<span class="fc" id="L101">		List&lt;Integer&gt; grantedQoss = Lists.newArrayList();</span>
+<span class="fc" id="L102">		Map&lt;String, TopicSubscription&gt; topicSubscriptions = Maps.newHashMap();</span>
+
+<span class="fc" id="L104">		topicSubs.stream().forEach(topicSub -&gt; {</span>
+<span class="pc bpc" id="L105" title="1 of 2 branches missed.">			if (TopicMatcher.isValid(topicSub.topicName(), true)) {</span>
+<span class="fc" id="L106">				TopicSubscription topicSubscription = new TopicSubscription(topicSub.topicName(),</span>
+<span class="fc" id="L107">						topicSub.qualityOfService());</span>
+
+<span class="fc" id="L109">				grantedQoss.add(topicSubscription.qos().value());</span>
+<span class="fc" id="L110">				topicSubscriptions.put(topicSubscription.topicFilter(), topicSubscription);</span>
+<span class="fc" id="L111">			}</span>
+			else {
+<span class="nc" id="L113">				grantedQoss.add(MqttQoS.FAILURE.value());</span>
+			}
+<span class="fc" id="L115">		});</span>
+
+<span class="fc" id="L117">		return new Map.Entry&lt;List&lt;Integer&gt;, Map&lt;String, TopicSubscription&gt;&gt;() {</span>
+			@Override
+			public List&lt;Integer&gt; getKey() {
+<span class="fc" id="L120">				return grantedQoss;</span>
+			}
+
+			@Override
+			public Map&lt;String, TopicSubscription&gt; getValue() {
+<span class="fc" id="L125">				return topicSubscriptions;</span>
+			}
+
+			@Override
+			public Map&lt;String, TopicSubscription&gt; setValue(Map&lt;String, TopicSubscription&gt; value) {
+<span class="nc" id="L130">				return null; // Should not be called</span>
+			}
+		};
+	}
+
+	private boolean executePlugins(Session session, Collection&lt;TopicSubscription&gt; topicSubscriptions) {
+<span class="fc" id="L136">		SubscribeEventArgs args = new SubscribeEventArgs() {</span>
+			@Override
+			public List&lt;ITopicSubscription&gt; topicSubscriptions() {
+<span class="fc" id="L139">				return Lists.newArrayList(topicSubscriptions);</span>
+			}
+
+			@Override
+			public String clientId() {
+<span class="nc" id="L144">				return session.clientId();</span>
+			}
+
+			@Override
+			public boolean cleanSession() {
+<span class="fc" id="L149">				return session.cleanSession();</span>
+			}
+		};
+
+<span class="pc bpc" id="L153" title="1 of 2 branches missed.">		if (!DefaultSubscribeEventListener.SHARED.allowSubscribe(args)) {</span>
+<span class="nc" id="L154">			session.dispose(true);</span>
+<span class="nc" id="L155">			return false;</span>
+		}
+
+<span class="pc bpc" id="L158" title="1 of 2 branches missed.">		if (!Plugins.INSTANCE.get(SubscribeEventListener.class).allowSubscribe(args)) {</span>
+<span class="nc" id="L159">			session.dispose(true);</span>
+<span class="nc" id="L160">			return false;</span>
+		}
+
+<span class="fc" id="L163">		return true;</span>
+	}
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.7.7.201606060606</span></div></body></html>

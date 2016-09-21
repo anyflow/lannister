@@ -1,0 +1,151 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>Topics.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">Lannister server</a> &gt; <a href="index.source.html" class="el_package">net.anyflow.lannister.topic</a> &gt; <span class="el_source">Topics.java</span></div><h1>Topics.java</h1><pre class="source lang-java linenums">/*
+ * Copyright 2016 The Lannister Project
+ * 
+ * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ * 
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package net.anyflow.lannister.topic;
+
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
+
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Maps;
+import com.hazelcast.core.IMap;
+import com.hazelcast.core.ITopic;
+
+import net.anyflow.lannister.Hazelcast;
+import net.anyflow.lannister.message.Message;
+import net.anyflow.lannister.session.Sessions;
+
+public class Topics {
+
+<span class="fc" id="L35">	private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(Topics.class);</span>
+
+	private final IMap&lt;String, Topic&gt; topics;
+	private final ITopic&lt;Notification&gt; notifier;
+
+<span class="fc" id="L40">	protected Topics(Sessions sessions) {</span>
+<span class="fc" id="L41">		this.topics = Hazelcast.INSTANCE.getMap(&quot;topics&quot;);</span>
+<span class="fc" id="L42">		this.notifier = Hazelcast.INSTANCE.getTopic(&quot;publishNotifier&quot;);</span>
+<span class="fc" id="L43">		this.notifier.addMessageListener(sessions);</span>
+<span class="fc" id="L44">	}</span>
+
+	public ImmutableMap&lt;String, Topic&gt; map() {
+<span class="fc" id="L47">		return ImmutableMap.copyOf(topics);</span>
+	}
+
+	public ITopic&lt;Notification&gt; notifier() {
+<span class="fc" id="L51">		return notifier;</span>
+	}
+
+	public Topic get(String name) {
+<span class="fc" id="L55">		return topics.get(name);</span>
+	}
+
+<span class="pc" id="L58">	public enum ClientType {</span>
+<span class="fc" id="L59">		SUBSCRIBER,</span>
+<span class="fc" id="L60">		PUBLISHER</span>
+	}
+
+	public Topic get(String clientId, int messageId, ClientType clientType) {
+<span class="pc bpc" id="L64" title="1 of 3 branches missed.">		switch (clientType) {</span>
+		case SUBSCRIBER:
+<span class="fc" id="L66">			return getFromSubscriber(clientId, messageId);</span>
+
+		case PUBLISHER:
+<span class="fc" id="L69">			return getFromPublisher(clientId, messageId);</span>
+
+		default:
+<span class="nc" id="L72">			throw new IllegalArgumentException();</span>
+		}
+	}
+
+	private Topic getFromPublisher(String publisherId, int messageId) {
+<span class="fc bfc" id="L77" title="All 2 branches covered.">		return topics.values().parallelStream().filter(t -&gt; t.getInboundMessageStatus(publisherId, messageId) != null)</span>
+<span class="fc" id="L78">				.findAny().orElse(null);</span>
+	}
+
+	private Topic getFromSubscriber(String subscriberId, int messageId) {
+<span class="fc" id="L82">		return topics.values().stream().filter(t -&gt; {</span>
+<span class="fc" id="L83">			TopicSubscriber ts = t.subscribers().get(subscriberId);</span>
+
+<span class="pc bpc" id="L85" title="1 of 4 branches missed.">			return ts != null &amp;&amp; ts.outboundMessageStatuses().get(messageId) != null;</span>
+<span class="fc" id="L86">		}).findAny().orElse(null);</span>
+	}
+
+	protected void persist(Topic topic) {
+<span class="pc bpc" id="L90" title="2 of 4 branches missed.">		if (topic == null || topics.get(topic.name()) == null) {</span>
+<span class="nc" id="L91">			logger.error(&quot;Null or new topic can not bepersisted.&quot;);</span>
+<span class="nc" id="L92">			return;</span>
+		}
+
+<span class="fc" id="L95">		topics.put(topic.name(), topic);</span>
+<span class="fc" id="L96">	}</span>
+
+	public Topic insert(Topic topic) {
+<span class="pc bpc" id="L99" title="1 of 2 branches missed.">		if (topic == null) {</span>
+<span class="nc" id="L100">			logger.error(&quot;Null topic tried to be inserted.&quot;);</span>
+<span class="nc" id="L101">			return null;</span>
+		}
+
+<span class="fc" id="L104">		topic.updateSubscribers();</span>
+
+		// TODO should be added in case of no subscriber &amp; no retained Message?
+<span class="fc" id="L107">		return topics.put(topic.name(), topic);</span>
+	}
+
+	public Topic remove(Topic topic) {
+<span class="pc bpc" id="L111" title="1 of 2 branches missed.">		if (topic == null) {</span>
+<span class="nc" id="L112">			logger.error(&quot;Null topic tried to be removed.&quot;);</span>
+<span class="nc" id="L113">			return null;</span>
+		}
+
+<span class="fc" id="L116">		topic.dispose();</span>
+
+<span class="fc" id="L118">		return topics.remove(topic.name());</span>
+	}
+
+	public Topic publish(Message message) {
+<span class="fc" id="L122">		Topic topic = get(message.topicName());</span>
+<span class="fc bfc" id="L123" title="All 2 branches covered.">		if (topic == null) {</span>
+<span class="fc" id="L124">			topic = new Topic(message.topicName());</span>
+<span class="fc" id="L125">			insert(topic);</span>
+		}
+
+<span class="fc" id="L128">		topic.publish(message);</span>
+
+<span class="fc" id="L130">		return topic;</span>
+	}
+
+	public List&lt;Topic&gt; matches(String topicFilter) {
+<span class="fc" id="L134">		return topics.values().stream().filter(topic -&gt; TopicMatcher.match(topicFilter, topic.name()))</span>
+<span class="fc" id="L135">				.collect(Collectors.toList());</span>
+	}
+
+	public Collection&lt;Topic&gt; matches(Collection&lt;String&gt; topicFilters) {
+<span class="fc" id="L139">		Map&lt;String, Topic&gt; ret = Maps.newHashMap();</span>
+
+<span class="fc" id="L141">		topics.values().stream().forEach(t -&gt; {</span>
+<span class="pc bpc" id="L142" title="1 of 2 branches missed.">			if (topicFilters.stream().filter(tf -&gt; TopicMatcher.match(tf, t.name())).count() &lt;= 0) { return; }</span>
+<span class="nc bnc" id="L143" title="All 2 branches missed.">			if (ret.containsKey(t.name())) { return; }</span>
+
+<span class="nc" id="L145">			ret.put(t.name(), t);</span>
+<span class="nc" id="L146">		});</span>
+
+<span class="fc" id="L148">		return ret.values();</span>
+	}
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.7.7.201606060606</span></div></body></html>

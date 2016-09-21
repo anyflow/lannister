@@ -1,0 +1,184 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>MessageSender.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">Lannister server</a> &gt; <a href="index.source.html" class="el_package">net.anyflow.lannister.session</a> &gt; <span class="el_source">MessageSender.java</span></div><h1>MessageSender.java</h1><pre class="source lang-java linenums">/*
+ * Copyright 2016 The Lannister Project
+ * 
+ * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ * 
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package net.anyflow.lannister.session;
+
+import java.util.Date;
+import java.util.stream.Stream;
+
+import io.netty.channel.ChannelFuture;
+import io.netty.channel.ChannelHandlerContext;
+import io.netty.handler.codec.mqtt.MqttMessage;
+import io.netty.handler.codec.mqtt.MqttQoS;
+import net.anyflow.lannister.Settings;
+import net.anyflow.lannister.Statistics;
+import net.anyflow.lannister.message.InboundMessageStatus;
+import net.anyflow.lannister.message.Message;
+import net.anyflow.lannister.message.MessageFactory;
+import net.anyflow.lannister.message.OutboundMessageStatus;
+import net.anyflow.lannister.topic.Topic;
+import net.anyflow.lannister.topic.Topics;
+
+public class MessageSender {
+<span class="fc" id="L36">	private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(MessageSender.class);</span>
+
+<span class="fc" id="L38">	private final static int RESPONSE_TIMEOUT_SECONDS = Settings.INSTANCE.getInt(&quot;lannister.responseTimeoutSeconds&quot;,</span>
+<span class="fc" id="L39">			60);</span>
+
+	private final Session session;
+
+<span class="fc" id="L43">	protected MessageSender(Session session) {</span>
+<span class="fc" id="L44">		this.session = session;</span>
+<span class="fc" id="L45">	}</span>
+
+	protected ChannelFuture send(MqttMessage message) {
+<span class="pc bpc" id="L48" title="1 of 2 branches missed.">		if (!session.isConnected(true)) {</span>
+<span class="nc" id="L49">			logger.error(&quot;Message is not sent - Channel is inactive or out of the node. [{}]&quot;, message);</span>
+<span class="nc" id="L50">			return null;</span>
+		}
+
+<span class="fc" id="L53">		ChannelHandlerContext ctx = Session.NEXUS.channelHandlerContext(session.clientId());</span>
+
+<span class="fc" id="L55">		String log = message.toString();</span>
+<span class="fc" id="L56">		return ctx.writeAndFlush(message).addListener(f -&gt; {</span>
+<span class="fc" id="L57">			logger.debug(&quot;packet outgoing [{}]&quot;, log);</span>
+<span class="fc" id="L58">		});</span>
+	}
+
+	protected void sendPublish(Topic topic, Message message) {
+<span class="fc" id="L62">		logger.debug(&quot;event arrived [clientId={}, message={}]&quot;, session.clientId(), message);</span>
+
+<span class="pc bpc" id="L64" title="1 of 2 branches missed.">		if (!session.isConnected(true)) { return; }</span>
+
+<span class="fc" id="L66">		send(MessageFactory.publish(message, false)).addListener(f -&gt; { // [MQTT-3.3.1-2]</span>
+<span class="fc" id="L67">			Statistics.INSTANCE.add(Statistics.Criterion.MESSAGES_PUBLISH_SENT, 1);</span>
+
+<span class="pc bpc" id="L69" title="2 of 3 branches missed.">			switch (message.qos()) {</span>
+			case AT_MOST_ONCE:
+<span class="nc" id="L71">				break;</span>
+
+			case AT_LEAST_ONCE:
+			case EXACTLY_ONCE:
+<span class="fc" id="L75">				topic.subscribers().get(session.clientId()).setOutboundMessageStatus(message.id(),</span>
+						OutboundMessageStatus.Status.PUBLISHED);
+<span class="fc" id="L77">				break;</span>
+
+			default:
+<span class="nc" id="L80">				logger.error(&quot;Invalid QoS [QoS={}, clientId={}, topic={}]&quot;, message.qos(), session.clientId(),</span>
+<span class="nc" id="L81">						message.topicName());</span>
+				break;
+			}
+<span class="fc" id="L84">		});</span>
+<span class="fc" id="L85">	}</span>
+
+	protected void completeRemainedMessages() {
+		// TODO should be executed in the middle of 'connected' state?
+
+<span class="fc" id="L90">		completeOutboundMessageStatuses();</span>
+<span class="fc" id="L91">		completeInboundMessageStatuses();</span>
+<span class="fc" id="L92">	}</span>
+
+	private void completeInboundMessageStatuses() {
+<span class="fc" id="L95">		ChannelHandlerContext ctx = Session.NEXUS.channelHandlerContext(session.clientId());</span>
+<span class="pc bpc" id="L96" title="1 of 2 branches missed.">		if (ctx == null) { return; }</span>
+
+<span class="fc" id="L98">		ctx.executor().submit(() -&gt; {</span>
+<span class="fc" id="L99">			Date now = new Date();</span>
+
+<span class="fc" id="L101">			Stream&lt;InboundMessageStatus&gt; statuses = Topic.NEXUS.map().values().stream()</span>
+<span class="fc" id="L102">					.map(t -&gt; t.inboundMessageStatuses()).flatMap(t -&gt; t.values().stream());</span>
+
+<span class="fc" id="L104">			statuses.forEach(s -&gt; {</span>
+<span class="fc" id="L105">				long intervalSeconds = (now.getTime() - s.updateTime().getTime()) * 1000;</span>
+<span class="pc bpc" id="L106" title="1 of 2 branches missed.">				if (intervalSeconds &lt; RESPONSE_TIMEOUT_SECONDS) { return; }</span>
+
+<span class="fc" id="L108">				Topic topic = Topic.NEXUS.get(s.clientId(), s.messageId(), Topics.ClientType.PUBLISHER);</span>
+<span class="fc" id="L109">				Message message = topic.messages().get(s.messageId());</span>
+
+<span class="pc bnc" id="L111" title="All 2 branches missed.">				switch (s.status()) {</span>
+				case RECEIVED:
+				case PUBRECED:
+<span class="nc bnc" id="L114" title="All 2 branches missed.">					if (message.qos() == MqttQoS.AT_LEAST_ONCE) {</span>
+<span class="nc" id="L115">						session.send(MessageFactory.puback(message.id())).addListener(f -&gt; { // [MQTT-2.3.1-6]</span>
+<span class="nc" id="L116">							topic.removeInboundMessageStatus(session.clientId(), message.id());</span>
+<span class="nc" id="L117">							logger.debug(&quot;Inbound message status REMOVED [clientId={}, messageId={}]&quot;,</span>
+<span class="nc" id="L118">									session.clientId(), message.id());</span>
+<span class="nc" id="L119">						});</span>
+					}
+					else {
+<span class="nc" id="L122">						session.send(MessageFactory.pubrec(message.id())) // [MQTT-2.3.1-6]</span>
+<span class="nc" id="L123">								.addListener(f -&gt; topic.setInboundMessageStatus(session.clientId(), message.id(),</span>
+										InboundMessageStatus.Status.PUBRECED));
+					}
+<span class="nc" id="L126">					break;</span>
+
+				default:
+<span class="nc" id="L129">					logger.error(&quot;Invalid Inbound Message Status [status={}, clientId={}, topic={}, messageId={}]&quot;,</span>
+<span class="nc" id="L130">							s.status(), session.clientId(), message.topicName(), message.id());</span>
+					break;
+				}
+<span class="nc" id="L133">			});</span>
+<span class="fc" id="L134">		});</span>
+<span class="fc" id="L135">	}</span>
+
+	private void completeOutboundMessageStatuses() {
+<span class="fc" id="L138">		ChannelHandlerContext ctx = Session.NEXUS.channelHandlerContext(session.clientId());</span>
+<span class="pc bpc" id="L139" title="1 of 2 branches missed.">		if (ctx == null) { return; }</span>
+
+<span class="fc" id="L141">		ctx.executor().submit(() -&gt; {</span>
+<span class="fc" id="L142">			Date now = new Date();</span>
+
+<span class="fc" id="L144">			Stream&lt;OutboundMessageStatus&gt; statuses = Topic.NEXUS.map().values().stream()</span>
+<span class="fc" id="L145">					.filter(t -&gt; t.subscribers().containsKey(session.clientId()))</span>
+<span class="pc" id="L146">					.map(t -&gt; t.subscribers().get(session.clientId())).map(s -&gt; s.outboundMessageStatuses())</span>
+<span class="pc" id="L147">					.flatMap(s -&gt; s.values().stream());</span>
+
+<span class="fc" id="L149">			statuses.forEach(s -&gt; {</span>
+<span class="nc" id="L150">				long intervalSeconds = (now.getTime() - s.updateTime().getTime()) * 1000;</span>
+<span class="nc bnc" id="L151" title="All 2 branches missed.">				if (intervalSeconds &lt; RESPONSE_TIMEOUT_SECONDS) { return; }</span>
+
+<span class="nc" id="L153">				Topic topic = Topic.NEXUS.get(s.clientId(), s.messageId(), Topics.ClientType.SUBSCRIBER);</span>
+<span class="nc" id="L154">				Message message = topic.messages().get(s.messageKey());</span>
+
+<span class="nc" id="L156">				message.setQos(s.qos());</span>
+<span class="nc" id="L157">				message.setId(s.messageId()); // [MQTT-2.3.1-4]</span>
+<span class="nc" id="L158">				message.setRetain(false); // [MQTT-3.3.1-9]</span>
+
+<span class="pc bnc" id="L160" title="All 3 branches missed.">				switch (s.status()) {</span>
+				case TO_PUBLISH:
+				case PUBLISHED:
+<span class="nc bnc" id="L163" title="All 2 branches missed.">					send(MessageFactory.publish(message, s.status() == OutboundMessageStatus.Status.PUBLISHED)) // [MQTT-3.3.1-1]</span>
+<span class="nc" id="L164">							.addListener(f -&gt; {</span>
+<span class="nc" id="L165">								topic.subscribers().get(session.clientId()).setOutboundMessageStatus(message.id(),</span>
+										OutboundMessageStatus.Status.PUBLISHED);
+<span class="nc" id="L167">								Statistics.INSTANCE.add(Statistics.Criterion.MESSAGES_PUBLISH_SENT, 1);</span>
+<span class="nc" id="L168">							});</span>
+<span class="nc" id="L169">					break;</span>
+
+				case PUBRECED:
+<span class="nc" id="L172">					send(MessageFactory.pubrel(message.id()));</span>
+<span class="nc" id="L173">					break;</span>
+
+				default:
+<span class="nc" id="L176">					logger.error(&quot;Invalid Outbound Message Status [status={}, clientId={}, topic={}, messageId={}]&quot;,</span>
+<span class="nc" id="L177">							s.status(), session.clientId(), message.topicName(), message.id());</span>
+					break;
+				}
+<span class="nc" id="L180">			});</span>
+<span class="fc" id="L181">		});</span>
+<span class="fc" id="L182">	}</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.7.7.201606060606</span></div></body></html>

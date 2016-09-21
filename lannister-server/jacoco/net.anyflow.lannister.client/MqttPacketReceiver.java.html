@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>MqttPacketReceiver.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">Lannister server</a> &gt; <a href="index.source.html" class="el_package">net.anyflow.lannister.client</a> &gt; <span class="el_source">MqttPacketReceiver.java</span></div><h1>MqttPacketReceiver.java</h1><pre class="source lang-java linenums">/*
+ * Copyright 2016 The Lannister Project
+ * 
+ * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ * 
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package net.anyflow.lannister.client;
+
+import io.netty.channel.ChannelHandlerContext;
+import io.netty.channel.SimpleChannelInboundHandler;
+import io.netty.handler.codec.mqtt.MqttMessage;
+import io.netty.handler.codec.mqtt.MqttMessageIdVariableHeader;
+import io.netty.handler.codec.mqtt.MqttPublishMessage;
+import io.netty.handler.codec.mqtt.MqttQoS;
+import net.anyflow.lannister.message.Message;
+import net.anyflow.lannister.message.MessageFactory;
+
+public class MqttPacketReceiver extends SimpleChannelInboundHandler&lt;MqttMessage&gt; {
+	@SuppressWarnings(&quot;unused&quot;)
+<span class="fc" id="L30">	private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(MqttPacketReceiver.class);</span>
+
+	private final MqttClient client;
+	private final MessageReceiver receiver;
+	private final SharedObject sharedObject;
+
+<span class="fc" id="L36">	protected MqttPacketReceiver(MqttClient client, MessageReceiver receiver, SharedObject sharedObject) {</span>
+<span class="fc" id="L37">		this.client = client;</span>
+<span class="fc" id="L38">		this.receiver = receiver;</span>
+<span class="fc" id="L39">		this.sharedObject = sharedObject;</span>
+<span class="fc" id="L40">	}</span>
+
+	@Override
+	protected void channelRead0(ChannelHandlerContext ctx, MqttMessage msg) throws Exception {
+<span class="pc bfc" id="L44" title="All 4 branches covered.">		switch (msg.fixedHeader().messageType()) {</span>
+		case PUBLISH:
+<span class="pc bpc" id="L46" title="1 of 2 branches missed.">			if (receiver != null) {</span>
+<span class="fc" id="L47">				receiver.messageReceived(Message.newMessage(client.clientId(), (MqttPublishMessage) msg));</span>
+			}
+
+<span class="fc" id="L50">			int messageId = ((MqttPublishMessage) msg).variableHeader().messageId();</span>
+<span class="pc bpc" id="L51" title="1 of 2 branches missed.">			if (((MqttPublishMessage) msg).fixedHeader().qosLevel() == MqttQoS.AT_LEAST_ONCE) {</span>
+<span class="fc" id="L52">				client.send(MessageFactory.puback(messageId));</span>
+			}
+<span class="nc bnc" id="L54" title="All 2 branches missed.">			else if (((MqttPublishMessage) msg).fixedHeader().qosLevel() == MqttQoS.EXACTLY_ONCE) {</span>
+<span class="nc" id="L55">				client.send(MessageFactory.pubrec(messageId));</span>
+			}
+			break;
+
+		case CONNACK:
+<span class="fc" id="L60">			sharedObject.receivedMessage(msg);</span>
+
+<span class="fc" id="L62">			synchronized (sharedObject.locker()) {</span>
+<span class="fc" id="L63">				sharedObject.locker().notify();</span>
+<span class="pc" id="L64">			}</span>
+<span class="fc" id="L65">			break;</span>
+
+		case PUBREC:
+<span class="fc" id="L68">			client.send(MessageFactory.pubrel(((MqttMessageIdVariableHeader) msg.variableHeader()).messageId()));</span>
+<span class="fc" id="L69">			break;</span>
+
+		case SUBACK:
+		case PUBACK:
+		case PUBCOMP:
+		default:
+			break;
+		}
+<span class="fc" id="L77">	}</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.7.7.201606060606</span></div></body></html>

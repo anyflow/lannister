@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>PubRelReceiver.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">Lannister server</a> &gt; <a href="index.source.html" class="el_package">net.anyflow.lannister.packetreceiver</a> &gt; <span class="el_source">PubRelReceiver.java</span></div><h1>PubRelReceiver.java</h1><pre class="source lang-java linenums">/*
+ * Copyright 2016 The Lannister Project
+ * 
+ * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ * 
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package net.anyflow.lannister.packetreceiver;
+
+import net.anyflow.lannister.message.MessageFactory;
+import net.anyflow.lannister.session.Session;
+import net.anyflow.lannister.topic.Topic;
+import net.anyflow.lannister.topic.Topics.ClientType;
+
+public class PubRelReceiver {
+
+<span class="fc" id="L26">	private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(PubRelReceiver.class);</span>
+
+<span class="fc" id="L28">	public static final PubRelReceiver SHARED = new PubRelReceiver();</span>
+
+<span class="fc" id="L30">	private PubRelReceiver() {</span>
+<span class="fc" id="L31">	}</span>
+
+	protected void handle(Session session, int messageId) {
+
+		// TODO what if the PUBREL is resented one?
+
+<span class="fc" id="L37">		Topic topic = Topic.NEXUS.get(session.clientId(), messageId, ClientType.PUBLISHER);</span>
+<span class="pc bpc" id="L38" title="1 of 2 branches missed.">		if (topic == null) {</span>
+<span class="nc" id="L39">			logger.error(&quot;Topic does not exist [clientId={}, messageId={}]&quot;, session.clientId(), messageId);</span>
+<span class="nc" id="L40">			session.dispose(true); // [MQTT-3.3.5-2]</span>
+<span class="nc" id="L41">			return;</span>
+		}
+
+<span class="fc" id="L44">		session.send(MessageFactory.pubcomp(messageId)).addListener(f -&gt; {</span>
+<span class="fc" id="L45">			topic.removeInboundMessageStatus(session.clientId(), messageId);</span>
+<span class="fc" id="L46">			logger.debug(&quot;Inbound message status REMOVED [clientId={}, messageId={}]&quot;, session.clientId(), messageId);</span>
+<span class="fc" id="L47">		});</span>
+<span class="fc" id="L48">	}</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.7.7.201606060606</span></div></body></html>

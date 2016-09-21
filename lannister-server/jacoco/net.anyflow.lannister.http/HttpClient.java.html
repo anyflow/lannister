@@ -1,0 +1,223 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>HttpClient.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">Lannister server</a> &gt; <a href="index.source.html" class="el_package">net.anyflow.lannister.http</a> &gt; <span class="el_source">HttpClient.java</span></div><h1>HttpClient.java</h1><pre class="source lang-java linenums">/*
+ * Copyright 2016 The Lannister Project
+ * 
+ * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ * 
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package net.anyflow.lannister.http;
+
+import java.net.URISyntaxException;
+
+import javax.net.ssl.TrustManagerFactory;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import io.netty.bootstrap.Bootstrap;
+import io.netty.channel.Channel;
+import io.netty.channel.ChannelFuture;
+import io.netty.channel.ChannelFutureListener;
+import io.netty.channel.ChannelInitializer;
+import io.netty.channel.ChannelOption;
+import io.netty.channel.EventLoopGroup;
+import io.netty.channel.nio.NioEventLoopGroup;
+import io.netty.channel.socket.SocketChannel;
+import io.netty.channel.socket.nio.NioSocketChannel;
+import io.netty.handler.codec.http.DefaultFullHttpRequest;
+import io.netty.handler.codec.http.HttpClientCodec;
+import io.netty.handler.codec.http.HttpContentDecompressor;
+import io.netty.handler.codec.http.HttpHeaderNames;
+import io.netty.handler.codec.http.HttpHeaderValues;
+import io.netty.handler.codec.http.HttpMethod;
+import io.netty.handler.codec.http.HttpObjectAggregator;
+import io.netty.handler.codec.http.HttpVersion;
+import io.netty.handler.logging.LogLevel;
+import io.netty.handler.logging.LoggingHandler;
+import io.netty.handler.ssl.SslContext;
+import io.netty.handler.ssl.SslContextBuilder;
+import io.netty.handler.ssl.util.InsecureTrustManagerFactory;
+import io.netty.util.concurrent.DefaultThreadFactory;
+import net.anyflow.lannister.Settings;
+
+public class HttpClient implements IHttpClient {
+
+<span class="fc" id="L54">	private static final Logger logger = LoggerFactory.getLogger(HttpClient.class);</span>
+
+	private final Bootstrap bootstrap;
+	private final HttpRequest httpRequest;
+	private final TrustManagerFactory trustManagerFactory;
+
+	public HttpClient(String uri) throws UnsupportedOperationException, URISyntaxException {
+<span class="fc" id="L61">		this(uri, false);</span>
+<span class="fc" id="L62">	}</span>
+
+	public HttpClient(String uri, boolean useInsecureTrustManagerFactory)
+<span class="fc" id="L65">			throws URISyntaxException, UnsupportedOperationException {</span>
+<span class="pc bpc" id="L66" title="1 of 2 branches missed.">		trustManagerFactory = useInsecureTrustManagerFactory ? InsecureTrustManagerFactory.INSTANCE : null;</span>
+
+<span class="fc" id="L68">		bootstrap = new Bootstrap();</span>
+
+<span class="fc" id="L70">		httpRequest = new HttpRequest(new DefaultFullHttpRequest(HttpVersion.HTTP_1_1, HttpMethod.GET, uri));</span>
+
+<span class="pc bpc" id="L72" title="1 of 2 branches missed.">		if (!httpRequest().uriObject().getScheme().equalsIgnoreCase(&quot;http&quot;)</span>
+<span class="nc bnc" id="L73" title="All 2 branches missed.">				&amp;&amp; !httpRequest().uriObject().getScheme().equalsIgnoreCase(&quot;https&quot;)) {</span>
+<span class="nc" id="L74">			String message = &quot;HTTP(S) is supported only.&quot;;</span>
+<span class="nc" id="L75">			logger.error(message);</span>
+<span class="nc" id="L76">			throw new UnsupportedOperationException(message);</span>
+		}
+<span class="fc" id="L78">	}</span>
+
+	@Override
+	public HttpRequest httpRequest() {
+<span class="fc" id="L82">		return httpRequest;</span>
+	}
+
+	@Override
+	public HttpResponse get() {
+<span class="fc" id="L87">		return get(null);</span>
+	}
+
+	@Override
+	public HttpResponse get(final MessageReceiver receiver) {
+<span class="fc" id="L92">		httpRequest().setMethod(HttpMethod.GET);</span>
+
+<span class="fc" id="L94">		return request(receiver);</span>
+	}
+
+	@Override
+	public HttpResponse post() {
+<span class="nc" id="L99">		return post(null);</span>
+	}
+
+	@Override
+	public HttpResponse post(final MessageReceiver receiver) {
+<span class="nc" id="L104">		httpRequest().setMethod(HttpMethod.POST);</span>
+
+<span class="nc" id="L106">		return request(receiver);</span>
+	}
+
+	@Override
+	public HttpResponse put() {
+<span class="nc" id="L111">		return put(null);</span>
+	}
+
+	@Override
+	public HttpResponse put(final MessageReceiver receiver) {
+<span class="nc" id="L116">		httpRequest().setMethod(HttpMethod.PUT);</span>
+
+<span class="nc" id="L118">		return request(receiver);</span>
+	}
+
+	@Override
+	public HttpResponse delete() {
+<span class="nc" id="L123">		return delete(null);</span>
+	}
+
+	@Override
+	public HttpResponse delete(final MessageReceiver receiver) {
+<span class="nc" id="L128">		httpRequest().setMethod(HttpMethod.DELETE);</span>
+
+<span class="nc" id="L130">		return request(receiver);</span>
+	}
+
+	@Override
+	public &lt;T&gt; IHttpClient setOption(ChannelOption&lt;T&gt; option, T value) {
+<span class="nc" id="L135">		bootstrap.option(option, value);</span>
+
+<span class="nc" id="L137">		return this;</span>
+	}
+
+	private HttpResponse request(final MessageReceiver receiver) {
+<span class="fc" id="L141">		httpRequest().normalize();</span>
+<span class="fc" id="L142">		setDefaultHeaders(httpRequest());</span>
+
+<span class="pc bpc" id="L144" title="1 of 2 branches missed.">		if (logger.isDebugEnabled()) {</span>
+<span class="fc" id="L145">			logger.debug(httpRequest().toString());</span>
+		}
+
+<span class="fc" id="L148">		final HttpClientHandler clientHandler = new HttpClientHandler(receiver, httpRequest);</span>
+
+<span class="fc" id="L150">		final EventLoopGroup group = new NioEventLoopGroup(1, new DefaultThreadFactory(&quot;client&quot;));</span>
+<span class="fc" id="L151">		bootstrap.group(group).channel(NioSocketChannel.class).handler(new ChannelInitializer&lt;SocketChannel&gt;() {</span>
+			@Override
+			protected void initChannel(SocketChannel ch) throws Exception {
+
+<span class="pc bpc" id="L155" title="1 of 2 branches missed.">				if (&quot;true&quot;.equalsIgnoreCase(Settings.INSTANCE.getProperty(&quot;lannister.web.logging.writelogOfNettyLogger&quot;))) {</span>
+<span class="nc" id="L156">					ch.pipeline().addLast(&quot;log&quot;, new LoggingHandler(&quot;lannister.web/server&quot;, LogLevel.DEBUG));</span>
+				}
+
+<span class="pc bpc" id="L159" title="1 of 2 branches missed.">				if (&quot;https&quot;.equalsIgnoreCase(httpRequest().uriObject().getScheme())) {</span>
+<span class="nc" id="L160">					SslContext sslCtx = SslContextBuilder.forClient().trustManager(trustManagerFactory).build();</span>
+
+<span class="nc" id="L162">					ch.pipeline().addLast(sslCtx.newHandler(ch.alloc(), httpRequest().uriObject().getHost(),</span>
+<span class="nc" id="L163">							httpRequest().uriObject().getPort()));</span>
+				}
+
+<span class="fc" id="L166">				ch.pipeline().addLast(&quot;codec&quot;, new HttpClientCodec());</span>
+<span class="fc" id="L167">				ch.pipeline().addLast(&quot;inflater&quot;, new HttpContentDecompressor());</span>
+<span class="fc" id="L168">				ch.pipeline().addLast(&quot;chunkAggregator&quot;, new HttpObjectAggregator(1048576));</span>
+<span class="fc" id="L169">				ch.pipeline().addLast(&quot;handler&quot;, clientHandler);</span>
+<span class="fc" id="L170">			}</span>
+		});
+
+		try {
+<span class="fc" id="L174">			Channel channel = bootstrap</span>
+<span class="fc" id="L175">					.connect(httpRequest().uriObject().getHost(), httpRequest().uriObject().getPort()).sync().channel();</span>
+<span class="fc" id="L176">			channel.writeAndFlush(httpRequest);</span>
+
+<span class="pc bpc" id="L178" title="1 of 2 branches missed.">			if (receiver == null) {</span>
+<span class="fc" id="L179">				channel.closeFuture().sync();</span>
+<span class="fc" id="L180">				group.shutdownGracefully();</span>
+
+<span class="fc" id="L182">				return clientHandler.httpResponse();</span>
+			}
+			else {
+<span class="nc" id="L185">				channel.closeFuture().addListener(new ChannelFutureListener() {</span>
+
+					@Override
+					public void operationComplete(ChannelFuture future) throws Exception {
+<span class="nc" id="L189">						group.shutdownGracefully();</span>
+<span class="nc" id="L190">					}</span>
+				});
+
+<span class="nc" id="L193">				return null;</span>
+			}
+		}
+<span class="nc" id="L196">		catch (Exception e) {</span>
+<span class="nc" id="L197">			group.shutdownGracefully();</span>
+<span class="nc" id="L198">			logger.error(e.getMessage(), e);</span>
+
+<span class="nc" id="L200">			return null;</span>
+		}
+	}
+
+	protected static void setDefaultHeaders(HttpRequest httpRequest) {
+<span class="pc bpc" id="L205" title="1 of 2 branches missed.">		if (!httpRequest.headers().contains(HttpHeaderNames.HOST)) {</span>
+<span class="fc" id="L206">			httpRequest.headers().set(HttpHeaderNames.HOST, httpRequest.uriObject().getHost());</span>
+		}
+<span class="pc bpc" id="L208" title="1 of 2 branches missed.">		if (!httpRequest.headers().contains(HttpHeaderNames.CONNECTION)) {</span>
+<span class="fc" id="L209">			httpRequest.headers().set(HttpHeaderNames.CONNECTION, HttpHeaderValues.KEEP_ALIVE);</span>
+		}
+<span class="pc bpc" id="L211" title="1 of 2 branches missed.">		if (!httpRequest.headers().contains(HttpHeaderNames.ACCEPT_ENCODING)) {</span>
+<span class="fc" id="L212">			httpRequest.headers().set(HttpHeaderNames.ACCEPT_ENCODING,</span>
+					HttpHeaderValues.GZIP + &quot;, &quot; + HttpHeaderValues.DEFLATE);
+		}
+<span class="pc bpc" id="L215" title="1 of 2 branches missed.">		if (!httpRequest.headers().contains(HttpHeaderNames.ACCEPT_CHARSET)) {</span>
+<span class="fc" id="L216">			httpRequest.headers().set(HttpHeaderNames.ACCEPT_CHARSET, &quot;utf-8&quot;);</span>
+		}
+<span class="pc bpc" id="L218" title="1 of 2 branches missed.">		if (!httpRequest.headers().contains(HttpHeaderNames.CONTENT_TYPE)) {</span>
+<span class="fc" id="L219">			httpRequest.headers().set(HttpHeaderNames.CONTENT_TYPE, HttpHeaderValues.APPLICATION_X_WWW_FORM_URLENCODED);</span>
+		}
+<span class="fc" id="L221">	}</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.7.7.201606060606</span></div></body></html>

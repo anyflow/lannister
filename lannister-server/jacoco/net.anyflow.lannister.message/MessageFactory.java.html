@@ -1,0 +1,162 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>MessageFactory.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">Lannister server</a> &gt; <a href="index.source.html" class="el_package">net.anyflow.lannister.message</a> &gt; <span class="el_source">MessageFactory.java</span></div><h1>MessageFactory.java</h1><pre class="source lang-java linenums">/*
+ * Copyright 2016 The Lannister Project
+ * 
+ * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ * 
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package net.anyflow.lannister.message;
+
+import java.util.List;
+
+import com.google.common.base.Strings;
+import com.google.common.collect.Lists;
+
+import io.netty.buffer.Unpooled;
+import io.netty.handler.codec.mqtt.MqttConnAckMessage;
+import io.netty.handler.codec.mqtt.MqttConnAckVariableHeader;
+import io.netty.handler.codec.mqtt.MqttConnectMessage;
+import io.netty.handler.codec.mqtt.MqttConnectPayload;
+import io.netty.handler.codec.mqtt.MqttConnectReturnCode;
+import io.netty.handler.codec.mqtt.MqttConnectVariableHeader;
+import io.netty.handler.codec.mqtt.MqttFixedHeader;
+import io.netty.handler.codec.mqtt.MqttMessage;
+import io.netty.handler.codec.mqtt.MqttMessageIdVariableHeader;
+import io.netty.handler.codec.mqtt.MqttMessageType;
+import io.netty.handler.codec.mqtt.MqttPubAckMessage;
+import io.netty.handler.codec.mqtt.MqttPublishMessage;
+import io.netty.handler.codec.mqtt.MqttPublishVariableHeader;
+import io.netty.handler.codec.mqtt.MqttQoS;
+import io.netty.handler.codec.mqtt.MqttSubAckMessage;
+import io.netty.handler.codec.mqtt.MqttSubAckPayload;
+import io.netty.handler.codec.mqtt.MqttSubscribeMessage;
+import io.netty.handler.codec.mqtt.MqttSubscribePayload;
+import io.netty.handler.codec.mqtt.MqttTopicSubscription;
+import io.netty.handler.codec.mqtt.MqttUnsubAckMessage;
+import io.netty.util.CharsetUtil;
+import net.anyflow.lannister.plugin.IMessage;
+
+<span class="nc" id="L48">public class MessageFactory {</span>
+	public static MqttConnectMessage connect(ConnectOptions options) {
+<span class="fc" id="L50">		MqttFixedHeader fixedHeader = new MqttFixedHeader(MqttMessageType.CONNECT, false, MqttQoS.AT_MOST_ONCE, false,</span>
+				10);
+<span class="fc" id="L52">		MqttConnectVariableHeader variableHeader = new MqttConnectVariableHeader(options.version().protocolName(),</span>
+<span class="pc bpc" id="L53" title="2 of 4 branches missed.">				options.version().protocolLevel(), options.userName() != null, options.password() != null,</span>
+<span class="fc bfc" id="L54" title="All 2 branches covered.">				options.will() == null ? false : options.will().isRetain(),</span>
+<span class="fc bfc" id="L55" title="All 4 branches covered.">				options.will() == null ? 0 : options.will().qos().value(), options.will() != null,</span>
+<span class="fc" id="L56">				options.cleanSession(), options.keepAliveTimeSeconds());</span>
+
+<span class="fc" id="L58">		MqttConnectPayload payload = new MqttConnectPayload(Strings.nullToEmpty(options.clientId()),</span>
+<span class="fc bfc" id="L59" title="All 2 branches covered.">				options.will() == null ? &quot;&quot; : options.will().topicName(),</span>
+<span class="fc bfc" id="L60" title="All 2 branches covered.">				options.will() == null ? &quot;&quot; : new String(options.will().message(), CharsetUtil.UTF_8),</span>
+<span class="fc" id="L61">				Strings.nullToEmpty(options.userName()), Strings.nullToEmpty(options.password()));</span>
+
+<span class="fc" id="L63">		return new MqttConnectMessage(fixedHeader, variableHeader, payload);</span>
+	}
+
+	public static MqttConnAckMessage connack(MqttConnectReturnCode returnCode, boolean sessionPresent) {
+<span class="fc" id="L67">		MqttFixedHeader fixedHeader = new MqttFixedHeader(MqttMessageType.CONNACK, false, MqttQoS.AT_MOST_ONCE, false,</span>
+				2);
+<span class="fc" id="L69">		MqttConnAckVariableHeader variableHeader = new MqttConnAckVariableHeader(returnCode, sessionPresent);</span>
+
+<span class="fc" id="L71">		return new MqttConnAckMessage(fixedHeader, variableHeader);</span>
+	}
+
+	public static MqttPublishMessage publish(IMessage message, boolean isDup) {
+<span class="fc" id="L75">		MqttFixedHeader fixedHeader = new MqttFixedHeader(MqttMessageType.PUBLISH, isDup, message.qos(),</span>
+<span class="fc" id="L76">				message.isRetain(), 7 + message.message().length);</span>
+
+<span class="fc" id="L78">		MqttPublishVariableHeader variableHeader = new MqttPublishVariableHeader(message.topicName(), message.id());</span>
+
+<span class="fc" id="L80">		return new MqttPublishMessage(fixedHeader, variableHeader, Unpooled.wrappedBuffer(message.message()));</span>
+	}
+
+	public static MqttPubAckMessage puback(int messageId) {
+<span class="fc" id="L84">		MqttFixedHeader fixedHeader = new MqttFixedHeader(MqttMessageType.PUBACK, false, MqttQoS.AT_MOST_ONCE, false,</span>
+				2);
+<span class="fc" id="L86">		MqttMessageIdVariableHeader variableHeader = MqttMessageIdVariableHeader.from(messageId);</span>
+
+<span class="fc" id="L88">		return new MqttPubAckMessage(fixedHeader, variableHeader);</span>
+	}
+
+	public static MqttMessage pubrec(int messageId) {
+<span class="fc" id="L92">		MqttFixedHeader fixedHeader = new MqttFixedHeader(MqttMessageType.PUBREC, false, MqttQoS.AT_MOST_ONCE, false,</span>
+				2);
+<span class="fc" id="L94">		MqttMessageIdVariableHeader variableHeader = MqttMessageIdVariableHeader.from(messageId);</span>
+
+<span class="fc" id="L96">		return new MqttMessage(fixedHeader, variableHeader);</span>
+	}
+
+	public static MqttMessage pubrel(int messageId) {
+<span class="fc" id="L100">		MqttFixedHeader fixedHeader = new MqttFixedHeader(MqttMessageType.PUBREL, false, MqttQoS.AT_LEAST_ONCE, false,</span>
+				2);
+<span class="fc" id="L102">		MqttMessageIdVariableHeader variableHeader = MqttMessageIdVariableHeader.from(messageId);</span>
+
+<span class="fc" id="L104">		return new MqttMessage(fixedHeader, variableHeader);</span>
+	}
+
+	public static MqttMessage pubcomp(int messageId) {
+<span class="fc" id="L108">		MqttFixedHeader fixedHeader = new MqttFixedHeader(MqttMessageType.PUBCOMP, false, MqttQoS.AT_MOST_ONCE, false,</span>
+				2);
+<span class="fc" id="L110">		MqttMessageIdVariableHeader variableHeader = MqttMessageIdVariableHeader.from(messageId);</span>
+
+<span class="fc" id="L112">		return new MqttMessage(fixedHeader, variableHeader);</span>
+	}
+
+	public static MqttMessage pingresp() {
+<span class="nc" id="L116">		MqttFixedHeader fixedHeader = new MqttFixedHeader(MqttMessageType.PINGRESP, false, MqttQoS.AT_MOST_ONCE, false,</span>
+				0);
+
+<span class="nc" id="L119">		return new MqttMessage(fixedHeader);</span>
+	}
+
+	public static MqttSubscribeMessage subscribe(int messageId, MqttTopicSubscription... topicSubscriptions) {
+<span class="fc" id="L123">		int topicNameSize = 0;</span>
+<span class="fc" id="L124">		int topicCount = topicSubscriptions.length;</span>
+
+<span class="fc bfc" id="L126" title="All 2 branches covered.">		for (MqttTopicSubscription item : topicSubscriptions) {</span>
+<span class="fc" id="L127">			topicNameSize += item.topicName().getBytes(CharsetUtil.UTF_8).length;</span>
+		}
+
+<span class="fc" id="L130">		MqttFixedHeader fixedHeader = new MqttFixedHeader(MqttMessageType.SUBSCRIBE, false, MqttQoS.AT_LEAST_ONCE,</span>
+				false, 2 + topicNameSize + topicCount);
+<span class="fc" id="L132">		MqttMessageIdVariableHeader variableHeader = MqttMessageIdVariableHeader.from(messageId);</span>
+<span class="fc" id="L133">		MqttSubscribePayload payload = new MqttSubscribePayload(Lists.newArrayList(topicSubscriptions));</span>
+
+<span class="fc" id="L135">		return new MqttSubscribeMessage(fixedHeader, variableHeader, payload);</span>
+	}
+
+	public static MqttSubAckMessage suback(int messageId, List&lt;Integer&gt; grantedQoSLevels) {
+<span class="fc" id="L139">		MqttFixedHeader fixedHeader = new MqttFixedHeader(MqttMessageType.SUBACK, false, MqttQoS.AT_MOST_ONCE, false,</span>
+<span class="fc" id="L140">				2 + grantedQoSLevels.size());</span>
+<span class="fc" id="L141">		MqttMessageIdVariableHeader variableHeader = MqttMessageIdVariableHeader.from(messageId);</span>
+<span class="fc" id="L142">		MqttSubAckPayload payload = new MqttSubAckPayload(grantedQoSLevels);</span>
+
+<span class="fc" id="L144">		return new MqttSubAckMessage(fixedHeader, variableHeader, payload);</span>
+	}
+
+	public static MqttUnsubAckMessage unsuback(int messageId) {
+<span class="nc" id="L148">		MqttFixedHeader fixedHeader = new MqttFixedHeader(MqttMessageType.UNSUBACK, false, MqttQoS.AT_MOST_ONCE, false,</span>
+				2);
+<span class="nc" id="L150">		MqttMessageIdVariableHeader variableHeader = MqttMessageIdVariableHeader.from(messageId);</span>
+
+<span class="nc" id="L152">		return new MqttUnsubAckMessage(fixedHeader, variableHeader);</span>
+	}
+
+	public static MqttMessage disconnect() {
+<span class="fc" id="L156">		MqttFixedHeader fixedHeader = new MqttFixedHeader(MqttMessageType.DISCONNECT, false, MqttQoS.AT_MOST_ONCE,</span>
+				false, 2);
+
+<span class="fc" id="L159">		return new MqttMessage(fixedHeader);</span>
+	}
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.7.7.201606060606</span></div></body></html>

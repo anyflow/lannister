@@ -1,0 +1,304 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>HttpRequest.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">Lannister server</a> &gt; <a href="index.source.html" class="el_package">net.anyflow.lannister.http</a> &gt; <span class="el_source">HttpRequest.java</span></div><h1>HttpRequest.java</h1><pre class="source lang-java linenums">/*
+ * Copyright 2016 The Lannister Project
+ * 
+ * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ * 
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package net.anyflow.lannister.http;
+
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Set;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.google.common.base.Strings;
+import com.google.common.collect.Maps;
+
+import io.netty.buffer.ByteBuf;
+import io.netty.buffer.Unpooled;
+import io.netty.handler.codec.DecoderResult;
+import io.netty.handler.codec.http.DefaultFullHttpRequest;
+import io.netty.handler.codec.http.FullHttpRequest;
+import io.netty.handler.codec.http.HttpHeaderNames;
+import io.netty.handler.codec.http.HttpHeaderValues;
+import io.netty.handler.codec.http.HttpMethod;
+import io.netty.handler.codec.http.QueryStringDecoder;
+import io.netty.handler.codec.http.cookie.ClientCookieEncoder;
+import io.netty.handler.codec.http.cookie.Cookie;
+import io.netty.handler.codec.http.cookie.ServerCookieDecoder;
+import io.netty.util.CharsetUtil;
+
+/**
+ * @author anyflow
+ */
+public class HttpRequest extends DefaultFullHttpRequest {
+<span class="fc" id="L53">	private static final Logger logger = LoggerFactory.getLogger(HttpRequest.class);</span>
+
+	private final Map&lt;String, List&lt;String&gt;&gt; parameters;
+	private final Map&lt;String, String&gt; pathParameters;
+	private final URI uri;
+	private final Set&lt;Cookie&gt; cookies;
+
+	protected HttpRequest(FullHttpRequest fullHttpRequest) throws URISyntaxException {
+<span class="fc" id="L61">		this(fullHttpRequest, new HashMap&lt;String, String&gt;());</span>
+<span class="fc" id="L62">	}</span>
+
+	protected HttpRequest(FullHttpRequest fullHttpRequest, Map&lt;String, String&gt; pathParameters)
+			throws URISyntaxException {
+<span class="fc" id="L66">		super(fullHttpRequest.protocolVersion(), fullHttpRequest.method(), fullHttpRequest.uri(),</span>
+<span class="fc" id="L67">				fullHttpRequest.content().copy());</span>
+
+<span class="fc" id="L69">		this.headers().set(fullHttpRequest.headers());</span>
+<span class="fc" id="L70">		this.trailingHeaders().set(fullHttpRequest.trailingHeaders());</span>
+<span class="fc" id="L71">		this.setDecoderResult(fullHttpRequest.decoderResult());</span>
+<span class="fc" id="L72">		this.uri = createUriWithNormalizing(fullHttpRequest.uri());</span>
+
+<span class="fc" id="L74">		this.parameters = parameters();</span>
+<span class="fc" id="L75">		this.cookies = cookies();</span>
+<span class="fc" id="L76">		this.pathParameters = pathParameters;</span>
+<span class="fc" id="L77">	}</span>
+
+	private URI createUriWithNormalizing(String uri) throws URISyntaxException {
+<span class="fc" id="L80">		URI temp = new URI(uri);</span>
+
+<span class="fc" id="L82">		String scheme = temp.getScheme();</span>
+<span class="pc bpc" id="L83" title="1 of 2 branches missed.">		if (scheme == null) {</span>
+<span class="nc" id="L84">			scheme = &quot;http&quot;;</span>
+		}
+
+<span class="fc" id="L87">		int port = temp.getPort();</span>
+<span class="pc bpc" id="L88" title="1 of 2 branches missed.">		if (port == -1) {</span>
+<span class="nc bnc" id="L89" title="All 2 branches missed.">			if (scheme.equalsIgnoreCase(&quot;http&quot;)) {</span>
+<span class="nc" id="L90">				port = 80;</span>
+			}
+<span class="nc bnc" id="L92" title="All 2 branches missed.">			else if (scheme.equalsIgnoreCase(&quot;https&quot;)) {</span>
+<span class="nc" id="L93">				port = 443;</span>
+			}
+			else {
+<span class="nc" id="L96">				throw new URISyntaxException(uri, &quot;Invalid protocol.&quot;);</span>
+			}
+		}
+
+<span class="fc" id="L100">		return new URI(scheme, temp.getUserInfo(), temp.getHost(), port, temp.getPath(), temp.getQuery(),</span>
+<span class="fc" id="L101">				temp.getFragment());</span>
+	}
+
+	public Set&lt;Cookie&gt; cookies() {
+<span class="pc bpc" id="L105" title="1 of 2 branches missed.">		if (cookies != null) { return cookies; }</span>
+
+<span class="fc" id="L107">		String cookie = headers().get(HttpHeaderNames.COOKIE);</span>
+<span class="pc bpc" id="L108" title="3 of 4 branches missed.">		if (cookie == null || &quot;&quot;.equals(cookie)) { return new HashSet&lt;Cookie&gt;(); }</span>
+
+<span class="nc" id="L110">		Set&lt;Cookie&gt; ret = ServerCookieDecoder.STRICT.decode(cookie);</span>
+
+<span class="nc bnc" id="L112" title="All 4 branches missed.">		return ret == null || ret.isEmpty() ? new HashSet&lt;Cookie&gt;() : ret;</span>
+	}
+
+	public Map&lt;String, String&gt; pathParameters() {
+<span class="nc" id="L116">		return pathParameters;</span>
+	}
+
+	public String pathParameter(String name) {
+<span class="nc" id="L120">		return pathParameters.get(name);</span>
+	}
+
+	public Map&lt;String, List&lt;String&gt;&gt; parameters() {
+
+<span class="fc bfc" id="L125" title="All 2 branches covered.">		if (parameters != null) { return parameters; }</span>
+
+<span class="fc" id="L127">		Map&lt;String, List&lt;String&gt;&gt; ret = Maps.newHashMap();</span>
+
+<span class="pc bpc" id="L129" title="3 of 4 branches missed.">		if (HttpMethod.GET.equals(method()) || HttpMethod.DELETE.equals(method())) {</span>
+<span class="fc" id="L130">			ret.putAll(new QueryStringDecoder(uri()).parameters());</span>
+<span class="fc" id="L131">			return ret;</span>
+		}
+<span class="nc bnc" id="L133" title="All 2 branches missed.">		else if (headers().contains(HttpHeaderNames.CONTENT_TYPE)</span>
+<span class="nc" id="L134">				&amp;&amp; headers().get(HttpHeaderNames.CONTENT_TYPE)</span>
+<span class="nc bnc" id="L135" title="All 2 branches missed.">						.startsWith(HttpHeaderValues.APPLICATION_X_WWW_FORM_URLENCODED.toString())</span>
+<span class="nc bnc" id="L136" title="All 4 branches missed.">				&amp;&amp; (HttpMethod.POST.equals(method()) || HttpMethod.PUT.equals(method()))) {</span>
+
+<span class="nc" id="L138">			ret.putAll(new QueryStringDecoder(&quot;/dummy?&quot; + content().toString(CharsetUtil.UTF_8)).parameters());</span>
+		}
+
+<span class="nc" id="L141">		return ret;</span>
+	}
+
+	/**
+	 * Get single parameter. In case of multiple values, the method returns the
+	 * first.
+	 * 
+	 * @param name
+	 *            parameter name.
+	 * @return The first value of the parameter name. If it does not exist, it
+	 *         returns null.
+	 */
+	public String parameter(String name) {
+<span class="pc bpc" id="L154" title="2 of 4 branches missed.">		if (!parameters().containsKey(name) || parameters.get(name).size() &lt;= 0) { return null; }</span>
+
+<span class="fc" id="L156">		return parameters().get(name).get(0);</span>
+	}
+
+	public HttpRequest addParameter(String name, String value) {
+<span class="nc" id="L160">		List&lt;String&gt; values = parameters().get(name);</span>
+<span class="nc bnc" id="L161" title="All 2 branches missed.">		if (values == null) {</span>
+<span class="nc" id="L162">			values = new ArrayList&lt;String&gt;();</span>
+<span class="nc" id="L163">			values.add(value);</span>
+<span class="nc" id="L164">			parameters().put(name, values);</span>
+		}
+		else {
+<span class="nc" id="L167">			values.clear();</span>
+<span class="nc" id="L168">			values.add(value);</span>
+		}
+
+<span class="nc" id="L171">		return this;</span>
+	}
+
+	@Override
+	public boolean equals(Object o) {
+<span class="nc" id="L176">		return toString().equals(o.toString()); // Just for removing FindBugs</span>
+												// issue
+	}
+
+	@Override
+	public int hashCode() {
+<span class="nc" id="L182">		return toString().hashCode(); // Just for removing FindBugs issue</span>
+	}
+
+	@Override
+	public String toString() {
+<span class="fc" id="L187">		StringBuilder buf = new StringBuilder();</span>
+
+<span class="fc" id="L189">		buf.append(&quot;\r\n&quot;);</span>
+<span class="fc" id="L190">		buf.append(&quot;Request URI: &quot;).append(this.uri()).append(&quot;\r\n&quot;);</span>
+<span class="fc" id="L191">		buf.append(&quot;HTTP METHOD: &quot;).append(this.method().toString()).append(&quot;\r\n&quot;);</span>
+<span class="fc" id="L192">		buf.append(&quot;Version: &quot;).append(this.protocolVersion()).append(&quot;\r\n&quot;);</span>
+<span class="fc" id="L193">		buf.append(&quot;Request Headers:&quot;).append(&quot;\r\n&quot;);</span>
+
+<span class="fc" id="L195">		List&lt;Entry&lt;String, String&gt;&gt; headers = this.headers().entries();</span>
+<span class="pc bpc" id="L196" title="1 of 2 branches missed.">		if (!headers.isEmpty()) {</span>
+<span class="fc bfc" id="L197" title="All 2 branches covered.">			for (Entry&lt;String, String&gt; h : this.headers().entries()) {</span>
+<span class="fc" id="L198">				String key = h.getKey();</span>
+<span class="fc" id="L199">				String value = h.getValue();</span>
+<span class="fc" id="L200">				buf.append(&quot;   &quot;).append(key).append(&quot; = &quot;).append(value).append(&quot;\r\n&quot;);</span>
+<span class="fc" id="L201">			}</span>
+		}
+
+<span class="fc" id="L204">		Map&lt;String, List&lt;String&gt;&gt; params = parameters();</span>
+
+<span class="fc" id="L206">		buf.append(&quot;Query String Parameters: &quot;);</span>
+
+<span class="fc bfc" id="L208" title="All 2 branches covered.">		if (params.isEmpty()) {</span>
+<span class="fc" id="L209">			buf.append(&quot;NONE\r\n&quot;);</span>
+		}
+		else {
+<span class="fc bfc" id="L212" title="All 2 branches covered.">			for (Entry&lt;String, List&lt;String&gt;&gt; p : params.entrySet()) {</span>
+<span class="fc" id="L213">				String key = p.getKey();</span>
+<span class="fc" id="L214">				List&lt;String&gt; vals = p.getValue();</span>
+<span class="fc bfc" id="L215" title="All 2 branches covered.">				for (String val : vals) {</span>
+<span class="fc" id="L216">					buf.append(&quot;\r\n   &quot;).append(key).append(&quot; = &quot;).append(val).append(&quot;\r\n&quot;);</span>
+<span class="fc" id="L217">				}</span>
+<span class="fc" id="L218">			}</span>
+		}
+
+<span class="fc" id="L221">		buf.append(&quot;Content: &quot;);</span>
+<span class="pc bpc" id="L222" title="1 of 2 branches missed.">		if (this.content().isReadable()) {</span>
+<span class="nc" id="L223">			buf.append(&quot;\r\n   &quot;).append(content().toString(CharsetUtil.UTF_8));</span>
+		}
+		else {
+<span class="fc" id="L226">			buf.append(&quot;UNREADABLE CONTENT or NONE&quot;);</span>
+		}
+
+<span class="fc" id="L229">		DecoderResult result = this.decoderResult();</span>
+
+<span class="pc bpc" id="L231" title="1 of 2 branches missed.">		if (!result.isSuccess()) {</span>
+<span class="nc" id="L232">			buf.append(&quot;\r\n&quot;).append(&quot;.. WITH DECODER FAILURE:&quot;);</span>
+<span class="nc" id="L233">			buf.append(&quot;\r\n   &quot;).append(result.cause());</span>
+		}
+
+<span class="fc" id="L236">		return buf.toString();</span>
+	}
+
+	public void setContent(String content) {
+<span class="nc" id="L240">		byte[] contentByte = Strings.nullToEmpty(content).getBytes(CharsetUtil.UTF_8);</span>
+
+<span class="nc" id="L242">		headers().set(HttpHeaderNames.CONTENT_LENGTH, contentByte.length);</span>
+<span class="nc" id="L243">		content().writeBytes(contentByte);</span>
+
+<span class="nc" id="L245">		logger.debug(content().toString(CharsetUtil.UTF_8));</span>
+<span class="nc" id="L246">	}</span>
+
+	public URI uriObject() {
+<span class="fc" id="L249">		return uri;</span>
+	}
+
+	protected void normalize() {
+<span class="fc" id="L253">		normalizeParameters();</span>
+
+<span class="fc" id="L255">		String encoded = ClientCookieEncoder.STRICT.encode(cookies);</span>
+<span class="pc bpc" id="L256" title="1 of 2 branches missed.">		if (encoded == null) { return; }</span>
+
+<span class="nc" id="L258">		headers().set(HttpHeaderNames.COOKIE, encoded);</span>
+<span class="nc" id="L259">	}</span>
+
+	private String convertParametersToString() {
+
+<span class="fc" id="L263">		StringBuilder builder = new StringBuilder();</span>
+
+<span class="fc bfc" id="L265" title="All 2 branches covered.">		for (String name : parameters().keySet()) {</span>
+
+<span class="fc bfc" id="L267" title="All 2 branches covered.">			for (String value : parameters().get(name)) {</span>
+<span class="fc" id="L268">				builder = builder.append(name).append(&quot;=&quot;).append(value).append(&quot;&amp;&quot;);</span>
+<span class="fc" id="L269">			}</span>
+<span class="fc" id="L270">		}</span>
+
+<span class="fc" id="L272">		String ret = builder.toString();</span>
+<span class="fc bfc" id="L273" title="All 2 branches covered.">		if (ret.length() &lt;= 0) { return &quot;&quot;; }</span>
+
+<span class="pc bpc" id="L275" title="1 of 2 branches missed.">		if (ret.charAt(ret.length() - 1) == '&amp;') {</span>
+<span class="fc" id="L276">			return ret.substring(0, ret.length() - 1);</span>
+		}
+		else {
+<span class="nc" id="L279">			return ret;</span>
+		}
+	}
+
+	private void normalizeParameters() {
+<span class="fc" id="L284">		String address = new StringBuilder().append(uriObject().getScheme()).append(&quot;://&quot;)</span>
+<span class="fc" id="L285">				.append(uriObject().getAuthority()).append(uriObject().getPath()).toString();</span>
+
+<span class="pc bpc" id="L287" title="3 of 4 branches missed.">		if (HttpMethod.GET.equals(method()) || HttpMethod.DELETE.equals(method())) {</span>
+<span class="fc" id="L288">			String parameters = convertParametersToString();</span>
+<span class="fc bfc" id="L289" title="All 2 branches covered.">			address += Strings.isNullOrEmpty(parameters) ? &quot;&quot; : &quot;?&quot; + parameters;</span>
+<span class="fc" id="L290">		}</span>
+<span class="nc bnc" id="L291" title="All 4 branches missed.">		else if ((HttpMethod.POST.equals(method()) || HttpMethod.PUT.equals(method()))</span>
+<span class="nc bnc" id="L292" title="All 2 branches missed.">				&amp;&amp; (!headers().contains(HttpHeaderNames.CONTENT_TYPE) || headers().get(HttpHeaderNames.CONTENT_TYPE)</span>
+<span class="nc bnc" id="L293" title="All 2 branches missed.">						.startsWith(HttpHeaderValues.APPLICATION_X_WWW_FORM_URLENCODED.toString()))) {</span>
+<span class="nc" id="L294">			ByteBuf content = Unpooled.copiedBuffer(convertParametersToString(), CharsetUtil.UTF_8);</span>
+
+<span class="nc" id="L296">			headers().set(HttpHeaderNames.CONTENT_LENGTH, content.readableBytes());</span>
+<span class="nc" id="L297">			content().clear();</span>
+<span class="nc" id="L298">			content().writeBytes(content);</span>
+		}
+
+<span class="fc" id="L301">		setUri(address);</span>
+<span class="fc" id="L302">	}</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.7.7.201606060606</span></div></body></html>

@@ -1,0 +1,222 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>Statistics.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">Lannister server</a> &gt; <a href="index.source.html" class="el_package">net.anyflow.lannister</a> &gt; <span class="el_source">Statistics.java</span></div><h1>Statistics.java</h1><pre class="source lang-java linenums">/*
+ * Copyright 2016 The Lannister Project
+ * 
+ * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ * 
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package net.anyflow.lannister;
+
+import java.util.Collections;
+import java.util.Date;
+import java.util.List;
+import java.util.Map;
+
+import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
+import com.hazelcast.core.ILock;
+import com.hazelcast.core.IMap;
+
+import net.anyflow.lannister.session.Session;
+import net.anyflow.lannister.topic.Topic;
+
+public class Statistics {
+
+<span class="fc" id="L34">	public static final Statistics INSTANCE = new Statistics();</span>
+
+	public static final String $SYS_BROKER_VERSION = &quot;$SYS/broker/version&quot;;
+	public static final String $SYS_BROKER_TIMESTAMP = &quot;$SYS/broker/timestamp&quot;;
+	public static final String $SYS_BROKER_CHANGESET = &quot;$SYS/broker/changeset&quot;;
+
+<span class="fc" id="L40">	public static final List&lt;String&gt; $SYS_STATIC_TOPICS = Collections</span>
+<span class="fc" id="L41">			.unmodifiableList(Lists.newArrayList($SYS_BROKER_VERSION, $SYS_BROKER_TIMESTAMP, $SYS_BROKER_CHANGESET));</span>
+
+	private Map&lt;String, SysValue&gt; data; // key : topic name
+	private IMap&lt;Criterion, Long&gt; criterions;
+
+	public interface SysValue {
+		String value();
+	}
+
+	private class RawSysValue implements SysValue {
+		private Criterion criterion;
+
+<span class="fc" id="L53">		private RawSysValue(Criterion criterion) {</span>
+<span class="fc" id="L54">			this.criterion = criterion;</span>
+<span class="fc" id="L55">		}</span>
+
+		@Override
+		public String value() {
+<span class="fc" id="L59">			return criterions.get(criterion).toString();</span>
+		}
+	}
+
+<span class="pc" id="L63">	public enum Criterion {</span>
+<span class="fc" id="L64">		BROKER_START_TIME,</span>
+<span class="fc" id="L65">		BYTE_RECEIVED,</span>
+<span class="fc" id="L66">		BYTE_SENT,</span>
+<span class="fc" id="L67">		CLIENTS_MAXIMUM,</span>
+<span class="fc" id="L68">		MESSAGES_RECEIVED,</span>
+<span class="fc" id="L69">		MESSAGES_SENT,</span>
+<span class="fc" id="L70">		MESSAGES_PUBLISH_DROPPED,</span>
+<span class="fc" id="L71">		MESSAGES_PUBLISH_RECEIVED,</span>
+<span class="fc" id="L72">		MESSAGES_PUBLISH_SENT;</span>
+	}
+
+<span class="fc" id="L75">	private Statistics() {</span>
+<span class="fc" id="L76">		this.data = Maps.newHashMap();</span>
+<span class="fc" id="L77">		this.criterions = Hazelcast.INSTANCE.getMap(&quot;statistics&quot;);</span>
+
+<span class="fc" id="L79">		initializeCriterions();</span>
+<span class="fc" id="L80">		initializeData();</span>
+<span class="fc" id="L81">	}</span>
+
+	public Map&lt;String, SysValue&gt; data() {
+<span class="fc" id="L84">		return data;</span>
+	}
+
+	public void add(Criterion criterion, long size) {
+<span class="fc" id="L88">		ILock lock = Hazelcast.INSTANCE.getLock(criterion.toString());</span>
+
+<span class="fc" id="L90">		lock.lock();</span>
+		try {
+<span class="fc" id="L92">			Long val = criterions.get(criterion);</span>
+<span class="fc" id="L93">			val += size;</span>
+
+<span class="fc" id="L95">			criterions.set(criterion, val);</span>
+		}
+		finally {
+<span class="pc" id="L98">			lock.unlock();</span>
+<span class="fc" id="L99">		}</span>
+<span class="fc" id="L100">	}</span>
+
+	public void setMaxActiveClients(long current) {
+<span class="fc" id="L103">		ILock lock = Hazelcast.INSTANCE.getLock(Criterion.CLIENTS_MAXIMUM.toString());</span>
+
+<span class="fc" id="L105">		lock.lock();</span>
+		try {
+<span class="fc" id="L107">			Long prev = criterions.get(Criterion.CLIENTS_MAXIMUM);</span>
+
+<span class="fc bfc" id="L109" title="All 2 branches covered.">			if (prev &lt; current) {</span>
+<span class="fc" id="L110">				criterions.set(Criterion.CLIENTS_MAXIMUM, current);</span>
+			}
+		}
+		finally {
+<span class="pc" id="L114">			lock.unlock();</span>
+<span class="fc" id="L115">		}</span>
+<span class="fc" id="L116">	}</span>
+
+	public String getStatic(String topicName) {
+<span class="nc bnc" id="L119" title="All 14 branches missed.">		switch (topicName) {</span>
+		case $SYS_BROKER_VERSION:
+<span class="nc" id="L121">			return Settings.INSTANCE.version();</span>
+
+		case $SYS_BROKER_TIMESTAMP:
+<span class="nc" id="L124">			return Settings.INSTANCE.buildTime();</span>
+
+		case $SYS_BROKER_CHANGESET:
+<span class="nc" id="L127">			return Settings.INSTANCE.commitIdDescribe() + &quot; / &quot; + Settings.INSTANCE.commitId();</span>
+
+		default:
+<span class="nc" id="L130">			return null;</span>
+		}
+	}
+
+	private void initializeCriterions() {
+<span class="pc bpc" id="L135" title="1 of 2 branches missed.">		if (criterions.get(Criterion.BROKER_START_TIME) == null) {</span>
+<span class="fc" id="L136">			criterions.set(Criterion.BROKER_START_TIME, new Date().getTime());</span>
+		}
+
+<span class="fc" id="L139">		initialize(Criterion.BYTE_RECEIVED);</span>
+<span class="fc" id="L140">		initialize(Criterion.BYTE_SENT);</span>
+<span class="fc" id="L141">		initialize(Criterion.CLIENTS_MAXIMUM);</span>
+<span class="fc" id="L142">		initialize(Criterion.MESSAGES_RECEIVED);</span>
+<span class="fc" id="L143">		initialize(Criterion.MESSAGES_SENT);</span>
+<span class="fc" id="L144">		initialize(Criterion.MESSAGES_PUBLISH_DROPPED);</span>
+<span class="fc" id="L145">		initialize(Criterion.MESSAGES_PUBLISH_RECEIVED);</span>
+<span class="fc" id="L146">		initialize(Criterion.MESSAGES_PUBLISH_SENT);</span>
+<span class="fc" id="L147">	}</span>
+
+	private void initialize(Criterion criterion) {
+<span class="pc bpc" id="L150" title="1 of 2 branches missed.">		if (criterions.get(criterion) != null) { return; }</span>
+
+<span class="fc" id="L152">		criterions.put(criterion, 0l);</span>
+<span class="fc" id="L153">	}</span>
+
+	private void initializeData() {
+<span class="fc" id="L156">		data.put(&quot;$SYS/broker/load/bytes/received&quot;, new RawSysValue(Criterion.BYTE_RECEIVED));</span>
+<span class="fc" id="L157">		data.put(&quot;$SYS/broker/load/bytes/sent&quot;, new RawSysValue(Criterion.BYTE_SENT));</span>
+<span class="fc" id="L158">		data.put(&quot;$SYS/broker/clients/maximum&quot;, new RawSysValue(Criterion.CLIENTS_MAXIMUM));</span>
+<span class="fc" id="L159">		data.put(&quot;$SYS/broker/messages/received&quot;, new RawSysValue(Criterion.MESSAGES_RECEIVED));</span>
+<span class="fc" id="L160">		data.put(&quot;$SYS/broker/messages/sent&quot;, new RawSysValue(Criterion.MESSAGES_SENT));</span>
+<span class="fc" id="L161">		data.put(&quot;$SYS/broker/messages/publish/dropped&quot;, new RawSysValue(Criterion.MESSAGES_PUBLISH_DROPPED));</span>
+<span class="fc" id="L162">		data.put(&quot;$SYS/broker/messages/publish/received&quot;, new RawSysValue(Criterion.MESSAGES_PUBLISH_RECEIVED));</span>
+<span class="fc" id="L163">		data.put(&quot;$SYS/broker/messages/publish/sent&quot;, new RawSysValue(Criterion.MESSAGES_PUBLISH_SENT));</span>
+
+<span class="fc" id="L165">		data.put(&quot;$SYS/broker/clients/connected&quot;, new SysValue() {</span>
+			@Override
+			public String value() {
+<span class="fc" id="L168">				long current = Session.NEXUS.map().values().stream().filter(s -&gt; s.isConnected(false)).count();</span>
+
+<span class="fc" id="L170">				setMaxActiveClients(current);</span>
+
+<span class="fc" id="L172">				return Long.toString(current);</span>
+			}
+		});
+
+<span class="fc" id="L176">		data.put(&quot;$SYS/broker/clients/disconnected&quot;, new SysValue() {</span>
+			@Override
+			public String value() {
+<span class="fc bfc" id="L179" title="All 2 branches covered.">				return Long.toString(Session.NEXUS.map().values().stream().filter(s -&gt; !s.isConnected(false)).count());</span>
+			}
+		});
+
+<span class="fc" id="L183">		data.put(&quot;$SYS/broker/clients/total&quot;, new SysValue() {</span>
+			@Override
+			public String value() {
+<span class="fc" id="L186">				return Long.toString(Session.NEXUS.map().entrySet().stream().count());</span>
+			}
+		});
+
+<span class="fc" id="L190">		data.put(&quot;$SYS/broker/messages/retained/count&quot;, new SysValue() {</span>
+			@Override
+			public String value() {
+<span class="fc" id="L193">				return Long</span>
+<span class="fc bfc" id="L194" title="All 2 branches covered.">						.toString(Topic.NEXUS.map().values().stream().filter(t -&gt; t.retainedMessage() != null).count());</span>
+			}
+		});
+
+<span class="fc" id="L198">		data.put(&quot;$SYS/broker/subscriptions/count&quot;, new SysValue() {</span>
+			@Override
+			public String value() {
+<span class="fc" id="L201">				return Long.toString(Session.NEXUS.map().values().stream().map(s -&gt; s.topicSubscriptions())</span>
+<span class="fc" id="L202">						.flatMap(s -&gt; s.values().stream()).count());</span>
+			}
+		});
+
+<span class="fc" id="L206">		data.put(&quot;$SYS/broker/time&quot;, new SysValue() {</span>
+			@Override
+			public String value() {
+<span class="fc" id="L209">				return new Date().toString();</span>
+			}
+		});
+
+<span class="fc" id="L213">		data.put(&quot;$SYS/broker/uptime&quot;, new SysValue() {</span>
+			@Override
+			public String value() {
+<span class="fc" id="L216">				return Double.toString(</span>
+<span class="fc" id="L217">						(double) (new Date().getTime() - criterions.get(Criterion.BROKER_START_TIME)) / (double) 1000);</span>
+			}
+		});
+<span class="fc" id="L220">	}</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.7.7.201606060606</span></div></body></html>

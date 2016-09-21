@@ -1,0 +1,102 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>MessageStatus.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">Lannister server</a> &gt; <a href="index.source.html" class="el_package">net.anyflow.lannister.message</a> &gt; <span class="el_source">MessageStatus.java</span></div><h1>MessageStatus.java</h1><pre class="source lang-java linenums">/*
+ * Copyright 2016 The Lannister Project
+ * 
+ * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ * 
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package net.anyflow.lannister.message;
+
+import java.io.IOException;
+import java.util.Date;
+import java.util.List;
+
+import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.hazelcast.nio.serialization.PortableReader;
+import com.hazelcast.nio.serialization.PortableWriter;
+
+import net.anyflow.lannister.Literals;
+
+public abstract class MessageStatus implements com.hazelcast.nio.serialization.Portable {
+
+	@JsonProperty
+	private String clientId;
+	@JsonProperty
+	private Integer messageId;
+	@JsonFormat(shape = JsonFormat.Shape.STRING, pattern = Literals.DATE_DEFAULT_FORMAT, timezone = Literals.DATE_DEFAULT_TIMEZONE)
+	@JsonProperty
+	private Date createTime;
+	@JsonFormat(shape = JsonFormat.Shape.STRING, pattern = Literals.DATE_DEFAULT_FORMAT, timezone = Literals.DATE_DEFAULT_TIMEZONE)
+	@JsonProperty
+	protected Date updateTime;
+
+<span class="fc" id="L43">	public MessageStatus() { // just for Serialization</span>
+<span class="fc" id="L44">	}</span>
+
+<span class="fc" id="L46">	protected MessageStatus(String clientId, int messageId) {</span>
+<span class="fc" id="L47">		this.clientId = clientId;</span>
+<span class="fc" id="L48">		this.messageId = messageId;</span>
+<span class="fc" id="L49">		this.createTime = new Date();</span>
+<span class="fc" id="L50">		this.updateTime = createTime;</span>
+<span class="fc" id="L51">	}</span>
+
+	public String key() {
+<span class="fc" id="L54">		return Message.key(clientId, messageId);</span>
+	}
+
+	public String clientId() {
+<span class="fc" id="L58">		return clientId;</span>
+	}
+
+	public int messageId() {
+<span class="fc" id="L62">		return messageId;</span>
+	}
+
+	public Date createTime() {
+<span class="nc" id="L66">		return createTime;</span>
+	}
+
+	public Date updateTime() {
+<span class="fc" id="L70">		return updateTime;</span>
+	}
+
+	protected void writePortable(List&lt;String&gt; nullChecker, PortableWriter writer) throws IOException {
+<span class="pc bpc" id="L74" title="1 of 2 branches missed.">		if (clientId != null) {</span>
+<span class="fc" id="L75">			writer.writeUTF(&quot;clientId&quot;, clientId);</span>
+<span class="fc" id="L76">			nullChecker.add(&quot;clientId&quot;);</span>
+		}
+
+<span class="pc bpc" id="L79" title="1 of 2 branches missed.">		if (messageId != null) {</span>
+<span class="fc" id="L80">			writer.writeInt(&quot;messageId&quot;, messageId);</span>
+<span class="fc" id="L81">			nullChecker.add(&quot;messageId&quot;);</span>
+		}
+
+<span class="pc bpc" id="L84" title="1 of 2 branches missed.">		if (createTime != null) {</span>
+<span class="fc" id="L85">			writer.writeLong(&quot;createTime&quot;, createTime.getTime());</span>
+<span class="fc" id="L86">			nullChecker.add(&quot;createTime&quot;);</span>
+		}
+
+<span class="pc bpc" id="L89" title="1 of 2 branches missed.">		if (updateTime != null) {</span>
+<span class="fc" id="L90">			writer.writeLong(&quot;updateTime&quot;, updateTime.getTime());</span>
+<span class="fc" id="L91">			nullChecker.add(&quot;updateTime&quot;);</span>
+		}
+<span class="fc" id="L93">	}</span>
+
+	public void readPortable(List&lt;String&gt; nullChecker, PortableReader reader) throws IOException {
+<span class="pc bpc" id="L96" title="1 of 2 branches missed.">		if (nullChecker.contains(&quot;clientId&quot;)) clientId = reader.readUTF(&quot;clientId&quot;);</span>
+<span class="pc bpc" id="L97" title="1 of 2 branches missed.">		if (nullChecker.contains(&quot;messageId&quot;)) messageId = reader.readInt(&quot;messageId&quot;);</span>
+<span class="pc bpc" id="L98" title="1 of 2 branches missed.">		if (nullChecker.contains(&quot;createTime&quot;)) createTime = new Date(reader.readLong(&quot;createTime&quot;));</span>
+<span class="pc bpc" id="L99" title="1 of 2 branches missed.">		if (nullChecker.contains(&quot;updateTime&quot;)) updateTime = new Date(reader.readLong(&quot;updateTime&quot;));</span>
+<span class="fc" id="L100">	}</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.7.7.201606060606</span></div></body></html>

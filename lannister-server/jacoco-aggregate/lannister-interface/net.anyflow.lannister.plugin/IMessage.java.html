@@ -32,9 +32,9 @@ public interface IMessage {
 	boolean isRetain();
 
 	default String log() {
-<span class="nc" id="L35">		return (new StringBuilder()).append(&quot;messageId=&quot;).append(id()).append(&quot;, topicName=&quot;).append(topicName())</span>
-<span class="nc" id="L36">				.append(&quot;, publisherId=&quot;).append(publisherId()).append(&quot;, message=&quot;).append(message()).append(&quot;, qos=&quot;)</span>
-<span class="nc" id="L37">				.append(qos()).append(&quot;, isRetain=&quot;).append(isRetain()).toString();</span>
+<span class="fc" id="L35">		return (new StringBuilder()).append(&quot;messageId=&quot;).append(id()).append(&quot;, topicName=&quot;).append(topicName())</span>
+<span class="fc" id="L36">				.append(&quot;, publisherId=&quot;).append(publisherId()).append(&quot;, message=&quot;).append(message()).append(&quot;, qos=&quot;)</span>
+<span class="fc" id="L37">				.append(qos()).append(&quot;, isRetain=&quot;).append(isRetain()).toString();</span>
 	}
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.7.7.201606060606</span></div></body></html>

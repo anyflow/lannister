@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>ScheduledExecutor.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">Lannister server</a> &gt; <a href="index.source.html" class="el_package">net.anyflow.lannister.server</a> &gt; <span class="el_source">ScheduledExecutor.java</span></div><h1>ScheduledExecutor.java</h1><pre class="source lang-java linenums">/*
+ * Copyright 2016 The Lannister Project
+ * 
+ * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ * 
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package net.anyflow.lannister.server;
+
+import java.util.List;
+import java.util.concurrent.TimeUnit;
+
+import com.google.common.collect.Lists;
+
+import io.netty.channel.ChannelHandlerContext;
+import io.netty.channel.ChannelInboundHandlerAdapter;
+import io.netty.handler.codec.mqtt.MqttQoS;
+import io.netty.util.CharsetUtil;
+import net.anyflow.lannister.Settings;
+import net.anyflow.lannister.Statistics;
+import net.anyflow.lannister.message.Message;
+import net.anyflow.lannister.session.Session;
+import net.anyflow.lannister.topic.Topic;
+
+<span class="fc" id="L34">public class ScheduledExecutor extends ChannelInboundHandlerAdapter {</span>
+<span class="fc" id="L35">    private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(ScheduledExecutor.class);</span>
+
+    @Override
+    public void handlerAdded(ChannelHandlerContext ctx) throws Exception {
+<span class="fc" id="L39">        int $sysPublisherInterval = Settings.INSTANCE.getInt(&quot;annister.sys.intervalSeconds&quot;, 2);</span>
+<span class="fc" id="L40">        ctx.executor().scheduleAtFixedRate(new $SysPublisher(), 0, $sysPublisherInterval, TimeUnit.SECONDS);</span>
+
+<span class="fc" id="L42">        int sessionExpiratorInterval = Settings.INSTANCE</span>
+<span class="fc" id="L43">                .getInt(&quot;lannister.sessionExpirationHandlerExecutionIntervalSeconds&quot;, 0);</span>
+<span class="fc" id="L44">        ctx.executor().scheduleAtFixedRate(new SessionExpirator(), 0, sessionExpiratorInterval, TimeUnit.SECONDS);</span>
+<span class="fc" id="L45">    }</span>
+
+<span class="fc" id="L47">    static class $SysPublisher implements Runnable {</span>
+        @Override
+        public void run() {
+<span class="fc" id="L50">            String requesterId = Settings.INSTANCE.getProperty(&quot;lannister.broker.id&quot;, &quot;lannister_broker_id&quot;);</span>
+
+<span class="fc" id="L52">            Statistics.INSTANCE.data().entrySet().stream().forEach(e -&gt; {</span>
+<span class="fc" id="L53">                byte[] msg = e.getValue().value().getBytes(CharsetUtil.UTF_8);</span>
+
+<span class="fc" id="L55">                Topic.NEXUS.publish(new Message(-1, e.getKey(), requesterId, msg, MqttQoS.AT_MOST_ONCE, false));</span>
+<span class="fc" id="L56">            });</span>
+<span class="fc" id="L57">        }</span>
+    }
+
+<span class="fc" id="L60">    static class SessionExpirator implements Runnable {</span>
+        @Override
+        public void run() {
+<span class="fc" id="L63">            List&lt;Session&gt; disposes = Lists.newArrayList();</span>
+
+<span class="fc" id="L65">            Session.NEXUS.ctxs().keySet().stream().filter(id -&gt; {</span>
+<span class="fc" id="L66">                Session s = Session.NEXUS.get(id);</span>
+<span class="fc" id="L67">                return s.isExpired();</span>
+<span class="fc" id="L68">            }).forEach(id -&gt; disposes.add(Session.NEXUS.get(id)));</span>
+
+<span class="fc" id="L70">            disposes.stream().forEach(s -&gt; s.dispose(true)); // [MQTT-3.1.2-24]</span>
+
+<span class="fc bfc" id="L72" title="All 2 branches covered.">            if (disposes.size() &gt; 0) {</span>
+<span class="fc" id="L73">                logger.debug(&quot;SessionExpirationHandler executed [dispose count={}]&quot;, disposes.size());</span>
+            }
+<span class="fc" id="L75">        }</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.7.7.201606060606</span></div></body></html>

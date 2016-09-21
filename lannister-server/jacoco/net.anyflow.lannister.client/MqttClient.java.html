@@ -1,0 +1,182 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>MqttClient.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">Lannister server</a> &gt; <a href="index.source.html" class="el_package">net.anyflow.lannister.client</a> &gt; <span class="el_source">MqttClient.java</span></div><h1>MqttClient.java</h1><pre class="source lang-java linenums">/*
+ * Copyright 2016 The Lannister Project
+ * 
+ * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ * 
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package net.anyflow.lannister.client;
+
+import java.net.URI;
+import java.net.URISyntaxException;
+
+import javax.net.ssl.TrustManagerFactory;
+
+import io.netty.bootstrap.Bootstrap;
+import io.netty.channel.Channel;
+import io.netty.channel.ChannelFuture;
+import io.netty.channel.ChannelFutureListener;
+import io.netty.channel.ChannelInitializer;
+import io.netty.channel.EventLoopGroup;
+import io.netty.channel.nio.NioEventLoopGroup;
+import io.netty.channel.socket.SocketChannel;
+import io.netty.channel.socket.nio.NioSocketChannel;
+import io.netty.handler.codec.mqtt.MqttConnAckMessage;
+import io.netty.handler.codec.mqtt.MqttConnectReturnCode;
+import io.netty.handler.codec.mqtt.MqttDecoder;
+import io.netty.handler.codec.mqtt.MqttEncoder;
+import io.netty.handler.codec.mqtt.MqttMessage;
+import io.netty.handler.codec.mqtt.MqttTopicSubscription;
+import io.netty.handler.ssl.SslContext;
+import io.netty.handler.ssl.SslContextBuilder;
+import io.netty.handler.ssl.util.InsecureTrustManagerFactory;
+import io.netty.util.concurrent.DefaultThreadFactory;
+import net.anyflow.lannister.Settings;
+import net.anyflow.lannister.message.ConnectOptions;
+import net.anyflow.lannister.message.Message;
+import net.anyflow.lannister.message.MessageFactory;
+
+public class MqttClient {
+<span class="fc" id="L49">	private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(MqttClient.class);</span>
+
+	private final Bootstrap bootstrap;
+	private final TrustManagerFactory trustManagerFactory;
+	private final SharedObject sharedObject;
+
+	private Channel channel;
+	private EventLoopGroup group;
+	private MessageReceiver receiver;
+
+	private Integer currentMessageId;
+
+	private URI uri;
+	private ConnectOptions options;
+
+	public MqttClient(String uri) throws URISyntaxException {
+<span class="fc" id="L65">		this(uri, false);</span>
+<span class="fc" id="L66">	}</span>
+
+<span class="fc" id="L68">	public MqttClient(String uri, boolean useInsecureTrustManagerFactory) throws URISyntaxException {</span>
+<span class="fc" id="L69">		this.bootstrap = new Bootstrap();</span>
+<span class="fc" id="L70">		this.uri = new URI(uri);</span>
+<span class="fc bfc" id="L71" title="All 2 branches covered.">		this.trustManagerFactory = useInsecureTrustManagerFactory ? InsecureTrustManagerFactory.INSTANCE : null;</span>
+<span class="fc" id="L72">		this.sharedObject = new SharedObject();</span>
+<span class="fc" id="L73">		this.options = new ConnectOptions();</span>
+<span class="fc" id="L74">		this.currentMessageId = 0;</span>
+<span class="fc" id="L75">	}</span>
+
+	public MqttConnectReturnCode connect() throws InterruptedException {
+<span class="fc" id="L78">		group = new NioEventLoopGroup(1, new DefaultThreadFactory(&quot;lannister/client&quot;));</span>
+
+<span class="fc" id="L80">		bootstrap.group(group).channel(NioSocketChannel.class).handler(new ChannelInitializer&lt;SocketChannel&gt;() {</span>
+			@Override
+			protected void initChannel(SocketChannel ch) throws Exception {
+<span class="fc bfc" id="L83" title="All 2 branches covered.">				if (&quot;mqtts&quot;.equalsIgnoreCase(uri.getScheme())) {</span>
+<span class="fc" id="L84">					SslContext sslCtx = SslContextBuilder.forClient().trustManager(trustManagerFactory).build();</span>
+
+<span class="fc" id="L86">					ch.pipeline().addLast(sslCtx.newHandler(ch.alloc(), uri.getHost(), uri.getPort()));</span>
+				}
+
+<span class="fc" id="L89">				ch.pipeline().addLast(MqttDecoder.class.getName(), new MqttDecoder());</span>
+<span class="fc" id="L90">				ch.pipeline().addLast(MqttEncoder.class.getName(), MqttEncoder.INSTANCE);</span>
+<span class="fc" id="L91">				ch.pipeline().addLast(MqttPacketReceiver.class.getName(),</span>
+<span class="fc" id="L92">						new MqttPacketReceiver(MqttClient.this, receiver, sharedObject));</span>
+<span class="fc" id="L93">			}</span>
+		});
+
+<span class="fc" id="L96">		channel = bootstrap.connect(uri.getHost(), uri.getPort()).sync().channel();</span>
+
+<span class="fc" id="L98">		normalizeMessage(options.will());</span>
+<span class="fc" id="L99">		send(MessageFactory.connect(options));</span>
+
+<span class="fc" id="L101">		synchronized (sharedObject.locker()) {</span>
+<span class="fc" id="L102">			int timeout = Settings.INSTANCE.getInt(&quot;lannister.client.responseTimeoutSeconds&quot;, 15);</span>
+
+<span class="fc" id="L104">			sharedObject.locker().wait(timeout * 1000);</span>
+<span class="pc" id="L105">		}</span>
+<span class="pc bpc" id="L106" title="1 of 2 branches missed.">		if (sharedObject.receivedMessage() == null) { return null; }</span>
+
+<span class="fc" id="L108">		return ((MqttConnAckMessage) sharedObject.receivedMessage()).variableHeader().connectReturnCode();</span>
+	}
+
+	public boolean isConnected() {
+<span class="pc bpc" id="L112" title="1 of 4 branches missed.">		return channel != null &amp;&amp; channel.isActive();</span>
+	}
+
+	public void disconnect(boolean sendDisconnect) {
+<span class="pc bpc" id="L116" title="1 of 2 branches missed.">		if (!isConnected()) { return; }</span>
+
+<span class="fc bfc" id="L118" title="All 2 branches covered.">		if (sendDisconnect) {</span>
+<span class="fc" id="L119">			send(MessageFactory.disconnect());</span>
+		}
+
+<span class="fc" id="L122">		channel.disconnect().addListener(ChannelFutureListener.CLOSE);</span>
+<span class="fc" id="L123">		group.shutdownGracefully();</span>
+
+<span class="fc" id="L125">		channel = null;</span>
+<span class="fc" id="L126">		group = null;</span>
+<span class="fc" id="L127">	}</span>
+
+	protected ChannelFuture send(MqttMessage message) {
+<span class="pc bpc" id="L130" title="1 of 2 branches missed.">		if (!isConnected()) {</span>
+<span class="nc" id="L131">			logger.error(&quot;Channel is not active&quot;);</span>
+<span class="nc" id="L132">			return null;</span>
+		}
+
+<span class="fc" id="L135">		return channel.writeAndFlush(message);</span>
+	}
+
+	public MqttClient receiver(MessageReceiver receiver) {
+<span class="fc" id="L139">		this.receiver = receiver;</span>
+
+<span class="fc" id="L141">		return this;</span>
+	}
+
+	public MqttClient connectOptions(ConnectOptions connectOptions) {
+<span class="fc" id="L145">		this.options = connectOptions;</span>
+
+<span class="fc" id="L147">		return this;</span>
+	}
+
+	public void publish(Message message) {
+<span class="fc" id="L151">		normalizeMessage(message);</span>
+<span class="fc" id="L152">		send(MessageFactory.publish(message, false));</span>
+<span class="fc" id="L153">	}</span>
+
+	public void subscribe(MqttTopicSubscription... topicSubscriptions) throws InterruptedException {
+<span class="fc" id="L156">		send(MessageFactory.subscribe(nextMessageId(), topicSubscriptions));</span>
+
+		// TODO error handling,store subscription
+<span class="fc" id="L159">	}</span>
+
+	public int nextMessageId() {
+<span class="fc" id="L162">		currentMessageId = currentMessageId + 1;</span>
+
+<span class="pc bpc" id="L164" title="1 of 2 branches missed.">		if (currentMessageId &gt; Message.MAX_MESSAGE_ID_NUM) {</span>
+<span class="nc" id="L165">			currentMessageId = Message.MIN_MESSAGE_ID_NUM;</span>
+		}
+
+<span class="fc" id="L168">		return currentMessageId;</span>
+	}
+
+	private void normalizeMessage(Message message) {
+<span class="fc bfc" id="L172" title="All 2 branches covered.">		if (message == null) { return; }</span>
+
+<span class="fc" id="L174">		message.setId(nextMessageId());</span>
+<span class="fc" id="L175">		message.publisherId(this.options.clientId());</span>
+<span class="fc" id="L176">	}</span>
+
+	public String clientId() {
+<span class="fc" id="L179">		return options.clientId();</span>
+	}
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.7.7.201606060606</span></div></body></html>

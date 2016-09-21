@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>ConnectOptions.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">Lannister server</a> &gt; <a href="index.source.html" class="el_package">net.anyflow.lannister.message</a> &gt; <span class="el_source">ConnectOptions.java</span></div><h1>ConnectOptions.java</h1><pre class="source lang-java linenums">package net.anyflow.lannister.message;
+
+import io.netty.handler.codec.mqtt.MqttVersion;
+
+public class ConnectOptions {
+	private MqttVersion version;
+	private String clientId;
+	private String userName;
+	private String password;
+	private boolean cleanSession;
+	private Message will;
+	private int keepAliveTimeSeconds;
+
+<span class="fc" id="L14">	public ConnectOptions() {</span>
+<span class="fc" id="L15">		this.version = MqttVersion.MQTT_3_1_1;</span>
+<span class="fc" id="L16">		this.clientId = null;</span>
+<span class="fc" id="L17">		this.cleanSession = true;</span>
+<span class="fc" id="L18">		this.will = null;</span>
+<span class="fc" id="L19">		this.userName = null;</span>
+<span class="fc" id="L20">		this.password = null;</span>
+<span class="fc" id="L21">		this.keepAliveTimeSeconds = 120;</span>
+<span class="fc" id="L22">	}</span>
+
+	public ConnectOptions(MqttVersion version, String clientId, boolean cleanSession, Message will, String userName,
+<span class="nc" id="L25">			String password, int keepAliveTimeSeconds) {</span>
+<span class="nc" id="L26">		this.version = version;</span>
+<span class="nc" id="L27">		this.clientId = clientId;</span>
+<span class="nc" id="L28">		this.cleanSession = cleanSession;</span>
+<span class="nc" id="L29">		this.will = will;</span>
+<span class="nc" id="L30">		this.userName = userName;</span>
+<span class="nc" id="L31">		this.password = password;</span>
+<span class="nc" id="L32">		this.keepAliveTimeSeconds = keepAliveTimeSeconds;</span>
+<span class="nc" id="L33">	}</span>
+
+	public MqttVersion version() {
+<span class="fc" id="L36">		return version;</span>
+	}
+
+	public void version(MqttVersion version) {
+<span class="nc" id="L40">		this.version = version;</span>
+<span class="nc" id="L41">	}</span>
+
+	public String clientId() {
+<span class="fc" id="L44">		return clientId;</span>
+	}
+
+	public void clientId(String clientId) {
+<span class="fc" id="L48">		this.clientId = clientId;</span>
+<span class="fc" id="L49">	}</span>
+
+	public String userName() {
+<span class="fc" id="L52">		return userName;</span>
+	}
+
+	public void userName(String userName) {
+<span class="nc" id="L56">		this.userName = userName;</span>
+<span class="nc" id="L57">	}</span>
+
+	public String password() {
+<span class="fc" id="L60">		return password;</span>
+	}
+
+	public void password(String password) {
+<span class="nc" id="L64">		this.password = password;</span>
+<span class="nc" id="L65">	}</span>
+
+	public boolean cleanSession() {
+<span class="fc" id="L68">		return cleanSession;</span>
+	}
+
+	public void cleanSession(boolean cleanSession) {
+<span class="fc" id="L72">		this.cleanSession = cleanSession;</span>
+<span class="fc" id="L73">	}</span>
+
+	public Message will() {
+<span class="fc" id="L76">		return will;</span>
+	}
+
+	public void will(Message will) {
+<span class="fc" id="L80">		this.will = will;</span>
+<span class="fc" id="L81">	}</span>
+
+	public int keepAliveTimeSeconds() {
+<span class="fc" id="L84">		return keepAliveTimeSeconds;</span>
+	}
+
+	public void keepAliveTimeSeconds(int keepAliveTimeSeconds) {
+<span class="nc" id="L88">		this.keepAliveTimeSeconds = keepAliveTimeSeconds;</span>
+<span class="nc" id="L89">	}</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.7.7.201606060606</span></div></body></html>

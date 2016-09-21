@@ -1,0 +1,231 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>ConnectReceiver.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">Lannister server</a> &gt; <a href="index.source.html" class="el_package">net.anyflow.lannister.packetreceiver</a> &gt; <span class="el_source">ConnectReceiver.java</span></div><h1>ConnectReceiver.java</h1><pre class="source lang-java linenums">/*
+ * Copyright 2016 The Lannister Project
+ * 
+ * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ * 
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package net.anyflow.lannister.packetreceiver;
+
+import java.net.InetSocketAddress;
+
+import com.google.common.base.Strings;
+
+import io.netty.channel.ChannelFutureListener;
+import io.netty.channel.ChannelHandlerContext;
+import io.netty.channel.SimpleChannelInboundHandler;
+import io.netty.handler.codec.mqtt.MqttConnAckMessage;
+import io.netty.handler.codec.mqtt.MqttConnectMessage;
+import io.netty.handler.codec.mqtt.MqttConnectReturnCode;
+import io.netty.handler.codec.mqtt.MqttQoS;
+import io.netty.util.CharsetUtil;
+import net.anyflow.lannister.AbnormalDisconnectEventArgs;
+import net.anyflow.lannister.Hazelcast;
+import net.anyflow.lannister.Settings;
+import net.anyflow.lannister.message.Message;
+import net.anyflow.lannister.message.MessageFactory;
+import net.anyflow.lannister.plugin.Authenticator;
+import net.anyflow.lannister.plugin.Authorizer;
+import net.anyflow.lannister.plugin.ConnectEventArgs;
+import net.anyflow.lannister.plugin.ConnectEventListener;
+import net.anyflow.lannister.plugin.DisconnectEventListener;
+import net.anyflow.lannister.plugin.IMessage;
+import net.anyflow.lannister.plugin.Plugins;
+import net.anyflow.lannister.plugin.ServiceChecker;
+import net.anyflow.lannister.session.Session;
+import net.anyflow.lannister.topic.Topic;
+
+<span class="pc bpc" id="L47" title="1 of 2 branches missed.">public class ConnectReceiver extends SimpleChannelInboundHandler&lt;MqttConnectMessage&gt; {</span>
+
+<span class="fc" id="L49">	private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(ConnectReceiver.class);</span>
+
+	@Override
+	protected void channelRead0(ChannelHandlerContext ctx, MqttConnectMessage msg) throws Exception {
+<span class="fc" id="L53">		logger.debug(&quot;packet incoming [message={}]&quot;, msg.toString());</span>
+
+<span class="fc" id="L55">		Session session = Session.NEXUS.get(ctx.channel().id());</span>
+<span class="pc bpc" id="L56" title="1 of 2 branches missed.">		if (session != null) {</span>
+<span class="nc" id="L57">			session.dispose(true); // [MQTT-3.1.0-2]</span>
+<span class="nc" id="L58">			return;</span>
+		}
+
+<span class="fc" id="L61">		boolean cleanSession = msg.variableHeader().isCleanSession();</span>
+<span class="fc" id="L62">		String clientId = msg.payload().clientIdentifier();</span>
+
+<span class="fc bfc" id="L64" title="All 2 branches covered.">		if (Strings.isNullOrEmpty(clientId)) {</span>
+<span class="fc" id="L65">			clientId = generateClientId(ctx, cleanSession);</span>
+
+<span class="fc bfc" id="L67" title="All 2 branches covered.">			if (clientId == null) { return; }</span>
+		}
+
+<span class="fc bfc" id="L70" title="All 2 branches covered.">		if (!filterPlugins(ctx, msg)) { return; }</span>
+
+<span class="fc" id="L72">		session = Session.NEXUS.get(clientId); // [MQTT-3.1.2-4]</span>
+<span class="pc bpc" id="L73" title="1 of 4 branches missed.">		boolean sessionPresent = !cleanSession &amp;&amp; session != null; // [MQTT-3.2.2-1],[MQTT-3.2.2-2],[MQTT-3.2.2-3]</span>
+
+<span class="fc bfc" id="L75" title="All 2 branches covered.">		String clientIp = ctx.channel().remoteAddress() instanceof InetSocketAddress</span>
+<span class="fc" id="L76">				? ((InetSocketAddress) ctx.channel().remoteAddress()).getAddress().getHostAddress() : &quot;0.0.0.0&quot;;</span>
+<span class="fc bfc" id="L77" title="All 2 branches covered.">		int clientPort = ctx.channel().remoteAddress() instanceof InetSocketAddress</span>
+<span class="fc" id="L78">				? ((InetSocketAddress) ctx.channel().remoteAddress()).getPort() : -1;</span>
+
+<span class="fc bfc" id="L80" title="All 2 branches covered.">		if (cleanSession) {</span>
+<span class="fc bfc" id="L81" title="All 2 branches covered.">			if (session != null) {</span>
+<span class="fc" id="L82">				session.dispose(false); // [MQTT-3.1.4-2]</span>
+			}
+<span class="fc" id="L84">			session = newSession(msg, cleanSession, clientId, clientIp, clientPort); // [MQTT-3.1.2-6]</span>
+		}
+<span class="pc bpc" id="L86" title="1 of 2 branches missed.">		else if (session == null) { // [MQTT-3.1.2-4]</span>
+<span class="fc" id="L87">			session = newSession(msg, cleanSession, clientId, clientIp, clientPort);</span>
+		}
+
+<span class="fc" id="L90">		Session.NEXUS.put(session, ctx);</span>
+
+<span class="fc" id="L92">		processRetainedWill(session);</span>
+
+<span class="fc" id="L94">		final Session sessionFinal = session;</span>
+<span class="fc" id="L95">		final MqttConnAckMessage acceptMsg = MessageFactory.connack(MqttConnectReturnCode.CONNECTION_ACCEPTED,</span>
+				sessionPresent); // [MQTT-3.1.4-4]
+
+<span class="fc" id="L98">		session.send(acceptMsg).addListener(f -&gt; { // [MQTT-3.2.0-1]</span>
+<span class="fc" id="L99">			Plugins.INSTANCE.get(ConnectEventListener.class).connectHandled(new ConnectEventArgs() {</span>
+				@Override
+				public String clientId() {
+<span class="fc" id="L102">					return sessionFinal.clientId();</span>
+				}
+
+				@Override
+				public IMessage will() {
+<span class="fc" id="L107">					return sessionFinal.will();</span>
+				}
+
+				@Override
+				public Boolean cleanSession() {
+<span class="fc" id="L112">					return sessionFinal.cleanSession();</span>
+				}
+
+				@Override
+				public MqttConnectReturnCode returnCode() {
+<span class="fc" id="L117">					return MqttConnectReturnCode.CONNECTION_ACCEPTED;</span>
+				}
+			});
+
+<span class="fc bfc" id="L121" title="All 2 branches covered.">			if (!sessionFinal.cleanSession()) {</span>
+<span class="fc" id="L122">				sessionFinal.completeRemainedMessages(); // [MQTT-4.4.0-1]</span>
+			}
+<span class="fc" id="L124">		});</span>
+<span class="fc" id="L125">	}</span>
+
+	private void processRetainedWill(Session session) {
+<span class="fc bfc" id="L128" title="All 4 branches covered.">		if (session.will() == null || !session.will().isRetain()) { return; }</span>
+
+		// [MQTT-3.1.2-16],[MQTT-3.1.2-17]
+<span class="fc" id="L131">		Topic topic = Topic.NEXUS.get(session.will().topicName());</span>
+<span class="fc bfc" id="L132" title="All 2 branches covered.">		if (topic == null) {</span>
+<span class="fc" id="L133">			topic = new Topic(session.will().topicName());</span>
+<span class="fc" id="L134">			Topic.NEXUS.insert(topic);</span>
+		}
+
+<span class="fc" id="L137">		topic.setRetainedMessage(session.will());</span>
+<span class="fc" id="L138">	}</span>
+
+	private String generateClientId(ChannelHandlerContext ctx, boolean cleanSession) {
+<span class="fc bfc" id="L141" title="All 2 branches covered.">		if (cleanSession) {</span>
+<span class="fc bfc" id="L142" title="All 2 branches covered.">			if (Settings.INSTANCE.getBoolean(&quot;mqtt.acceptEmptyClientId&quot;, true)) {</span>
+<span class="fc" id="L143">				return &quot;Lannister_&quot; + Long.toString(Hazelcast.INSTANCE.getIdGenerator(&quot;clientIdGenerator&quot;).newId()); // [MQTT-3.1.3-6],[MQTT-3.1.3-7]</span>
+			}
+			else {
+<span class="fc" id="L146">				sendNoneAcceptMessage(ctx, MqttConnectReturnCode.CONNECTION_REFUSED_IDENTIFIER_REJECTED);</span>
+<span class="fc" id="L147">				return null;</span>
+			}
+		}
+		else {
+<span class="fc" id="L151">			sendNoneAcceptMessage(ctx, MqttConnectReturnCode.CONNECTION_REFUSED_IDENTIFIER_REJECTED); // [MQTT-3.1.3-8]</span>
+<span class="fc" id="L152">			return null;</span>
+		}
+	}
+
+	private Session newSession(MqttConnectMessage msg, boolean cleanSession, String clientId, String clientIp,
+			int clientPort) {
+<span class="fc" id="L158">		return new Session(clientId, clientIp, clientPort, msg.variableHeader().keepAliveTimeSeconds(), cleanSession,</span>
+<span class="fc" id="L159">				newWill(clientId, msg));</span>
+	}
+
+	private Message newWill(String clientId, MqttConnectMessage conn) {
+<span class="fc bfc" id="L163" title="All 2 branches covered.">		if (!conn.variableHeader().isWillFlag()) { return null; } // [MQTT-3.1.2-12]</span>
+
+<span class="fc" id="L165">		return new Message(-1, conn.payload().willTopic(), clientId,</span>
+<span class="fc" id="L166">				conn.payload().willMessage().getBytes(CharsetUtil.UTF_8),</span>
+<span class="fc" id="L167">				MqttQoS.valueOf(conn.variableHeader().willQos()), conn.variableHeader().isWillRetain());</span>
+	}
+
+	private boolean filterPlugins(ChannelHandlerContext ctx, MqttConnectMessage msg) {
+<span class="fc" id="L171">		String clientId = msg.payload().clientIdentifier();</span>
+<span class="fc bfc" id="L172" title="All 2 branches covered.">		String userName = msg.variableHeader().hasUserName() ? msg.payload().userName() : null;</span>
+<span class="fc bfc" id="L173" title="All 2 branches covered.">		String password = msg.variableHeader().hasPassword() ? msg.payload().password() : null;</span>
+
+<span class="fc bfc" id="L175" title="All 2 branches covered.">		if (!Plugins.INSTANCE.get(ServiceChecker.class).isServiceAvailable()) {</span>
+<span class="fc" id="L176">			sendNoneAcceptMessage(ctx, MqttConnectReturnCode.CONNECTION_REFUSED_SERVER_UNAVAILABLE);</span>
+<span class="fc" id="L177">			return false;</span>
+		}
+
+<span class="fc bfc" id="L180" title="All 2 branches covered.">		if (!Plugins.INSTANCE.get(Authenticator.class).isValid(clientId)) {</span>
+<span class="fc" id="L181">			sendNoneAcceptMessage(ctx, MqttConnectReturnCode.CONNECTION_REFUSED_IDENTIFIER_REJECTED); // [MQTT-3.1.3-9]</span>
+<span class="fc" id="L182">			return false;</span>
+		}
+
+<span class="fc bfc" id="L185" title="All 2 branches covered.">		if (!Plugins.INSTANCE.get(Authenticator.class).isValid(clientId, userName, password)) {</span>
+<span class="fc" id="L186">			sendNoneAcceptMessage(ctx, MqttConnectReturnCode.CONNECTION_REFUSED_BAD_USER_NAME_OR_PASSWORD);</span>
+<span class="fc" id="L187">			return false;</span>
+		}
+
+<span class="fc bfc" id="L190" title="All 2 branches covered.">		if (!Plugins.INSTANCE.get(Authorizer.class).isAuthorized(clientId, userName)) {</span>
+<span class="fc" id="L191">			sendNoneAcceptMessage(ctx, MqttConnectReturnCode.CONNECTION_REFUSED_NOT_AUTHORIZED);</span>
+<span class="fc" id="L192">			return false;</span>
+		}
+
+<span class="fc" id="L195">		return true;</span>
+	}
+
+	private void sendNoneAcceptMessage(ChannelHandlerContext ctx, MqttConnectReturnCode returnCode) {
+<span class="pc bpc" id="L199" title="2 of 4 branches missed.">		assert returnCode != MqttConnectReturnCode.CONNECTION_ACCEPTED;</span>
+
+<span class="fc" id="L201">		MqttConnAckMessage msg = MessageFactory.connack(returnCode, false); // [MQTT-3.2.2-4]</span>
+
+<span class="fc" id="L203">		ctx.channel().writeAndFlush(msg).addListener(f -&gt; {</span>
+<span class="fc" id="L204">			Plugins.INSTANCE.get(ConnectEventListener.class).connectHandled(new ConnectEventArgs() {</span>
+				@Override
+				public String clientId() {
+<span class="fc" id="L207">					return null;</span>
+				}
+
+				@Override
+				public IMessage will() {
+<span class="fc" id="L212">					return null;</span>
+				}
+
+				@Override
+				public Boolean cleanSession() {
+<span class="fc" id="L217">					return null;</span>
+				}
+
+				@Override
+				public MqttConnectReturnCode returnCode() {
+<span class="fc" id="L222">					return returnCode;</span>
+				}
+			});
+
+<span class="fc" id="L226">			ctx.channel().disconnect().addListener(ChannelFutureListener.CLOSE).addListener(fs -&gt; // [MQTT-3.2.2-5],[MQTT-3.1.4-5]</span>
+<span class="fc" id="L227">			Plugins.INSTANCE.get(DisconnectEventListener.class).disconnected(new AbnormalDisconnectEventArgs()));</span>
+<span class="fc" id="L228">		});</span>
+<span class="fc" id="L229">	}</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.7.7.201606060606</span></div></body></html>
