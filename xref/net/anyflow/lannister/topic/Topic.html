@@ -145,14 +145,14 @@
 <a class="jxr_linenumber" name="L137" href="#L137">137</a> 		release(messageKey);
 <a class="jxr_linenumber" name="L138" href="#L138">138</a> 	}
 <a class="jxr_linenumber" name="L139" href="#L139">139</a> 
-<a class="jxr_linenumber" name="L140" href="#L140">140</a> 	<strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> addInboundMessageStatus(String clientId, <strong class="jxr_keyword">int</strong> messageId, <a href="../../../../net/anyflow/lannister/message/OutboundMessageStatus.html">Status</a> status) {
+<a class="jxr_linenumber" name="L140" href="#L140">140</a> 	<strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> addInboundMessageStatus(String clientId, <strong class="jxr_keyword">int</strong> messageId, <a href="../../../../net/anyflow/lannister/message/InboundMessageStatus.html">Status</a> status) {
 <a class="jxr_linenumber" name="L141" href="#L141">141</a> 		InboundMessageStatus messageStatus = <strong class="jxr_keyword">new</strong> <a href="../../../../net/anyflow/lannister/message/InboundMessageStatus.html">InboundMessageStatus</a>(clientId, messageId, status);
 <a class="jxr_linenumber" name="L142" href="#L142">142</a> 		retain(messageStatus.key());
 <a class="jxr_linenumber" name="L143" href="#L143">143</a> 
 <a class="jxr_linenumber" name="L144" href="#L144">144</a> 		inboundMessageStatuses.put(messageStatus.key(), messageStatus);
 <a class="jxr_linenumber" name="L145" href="#L145">145</a> 	}
 <a class="jxr_linenumber" name="L146" href="#L146">146</a> 
-<a class="jxr_linenumber" name="L147" href="#L147">147</a> 	<strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> setInboundMessageStatus(String clientId, <strong class="jxr_keyword">int</strong> messageId, <a href="../../../../net/anyflow/lannister/message/OutboundMessageStatus.html">Status</a> status) {
+<a class="jxr_linenumber" name="L147" href="#L147">147</a> 	<strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> setInboundMessageStatus(String clientId, <strong class="jxr_keyword">int</strong> messageId, <a href="../../../../net/anyflow/lannister/message/InboundMessageStatus.html">Status</a> status) {
 <a class="jxr_linenumber" name="L148" href="#L148">148</a> 		InboundMessageStatus messageStatus = inboundMessageStatuses.get(Message.key(clientId, messageId));
 <a class="jxr_linenumber" name="L149" href="#L149">149</a> 		<strong class="jxr_keyword">if</strong> (status == <strong class="jxr_keyword">null</strong>) {
 <a class="jxr_linenumber" name="L150" href="#L150">150</a> 			logger.error(<span class="jxr_string">"Inbound message status does not exist [clientId={}, messageId={}, status={}"</span>, clientId,

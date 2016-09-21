@@ -57,13 +57,13 @@
         <a href="#" class="dropdown-toggle" data-toggle="dropdown">Modules <b class="caret"></b></a>
         <ul class="dropdown-menu">
         
-                      <li>      <a href="../../interface/target/site_all/lannister-interface/index.html"  title="Lannister interface">Lannister interface</a>
+                      <li>      <a href="lannister-interface/index.html"  title="Lannister interface">Lannister interface</a>
 </li>
                   
-                      <li>      <a href="../../plugin-example/target/site_all/lannister-plugin-example/index.html"  title="Lannister plugin example">Lannister plugin example</a>
+                      <li>      <a href="lannister-plugin-example/index.html"  title="Lannister plugin example">Lannister plugin example</a>
 </li>
                   
-                      <li>      <a href="../../server/target/site_all/lannister-server/index.html"  title="Lannister server">Lannister server</a>
+                      <li>      <a href="lannister-server/index.html"  title="Lannister server">Lannister server</a>
 </li>
                           </ul>
       </li>
@@ -140,7 +140,7 @@
                   <li id="publishDate">Last Published: 2016-09-21
                       <span class="divider">|</span>
                    </li>
-                  <li id="projectVersion">Version: 0.9.5.2-SNAPSHOT
+                  <li id="projectVersion">Version: 0.9.6-SNAPSHOT
                       </li>
                       
               
@@ -164,21 +164,21 @@
                               
       <li>
   
-                          <a href="../../interface/target/site_all/lannister-interface/index.html" title="Lannister interface">
+                          <a href="lannister-interface/index.html" title="Lannister interface">
           <span class="none"></span>
         Lannister interface</a>
             </li>
                 
       <li>
   
-                          <a href="../../plugin-example/target/site_all/lannister-plugin-example/index.html" title="Lannister plugin example">
+                          <a href="lannister-plugin-example/index.html" title="Lannister plugin example">
           <span class="none"></span>
         Lannister plugin example</a>
             </li>
                 
       <li>
   
-                          <a href="../../server/target/site_all/lannister-server/index.html" title="Lannister server">
+                          <a href="lannister-server/index.html" title="Lannister server">
           <span class="none"></span>
         Lannister server</a>
             </li>
@@ -225,7 +225,7 @@
 
 <ol style="list-style-type: decimal">
   
-<li>Full Protocol Specifications(<a class="externalLink" href="http://public.dhe.ibm.com/software/dw/webservices/ws-mqtt/mqtt-v3r1.html">MQTT Version 3.1</a>, <a class="externalLink" href="http://docs.oasis-open.org/mqtt/mqtt/v3.1.1/os/mqtt-v3.1.1-os.html">MQTT Version 3.1.1</a>) Support includes</li>
+<li>Full Protocol Specifications(<a class="externalLink" href="http://docs.oasis-open.org/mqtt/mqtt/v3.1.1/os/mqtt-v3.1.1-os.html">MQTT Version 3.1.1</a>, <a class="externalLink" href="http://public.dhe.ibm.com/software/dw/webservices/ws-mqtt/mqtt-v3r1.html">MQTT Version 3.1</a>) Support includes</li>
 </ol>
 
 <ul>
@@ -248,7 +248,7 @@
   
 <li>Topic / Message / Message Status / Session redundant</li>
   
-<li>No SPOF(peer-to-peer based : No master and slave)</li>
+<li>peer-to-peer based : No master and slave</li>
   
 <li>Easy Scaling out</li>
 </ul>
@@ -291,11 +291,31 @@
   
 <li>Web admin Dashboard <i>(arranged for Lannister version 1.1)</i></li>
   
-<li>Data Persistence <i>(arranged for Lannister version 1.1)</i></li>
+<li>Data Persistency <i>(arranged for Lannister version 1.1)</i></li>
 </ol></div>
 <div class="section">
 <h2><a name="Getting_Started"></a>Getting Started</h2>
 <p>Lannister is <b>under CONSTRUCTION</b>. But the most of features above are implemented and tested. You can run and test Lannister simply via,</p>
+<div class="section">
+<div class="section">
+<h4><a name="Executing_pre-packaged_version"></a>Executing pre-packaged version</h4>
+
+<ol style="list-style-type: decimal">
+  
+<li>Install java 8</li>
+  
+<li>Go to <a class="externalLink" href="https://github.com/anyflow/lannister/tree/deploy-repo">https://github.com/anyflow/lannister/tree/deploy-repo</a></li>
+  
+<li>Download a prefered compressed file(<tt>zip</tt> / <tt>tar.gz</tt> / <tt>tar.bz2</tt>)</li>
+  
+<li>Unpack downloaded file and move into the directory</li>
+  
+<li>Execute <tt>./bin/startup.sh</tt> (before execution, change mode may required via <tt>chmod 700 ./bin/startup.sh</tt>)</li>
+  
+<li>For shutdown, execute <tt>./bin/shutdown.sh</tt> (Like <tt>startup.sh</tt>, <tt>chmod</tt> may required before execution)</li>
+</ol></div>
+<div class="section">
+<h4><a name="Source_compiling_version"></a>Source compiling version</h4>
 
 <div class="source">
 <div class="source"><pre class="prettyprint"># The below commands require Java 8 and Maven 3
@@ -311,11 +331,39 @@ mvn install
 
 # Run lannister server directed by lannister.cfg/hazelcast.config.xml/log4j.xml files in conf directory
 mvn exec:java -pl server
-</pre></div></div></div>
+</pre></div></div></div></div></div>
+<div class="section">
+<h2><a name="Project_site"></a>Project site</h2>
+<p>For more information, visit <a class="externalLink" href="http://anyflow.github.io/lannister/">http://anyflow.github.io/lannister/</a></p></div>
 <div class="section">
 <h2><a name="Version_History"></a>Version History</h2>
 <div class="section">
 <div class="section">
+<div class="section">
+<h5><a name="version_0.9.6__Sep_21_2016"></a>version 0.9.6 / Sep 21, 2016</h5>
+
+<ul>
+  
+<li>Open project site(<a class="externalLink" href="http://anyflow.github.io/lannister/">http://anyflow.github.io/lannister/</a>)</li>
+  
+<li>Open deploy repository(<a class="externalLink" href="https://github.com/anyflow/lannister/tree/deploy-repo">https://github.com/anyflow/lannister/tree/deploy-repo</a>)</li>
+  
+<li>Add nosys filter in topics REST API(<tt>/topics?filter=nosys</tt>)</li>
+  
+<li>Pass Specification test of <a class="externalLink" href="http://www.eclipse.org/paho/clients/testing/">http://www.eclipse.org/paho/clients/testing/</a> (<tt>client_test.py</tt> module, <tt>-z -d -s -n</tt> option)</li>
+  
+<li>Handle overlapped topic filters</li>
+  
+<li>Add [MQTT-4.7.2-1] feature(no matching an invalid topic filter case)</li>
+  
+<li>Add feature : Ban subscribing specific topic filters(<tt>lannister.subscribe.banned_topicfilters</tt> property in <tt>lannister.cfg</tt>)</li>
+  
+<li>Fix failing queued message delivery</li>
+  
+<li>Fix disconnection on receiving retained message puback</li>
+  
+<li>Fix disconnection on receiving message pubrec(on resending QoS2 message)</li>
+</ul></div>
 <div class="section">
 <h5><a name="version_0.9.5.1__Sep_11_2016"></a>version 0.9.5.1 / Sep 11, 2016</h5>
 
@@ -323,11 +371,11 @@ mvn exec:java -pl server
   
 <li>Externalize Hazelcast config - Add hazelcast.config.xml</li>
   
-<li>Add docker file and docker property - Run maven with profile (mvn install -Plannister.docker)</li>
+<li>Add docker file and docker property - Run maven with profile (<tt>mvn install -Plannister.docker</tt>)</li>
   
 <li>Add null checker in hazelcast serialization logics</li>
   
-<li>Change WebSocket(ssl) ports to 9001(9002)</li>
+<li>Change WebSocket(ssl) ports to <tt>9001</tt>(<tt>9002</tt>)</li>
   
 <li>Update Hazelcast version to 3.7.1</li>
   
@@ -352,7 +400,7 @@ mvn exec:java -pl server
   
 <li>Code Review, Test based on chapter 3.2 of Spec v3.1.1 Mandatory normative statements</li>
   
-<li>Add $SYS Required Topics</li>
+<li>Add <tt>$SYS</tt> Required Topics</li>
 </ul></div>
 <div class="section">
 <h5><a name="version_0.9.5-beta1__May_16_2016"></a>version 0.9.5-beta1 / May 16, 2016</h5>
@@ -365,9 +413,9 @@ mvn exec:java -pl server
   
 <li>Add clustering</li>
   
-<li>Add WebSocket <i>(default port: 2883)</i></li>
+<li>Add WebSocket <i>(default port: <tt>2883</tt>)</i></li>
   
-<li>Add SSL <i>(default port: 8883, default WebSocket SSL port: 9883)</i></li>
+<li>Add SSL <i>(default port: <tt>8883</tt>, default WebSocket SSL port: <tt>9883</tt>)</i></li>
   
 <li>Add plugin&#x2019;s : Framework &amp; Default / Example Plugins</li>
   
