@@ -11,9 +11,6 @@
 		<version>0.9.6-SNAPSHOT</version>
 	</parent>
 	<packaging>jar</packaging>
-	<properties>
-		<site.basedir>${project.parent.basedir}</site.basedir>
-	</properties>
 	<build>
 		<plugins></plugins>
 	</build>

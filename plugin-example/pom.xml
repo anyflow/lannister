@@ -11,9 +11,6 @@
 	<artifactId>lannister-plugin-example</artifactId>
 	<name>Lannister plugin example</name>
 	<packaging>jar</packaging>
-	<properties>
-		<site.basedir>${project.parent.basedir}</site.basedir>
-	</properties>
 	<dependencies>
 		<dependency>
 			<groupId>net.anyflow</groupId>

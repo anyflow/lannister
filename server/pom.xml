@@ -9,15 +9,12 @@
 		<artifactId>lannister</artifactId>
 		<version>0.9.6-SNAPSHOT</version>
 	</parent>
-  <scm>
+	<scm>
 		<url>https://github.com/anyflow/lannister/tree/master/server</url>
 		<connection>scm:git:git@github.com:anyflow/lannister.git</connection>
 		<developerConnection>scm:git:git@github.com:anyflow/lannister.git</developerConnection>
 		<tag>HEAD</tag>
-  </scm>	
-	<properties>
-		<site.basedir>${project.parent.basedir}</site.basedir>
-	</properties>
+	</scm>
 	<dependencies>
 		<dependency>
 			<groupId>net.anyflow</groupId>
