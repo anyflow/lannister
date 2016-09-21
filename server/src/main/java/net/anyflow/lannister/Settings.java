@@ -19,9 +19,12 @@ package net.anyflow.lannister;
 import java.io.File;
 import java.io.IOException;
 import java.security.cert.CertificateException;
+import java.util.List;
 import java.util.Map;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.base.Strings;
+import com.google.common.collect.Lists;
 
 import io.netty.handler.ssl.util.SelfSignedCertificate;
 
@@ -125,15 +128,24 @@ public class Settings extends java.util.Properties {
 	}
 
 	public File certChainFile() {
-		String certFilePath = getProperty("lannister.web.ssl.certChainFilePath", null);
+		String certFilePath = getProperty("lannister.ssl.certChainFilePath", null);
 
 		return "self".equalsIgnoreCase(certFilePath) ? ssc.certificate() : new File(certFilePath);
 	}
 
 	public File privateKeyFile() {
-		String privateKeyFilePath = getProperty("lannister.web.ssl.privateKeyFilePath", null);
+		String privateKeyFilePath = getProperty("lannister.ssl.privateKeyFilePath", null);
 
 		return "self".equalsIgnoreCase(privateKeyFilePath) ? ssc.privateKey() : new File(privateKeyFilePath);
+	}
+
+	public List<String> bannedTopicFilters() {
+		List<String> ret = Lists.newArrayList();
+
+		String tokens = getProperty("lannister.subscribe.banned_topicfilters", "");
+		if (Strings.isNullOrEmpty(tokens)) { return ret; }
+
+		return Lists.newArrayList(tokens.split(","));
 	}
 
 	/**
@@ -158,7 +170,7 @@ public class Settings extends java.util.Properties {
 	}
 
 	public String version() {
-		return getProperty("lannister.version");
+		return this.gitProperties.getProperty("git.build.version");
 	}
 
 	public String commitId() {
@@ -167,6 +179,10 @@ public class Settings extends java.util.Properties {
 
 	public String commitIdDescribe() {
 		return this.gitProperties.getProperty("git.commit.id.describe");
+	}
+
+	public String commitMessage() {
+		return this.gitProperties.getProperty("git.commit.message.short");
 	}
 
 	public String buildTime() {

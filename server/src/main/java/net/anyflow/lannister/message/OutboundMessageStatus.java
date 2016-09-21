@@ -32,11 +32,10 @@ import io.netty.handler.codec.mqtt.MqttQoS;
 import net.anyflow.lannister.serialization.SerializableFactory;
 
 public class OutboundMessageStatus extends MessageStatus {
-
 	public static final int ID = 3;
 
 	@JsonProperty
-	private String inboundMessageKey;
+	private String messageKey;
 	@JsonProperty
 	private Status status;
 	@JsonProperty
@@ -45,16 +44,16 @@ public class OutboundMessageStatus extends MessageStatus {
 	public OutboundMessageStatus() { // just for Serialization
 	}
 
-	public OutboundMessageStatus(String clientId, int messageId, String inboundMessageKey, Status status, MqttQoS qos) {
+	public OutboundMessageStatus(String messageKey, String clientId, int messageId, Status status, MqttQoS qos) {
 		super(clientId, messageId);
 
-		this.inboundMessageKey = inboundMessageKey;
+		this.messageKey = messageKey;
 		this.status = status;
 		this.qos = qos;
 	}
 
-	public String inboundMessageKey() {
-		return inboundMessageKey;
+	public String messageKey() {
+		return messageKey;
 	}
 
 	public Status status() {
@@ -88,9 +87,9 @@ public class OutboundMessageStatus extends MessageStatus {
 
 		writePortable(nullChecker, writer);
 
-		if (inboundMessageKey != null) {
-			writer.writeUTF("inboundMessageKey", inboundMessageKey);
-			nullChecker.add("inboundMessageKey");
+		if (messageKey != null) {
+			writer.writeUTF("messageKey", messageKey);
+			nullChecker.add("messageKey");
 		}
 		if (status != null) {
 			writer.writeByte("status", status.value());
@@ -110,15 +109,15 @@ public class OutboundMessageStatus extends MessageStatus {
 
 		readPortable(nullChecker, reader);
 
-		if (nullChecker.contains("inboundMessageKey")) inboundMessageKey = reader.readUTF("inboundMessageKey");
+		if (nullChecker.contains("messageKey")) messageKey = reader.readUTF("messageKey");
 		if (nullChecker.contains("status")) status = Status.valueOf(reader.readByte("status"));
 		if (nullChecker.contains("qos")) qos = MqttQoS.valueOf(reader.readInt("qos"));
 	}
 
 	public static ClassDefinition classDefinition() {
 		return new ClassDefinitionBuilder(SerializableFactory.ID, ID).addUTFField("clientId").addIntField("messageId")
-				.addLongField("createTime").addLongField("updateTime").addUTFField("inboundMessageKey")
-				.addByteField("status").addIntField("qos").addUTFArrayField("nullChecker").build();
+				.addLongField("createTime").addLongField("updateTime").addUTFField("messageKey").addByteField("status")
+				.addIntField("qos").addUTFArrayField("nullChecker").build();
 	}
 
 	public enum Status {

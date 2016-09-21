@@ -16,10 +16,13 @@
 
 package net.anyflow.lannister.topic;
 
+import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Maps;
 import com.hazelcast.core.IMap;
 import com.hazelcast.core.ITopic;
 
@@ -98,7 +101,7 @@ public class Topics {
 			return null;
 		}
 
-		topic.addSubscribers();
+		topic.updateSubscribers();
 
 		// TODO should be added in case of no subscriber & no retained Message?
 		return topics.put(topic.name(), topic);
@@ -127,8 +130,21 @@ public class Topics {
 		return topic;
 	}
 
-	public List<Topic> getMatches(String topicFilter) {
+	public List<Topic> matches(String topicFilter) {
 		return topics.values().stream().filter(topic -> TopicMatcher.match(topicFilter, topic.name()))
 				.collect(Collectors.toList());
+	}
+
+	public Collection<Topic> matches(Collection<String> topicFilters) {
+		Map<String, Topic> ret = Maps.newHashMap();
+
+		topics.values().stream().forEach(t -> {
+			if (topicFilters.stream().filter(tf -> TopicMatcher.match(tf, t.name())).count() <= 0) { return; }
+			if (ret.containsKey(t.name())) { return; }
+
+			ret.put(t.name(), t);
+		});
+
+		return ret.values();
 	}
 }

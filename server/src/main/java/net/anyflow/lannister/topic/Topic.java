@@ -39,7 +39,6 @@ import net.anyflow.lannister.serialization.SerializableFactory;
 import net.anyflow.lannister.session.Session;
 
 public class Topic implements com.hazelcast.nio.serialization.Portable {
-
 	private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(Topic.class);
 
 	public static final Topics NEXUS = new Topics(Session.NEXUS);
@@ -50,7 +49,7 @@ public class Topic implements com.hazelcast.nio.serialization.Portable {
 	@JsonProperty
 	private Message retainedMessage; // [MQTT-3.1.2.7]
 	@JsonProperty
-	private IMap<String, TopicSubscriber> subscribers; // clientIds
+	private IMap<String, TopicSubscriber> subscribers; // KEY:clientId
 	@JsonProperty
 	private IMap<String, Message> messages; // KEY:Message.key()
 	@JsonProperty
@@ -94,7 +93,7 @@ public class Topic implements com.hazelcast.nio.serialization.Portable {
 	}
 
 	private String messageReferenceCountsLockName() {
-		return "TOPIC(" + name + ")_messageReferneceCount_Lock";
+		return "TOPIC(" + name + ")_messageReferenceCount_Lock";
 	}
 
 	public String name() {
@@ -172,35 +171,6 @@ public class Topic implements com.hazelcast.nio.serialization.Portable {
 		return subscriptionQos.value() <= publishQos.value() ? subscriptionQos : publishQos;
 	}
 
-	public void broadcast(Message message) {
-		assert name.equals(message.topicName());
-
-		subscribers.keySet().stream().filter(id -> Session.NEXUS.get(id) != null).forEach(id -> {
-			Session session = Session.NEXUS.get(id);
-
-			Message toSend = message.clone();
-
-			// TODO what if returned topicSubscriptions are multiple?
-			TopicSubscription subscription = session.matches(name).findAny().orElse(null);
-			assert subscription != null;
-
-			toSend.setQos(adjustQoS(subscription.qos(), message.qos()));
-			toSend.setId(session.nextMessageId()); // [MQTT-2.3.1-2]
-
-			if (toSend.qos() != MqttQoS.AT_MOST_ONCE) {
-				Topic.NEXUS.get(toSend.topicName()).subscribers().get(session.clientId()).addOutboundMessageStatus(
-						toSend.id(), message.key(), OutboundMessageStatus.Status.TO_PUBLISH, toSend.qos()); // [MQTT-3.1.2-5]
-			}
-
-			if (session.isConnected(true)) {
-				session.sendPublish(this, toSend); // [MQTT-3.3.1-8],[MQTT-3.3.1-9]
-			}
-			else {
-				NEXUS.notifier().publish(new Notification(id, this, toSend));
-			}
-		});
-	}
-
 	protected void publish(Message message) {
 		assert name.equals(message.topicName());
 
@@ -209,10 +179,55 @@ public class Topic implements com.hazelcast.nio.serialization.Portable {
 		}
 
 		putMessage(message.publisherId(), message);
-		broadcast(message);
+
+		subscribers.keySet().stream().forEach(id -> {
+			Session session = Session.NEXUS.get(id);
+			assert session != null;
+
+			Message toSend = message.clone();
+
+			TopicSubscription subscription = session.matches(name);
+			assert subscription != null;
+
+			toSend.setQos(adjustQoS(subscription.qos(), message.qos()));
+
+			publish(session, toSend);
+		});
 	}
 
-	public void addSubscribers() {
+	public void publish(Session session, Message message) {
+		assert session != null;
+		assert message != null;
+
+		TopicSubscriber ts = subscribers().get(session.clientId());
+		assert ts != null;
+
+		if (!ts.outboundMessageStatuses().containsKey(message.id())) {
+			String messageKey = message.key();
+
+			message.setId(session.nextMessageId()); // [MQTT-2.3.1-2]
+
+			if (message.qos() != MqttQoS.AT_MOST_ONCE) {
+				ts.addOutboundMessageStatus(messageKey, message.id(), OutboundMessageStatus.Status.TO_PUBLISH,
+						message.qos()); // [MQTT-3.1.2-5]
+			}
+		}
+
+		NEXUS.notifier().publish(new Notification(session.clientId(), this, message));
+	}
+
+	public void publish(Session session, String messageKey) {
+		assert session != null;
+		assert messageKey != null;
+
+		Message message = messages.get(messageKey);
+		assert message != null;
+		assert subscribers().get(session.clientId()).outboundMessageStatuses().containsKey(message.id());
+
+		NEXUS.notifier().publish(new Notification(session.clientId(), this, message));
+	}
+
+	public void updateSubscribers() {
 		Session.NEXUS.map().values().stream()
 				.filter(s -> s.topicSubscriptions().values().stream()
 						.anyMatch(ts -> TopicMatcher.match(ts.topicFilter(), name)))
@@ -252,7 +267,7 @@ public class Topic implements com.hazelcast.nio.serialization.Portable {
 			}
 			else {
 				messageReferenceCounts.put(messageKey, --count);
-				logger.debug("message rereference released [count={}, messageKey={}]", count, messageKey);
+				logger.debug("message reference released [count={}, messageKey={}]", count, messageKey);
 			}
 		}
 		finally {

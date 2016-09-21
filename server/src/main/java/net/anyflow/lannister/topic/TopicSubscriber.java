@@ -62,21 +62,20 @@ public class TopicSubscriber implements com.hazelcast.nio.serialization.Portable
 		return ImmutableMap.copyOf(outboundMessageStatuses);
 	}
 
-	public void addOutboundMessageStatus(int messageId, String inboundMessageKey, OutboundMessageStatus.Status status,
+	protected void addOutboundMessageStatus(String messageKey, int messageId, OutboundMessageStatus.Status status,
 			MqttQoS qos) {
-		OutboundMessageStatus messageStatus = new OutboundMessageStatus(clientId, messageId, inboundMessageKey, status,
-				qos);
+		OutboundMessageStatus messageStatus = new OutboundMessageStatus(messageKey, clientId, messageId, status, qos);
 
 		outboundMessageStatuses.put(messageStatus.messageId(), messageStatus);
 
-		Topic.NEXUS.get(topicName).retain(messageStatus.inboundMessageKey());
+		Topic.NEXUS.get(topicName).retain(messageStatus.messageKey());
 	}
 
 	public OutboundMessageStatus removeOutboundMessageStatus(int messageId) {
 		OutboundMessageStatus ret = outboundMessageStatuses.remove(messageId);
 		if (ret == null) { return null; }
 
-		Topic.NEXUS.get(topicName).release(ret.inboundMessageKey());
+		Topic.NEXUS.get(topicName).release(ret.messageKey());
 
 		return ret;
 	}

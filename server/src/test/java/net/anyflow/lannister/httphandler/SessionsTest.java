@@ -59,9 +59,6 @@ public class SessionsTest {
 		Assert.assertEquals(HttpResponseStatus.OK, res.status());
 		Assert.assertEquals(new Integer(1), JsonPath.read(res.content().toString(CharsetUtil.UTF_8), "$.length()"));
 
-		Assert.assertTrue(res.content().toString(CharsetUtil.UTF_8).startsWith("{"));
-		Assert.assertTrue(res.content().toString(CharsetUtil.UTF_8).endsWith("}"));
-
 		client.disconnect(true);
 
 		Assert.assertFalse(client.isConnected());

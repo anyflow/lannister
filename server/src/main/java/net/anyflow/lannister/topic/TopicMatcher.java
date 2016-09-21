@@ -1,8 +1,11 @@
 package net.anyflow.lannister.topic;
 
 import java.io.UnsupportedEncodingException;
+import java.util.List;
 
 import com.google.common.base.Strings;
+
+import net.anyflow.lannister.Settings;
 
 public class TopicMatcher {
 
@@ -18,13 +21,18 @@ public class TopicMatcher {
 
 	private static final int INDEX_NOT_FOUND = -1;
 
+	private static final List<String> BANNED_TOPICFILTERS = Settings.INSTANCE.bannedTopicFilters();
+
 	public static final String MULTI_LEVEL_WILDCARD_PATTERN = SEPARATOR + MULTI_LEVEL_WILDCARD;
 	public static final String TOPIC_WILDCARDS = MULTI_LEVEL_WILDCARD + SINGLE_LEVEL_WILDCARD;
 
-	public static boolean isValid(String token, boolean allowWildcard) {
+	public static boolean isValid(String topicFilter, boolean allowWildcard) {
+		if (topicFilter == null) { return false; }
+		if (BANNED_TOPICFILTERS.contains(topicFilter)) { return false; }
+
 		int length = 0;
 		try {
-			length = token.getBytes("UTF-8").length;
+			length = topicFilter.getBytes("UTF-8").length;
 		}
 		catch (UnsupportedEncodingException e) {
 			logger.error(e.getMessage(), e);
@@ -37,16 +45,16 @@ public class TopicMatcher {
 		}
 
 		if (allowWildcard) {
-			if (token.equals(MULTI_LEVEL_WILDCARD) || token.equals(SINGLE_LEVEL_WILDCARD)) { return true; }
+			if (topicFilter.equals(MULTI_LEVEL_WILDCARD) || topicFilter.equals(SINGLE_LEVEL_WILDCARD)) { return true; }
 
-			if (countMatches(token, MULTI_LEVEL_WILDCARD) > 1
-					|| (token.contains(MULTI_LEVEL_WILDCARD) && !token.endsWith(MULTI_LEVEL_WILDCARD_PATTERN))) {
-				logger.error("Invalid usage of multi-level wildcard in topic string: {}", token);
+			if (countMatches(topicFilter, MULTI_LEVEL_WILDCARD) > 1 || (topicFilter.contains(MULTI_LEVEL_WILDCARD)
+					&& !topicFilter.endsWith(MULTI_LEVEL_WILDCARD_PATTERN))) {
+				logger.error("Invalid usage of multi-level wildcard in topic string: {}", topicFilter);
 				return false;
 			}
 		}
 
-		return isValidSingleLevelWildcard(token);
+		return isValidSingleLevelWildcard(topicFilter);
 	}
 
 	private static int countMatches(String str, String sub) {
@@ -87,6 +95,9 @@ public class TopicMatcher {
 
 	public static boolean match(String topicFilter, String topicName) {
 		if (!TopicMatcher.isValid(topicFilter, true) || !TopicMatcher.isValid(topicName, false)) { return false; }
+
+		if ((topicFilter.startsWith(MULTI_LEVEL_WILDCARD) || topicFilter.startsWith(SINGLE_LEVEL_WILDCARD))
+				&& topicName.startsWith("$")) { return false; } // [MQTT-4.7.2-1]
 
 		String[] tfs = topicFilter.split("/");
 		String[] tns = topicName.split("/");

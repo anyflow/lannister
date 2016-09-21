@@ -35,7 +35,8 @@ import net.anyflow.lannister.topic.Topics;
 public class MessageSender {
 	private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(MessageSender.class);
 
-	private final static int RESPONSE_TIMEOUT_SECONDS = Settings.INSTANCE.getInt("lannister.responseTimeoutSeconds", 60);
+	private final static int RESPONSE_TIMEOUT_SECONDS = Settings.INSTANCE.getInt("lannister.responseTimeoutSeconds",
+			60);
 
 	private final Session session;
 
@@ -125,7 +126,7 @@ public class MessageSender {
 					break;
 
 				default:
-					logger.error("Invalid Outbound Message Status [status={}, clientId={}, topic={}, messageId={}]",
+					logger.error("Invalid Inbound Message Status [status={}, clientId={}, topic={}, messageId={}]",
 							s.status(), session.clientId(), message.topicName(), message.id());
 					break;
 				}
@@ -140,7 +141,7 @@ public class MessageSender {
 		ctx.executor().submit(() -> {
 			Date now = new Date();
 
-			Stream<OutboundMessageStatus> statuses = Topic.NEXUS.map().values().parallelStream()
+			Stream<OutboundMessageStatus> statuses = Topic.NEXUS.map().values().stream()
 					.filter(t -> t.subscribers().containsKey(session.clientId()))
 					.map(t -> t.subscribers().get(session.clientId())).map(s -> s.outboundMessageStatuses())
 					.flatMap(s -> s.values().stream());
@@ -150,7 +151,7 @@ public class MessageSender {
 				if (intervalSeconds < RESPONSE_TIMEOUT_SECONDS) { return; }
 
 				Topic topic = Topic.NEXUS.get(s.clientId(), s.messageId(), Topics.ClientType.SUBSCRIBER);
-				Message message = topic.messages().get(s.inboundMessageKey());
+				Message message = topic.messages().get(s.messageKey());
 
 				message.setQos(s.qos());
 				message.setId(s.messageId()); // [MQTT-2.3.1-4]
@@ -161,8 +162,10 @@ public class MessageSender {
 				case PUBLISHED:
 					send(MessageFactory.publish(message, s.status() == OutboundMessageStatus.Status.PUBLISHED)) // [MQTT-3.3.1-1]
 							.addListener(f -> {
-						Statistics.INSTANCE.add(Statistics.Criterion.MESSAGES_PUBLISH_SENT, 1);
-					});
+								topic.subscribers().get(session.clientId()).setOutboundMessageStatus(message.id(),
+										OutboundMessageStatus.Status.PUBLISHED);
+								Statistics.INSTANCE.add(Statistics.Criterion.MESSAGES_PUBLISH_SENT, 1);
+							});
 					break;
 
 				case PUBRECED:

@@ -77,6 +77,6 @@ public class TopicTest {
 		OutboundMessageStatus status = subscriber.outboundMessageStatuses().values().stream().findFirst().orElse(null);
 
 		Assert.assertNotNull(status);
-		Assert.assertTrue(Message.key(publisherId, messageId).equals(status.inboundMessageKey()));
+		Assert.assertTrue(Message.key(publisherId, messageId).equals(status.messageKey()));
 	}
 }
