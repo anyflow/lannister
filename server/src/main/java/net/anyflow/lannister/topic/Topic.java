@@ -157,7 +157,7 @@ public class Topic implements com.hazelcast.nio.serialization.Portable {
 		inboundMessageStatuses.put(messageStatus.key(), messageStatus);
 	}
 
-	public void putMessage(String requesterId, Message message) {
+	private void putMessage(String requesterId, Message message) {
 		assert name.equals(message.topicName());
 
 		if (message.qos() == MqttQoS.AT_MOST_ONCE) { return; }
@@ -171,7 +171,7 @@ public class Topic implements com.hazelcast.nio.serialization.Portable {
 		return subscriptionQos.value() <= publishQos.value() ? subscriptionQos : publishQos;
 	}
 
-	public void publish(Message message) {
+	public void publish(final Message message) {
 		assert message != null;
 		assert name.equals(message.topicName());
 
@@ -181,36 +181,36 @@ public class Topic implements com.hazelcast.nio.serialization.Portable {
 			Session session = Session.NEXUS.get(id);
 			assert session != null;
 
-			Message toSend = message.clone();
-
-			TopicSubscription subscription = session.matches(name);
-			assert subscription != null;
-
-			toSend.setQos(adjustQoS(subscription.qos(), message.qos()));
-
-			publish(session, toSend);
+			publish(session, message);
 		});
 	}
 
-	public void publish(Session session, Message message) {
+	public void publish(final Session session, final Message message) {
 		assert session != null;
 		assert message != null;
+
+		Message toSend = message.clone();
+
+		TopicSubscription subscription = session.matches(name);
+		assert subscription != null;
+
+		toSend.setQos(adjustQoS(subscription.qos(), toSend.qos()));
 
 		TopicSubscriber ts = subscribers().get(session.clientId());
 		assert ts != null;
 
-		if (!ts.outboundMessageStatuses().containsKey(message.id())) {
-			String messageKey = message.key();
+		if (!ts.outboundMessageStatuses().containsKey(toSend.id())) {
+			String messageKey = toSend.key();
 
-			message.setId(session.nextMessageId()); // [MQTT-2.3.1-2]
+			toSend.setId(session.nextMessageId()); // [MQTT-2.3.1-2]
 
-			if (message.qos() != MqttQoS.AT_MOST_ONCE) {
-				ts.addOutboundMessageStatus(messageKey, message.id(), OutboundMessageStatus.Status.TO_PUBLISH,
-						message.qos()); // [MQTT-3.1.2-5]
+			if (toSend.qos() != MqttQoS.AT_MOST_ONCE) {
+				ts.addOutboundMessageStatus(messageKey, toSend.id(), OutboundMessageStatus.Status.TO_PUBLISH,
+						toSend.qos()); // [MQTT-3.1.2-5]
 			}
 		}
 
-		NEXUS.notifier().publish(new Notification(session.clientId(), this, message));
+		NEXUS.notifier().publish(new Notification(session.clientId(), this, toSend));
 	}
 
 	public void publish(Session session, String messageKey) {
