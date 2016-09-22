@@ -1,7 +1,7 @@
 # Package Files #
 #*.jar
 .DS_Store
-
+.vscode
 # directories #
 **/target/
 **/logs/

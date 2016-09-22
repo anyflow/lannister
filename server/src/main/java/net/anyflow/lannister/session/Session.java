@@ -199,7 +199,9 @@ public class Session implements com.hazelcast.nio.serialization.Portable {
 		setConnected(false);
 
 		if (sendWill && will != null) { // [MQTT-3.1.2-12]
-			Topic.NEXUS.publish(will);
+			Topic topic = Topic.NEXUS.prepare(will);
+			topic.publish(will);
+
 			will(null); // [MQTT-3.1.2-10]
 		}
 

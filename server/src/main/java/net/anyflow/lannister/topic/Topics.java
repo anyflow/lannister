@@ -118,14 +118,12 @@ public class Topics {
 		return topics.remove(topic.name());
 	}
 
-	public Topic publish(Message message) {
+	public Topic prepare(Message message) {
 		Topic topic = get(message.topicName());
 		if (topic == null) {
 			topic = new Topic(message.topicName());
 			insert(topic);
 		}
-
-		topic.publish(message);
 
 		return topic;
 	}

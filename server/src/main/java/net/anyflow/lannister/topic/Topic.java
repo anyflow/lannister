@@ -105,11 +105,11 @@ public class Topic implements com.hazelcast.nio.serialization.Portable {
 	}
 
 	public void setRetainedMessage(Message message) {
-		if (message == null || message.message().length <= 0) {
+		if (message == null || message.message().length <= 0) { // [mqtt-3.3.1-10],[MQTT-3.3.1-11]
 			this.retainedMessage = null;
 		}
 		else {
-			this.retainedMessage = message;
+			this.retainedMessage = message.clone();
 		}
 
 		NEXUS.persist(this);
@@ -171,12 +171,9 @@ public class Topic implements com.hazelcast.nio.serialization.Portable {
 		return subscriptionQos.value() <= publishQos.value() ? subscriptionQos : publishQos;
 	}
 
-	protected void publish(Message message) {
+	public void publish(Message message) {
+		assert message != null;
 		assert name.equals(message.topicName());
-
-		if (message.isRetain()) {// else do nothing [MQTT-3.3.1-12]
-			setRetainedMessage(message); // [MQTT-3.3.1-5],[MQTT-3.3.1-10],[MQTT-3.3.1-11]
-		}
 
 		putMessage(message.publisherId(), message);
 

@@ -60,6 +60,7 @@ public class TopicMatcherTest {
 		Assert.assertThat(TopicMatcher.match("test/+/2", "test/1/2"), IsEqual.equalTo(true));
 		Assert.assertThat(TopicMatcher.match("test/#/2", "test/1/2"), IsEqual.equalTo(false));
 
+		Assert.assertThat(TopicMatcher.match("/#", "/test"), IsEqual.equalTo(true));
 		Assert.assertThat(TopicMatcher.match("/test/+", "/test/1"), IsEqual.equalTo(true));
 		Assert.assertThat(TopicMatcher.match("/test/#", "/test/1"), IsEqual.equalTo(true));
 		Assert.assertThat(TopicMatcher.match("/test/#", "/test/1/2"), IsEqual.equalTo(true));
