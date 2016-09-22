@@ -249,10 +249,12 @@ public class Topic implements com.hazelcast.nio.serialization.Portable {
 	}
 
 	public void release(String messageKey) {
+		Integer count = messageReferenceCounts.get(messageKey);
+		if (count == null) { return; }
+
 		messageReferenceCountsLock.lock();
 
 		try {
-			Integer count = messageReferenceCounts.get(messageKey);
 			if (count <= 0) {
 				logger.error("Message reference count error [key={}, count={}]", messageKey, count);
 				return;
