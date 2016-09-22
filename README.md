@@ -39,8 +39,8 @@ Lannister is **under CONSTRUCTION**. But the most of features above are implemen
 2. Go to https://github.com/anyflow/lannister/tree/deploy-repo
 3. Download a prefered compressed file(`zip` / `tar.gz` / `tar.bz2`)
 4. Unpack downloaded file and move into the directory
-5. Execute `./bin/startup.sh` (before execution, change mode may required via `chmod 700 ./bin/startup.sh`)
-6. For shutdown, execute `./bin/shutdown.sh` (Like `startup.sh`, `chmod` may required before execution)
+5. Execute `./bin/startup.sh` (before execution, change mode may be required via `chmod 700 ./bin/startup.sh`)
+6. For shutdown, execute `./bin/shutdown.sh` (Like `startup.sh`, `chmod` may be required before execution)
 
 #### Source compiling version
 
@@ -63,14 +63,25 @@ mvn exec:java -pl server
 ## Project site
 For more information, visit http://anyflow.github.io/lannister/
 
-
 ## Version History
+##### version 0.9.7
+- **Pass specification tests**  
+  * test suite : [Eclipse Paho Testing Utilities](https://github.com/eclipse/paho.mqtt.testing)
+  * command : `run_test.py --testdir testsuites/basic`
+  * passed testcase count : 321/321
+- Fix failing to delete retain message
+- Fix failing QoS adjustment in retain message publish
+- Fix message reference counting error
+
 ##### version 0.9.6 / Sep 21, 2016
-- Open project site(http://anyflow.github.io/lannister/)
-- Open deploy repository(https://github.com/anyflow/lannister/tree/deploy-repo)
-- Add nosys filter in topics REST API(`/topics?filter=nosys`)
-- Pass Specification test of http://www.eclipse.org/paho/clients/testing/ (`client_test.py` module, `-z -d -s -n` option)
+- **Open project site**(http://anyflow.github.io/lannister/)
+- **Open deploy repository**(https://github.com/anyflow/lannister/tree/deploy-repo)
+- **Pass specification tests**
+  * test suite :[Eclipse Paho Testing Utilities](https://github.com/eclipse/paho.mqtt.testing)
+  * command : `client_test.py -z -d -s -n`
+  * passed testcase count : 15/15
 - Handle overlapped topic filters
+- Add nosys filter in topics REST API(`/topics?filter=nosys`)
 - Add [MQTT-4.7.2-1] feature(no matching an invalid topic filter case)
 - Add feature : Ban subscribing specific topic filters(`lannister.subscribe.banned_topicfilters` property in `lannister.cfg`) 
 - Fix failing queued message delivery
@@ -79,14 +90,14 @@ For more information, visit http://anyflow.github.io/lannister/
 
 ##### version 0.9.5.1 / Sep 11, 2016
 - Externalize Hazelcast config - Add hazelcast.config.xml
-- Add docker file and docker property - Run maven with profile (`mvn install -Plannister.docker`)
+- Add docker file and docker property - Run maven with profile (`mvn install -Pdocker`)
 - Add null checker in hazelcast serialization logics
 - Change WebSocket(ssl) ports to `9001`(`9002`)
 - Update Hazelcast version to 3.7.1
 - Update Netty version to 4.1.5
 - Add PMD / Findbugs / Jacoco / surefire reports
 - Start clustering TEST/FIX
-  - Fix subscription failing on existing topic in clustered state
+  * Fix subscription failing on existing topic in clustered state
 - Fix subscriptions remaining on disposing (clean) session
 - Fix reconnect failing persisted session  
 - Fix remaining no subscriber topic
