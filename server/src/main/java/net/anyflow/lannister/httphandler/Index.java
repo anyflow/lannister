@@ -18,7 +18,7 @@ package net.anyflow.lannister.httphandler;
 
 import net.anyflow.lannister.http.HttpRequestHandler;
 
-@HttpRequestHandler.Handles(paths = { "/", "/index", "home" }, httpMethods = { "GET" }, webResourcePath = "/index.html")
+@HttpRequestHandler.Handles(paths = { "/", "/index", "home" }, httpMethods = { "GET" }, webResourcePath = "index.html")
 public class Index extends HttpRequestHandler {
 	@SuppressWarnings("unused")
 	private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(Index.class);

@@ -19,6 +19,7 @@
         <include>bin/*</include>
         <include>conf/*</include>
         <include>lib/*</include>
+        <include>webapp/*</include>
       </includes>
     </fileSet>
   </fileSets>

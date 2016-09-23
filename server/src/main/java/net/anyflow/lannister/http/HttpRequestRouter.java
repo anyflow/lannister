@@ -17,9 +17,6 @@
 package net.anyflow.lannister.http;
 
 import java.io.ByteArrayOutputStream;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
@@ -37,6 +34,7 @@ import io.netty.handler.codec.http.HttpHeaderValues;
 import io.netty.handler.codec.http.HttpResponseStatus;
 import io.netty.handler.codec.http.HttpUtil;
 import io.netty.handler.codec.http.HttpVersion;
+import net.anyflow.lannister.Application;
 import net.anyflow.lannister.Settings;
 
 public class HttpRequestRouter extends SimpleChannelInboundHandler<FullHttpRequest> {
@@ -95,20 +93,13 @@ public class HttpRequestRouter extends SimpleChannelInboundHandler<FullHttpReque
 
 	private void handleWebResourceRequest(ChannelHandlerContext ctx, FullHttpRequest rawRequest, HttpResponse response,
 			String webResourceRequestPath) throws IOException {
-		InputStream is = Thread.currentThread().getContextClassLoader().getResourceAsStream(webResourceRequestPath);
+		if (webResourceRequestPath.startsWith("/")) {
+			webResourceRequestPath = webResourceRequestPath.substring(1, webResourceRequestPath.length());
+		}
+
+		InputStream is = Application.class.getClassLoader().getResourceAsStream(webResourceRequestPath);
 
 		try {
-			if (is == null) {
-				String rootPath = new File(Settings.INSTANCE.webResourcePhysicalRootPath(), webResourceRequestPath)
-						.getPath();
-				try {
-					is = new FileInputStream(rootPath);
-				}
-				catch (FileNotFoundException e) {
-					is = null;
-				}
-			}
-
 			if (is == null) {
 				response.setStatus(HttpResponseStatus.NOT_FOUND);
 			}

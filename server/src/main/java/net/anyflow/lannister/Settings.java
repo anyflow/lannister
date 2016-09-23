@@ -161,14 +161,6 @@ public class Settings extends java.util.Properties {
 		return ret;
 	}
 
-	public String webResourcePhysicalRootPath() {
-		return this.getProperty("lannister.web.httpServer.webResourcePhysicalRootPath", null);
-	}
-
-	public void setWebResourcePhysicalRootPath(String physicalRootPath) {
-		this.setProperty("lannister.web.httpServer.webResourcePhysicalRootPath", physicalRootPath);
-	}
-
 	public String version() {
 		return this.gitProperties.getProperty("git.build.version");
 	}

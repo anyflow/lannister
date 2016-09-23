@@ -106,6 +106,14 @@
 					<include>shutdown.sh</include>
 				</includes>
 			</resource>
+			<resource>
+				<filtering>true</filtering>
+				<directory>src/main/webapp</directory>
+				<targetPath>../webapp/</targetPath>
+				<includes>
+					<include>**/*</include>
+				</includes>
+			</resource>			
 		</resources>
 		<testResources>
 			<testResource>
@@ -128,7 +136,7 @@
 					<outputDirectory>${project.build.directory}/lib</outputDirectory>
 					<archive>
 						<manifestEntries>
-							<Class-Path>../conf/</Class-Path>
+							<Class-Path>../conf/ ../webapp/</Class-Path>
 						</manifestEntries>
 						<manifest>
 							<addClasspath>true</addClasspath>
@@ -168,6 +176,7 @@
 					<additionalClasspathElements>
 						<additionalClasspathElement>${project.build.directory}/conf</additionalClasspathElement>
 						<additionalClasspathElement>${project.build.directory}/plugin</additionalClasspathElement>
+						<additionalClasspathElement>${project.build.directory}/webapp</additionalClasspathElement>
 					</additionalClasspathElements>
 				</configuration>
 			</plugin>
