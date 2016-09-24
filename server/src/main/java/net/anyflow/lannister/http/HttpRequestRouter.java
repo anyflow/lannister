@@ -16,11 +16,12 @@
 
 package net.anyflow.lannister.http;
 
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
 import java.net.URISyntaxException;
+
+import org.apache.commons.io.IOUtils;
 
 import com.google.common.io.Files;
 
@@ -104,17 +105,7 @@ public class HttpRequestRouter extends SimpleChannelInboundHandler<FullHttpReque
 				response.setStatus(HttpResponseStatus.NOT_FOUND);
 			}
 			else {
-				ByteArrayOutputStream buffer = new ByteArrayOutputStream();
-
-				int nRead;
-				byte[] data = new byte[16384];
-
-				while ((nRead = is.read(data, 0, data.length)) != -1) {
-					buffer.write(data, 0, nRead);
-				}
-
-				buffer.flush();
-				response.content().writeBytes(buffer.toByteArray());
+				response.content().writeBytes(IOUtils.toByteArray(is));
 
 				String ext = Files.getFileExtension(webResourceRequestPath);
 				response.headers().set(HttpHeaderNames.CONTENT_TYPE,
@@ -143,6 +134,10 @@ public class HttpRequestRouter extends SimpleChannelInboundHandler<FullHttpReque
 				.findRequestHandler(new URI(rawRequest.uri()).getPath(), rawRequest.method().toString());
 
 		if (mc.requestHandlerClass() == null) {
+			if ("true".equalsIgnoreCase(Settings.INSTANCE.getProperty("webserver.logging.writeHttpRequest"))) {
+				logger.info(new HttpRequest(rawRequest, null).toString());
+			}
+
 			response.setStatus(HttpResponseStatus.NOT_FOUND);
 			logger.info("unexcepted URI : {}", rawRequest.uri());
 
@@ -152,6 +147,10 @@ public class HttpRequestRouter extends SimpleChannelInboundHandler<FullHttpReque
 		}
 		else {
 			HttpRequest request = new HttpRequest(rawRequest, mc.pathParameters());
+
+			if ("true".equalsIgnoreCase(Settings.INSTANCE.getProperty("webserver.logging.writeHttpRequest"))) {
+				logger.info(request.toString());
+			}
 
 			HttpRequestHandler handler = mc.requestHandlerClass().newInstance();
 
@@ -163,10 +162,6 @@ public class HttpRequestRouter extends SimpleChannelInboundHandler<FullHttpReque
 			}
 
 			handler.initialize(request, response);
-
-			if ("true".equalsIgnoreCase(Settings.INSTANCE.getProperty("webserver.logging.writeHttpRequest"))) {
-				logger.info(request.toString());
-			}
 
 			response.setContent(handler.service());
 		}
