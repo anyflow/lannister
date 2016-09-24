@@ -20,6 +20,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.Date;
 
 import org.apache.commons.io.IOUtils;
 
@@ -42,15 +43,21 @@ public class HttpRequestRouter extends SimpleChannelInboundHandler<FullHttpReque
 
 	private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(HttpRequestRouter.class);
 
-	private boolean isWebResourcePath(String path) {
-		return Settings.INSTANCE.webResourceExtensionToMimes().keySet().stream().anyMatch(s -> path.endsWith("." + s));
+	private boolean isStaticResourcePath(String path) {
+		String ext = Files.getFileExtension(path);
+		if (ext == null) { return false; }
+
+		return Settings.INSTANCE.webResourceExtensionToMimes().keySet().stream().anyMatch(s -> s.equalsIgnoreCase(ext));
 	}
 
 	@Override
-	protected void channelRead0(ChannelHandlerContext ctx, FullHttpRequest request) throws Exception {
-		if (HttpHeaderValues.WEBSOCKET.toString().equalsIgnoreCase(request.headers().get(HttpHeaderNames.UPGRADE))
+	protected void channelRead0(ChannelHandlerContext ctx, FullHttpRequest rawRequest) throws Exception {
+		Date now = new Date();
+		HttpRequest request = new HttpRequest(rawRequest);
+
+		if (HttpHeaderValues.WEBSOCKET.toString().equalsIgnoreCase(rawRequest.headers().get(HttpHeaderNames.UPGRADE))
 				&& HttpHeaderValues.UPGRADE.toString()
-						.equalsIgnoreCase(request.headers().get(HttpHeaderNames.CONNECTION))) {
+						.equalsIgnoreCase(rawRequest.headers().get(HttpHeaderNames.CONNECTION))) {
 
 			if (ctx.pipeline().get(WebsocketFrameHandler.class) == null) {
 				logger.error("No WebSocket Handler available");
@@ -61,11 +68,11 @@ public class HttpRequestRouter extends SimpleChannelInboundHandler<FullHttpReque
 				return;
 			}
 
-			ctx.fireChannelRead(request.retain());
+			ctx.fireChannelRead(rawRequest.retain());
 			return;
 		}
 
-		if (HttpUtil.is100ContinueExpected(request)) {
+		if (HttpUtil.is100ContinueExpected(rawRequest)) {
 			ctx.write(new DefaultFullHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.CONTINUE));
 			return;
 		}
@@ -74,26 +81,41 @@ public class HttpRequestRouter extends SimpleChannelInboundHandler<FullHttpReque
 
 		String requestPath = new URI(request.uri()).getPath();
 
-		if (isWebResourcePath(requestPath)) {
-			handleWebResourceRequest(ctx, request, response, requestPath);
+		if (isStaticResourcePath(requestPath)) {
+			handleStaticResource(response, requestPath);
 		}
 		else {
 			try {
-				processRequest(ctx, request, response);
+				handleDynamicResource(request, response);
 			}
 			catch (URISyntaxException e) {
-				response.setStatus(HttpResponseStatus.NOT_FOUND);
-				logger.info("unexcepted URI : {}", request.uri());
+				set404Response(response);
 			}
 			catch (Exception e) {
 				response.setStatus(HttpResponseStatus.INTERNAL_SERVER_ERROR);
-				logger.error("Unknown exception was thrown in business logic handler.\r\n" + e.getMessage(), e);
+				logger.error("Unknown exception was thrown in business logic handler.\r\n{}", e.getMessage(), e);
 			}
+		}
+
+		setDefaultHeaders(rawRequest, response);
+
+		ctx.write(response);
+
+		if ("true".equalsIgnoreCase(Settings.INSTANCE.getProperty("webserver.logging.writeHttpRequest"))) {
+			logger.info(request.toString(now));
+		}
+		if ("true".equalsIgnoreCase(Settings.INSTANCE.getProperty("webserver.logging.writeHttpResponse"))) {
+			logger.info(response.toString());
 		}
 	}
 
-	private void handleWebResourceRequest(ChannelHandlerContext ctx, FullHttpRequest rawRequest, HttpResponse response,
-			String webResourceRequestPath) throws IOException {
+	private void set404Response(HttpResponse response) {
+		response.headers().add(HttpHeaderNames.CONTENT_TYPE, HttpHeaderValues.TEXT_PLAIN);
+		response.setStatus(HttpResponseStatus.NOT_FOUND);
+		response.setContent(HttpResponseStatus.NOT_FOUND.toString());
+	}
+
+	private void handleStaticResource(HttpResponse response, String webResourceRequestPath) throws IOException {
 		if (webResourceRequestPath.startsWith("/")) {
 			webResourceRequestPath = webResourceRequestPath.substring(1, webResourceRequestPath.length());
 		}
@@ -102,7 +124,7 @@ public class HttpRequestRouter extends SimpleChannelInboundHandler<FullHttpReque
 
 		try {
 			if (is == null) {
-				response.setStatus(HttpResponseStatus.NOT_FOUND);
+				set404Response(response);
 			}
 			else {
 				response.content().writeBytes(IOUtils.toByteArray(is));
@@ -117,62 +139,30 @@ public class HttpRequestRouter extends SimpleChannelInboundHandler<FullHttpReque
 				is.close();
 			}
 		}
-
-		setDefaultHeaders(rawRequest, response);
-
-		if ("true".equalsIgnoreCase(Settings.INSTANCE.getProperty("webserver.logging.writeHttpResponse"))) {
-			logger.info(response.toString());
-		}
-
-		ctx.write(response);
 	}
 
-	private void processRequest(ChannelHandlerContext ctx, FullHttpRequest rawRequest, HttpResponse response)
+	private void handleDynamicResource(HttpRequest request, HttpResponse response)
 			throws InstantiationException, IllegalAccessException, IOException, URISyntaxException {
-
-		HttpRequestHandler.MatchedCriterion mc = HttpRequestHandler
-				.findRequestHandler(new URI(rawRequest.uri()).getPath(), rawRequest.method().toString());
+		HttpRequestHandler.MatchedCriterion mc = HttpRequestHandler.findRequestHandler(new URI(request.uri()).getPath(),
+				request.method().toString());
 
 		if (mc.requestHandlerClass() == null) {
-			if ("true".equalsIgnoreCase(Settings.INSTANCE.getProperty("webserver.logging.writeHttpRequest"))) {
-				logger.info(new HttpRequest(rawRequest, null).toString());
-			}
-
-			response.setStatus(HttpResponseStatus.NOT_FOUND);
-			logger.info("unexcepted URI : {}", rawRequest.uri());
-
-			response.headers().add(HttpHeaderNames.CONTENT_TYPE, "text/html");
-
-			response.setContent(response.toString());
+			set404Response(response);
 		}
 		else {
-			HttpRequest request = new HttpRequest(rawRequest, mc.pathParameters());
-
-			if ("true".equalsIgnoreCase(Settings.INSTANCE.getProperty("webserver.logging.writeHttpRequest"))) {
-				logger.info(request.toString());
-			}
-
 			HttpRequestHandler handler = mc.requestHandlerClass().newInstance();
 
 			String webResourcePath = handler.getClass().getAnnotation(HttpRequestHandler.Handles.class)
 					.webResourcePath();
-			if (!"none".equals(webResourcePath)) {
-				handleWebResourceRequest(ctx, rawRequest, response, webResourcePath);
-				return;
+
+			if (HttpRequestHandler.NO_WEB_RESOURCE_PATH.equals(webResourcePath)) {
+				response.setContent(
+						handler.initialize(request.pathParameters(mc.pathParameters()), response).service());
 			}
-
-			handler.initialize(request, response);
-
-			response.setContent(handler.service());
+			else {
+				handleStaticResource(response, webResourcePath);
+			}
 		}
-
-		setDefaultHeaders(rawRequest, response);
-
-		if ("true".equalsIgnoreCase(Settings.INSTANCE.getProperty("webserver.logging.writeHttpResponse"))) {
-			logger.info(response.toString());
-		}
-
-		ctx.write(response);
 	}
 
 	@Override

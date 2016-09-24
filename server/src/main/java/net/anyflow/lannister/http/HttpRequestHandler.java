@@ -33,9 +33,11 @@ import net.anyflow.lannister.Settings;
 
 public abstract class HttpRequestHandler {
 
-	private static final Map<String, Class<? extends HttpRequestHandler>> handlerClassMap = Maps.newHashMap();
-	private static Set<Class<? extends HttpRequestHandler>> requestHandlerClasses;
-	private static String requestHandlerPakcageRoot;
+	public static final String NO_WEB_RESOURCE_PATH = "none";
+
+	private static final Map<String, Class<? extends HttpRequestHandler>> HANDLER_CLASS_MAP = Maps.newHashMap();
+	private static Set<Class<? extends HttpRequestHandler>> REQUEST_HANDLER_CLASSES;
+	private static String REQUEST_HANDLER_PACKAGE_ROOT;
 
 	private HttpRequest request;
 	private HttpResponse response;
@@ -47,14 +49,16 @@ public abstract class HttpRequestHandler {
 
 		String[] httpMethods();
 
-		String webResourcePath() default "none";
+		String webResourcePath() default NO_WEB_RESOURCE_PATH;
 	}
 
 	public abstract String service();
 
-	protected void initialize(HttpRequest request, HttpResponse response) throws URISyntaxException {
+	protected HttpRequestHandler initialize(HttpRequest request, HttpResponse response) throws URISyntaxException {
 		this.request = request;
 		this.response = response;
+
+		return this;
 	}
 
 	public HttpRequest httpRequest() {
@@ -66,25 +70,26 @@ public abstract class HttpRequestHandler {
 	}
 
 	public static void setRequestHandlerPakcageRoot(String requestHandlerPakcageRoot) {
-		HttpRequestHandler.requestHandlerPakcageRoot = requestHandlerPakcageRoot;
+		REQUEST_HANDLER_PACKAGE_ROOT = requestHandlerPakcageRoot;
 	}
 
 	protected static MatchedCriterion findRequestHandler(String requestedPath, String httpMethod) {
-		for (Map.Entry<String, Class<? extends HttpRequestHandler>> item : handlerClassMap.entrySet()) {
+		for (Map.Entry<String, Class<? extends HttpRequestHandler>> item : HANDLER_CLASS_MAP.entrySet()) {
 			MatchedCriterion mc = match(requestedPath, httpMethod, item.getKey());
 
 			if (mc.matched) {
-				mc.requestHandlerClass = handlerClassMap.get(item.getKey());
+				mc.requestHandlerClass = HANDLER_CLASS_MAP.get(item.getKey());
 				return mc;
 			}
 		}
 
-		if (requestHandlerClasses == null) {
-			requestHandlerClasses = new Reflections(requestHandlerPakcageRoot).getSubTypesOf(HttpRequestHandler.class);
+		if (REQUEST_HANDLER_CLASSES == null) {
+			REQUEST_HANDLER_CLASSES = new Reflections(REQUEST_HANDLER_PACKAGE_ROOT)
+					.getSubTypesOf(HttpRequestHandler.class);
 		}
 
 		final ReturnWrapper wrapper = new ReturnWrapper();
-		requestHandlerClasses.stream().anyMatch(c -> {
+		REQUEST_HANDLER_CLASSES.stream().anyMatch(c -> {
 			HttpRequestHandler.Handles annotation = c.getAnnotation(HttpRequestHandler.Handles.class);
 			if (annotation == null) { return false; }
 
@@ -112,7 +117,7 @@ public abstract class HttpRequestHandler {
 			MatchedCriterion mc = match(requestedPath, methodToCheck, criterion);
 
 			if (mc.matched) {
-				handlerClassMap.put(criterion, handlerClass);
+				HANDLER_CLASS_MAP.put(criterion, handlerClass);
 				mc.requestHandlerClass = handlerClass;
 				this.value = mc;
 
