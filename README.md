@@ -73,12 +73,13 @@ For more information, visit http://anyflow.github.io/lannister/
 - Fix failing QoS adjustment in retain message publish
 - Fix message reference counting error
 - Refine `lannister.cfg` property names
+- Optimize performance : Minimize serialization
 
 ##### version 0.9.6 / Sep 21, 2016
 - **Open project site**(http://anyflow.github.io/lannister/)
 - **Open deploy repository**(https://github.com/anyflow/lannister/tree/deploy-repo)
 - **Pass specification tests**
-  * test suite :[Eclipse Paho Testing Utilities](https://github.com/eclipse/paho.mqtt.testing)
+  * test suite : [Eclipse Paho Testing Utilities](https://github.com/eclipse/paho.mqtt.testing)
   * command : `client_test.py -z -d -s -n`
   * passed testcase count : 15/15
 - Handle overlapped topic filters

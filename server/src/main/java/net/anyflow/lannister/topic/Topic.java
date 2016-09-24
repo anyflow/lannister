@@ -141,7 +141,7 @@ public class Topic implements com.hazelcast.nio.serialization.Portable {
 		InboundMessageStatus messageStatus = new InboundMessageStatus(clientId, messageId, status);
 		retain(messageStatus.key());
 
-		inboundMessageStatuses.put(messageStatus.key(), messageStatus);
+		inboundMessageStatuses.set(messageStatus.key(), messageStatus);
 	}
 
 	public void setInboundMessageStatus(String clientId, int messageId, Status status) {
@@ -154,7 +154,7 @@ public class Topic implements com.hazelcast.nio.serialization.Portable {
 
 		messageStatus.status(status);
 
-		inboundMessageStatuses.put(messageStatus.key(), messageStatus);
+		inboundMessageStatuses.set(messageStatus.key(), messageStatus);
 	}
 
 	private void putMessage(String requesterId, Message message) {
@@ -162,7 +162,7 @@ public class Topic implements com.hazelcast.nio.serialization.Portable {
 
 		if (message.qos() == MqttQoS.AT_MOST_ONCE) { return; }
 
-		messages.put(message.key(), message);
+		messages.set(message.key(), message);
 
 		addInboundMessageStatus(requesterId, message.id(), Status.RECEIVED);
 	}
@@ -228,7 +228,7 @@ public class Topic implements com.hazelcast.nio.serialization.Portable {
 		Session.NEXUS.map().values().stream()
 				.filter(s -> s.topicSubscriptions().values().stream()
 						.anyMatch(ts -> TopicMatcher.match(ts.topicFilter(), name)))
-				.forEach(s -> subscribers.put(s.clientId(), new TopicSubscriber(s.clientId(), name)));
+				.forEach(s -> subscribers.set(s.clientId(), new TopicSubscriber(s.clientId(), name)));
 	}
 
 	public void retain(String messageKey) {
@@ -240,7 +240,7 @@ public class Topic implements com.hazelcast.nio.serialization.Portable {
 				count = 0;
 			}
 
-			messageReferenceCounts.put(messageKey, ++count);
+			messageReferenceCounts.set(messageKey, ++count);
 			logger.debug("message reference added [count={}, messageKey={}]", count, messageKey);
 		}
 		finally {

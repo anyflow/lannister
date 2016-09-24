@@ -149,7 +149,7 @@ public class Statistics {
 	private void initialize(Criterion criterion) {
 		if (criterions.get(criterion) != null) { return; }
 
-		criterions.put(criterion, 0l);
+		criterions.set(criterion, 0l);
 	}
 
 	private void initializeData() {

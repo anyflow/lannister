@@ -47,14 +47,14 @@ public class Sessions implements MessageListener<Notification> {
 	public void put(Session session, ChannelHandlerContext ctx) {
 		synchronized (this) {
 			session.setConnected(true);
-			sessions.put(session.clientId(), session); // [MQTT-3.1.2-4]
+			sessions.set(session.clientId(), session); // [MQTT-3.1.2-4]
 			clientIds.put(ctx.channel().id(), session.clientId());
 			ctxs.put(session.clientId(), ctx);
 		}
 	}
 
 	public void persist(Session session) {
-		sessions.put(session.clientId(), session);
+		sessions.set(session.clientId(), session);
 	}
 
 	public ChannelHandlerContext channelHandlerContext(String clientId) {

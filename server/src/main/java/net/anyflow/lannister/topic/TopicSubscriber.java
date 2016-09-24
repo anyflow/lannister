@@ -21,7 +21,6 @@ import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import com.hazelcast.core.IMap;
 import com.hazelcast.nio.serialization.ClassDefinition;
@@ -58,15 +57,15 @@ public class TopicSubscriber implements com.hazelcast.nio.serialization.Portable
 		return "TOPIC(" + topicName + ")_CLIENT(" + clientId + ")_outboundMessageStatuses";
 	}
 
-	public ImmutableMap<Integer, OutboundMessageStatus> outboundMessageStatuses() {
-		return ImmutableMap.copyOf(outboundMessageStatuses);
+	public IMap<Integer, OutboundMessageStatus> outboundMessageStatuses() {
+		return outboundMessageStatuses;
 	}
 
 	protected void addOutboundMessageStatus(String messageKey, int messageId, OutboundMessageStatus.Status status,
 			MqttQoS qos) {
 		OutboundMessageStatus messageStatus = new OutboundMessageStatus(messageKey, clientId, messageId, status, qos);
 
-		outboundMessageStatuses.put(messageStatus.messageId(), messageStatus);
+		outboundMessageStatuses.set(messageStatus.messageId(), messageStatus);
 
 		Topic.NEXUS.get(topicName).retain(messageStatus.messageKey());
 	}
@@ -80,13 +79,13 @@ public class TopicSubscriber implements com.hazelcast.nio.serialization.Portable
 		return ret;
 	}
 
-	public OutboundMessageStatus setOutboundMessageStatus(int messageId, OutboundMessageStatus.Status targetStatus) {
+	public void setOutboundMessageStatus(int messageId, OutboundMessageStatus.Status targetStatus) {
 		OutboundMessageStatus status = outboundMessageStatuses.get(messageId);
-		if (status == null) { return null; }
+		if (status == null) { return; }
 
 		status.status(targetStatus);
 
-		return outboundMessageStatuses.put(status.messageId(), status);
+		outboundMessageStatuses.set(status.messageId(), status);
 	}
 
 	@JsonIgnore

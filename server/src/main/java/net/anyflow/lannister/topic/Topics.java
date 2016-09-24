@@ -21,7 +21,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
 import com.hazelcast.core.IMap;
 import com.hazelcast.core.ITopic;
@@ -31,7 +30,7 @@ import net.anyflow.lannister.message.Message;
 import net.anyflow.lannister.session.Sessions;
 
 public class Topics {
-
+	@SuppressWarnings("unused")
 	private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(Topics.class);
 
 	private final IMap<String, Topic> topics;
@@ -43,8 +42,8 @@ public class Topics {
 		this.notifier.addMessageListener(sessions);
 	}
 
-	public ImmutableMap<String, Topic> map() {
-		return ImmutableMap.copyOf(topics);
+	public IMap<String, Topic> map() {
+		return topics;
 	}
 
 	public ITopic<Notification> notifier() {
@@ -87,32 +86,22 @@ public class Topics {
 	}
 
 	protected void persist(Topic topic) {
-		if (topic == null || topics.get(topic.name()) == null) {
-			logger.error("Null or new topic can not bepersisted.");
-			return;
-		}
+		assert topic != null;
 
-		topics.put(topic.name(), topic);
+		topics.set(topic.name(), topic);
 	}
 
-	public Topic insert(Topic topic) {
-		if (topic == null) {
-			logger.error("Null topic tried to be inserted.");
-			return null;
-		}
+	public void insert(Topic topic) {
+		assert topic != null;
 
 		topic.updateSubscribers();
 
 		// TODO should be added in case of no subscriber & no retained Message?
-		return topics.put(topic.name(), topic);
+		persist(topic);
 	}
 
 	public Topic remove(Topic topic) {
-		if (topic == null) {
-			logger.error("Null topic tried to be removed.");
-			return null;
-		}
-
+		assert topic != null;
 		topic.dispose();
 
 		return topics.remove(topic.name());
