@@ -52,7 +52,7 @@ public class MqttChannelInitializer extends ChannelInitializer<SocketChannel> {
 		}
 
 		if (useWebSocket) {
-			String websocketPath = Settings.INSTANCE.getProperty("lannister.websocket.path", "/");
+			String websocketPath = Settings.INSTANCE.getProperty("mqttserver.websocket.path", "/");
 
 			ch.pipeline().addLast(HttpServerCodec.class.getName(), new HttpServerCodec());
 			ch.pipeline().addLast(HttpObjectAggregator.class.getName(), new HttpObjectAggregator(1048576));
@@ -62,7 +62,7 @@ public class MqttChannelInitializer extends ChannelInitializer<SocketChannel> {
 			ch.pipeline().addLast(new MqttWebSocketCodec());
 		}
 
-		int maxBytesInMessage = Settings.INSTANCE.getInt("lannister.maxBytesInMessage", 8092);
+		int maxBytesInMessage = Settings.INSTANCE.getInt("mqttserver.maxBytesInMessage", 8092);
 
 		ch.pipeline().addLast(MqttDecoder.class.getName(), new MqttDecoder(maxBytesInMessage));
 		ch.pipeline().addLast(MqttEncoder.class.getName(), MqttEncoder.INSTANCE);

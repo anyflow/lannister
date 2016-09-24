@@ -1,4 +1,6 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project 
+	xmlns="http://maven.apache.org/POM/4.0.0" 
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 	<artifactId>lannister-server</artifactId>
 	<name>Lannister server</name>
@@ -113,7 +115,7 @@
 				<includes>
 					<include>**/*</include>
 				</includes>
-			</resource>			
+			</resource>
 		</resources>
 		<testResources>
 			<testResource>
@@ -158,6 +160,11 @@
 					<includes>
 						<include>**/TestSuite.java</include>
 					</includes>
+					<additionalClasspathElements>
+						<additionalClasspathElement>${project.build.directory}/conf</additionalClasspathElement>
+						<additionalClasspathElement>${project.build.directory}/plugin</additionalClasspathElement>
+						<additionalClasspathElement>${project.build.directory}/webapp</additionalClasspathElement>
+					</additionalClasspathElements>
 				</configuration>
 			</plugin>
 			<!-- run jar via maven (mvn exec:java) -->

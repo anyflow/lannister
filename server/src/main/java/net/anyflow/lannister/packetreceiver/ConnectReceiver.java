@@ -139,7 +139,7 @@ public class ConnectReceiver extends SimpleChannelInboundHandler<MqttConnectMess
 
 	private String generateClientId(ChannelHandlerContext ctx, boolean cleanSession) {
 		if (cleanSession) {
-			if (Settings.INSTANCE.getBoolean("mqtt.acceptEmptyClientId", true)) {
+			if (Settings.INSTANCE.getBoolean("mqttserver.acceptEmptyClientId", true)) {
 				return "Lannister_" + Long.toString(Hazelcast.INSTANCE.getIdGenerator("clientIdGenerator").newId()); // [MQTT-3.1.3-6],[MQTT-3.1.3-7]
 			}
 			else {

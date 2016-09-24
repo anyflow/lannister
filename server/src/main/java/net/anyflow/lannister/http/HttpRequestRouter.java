@@ -129,7 +129,7 @@ public class HttpRequestRouter extends SimpleChannelInboundHandler<FullHttpReque
 
 		setDefaultHeaders(rawRequest, response);
 
-		if ("true".equalsIgnoreCase(Settings.INSTANCE.getProperty("lannister.web.logging.writeHttpResponse"))) {
+		if ("true".equalsIgnoreCase(Settings.INSTANCE.getProperty("webserver.logging.writeHttpResponse"))) {
 			logger.info(response.toString());
 		}
 
@@ -164,7 +164,7 @@ public class HttpRequestRouter extends SimpleChannelInboundHandler<FullHttpReque
 
 			handler.initialize(request, response);
 
-			if ("true".equalsIgnoreCase(Settings.INSTANCE.getProperty("lannister.web.logging.writeHttpRequest"))) {
+			if ("true".equalsIgnoreCase(Settings.INSTANCE.getProperty("webserver.logging.writeHttpRequest"))) {
 				logger.info(request.toString());
 			}
 
@@ -173,7 +173,7 @@ public class HttpRequestRouter extends SimpleChannelInboundHandler<FullHttpReque
 
 		setDefaultHeaders(rawRequest, response);
 
-		if ("true".equalsIgnoreCase(Settings.INSTANCE.getProperty("lannister.web.logging.writeHttpResponse"))) {
+		if ("true".equalsIgnoreCase(Settings.INSTANCE.getProperty("webserver.logging.writeHttpResponse"))) {
 			logger.info(response.toString());
 		}
 
@@ -193,7 +193,7 @@ public class HttpRequestRouter extends SimpleChannelInboundHandler<FullHttpReque
 
 	protected static void setDefaultHeaders(FullHttpRequest request, HttpResponse response) {
 		response.headers().add(HttpHeaderNames.SERVER,
-				"lannister " + net.anyflow.lannister.Settings.INSTANCE.getProperty("lannister.version"));
+				"lannister " + net.anyflow.lannister.Settings.INSTANCE.version());
 
 		boolean keepAlive = HttpHeaderValues.KEEP_ALIVE.toString()
 				.equals(request.headers().get(HttpHeaderNames.CONNECTION));
@@ -201,8 +201,7 @@ public class HttpRequestRouter extends SimpleChannelInboundHandler<FullHttpReque
 			response.headers().set(HttpHeaderNames.CONNECTION, HttpHeaderValues.KEEP_ALIVE);
 		}
 
-		if (Settings.INSTANCE.getProperty("lannister.web.httpServer.allowCrossDomain", "false")
-				.equalsIgnoreCase("true")) {
+		if (Settings.INSTANCE.getProperty("webserver.allowCrossDomain", "false").equalsIgnoreCase("true")) {
 			response.headers().add(HttpHeaderNames.ACCESS_CONTROL_ALLOW_ORIGIN, "*");
 			response.headers().add(HttpHeaderNames.ACCESS_CONTROL_ALLOW_METHODS, "POST, GET, PUT, DELETE");
 			response.headers().add(HttpHeaderNames.ACCESS_CONTROL_ALLOW_HEADERS, "X-PINGARUNER");

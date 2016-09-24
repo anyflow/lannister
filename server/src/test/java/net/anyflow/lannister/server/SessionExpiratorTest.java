@@ -55,7 +55,7 @@ public class SessionExpiratorTest {
 
 		Assert.assertTrue(session.isExpired());
 
-		int expireTimeout = Settings.INSTANCE.getInt("lannister.sessionExpirationHandlerExecutionIntervalSeconds", 1);
+		int expireTimeout = Settings.INSTANCE.getInt("mqttserver.sessionExpirationHandlerExecutionIntervalSeconds", 1);
 
 		Thread.sleep((expireTimeout + 2) * 1000);
 

@@ -43,7 +43,7 @@ class WebServerChannelInitializer extends ChannelInitializer<SocketChannel> {
 
 	@Override
 	protected void initChannel(SocketChannel ch) throws Exception {
-		if ("true".equalsIgnoreCase(Settings.INSTANCE.getProperty("lannister.web.logging.writelogOfNettyLogger"))) {
+		if ("true".equalsIgnoreCase(Settings.INSTANCE.getProperty("webserver.logging.writelogOfNettyLogger"))) {
 			ch.pipeline().addLast("log", new LoggingHandler("lannister.web/server", LogLevel.DEBUG));
 		}
 

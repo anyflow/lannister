@@ -72,6 +72,7 @@ For more information, visit http://anyflow.github.io/lannister/
 - Fix failing to delete retain message
 - Fix failing QoS adjustment in retain message publish
 - Fix message reference counting error
+- Refine `lannister.cfg` property names
 
 ##### version 0.9.6 / Sep 21, 2016
 - **Open project site**(http://anyflow.github.io/lannister/)
@@ -83,7 +84,7 @@ For more information, visit http://anyflow.github.io/lannister/
 - Handle overlapped topic filters
 - Add nosys filter in topics REST API(`/topics?filter=nosys`)
 - Add [MQTT-4.7.2-1] feature(no matching an invalid topic filter case)
-- Add feature : Ban subscribing specific topic filters(`lannister.subscribe.banned_topicfilters` property in `lannister.cfg`) 
+- Add feature : Ban subscribing specific topic filters(`mqttserver.subscribe.banned_topicfilters` property in `lannister.cfg`) 
 - Fix failing queued message delivery
 - Fix disconnection on receiving retained message puback
 - Fix disconnection on receiving message pubrec(on resending QoS2 message)
@@ -103,17 +104,17 @@ For more information, visit http://anyflow.github.io/lannister/
 - Fix remaining no subscriber topic
 
 ##### version 0.9.5.0 / May 21, 2016
+- **Add `$SYS` Required Topics**
 - Code Review, Test based on chapter 3.2 of Spec v3.1.1 Mandatory normative statements
-- Add `$SYS` Required Topics
 
 ##### version 0.9.5-beta1 / May 16, 2016
+- **Add clustering**
+- **Add WebSocket (default port: `2883`)**
+- **Add SSL (default port: `8883`, default WebSocket SSL port: `9883`)**
+- **Add plugin's : Framework & Default / Example Plugins**
+- **Add admin HTTP REST APIs : listing topics, sessions**
 - Code Review, Test based on chapter 3.1 of Spec v3.1.1 Mandatory normative statements
 - Implement full features of Protocol Specification MQTT version 3.1.1
-- Add clustering
-- Add WebSocket _(default port: `2883`)_
-- Add SSL _(default port: `8883`, default WebSocket SSL port: `9883`)_
-- Add plugin's : Framework & Default / Example Plugins
-- Add admin HTTP REST APIs : listing topics, sessions
 
 ## Author
 Park Hyunjeong / <anyflow@gmail.com>

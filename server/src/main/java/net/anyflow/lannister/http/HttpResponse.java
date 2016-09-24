@@ -94,7 +94,7 @@ public class HttpResponse extends DefaultFullHttpResponse {
 			}
 		}
 
-		if (!Settings.INSTANCE.getBoolean("lannister.web.logging.logWebResourceHttpResponseContent", false)
+		if (!Settings.INSTANCE.getBoolean("webserver.logging.logWebResourceHttpResponseContent", false)
 				&& Settings.INSTANCE.webResourceExtensionToMimes()
 						.containsValue(headers().get(HttpHeaderNames.CONTENT_TYPE))) {
 			buf.append("Content: WEB RESOURCE CONTENT");
@@ -103,7 +103,7 @@ public class HttpResponse extends DefaultFullHttpResponse {
 
 		String content = this.content().toString(CharsetUtil.UTF_8);
 
-		int size = Settings.INSTANCE.getInt("lannister.web.logging.httpResponseContentSize", 100);
+		int size = Settings.INSTANCE.getInt("webserver.logging.httpResponseContentSize", 100);
 
 		if (size < 0) {
 			buf.append("Content:\r\n   ").append(content);

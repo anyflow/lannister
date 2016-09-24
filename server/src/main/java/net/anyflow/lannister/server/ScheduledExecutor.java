@@ -25,6 +25,7 @@ import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
 import io.netty.handler.codec.mqtt.MqttQoS;
 import io.netty.util.CharsetUtil;
+import net.anyflow.lannister.Hazelcast;
 import net.anyflow.lannister.Settings;
 import net.anyflow.lannister.Statistics;
 import net.anyflow.lannister.message.Message;
@@ -36,23 +37,22 @@ public class ScheduledExecutor extends ChannelInboundHandlerAdapter {
 
 	@Override
 	public void handlerAdded(ChannelHandlerContext ctx) throws Exception {
-		int $sysPublisherInterval = Settings.INSTANCE.getInt("annister.sys.intervalSeconds", 2);
+		int $sysPublisherInterval = Settings.INSTANCE.getInt("mqttserver.sys.intervalSeconds", 2);
 		ctx.executor().scheduleAtFixedRate(new $SysPublisher(), 0, $sysPublisherInterval, TimeUnit.SECONDS);
 
 		int sessionExpiratorInterval = Settings.INSTANCE
-				.getInt("lannister.sessionExpirationHandlerExecutionIntervalSeconds", 0);
+				.getInt("mqttserver.sessionExpirationHandlerExecutionIntervalSeconds", 0);
 		ctx.executor().scheduleAtFixedRate(new SessionExpirator(), 0, sessionExpiratorInterval, TimeUnit.SECONDS);
 	}
 
 	static class $SysPublisher implements Runnable {
 		@Override
 		public void run() {
-			String requesterId = Settings.INSTANCE.getProperty("lannister.broker.id", "lannister_broker_id");
-
 			Statistics.INSTANCE.data().entrySet().stream().forEach(e -> {
 				byte[] msg = e.getValue().value().getBytes(CharsetUtil.UTF_8);
 
-				Message message = new Message(-1, e.getKey(), requesterId, msg, MqttQoS.AT_MOST_ONCE, false);
+				Message message = new Message(-1, e.getKey(), Hazelcast.INSTANCE.currentId(), msg, MqttQoS.AT_MOST_ONCE,
+						false);
 				Topic topic = Topic.NEXUS.prepare(message);
 
 				topic.publish(message);
