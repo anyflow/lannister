@@ -53,7 +53,7 @@ public class SessionsTest {
 		Assert.assertTrue(client.isConnected());
 
 		HttpClient httpClient = new HttpClient(
-				"http://localhost:" + Settings.INSTANCE.httpPort() + "/sessions?filter=live");
+				"http://localhost:" + Settings.INSTANCE.httpPort() + "/api/sessions?filter=live");
 		HttpResponse res = httpClient.get();
 
 		Assert.assertEquals(HttpResponseStatus.OK, res.status());
@@ -92,7 +92,7 @@ public class SessionsTest {
 		Assert.assertFalse(client2.isConnected());
 
 		HttpClient httpClient = new HttpClient(
-				"http://localhost:" + Settings.INSTANCE.httpPort() + "/sessions?filter=all");
+				"http://localhost:" + Settings.INSTANCE.httpPort() + "/api/sessions?filter=all");
 		HttpResponse res = httpClient.get();
 
 		Assert.assertEquals(HttpResponseStatus.OK, res.status());

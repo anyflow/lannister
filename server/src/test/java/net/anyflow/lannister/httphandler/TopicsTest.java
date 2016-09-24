@@ -35,7 +35,7 @@ public class TopicsTest {
 
 	@Test
 	public void testAll() throws Exception {
-		HttpClient client = new HttpClient("http://localhost:8090/topics?filter=all");
+		HttpClient client = new HttpClient("http://localhost:8090/api/topics?filter=all");
 		HttpResponse res = client.get();
 
 		Assert.assertEquals(HttpResponseStatus.OK, res.status());
@@ -45,7 +45,7 @@ public class TopicsTest {
 
 	@Test
 	public void testNosys() throws Exception {
-		HttpClient client = new HttpClient("http://localhost:8090/topics?filter=nosys");
+		HttpClient client = new HttpClient("http://localhost:8090/api/topics?filter=nosys");
 		HttpResponse res = client.get();
 
 		Assert.assertEquals(HttpResponseStatus.OK, res.status());

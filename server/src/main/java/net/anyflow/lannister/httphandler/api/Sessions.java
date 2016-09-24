@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package net.anyflow.lannister.httphandler;
+package net.anyflow.lannister.httphandler.api;
 
 import java.util.stream.Collectors;
 
@@ -25,7 +25,7 @@ import com.google.common.base.Strings;
 import net.anyflow.lannister.http.HttpRequestHandler;
 import net.anyflow.lannister.session.Session;
 
-@HttpRequestHandler.Handles(paths = { "sessions" }, httpMethods = { "GET" })
+@HttpRequestHandler.Handles(paths = { "api/sessions" }, httpMethods = { "GET" })
 public class Sessions extends HttpRequestHandler {
 
 	private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(Sessions.class);
