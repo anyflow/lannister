@@ -113,7 +113,7 @@
 				</includes>
 			</resource>
 			<resource>
-				<filtering>true</filtering>
+				<filtering>false</filtering>
 				<directory>src/main/webapp</directory>
 				<targetPath>../webapp/</targetPath>
 				<includes>
