@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package net.anyflow.lannister.httphandler;
+package net.anyflow.lannister.httphandler.api;
 
 import org.junit.Assert;
 import org.junit.BeforeClass;
