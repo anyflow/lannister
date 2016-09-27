@@ -99,14 +99,14 @@ public class HttpRequestRouter extends SimpleChannelInboundHandler<FullHttpReque
 
 		setDefaultHeaders(rawRequest, response);
 
-		ctx.write(response);
-
 		if ("true".equalsIgnoreCase(Settings.INSTANCE.getProperty("webserver.logging.writeHttpRequest"))) {
 			logger.info(request.toString(now));
 		}
 		if ("true".equalsIgnoreCase(Settings.INSTANCE.getProperty("webserver.logging.writeHttpResponse"))) {
 			logger.info(response.toString());
 		}
+
+		ctx.write(response);
 	}
 
 	private void set404Response(HttpResponse response) {

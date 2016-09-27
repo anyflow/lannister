@@ -32,7 +32,7 @@ public class Clients extends HttpRequestHandler {
 		IdGenerator idgen = Hazelcast.INSTANCE.getIdGenerator("CLIENT_ID_GENERATOR");
 
 		String clientId = null;
-		while (clientId != null) {
+		while (clientId == null) {
 			clientId = String.format("laniClientId%011d", idgen.newId());
 
 			if (Session.NEXUS.get(clientId) != null) {
