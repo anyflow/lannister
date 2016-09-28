@@ -36,7 +36,7 @@ Lannister is **under CONSTRUCTION**. But the most of features above are implemen
 
 #### Executing pre-packaged version
 1. Install java 8
-2. Go to https://github.com/anyflow/lannister/tree/deploy-repo
+2. Go to https://goo.gl/GJ1piF
 3. Download a prefered compressed file(`zip` / `tar.gz` / `tar.bz2`)
 4. Unpack downloaded file and move into the directory
 5. Execute `./bin/startup.sh` (before execution, change mode may be required via `chmod 700 ./bin/startup.sh`)
@@ -64,6 +64,9 @@ mvn exec:java -pl server
 For more information, visit http://anyflow.github.io/lannister/
 
 ## Version History
+##### version 0.9.7.1 / Sep 28, 2016 KST
+- Move deploy-repo to https://goo.gl/GJ1piF
+
 ##### version 0.9.7 / Sep 28, 2016 KST
 - **Pass specification tests**  
   * test suite : [Eclipse Paho Testing Utilities](https://github.com/eclipse/paho.mqtt.testing)
