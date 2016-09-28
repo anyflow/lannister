@@ -28,7 +28,7 @@ High performance MQTT broker w/ full specifications support, Clustering, WebSock
    * SubscribeEventListener
    * UnsubscribeEventListener
 8. HTTP REST APIs for admin, client
-9. Web admin Dashboard _(arranged for Lannister version 1.1)_
+9. Web admin Dashboard _(arranged for Lannister version 1.0)_
 10. Data Persistency _(arranged for Lannister version 1.1)_
 
 ## Getting Started
@@ -64,10 +64,10 @@ mvn exec:java -pl server
 For more information, visit http://anyflow.github.io/lannister/
 
 ## Version History
-##### version 0.9.7.1 / Sep 28, 2016 KST
+##### version 0.9.7.1 / Sep 28, 2016
 - Move deploy-repo to https://goo.gl/GJ1piF
 
-##### version 0.9.7 / Sep 28, 2016 KST
+##### version 0.9.7 / Sep 28, 2016
 - **Pass specification tests**  
   * test suite : [Eclipse Paho Testing Utilities](https://github.com/eclipse/paho.mqtt.testing)
   * command : `run_test.py --testdir testsuites/basic`

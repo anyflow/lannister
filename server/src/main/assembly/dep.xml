@@ -7,12 +7,11 @@
     <format>tar.gz</format>
     <format>tar.bz2</format>        
   </formats>
-  <baseDirectory>target</baseDirectory>
   <includeBaseDirectory>false</includeBaseDirectory>
   <fileSets>
     <fileSet>
       <directory>target</directory>
-      <outputDirectory>/</outputDirectory>
+      <outputDirectory>./</outputDirectory>
       <includes>
         <include>README.md</include>
         <include>LICENSE</include>

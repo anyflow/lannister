@@ -21,6 +21,8 @@
   <body>
     <menu name="OVERVIEW">
       <item name="Introduction" href="index.html" />
+      <item name="Version History" href="history.html" />
+      <item name="Specification REVIEW/TEST status" href="specification.html" />
     </menu>
     <menu ref="modules" />
     <menu ref="reports" />
