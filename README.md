@@ -64,7 +64,7 @@ mvn exec:java -pl server
 For more information, visit http://anyflow.github.io/lannister/
 
 ## Version History
-##### version 0.9.7
+##### version 0.9.7 / Sep 28, 2016 KST
 - **Pass specification tests**  
   * test suite : [Eclipse Paho Testing Utilities](https://github.com/eclipse/paho.mqtt.testing)
   * command : `run_test.py --testdir testsuites/basic`
@@ -74,6 +74,11 @@ For more information, visit http://anyflow.github.io/lannister/
 - Fix message reference counting error
 - Refine `lannister.cfg` property names
 - Optimize performance : Minimize serialization
+- Update REST API address(default port : `8090`)
+  * GET /topics => GET /api/topics
+  * GET /session => GET /api/sessions
+- Add Client ID generation REST API
+  * POST /api/clients
 
 ##### version 0.9.6 / Sep 21, 2016
 - **Open project site**(http://anyflow.github.io/lannister/)
