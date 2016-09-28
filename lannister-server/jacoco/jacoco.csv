@@ -40,23 +40,23 @@ Lannister server,net.anyflow.lannister,Statistics.new Statistics.SysValue() {...
 Lannister server,net.anyflow.lannister,Statistics.new Statistics.SysValue() {...},0,13,0,0,0,2,0,2,0,2
 Lannister server,net.anyflow.lannister,Statistics.new Statistics.SysValue() {...},0,22,0,2,0,3,0,4,0,3
 Lannister server,net.anyflow.lannister,AbnormalDisconnectEventArgs,0,10,0,0,0,4,0,4,0,4
-Lannister server,net.anyflow.lannister,Application.new Thread() {...},4,6,0,0,2,1,1,1,1,1
+Lannister server,net.anyflow.lannister,Application.new Thread() {...},0,10,0,0,0,3,0,2,0,2
 Lannister server,net.anyflow.lannister,Settings,52,204,7,7,11,43,9,21,2,21
 Lannister server,net.anyflow.lannister,Hazelcast,11,117,0,0,3,23,0,9,0,9
 Lannister server,net.anyflow.lannister,Literals,3,0,0,0,1,0,1,0,1,0
 Lannister server,net.anyflow.lannister,Statistics,61,299,16,4,5,56,12,9,1,8
 Lannister server,net.anyflow.lannister,Statistics.Criterion,9,99,0,0,0,10,2,2,2,2
 Lannister server,net.anyflow.lannister,Statistics.RawSysValue,0,18,0,0,0,4,0,2,0,2
-Lannister server,net.anyflow.lannister.plugin,DefaultDisconnectEventListener,8,7,0,0,3,3,2,2,2,2
-Lannister server,net.anyflow.lannister.plugin,Plugins,33,363,11,13,8,56,11,18,0,17
-Lannister server,net.anyflow.lannister.plugin,DefaultConnectEventListener,8,7,0,0,3,2,2,2,2,2
-Lannister server,net.anyflow.lannister.plugin,DefaultPublishEventListener,9,7,0,0,3,2,2,2,2,2
-Lannister server,net.anyflow.lannister.plugin,DefaultSubscribeEventListener,3,31,1,3,1,6,2,5,1,4
-Lannister server,net.anyflow.lannister.plugin,DefaultServiceChecker,9,7,0,0,3,2,2,2,2,2
-Lannister server,net.anyflow.lannister.plugin,DefaultAuthenticator,29,7,0,0,5,2,3,2,3,2
-Lannister server,net.anyflow.lannister.plugin,DefaultAuthorizer,11,7,0,0,3,2,2,2,2,2
+Lannister server,net.anyflow.lannister.plugin,DefaultDisconnectEventListener,0,15,0,0,0,6,0,4,0,4
+Lannister server,net.anyflow.lannister.plugin,Plugins,140,256,22,2,16,48,21,8,9,8
+Lannister server,net.anyflow.lannister.plugin,DefaultConnectEventListener,0,15,0,0,0,5,0,4,0,4
+Lannister server,net.anyflow.lannister.plugin,DefaultPublishEventListener,0,16,0,0,0,5,0,4,0,4
+Lannister server,net.anyflow.lannister.plugin,DefaultSubscribeEventListener,1,33,1,3,0,7,1,6,0,5
+Lannister server,net.anyflow.lannister.plugin,DefaultServiceChecker,0,16,0,0,0,5,0,4,0,4
+Lannister server,net.anyflow.lannister.plugin,DefaultAuthenticator,0,36,0,0,0,7,0,5,0,5
+Lannister server,net.anyflow.lannister.plugin,DefaultAuthorizer,0,18,0,0,0,5,0,4,0,4
 Lannister server,net.anyflow.lannister.plugin,DefaultUnsubscribeEventListener,8,7,0,0,3,3,2,2,2,2
-Lannister server,net.anyflow.lannister.plugin,DefaultDeliveredEventListener,8,7,0,0,3,3,2,2,2,2
+Lannister server,net.anyflow.lannister.plugin,DefaultDeliveredEventListener,0,15,0,0,0,6,0,4,0,4
 Lannister server,net.anyflow.lannister.http,HtmlGenerator,115,0,2,0,27,0,7,0,6,0
 Lannister server,net.anyflow.lannister.http,HttpResponse,59,195,10,10,9,34,7,9,0,6
 Lannister server,net.anyflow.lannister.http,HttpClientHandler,18,42,3,3,4,13,4,4,1,4

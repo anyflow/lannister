@@ -21,20 +21,20 @@ package net.anyflow.lannister.plugin;
 
 	@Override
 	public Plugin clone() {
-<span class="nc" id="L24">		return new DefaultAuthenticator();</span>
+<span class="fc" id="L24">		return new DefaultAuthenticator();</span>
 	}
 
 	@Override
 	public boolean isValid(String clientId) {
-<span class="nc" id="L29">		logger.debug(&quot;DefaultAuthenticator.isValid() called [clientId={}]&quot;, clientId);</span>
-<span class="nc" id="L30">		return true;</span>
+<span class="fc" id="L29">		logger.debug(&quot;DefaultAuthenticator.isValid() called [clientId={}]&quot;, clientId);</span>
+<span class="fc" id="L30">		return true;</span>
 	}
 
 	@Override
 	public boolean isValid(String clientId, String userName, String password) {
-<span class="nc" id="L35">		logger.debug(&quot;DefaultAuthenticator.isValid() called [clientId={}, userName={}, password={}]&quot;, clientId,</span>
+<span class="fc" id="L35">		logger.debug(&quot;DefaultAuthenticator.isValid() called [clientId={}, userName={}, password={}]&quot;, clientId,</span>
 				userName, password);
-<span class="nc" id="L37">		return true;</span>
+<span class="fc" id="L37">		return true;</span>
 	}
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.7.7.201606060606</span></div></body></html>

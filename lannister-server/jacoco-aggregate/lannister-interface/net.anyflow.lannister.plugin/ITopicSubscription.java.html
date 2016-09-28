@@ -25,8 +25,8 @@ public interface ITopicSubscription {
 	MqttQoS qos();
 
 	default String log() {
-<span class="fc" id="L28">		return (new StringBuilder()).append(&quot;topicFilter=&quot;).append(topicFilter()).append(&quot;, qos=&quot;).append(qos())</span>
-<span class="fc" id="L29">				.toString();</span>
+<span class="nc" id="L28">		return (new StringBuilder()).append(&quot;topicFilter=&quot;).append(topicFilter()).append(&quot;, qos=&quot;).append(qos())</span>
+<span class="nc" id="L29">				.toString();</span>
 	}
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.7.7.201606060606</span></div></body></html>
