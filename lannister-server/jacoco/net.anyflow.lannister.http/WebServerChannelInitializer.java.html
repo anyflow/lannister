@@ -43,7 +43,7 @@ class WebServerChannelInitializer extends ChannelInitializer&lt;SocketChannel&gt
 
 	@Override
 	protected void initChannel(SocketChannel ch) throws Exception {
-<span class="pc bpc" id="L46" title="1 of 2 branches missed.">		if (&quot;true&quot;.equalsIgnoreCase(Settings.INSTANCE.getProperty(&quot;lannister.web.logging.writelogOfNettyLogger&quot;))) {</span>
+<span class="pc bpc" id="L46" title="1 of 2 branches missed.">		if (&quot;true&quot;.equalsIgnoreCase(Settings.INSTANCE.getProperty(&quot;webserver.logging.writelogOfNettyLogger&quot;))) {</span>
 <span class="nc" id="L47">			ch.pipeline().addLast(&quot;log&quot;, new LoggingHandler(&quot;lannister.web/server&quot;, LogLevel.DEBUG));</span>
 		}
 

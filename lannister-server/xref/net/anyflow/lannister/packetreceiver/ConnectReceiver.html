@@ -147,7 +147,7 @@
 <a class="jxr_linenumber" name="L139" href="#L139">139</a> 
 <a class="jxr_linenumber" name="L140" href="#L140">140</a> 	<strong class="jxr_keyword">private</strong> String generateClientId(ChannelHandlerContext ctx, <strong class="jxr_keyword">boolean</strong> cleanSession) {
 <a class="jxr_linenumber" name="L141" href="#L141">141</a> 		<strong class="jxr_keyword">if</strong> (cleanSession) {
-<a class="jxr_linenumber" name="L142" href="#L142">142</a> 			<strong class="jxr_keyword">if</strong> (Settings.INSTANCE.getBoolean(<span class="jxr_string">"mqtt.acceptEmptyClientId"</span>, <strong class="jxr_keyword">true</strong>)) {
+<a class="jxr_linenumber" name="L142" href="#L142">142</a> 			<strong class="jxr_keyword">if</strong> (Settings.INSTANCE.getBoolean(<span class="jxr_string">"mqttserver.acceptEmptyClientId"</span>, <strong class="jxr_keyword">true</strong>)) {
 <a class="jxr_linenumber" name="L143" href="#L143">143</a> 				<strong class="jxr_keyword">return</strong> <span class="jxr_string">"Lannister_"</span> + Long.toString(Hazelcast.INSTANCE.getIdGenerator(<span class="jxr_string">"clientIdGenerator"</span>).newId()); <em class="jxr_comment">// [MQTT-3.1.3-6],[MQTT-3.1.3-7]</em>
 <a class="jxr_linenumber" name="L144" href="#L144">144</a> 			}
 <a class="jxr_linenumber" name="L145" href="#L145">145</a> 			<strong class="jxr_keyword">else</strong> {

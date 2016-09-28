@@ -52,7 +52,7 @@ public class MqttChannelInitializer extends ChannelInitializer&lt;SocketChannel&
 		}
 
 <span class="pc bpc" id="L54" title="1 of 2 branches missed.">		if (useWebSocket) {</span>
-<span class="nc" id="L55">			String websocketPath = Settings.INSTANCE.getProperty(&quot;lannister.websocket.path&quot;, &quot;/&quot;);</span>
+<span class="nc" id="L55">			String websocketPath = Settings.INSTANCE.getProperty(&quot;mqttserver.websocket.path&quot;, &quot;/&quot;);</span>
 
 <span class="nc" id="L57">			ch.pipeline().addLast(HttpServerCodec.class.getName(), new HttpServerCodec());</span>
 <span class="nc" id="L58">			ch.pipeline().addLast(HttpObjectAggregator.class.getName(), new HttpObjectAggregator(1048576));</span>
@@ -62,7 +62,7 @@ public class MqttChannelInitializer extends ChannelInitializer&lt;SocketChannel&
 <span class="nc" id="L62">			ch.pipeline().addLast(new MqttWebSocketCodec());</span>
 		}
 
-<span class="fc" id="L65">		int maxBytesInMessage = Settings.INSTANCE.getInt(&quot;lannister.maxBytesInMessage&quot;, 8092);</span>
+<span class="fc" id="L65">		int maxBytesInMessage = Settings.INSTANCE.getInt(&quot;mqttserver.maxBytesInMessage&quot;, 8092);</span>
 
 <span class="fc" id="L67">		ch.pipeline().addLast(MqttDecoder.class.getName(), new MqttDecoder(maxBytesInMessage));</span>
 <span class="fc" id="L68">		ch.pipeline().addLast(MqttEncoder.class.getName(), MqttEncoder.INSTANCE);</span>

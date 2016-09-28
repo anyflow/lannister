@@ -86,12 +86,12 @@
 <a class="jxr_linenumber" name="L78" href="#L78">78</a>  
 <a class="jxr_linenumber" name="L79" href="#L79">79</a>  	@Test
 <a class="jxr_linenumber" name="L80" href="#L80">80</a>  	<strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> testCleanSessionWithoutClientIdReturnFalse() <strong class="jxr_keyword">throws</strong> Exception {
-<a class="jxr_linenumber" name="L81" href="#L81">81</a>  		Settings.INSTANCE.setProperty(<span class="jxr_string">"mqtt.acceptEmptyClientId"</span>, <span class="jxr_string">"false"</span>);
+<a class="jxr_linenumber" name="L81" href="#L81">81</a>  		Settings.INSTANCE.setProperty(<span class="jxr_string">"mqttserver.acceptEmptyClientId"</span>, <span class="jxr_string">"false"</span>);
 <a class="jxr_linenumber" name="L82" href="#L82">82</a>  		MqttConnAckMessage ret = executeNormalChannelRead0(<span class="jxr_string">""</span>, <strong class="jxr_keyword">true</strong>, <strong class="jxr_keyword">null</strong>);
 <a class="jxr_linenumber" name="L83" href="#L83">83</a>  
 <a class="jxr_linenumber" name="L84" href="#L84">84</a>  		Assert.assertEquals(MqttConnectReturnCode.CONNECTION_REFUSED_IDENTIFIER_REJECTED,
 <a class="jxr_linenumber" name="L85" href="#L85">85</a>  				ret.variableHeader().connectReturnCode());
-<a class="jxr_linenumber" name="L86" href="#L86">86</a>  		Settings.INSTANCE.setProperty(<span class="jxr_string">"mqtt.acceptEmptyClientId"</span>, <span class="jxr_string">"true"</span>);
+<a class="jxr_linenumber" name="L86" href="#L86">86</a>  		Settings.INSTANCE.setProperty(<span class="jxr_string">"mqttserver.acceptEmptyClientId"</span>, <span class="jxr_string">"true"</span>);
 <a class="jxr_linenumber" name="L87" href="#L87">87</a>  	}
 <a class="jxr_linenumber" name="L88" href="#L88">88</a>  
 <a class="jxr_linenumber" name="L89" href="#L89">89</a>  	@Test

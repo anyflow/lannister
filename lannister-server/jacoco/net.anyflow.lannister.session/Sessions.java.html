@@ -47,14 +47,14 @@ public class Sessions implements MessageListener&lt;Notification&gt; {
 	public void put(Session session, ChannelHandlerContext ctx) {
 <span class="fc" id="L48">		synchronized (this) {</span>
 <span class="fc" id="L49">			session.setConnected(true);</span>
-<span class="fc" id="L50">			sessions.put(session.clientId(), session); // [MQTT-3.1.2-4]</span>
+<span class="fc" id="L50">			sessions.set(session.clientId(), session); // [MQTT-3.1.2-4]</span>
 <span class="fc" id="L51">			clientIds.put(ctx.channel().id(), session.clientId());</span>
 <span class="fc" id="L52">			ctxs.put(session.clientId(), ctx);</span>
 <span class="pc" id="L53">		}</span>
 <span class="fc" id="L54">	}</span>
 
 	public void persist(Session session) {
-<span class="fc" id="L57">		sessions.put(session.clientId(), session);</span>
+<span class="fc" id="L57">		sessions.set(session.clientId(), session);</span>
 <span class="fc" id="L58">	}</span>
 
 	public ChannelHandlerContext channelHandlerContext(String clientId) {

@@ -35,7 +35,7 @@ import net.anyflow.lannister.topic.Topics;
 public class MessageSender {
 <span class="fc" id="L36">	private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(MessageSender.class);</span>
 
-<span class="fc" id="L38">	private final static int RESPONSE_TIMEOUT_SECONDS = Settings.INSTANCE.getInt(&quot;lannister.responseTimeoutSeconds&quot;,</span>
+<span class="fc" id="L38">	private final static int RESPONSE_TIMEOUT_SECONDS = Settings.INSTANCE.getInt(&quot;mqttserver.responseTimeoutSeconds&quot;,</span>
 <span class="fc" id="L39">			60);</span>
 
 	private final Session session;

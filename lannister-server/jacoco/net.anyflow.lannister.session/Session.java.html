@@ -199,146 +199,148 @@ public class Session implements com.hazelcast.nio.serialization.Portable {
 <span class="fc" id="L199">		setConnected(false);</span>
 
 <span class="fc bfc" id="L201" title="All 4 branches covered.">		if (sendWill &amp;&amp; will != null) { // [MQTT-3.1.2-12]</span>
-<span class="fc" id="L202">			Topic.NEXUS.publish(will);</span>
-<span class="fc" id="L203">			will(null); // [MQTT-3.1.2-10]</span>
+<span class="fc" id="L202">			Topic topic = Topic.NEXUS.prepare(will);</span>
+<span class="fc" id="L203">			topic.publish(will);</span>
+
+<span class="fc" id="L205">			will(null); // [MQTT-3.1.2-10]</span>
 		}
 
-<span class="fc" id="L206">		ChannelId channelId = null;</span>
-<span class="fc" id="L207">		ChannelHandlerContext ctx = NEXUS.channelHandlerContext(clientId);</span>
-<span class="pc bpc" id="L208" title="1 of 2 branches missed.">		if (ctx != null) {</span>
-<span class="fc" id="L209">			ctx.channel().disconnect().addListener(ChannelFutureListener.CLOSE).addListener(fs -&gt; Plugins.INSTANCE</span>
-<span class="fc" id="L210">					.get(DisconnectEventListener.class).disconnected(new AbnormalDisconnectEventArgs()));</span>
+<span class="fc" id="L208">		ChannelId channelId = null;</span>
+<span class="fc" id="L209">		ChannelHandlerContext ctx = NEXUS.channelHandlerContext(clientId);</span>
+<span class="pc bpc" id="L210" title="1 of 2 branches missed.">		if (ctx != null) {</span>
+<span class="fc" id="L211">			ctx.channel().disconnect().addListener(ChannelFutureListener.CLOSE).addListener(fs -&gt; Plugins.INSTANCE</span>
+<span class="fc" id="L212">					.get(DisconnectEventListener.class).disconnected(new AbnormalDisconnectEventArgs()));</span>
 
-<span class="fc" id="L212">			channelId = ctx.channel().id();</span>
+<span class="fc" id="L214">			channelId = ctx.channel().id();</span>
 		}
 
-<span class="pc bpc" id="L215" title="1 of 2 branches missed.">		logger.debug(&quot;Session disposed [clientId={}/channelId={}]&quot;, clientId, ctx == null ? &quot;null&quot; : channelId);</span>
+<span class="pc bpc" id="L217" title="1 of 2 branches missed.">		logger.debug(&quot;Session disposed [clientId={}/channelId={}]&quot;, clientId, ctx == null ? &quot;null&quot; : channelId);</span>
 
-<span class="fc bfc" id="L217" title="All 2 branches covered.">		if (cleanSession) {</span>
-<span class="fc" id="L218">			this.topicSubscriptions.values().stream().forEach(ts -&gt; {</span>
-<span class="fc" id="L219">				Topic.NEXUS.matches(ts.topicFilter()).forEach(t -&gt; t.subscribers().remove(clientId));</span>
-<span class="fc" id="L220">			});</span>
+<span class="fc bfc" id="L219" title="All 2 branches covered.">		if (cleanSession) {</span>
+<span class="fc" id="L220">			this.topicSubscriptions.values().stream().forEach(ts -&gt; {</span>
+<span class="fc" id="L221">				Topic.NEXUS.matches(ts.topicFilter()).forEach(t -&gt; t.subscribers().remove(clientId));</span>
+<span class="fc" id="L222">			});</span>
 
-<span class="fc" id="L222">			this.topicSubscriptions.destroy();</span>
+<span class="fc" id="L224">			this.topicSubscriptions.destroy();</span>
 		}
 
-<span class="fc" id="L225">		NEXUS.remove(this);</span>
+<span class="fc" id="L227">		NEXUS.remove(this);</span>
 
-<span class="fc" id="L227">		Plugins.INSTANCE.get(DisconnectEventListener.class).disconnected(new DisconnectEventArgs() {</span>
+<span class="fc" id="L229">		Plugins.INSTANCE.get(DisconnectEventListener.class).disconnected(new DisconnectEventArgs() {</span>
 			@Override
 			public String clientId() {
-<span class="fc" id="L230">				return clientId;</span>
+<span class="fc" id="L232">				return clientId;</span>
 			}
 
 			@Override
 			public Boolean cleanSession() {
-<span class="fc" id="L235">				return cleanSession;</span>
+<span class="fc" id="L237">				return cleanSession;</span>
 			}
 
 			@Override
 			public Boolean byDisconnectMessage() {
-<span class="fc bfc" id="L240" title="All 2 branches covered.">				return !sendWill;</span>
+<span class="fc bfc" id="L242" title="All 2 branches covered.">				return !sendWill;</span>
 			}
 		});
-<span class="fc" id="L243">	}</span>
+<span class="fc" id="L245">	}</span>
 
 	@JsonIgnore
 	@Override
 	public int getFactoryId() {
-<span class="fc" id="L248">		return SerializableFactory.ID;</span>
+<span class="fc" id="L250">		return SerializableFactory.ID;</span>
 	}
 
 	@JsonIgnore
 	@Override
 	public int getClassId() {
-<span class="fc" id="L254">		return ID;</span>
+<span class="fc" id="L256">		return ID;</span>
 	}
 
 	@Override
 	public void writePortable(PortableWriter writer) throws IOException {
-<span class="fc" id="L259">		List&lt;String&gt; nullChecker = Lists.newArrayList();</span>
+<span class="fc" id="L261">		List&lt;String&gt; nullChecker = Lists.newArrayList();</span>
 
-<span class="pc bpc" id="L261" title="1 of 2 branches missed.">		if (clientId != null) {</span>
-<span class="fc" id="L262">			writer.writeUTF(&quot;clientId&quot;, clientId);</span>
-<span class="fc" id="L263">			nullChecker.add(&quot;clientId&quot;);</span>
+<span class="pc bpc" id="L263" title="1 of 2 branches missed.">		if (clientId != null) {</span>
+<span class="fc" id="L264">			writer.writeUTF(&quot;clientId&quot;, clientId);</span>
+<span class="fc" id="L265">			nullChecker.add(&quot;clientId&quot;);</span>
 		}
 
-<span class="pc bpc" id="L266" title="1 of 2 branches missed.">		if (ip != null) {</span>
-<span class="fc" id="L267">			writer.writeUTF(&quot;ip&quot;, ip);</span>
-<span class="fc" id="L268">			nullChecker.add(&quot;ip&quot;);</span>
+<span class="pc bpc" id="L268" title="1 of 2 branches missed.">		if (ip != null) {</span>
+<span class="fc" id="L269">			writer.writeUTF(&quot;ip&quot;, ip);</span>
+<span class="fc" id="L270">			nullChecker.add(&quot;ip&quot;);</span>
 		}
 
-<span class="pc bpc" id="L271" title="1 of 2 branches missed.">		if (port != null) {</span>
-<span class="fc" id="L272">			writer.writeInt(&quot;port&quot;, port);</span>
-<span class="fc" id="L273">			nullChecker.add(&quot;port&quot;);</span>
+<span class="pc bpc" id="L273" title="1 of 2 branches missed.">		if (port != null) {</span>
+<span class="fc" id="L274">			writer.writeInt(&quot;port&quot;, port);</span>
+<span class="fc" id="L275">			nullChecker.add(&quot;port&quot;);</span>
 		}
 
-<span class="pc bpc" id="L276" title="1 of 2 branches missed.">		if (isConnected != null) {</span>
-<span class="fc" id="L277">			writer.writeBoolean(&quot;isConnected&quot;, isConnected);</span>
-<span class="fc" id="L278">			nullChecker.add(&quot;isConnected&quot;);</span>
+<span class="pc bpc" id="L278" title="1 of 2 branches missed.">		if (isConnected != null) {</span>
+<span class="fc" id="L279">			writer.writeBoolean(&quot;isConnected&quot;, isConnected);</span>
+<span class="fc" id="L280">			nullChecker.add(&quot;isConnected&quot;);</span>
 		}
 
-<span class="pc bpc" id="L281" title="1 of 2 branches missed.">		if (currentMessageId != null) {</span>
-<span class="fc" id="L282">			writer.writeInt(&quot;currentMessageId&quot;, currentMessageId);</span>
-<span class="fc" id="L283">			nullChecker.add(&quot;currentMessageId&quot;);</span>
+<span class="pc bpc" id="L283" title="1 of 2 branches missed.">		if (currentMessageId != null) {</span>
+<span class="fc" id="L284">			writer.writeInt(&quot;currentMessageId&quot;, currentMessageId);</span>
+<span class="fc" id="L285">			nullChecker.add(&quot;currentMessageId&quot;);</span>
 		}
 
-<span class="fc bfc" id="L286" title="All 2 branches covered.">		if (will != null) {</span>
-<span class="fc" id="L287">			writer.writePortable(&quot;will&quot;, will);</span>
+<span class="fc bfc" id="L288" title="All 2 branches covered.">		if (will != null) {</span>
+<span class="fc" id="L289">			writer.writePortable(&quot;will&quot;, will);</span>
 		}
 		else {
-<span class="fc" id="L290">			writer.writeNullPortable(&quot;will&quot;, SerializableFactory.ID, Message.ID);</span>
+<span class="fc" id="L292">			writer.writeNullPortable(&quot;will&quot;, SerializableFactory.ID, Message.ID);</span>
 		}
 
-<span class="pc bpc" id="L293" title="1 of 2 branches missed.">		if (cleanSession != null) {</span>
-<span class="fc" id="L294">			writer.writeBoolean(&quot;cleanSession&quot;, cleanSession);</span>
-<span class="fc" id="L295">			nullChecker.add(&quot;cleanSession&quot;);</span>
+<span class="pc bpc" id="L295" title="1 of 2 branches missed.">		if (cleanSession != null) {</span>
+<span class="fc" id="L296">			writer.writeBoolean(&quot;cleanSession&quot;, cleanSession);</span>
+<span class="fc" id="L297">			nullChecker.add(&quot;cleanSession&quot;);</span>
 		}
 
-<span class="pc bpc" id="L298" title="1 of 2 branches missed.">		if (keepAliveSeconds != null) {</span>
-<span class="fc" id="L299">			writer.writeInt(&quot;keepAliveSeconds&quot;, keepAliveSeconds);</span>
-<span class="fc" id="L300">			nullChecker.add(&quot;keepAliveSeconds&quot;);</span>
+<span class="pc bpc" id="L300" title="1 of 2 branches missed.">		if (keepAliveSeconds != null) {</span>
+<span class="fc" id="L301">			writer.writeInt(&quot;keepAliveSeconds&quot;, keepAliveSeconds);</span>
+<span class="fc" id="L302">			nullChecker.add(&quot;keepAliveSeconds&quot;);</span>
 		}
 
-<span class="pc bpc" id="L303" title="1 of 2 branches missed.">		if (createTime != null) {</span>
-<span class="fc" id="L304">			writer.writeLong(&quot;createTime&quot;, createTime.getTime());</span>
-<span class="fc" id="L305">			nullChecker.add(&quot;createTime&quot;);</span>
+<span class="pc bpc" id="L305" title="1 of 2 branches missed.">		if (createTime != null) {</span>
+<span class="fc" id="L306">			writer.writeLong(&quot;createTime&quot;, createTime.getTime());</span>
+<span class="fc" id="L307">			nullChecker.add(&quot;createTime&quot;);</span>
 		}
 
-<span class="pc bpc" id="L308" title="1 of 2 branches missed.">		if (lastIncomingTime != null) {</span>
-<span class="fc" id="L309">			writer.writeLong(&quot;lastIncomingTime&quot;, lastIncomingTime.getTime());</span>
-<span class="fc" id="L310">			nullChecker.add(&quot;lastIncomingTime&quot;);</span>
+<span class="pc bpc" id="L310" title="1 of 2 branches missed.">		if (lastIncomingTime != null) {</span>
+<span class="fc" id="L311">			writer.writeLong(&quot;lastIncomingTime&quot;, lastIncomingTime.getTime());</span>
+<span class="fc" id="L312">			nullChecker.add(&quot;lastIncomingTime&quot;);</span>
 		}
 
-<span class="fc" id="L313">		writer.writeUTFArray(&quot;nullChecker&quot;, nullChecker.toArray(new String[0]));</span>
-<span class="fc" id="L314">	}</span>
+<span class="fc" id="L315">		writer.writeUTFArray(&quot;nullChecker&quot;, nullChecker.toArray(new String[0]));</span>
+<span class="fc" id="L316">	}</span>
 
 	@Override
 	public void readPortable(PortableReader reader) throws IOException {
-<span class="fc" id="L318">		List&lt;String&gt; nullChecker = Lists.newArrayList(reader.readUTFArray(&quot;nullChecker&quot;));</span>
+<span class="fc" id="L320">		List&lt;String&gt; nullChecker = Lists.newArrayList(reader.readUTFArray(&quot;nullChecker&quot;));</span>
 
-<span class="pc bpc" id="L320" title="1 of 2 branches missed.">		if (nullChecker.contains(&quot;clientId&quot;)) clientId = reader.readUTF(&quot;clientId&quot;);</span>
-<span class="pc bpc" id="L321" title="1 of 2 branches missed.">		if (nullChecker.contains(&quot;ip&quot;)) ip = reader.readUTF(&quot;ip&quot;);</span>
-<span class="pc bpc" id="L322" title="1 of 2 branches missed.">		if (nullChecker.contains(&quot;port&quot;)) port = reader.readInt(&quot;port&quot;);</span>
-<span class="pc bpc" id="L323" title="1 of 2 branches missed.">		if (nullChecker.contains(&quot;isConnected&quot;)) isConnected = reader.readBoolean(&quot;isConnected&quot;);</span>
-<span class="pc bpc" id="L324" title="1 of 2 branches missed.">		if (nullChecker.contains(&quot;currentMessageId&quot;)) currentMessageId = reader.readInt(&quot;currentMessageId&quot;);</span>
-<span class="fc" id="L325">		will = reader.readPortable(&quot;will&quot;);</span>
-<span class="pc bpc" id="L326" title="1 of 2 branches missed.">		if (nullChecker.contains(&quot;cleanSession&quot;)) cleanSession = reader.readBoolean(&quot;cleanSession&quot;);</span>
-<span class="pc bpc" id="L327" title="1 of 2 branches missed.">		if (nullChecker.contains(&quot;keepAliveSeconds&quot;)) keepAliveSeconds = reader.readInt(&quot;keepAliveSeconds&quot;);</span>
-<span class="pc bpc" id="L328" title="1 of 2 branches missed.">		if (nullChecker.contains(&quot;createTime&quot;)) createTime = new Date(reader.readLong(&quot;createTime&quot;));</span>
-<span class="pc bpc" id="L329" title="1 of 2 branches missed.">		if (nullChecker.contains(&quot;lastIncomingTime&quot;)) lastIncomingTime = new Date(reader.readLong(&quot;lastIncomingTime&quot;));</span>
+<span class="pc bpc" id="L322" title="1 of 2 branches missed.">		if (nullChecker.contains(&quot;clientId&quot;)) clientId = reader.readUTF(&quot;clientId&quot;);</span>
+<span class="pc bpc" id="L323" title="1 of 2 branches missed.">		if (nullChecker.contains(&quot;ip&quot;)) ip = reader.readUTF(&quot;ip&quot;);</span>
+<span class="pc bpc" id="L324" title="1 of 2 branches missed.">		if (nullChecker.contains(&quot;port&quot;)) port = reader.readInt(&quot;port&quot;);</span>
+<span class="pc bpc" id="L325" title="1 of 2 branches missed.">		if (nullChecker.contains(&quot;isConnected&quot;)) isConnected = reader.readBoolean(&quot;isConnected&quot;);</span>
+<span class="pc bpc" id="L326" title="1 of 2 branches missed.">		if (nullChecker.contains(&quot;currentMessageId&quot;)) currentMessageId = reader.readInt(&quot;currentMessageId&quot;);</span>
+<span class="fc" id="L327">		will = reader.readPortable(&quot;will&quot;);</span>
+<span class="pc bpc" id="L328" title="1 of 2 branches missed.">		if (nullChecker.contains(&quot;cleanSession&quot;)) cleanSession = reader.readBoolean(&quot;cleanSession&quot;);</span>
+<span class="pc bpc" id="L329" title="1 of 2 branches missed.">		if (nullChecker.contains(&quot;keepAliveSeconds&quot;)) keepAliveSeconds = reader.readInt(&quot;keepAliveSeconds&quot;);</span>
+<span class="pc bpc" id="L330" title="1 of 2 branches missed.">		if (nullChecker.contains(&quot;createTime&quot;)) createTime = new Date(reader.readLong(&quot;createTime&quot;));</span>
+<span class="pc bpc" id="L331" title="1 of 2 branches missed.">		if (nullChecker.contains(&quot;lastIncomingTime&quot;)) lastIncomingTime = new Date(reader.readLong(&quot;lastIncomingTime&quot;));</span>
 
-<span class="fc" id="L331">		topicSubscriptions = Hazelcast.INSTANCE.getMap(topicSubscriptionsName());</span>
+<span class="fc" id="L333">		topicSubscriptions = Hazelcast.INSTANCE.getMap(topicSubscriptionsName());</span>
 
-<span class="fc" id="L333">		messageSender = new MessageSender(this);</span>
-<span class="fc" id="L334">	}</span>
+<span class="fc" id="L335">		messageSender = new MessageSender(this);</span>
+<span class="fc" id="L336">	}</span>
 
 	public static ClassDefinition classDefinition() {
-<span class="fc" id="L337">		return new ClassDefinitionBuilder(SerializableFactory.ID, ID).addUTFField(&quot;clientId&quot;).addUTFField(&quot;ip&quot;)</span>
-<span class="fc" id="L338">				.addIntField(&quot;port&quot;).addBooleanField(&quot;isConnected&quot;).addIntField(&quot;currentMessageId&quot;)</span>
-<span class="fc" id="L339">				.addPortableField(&quot;will&quot;, Message.classDefinition()).addBooleanField(&quot;cleanSession&quot;)</span>
-<span class="fc" id="L340">				.addIntField(&quot;keepAliveSeconds&quot;).addLongField(&quot;createTime&quot;).addLongField(&quot;lastIncomingTime&quot;)</span>
-<span class="fc" id="L341">				.addUTFArrayField(&quot;nullChecker&quot;).build();</span>
+<span class="fc" id="L339">		return new ClassDefinitionBuilder(SerializableFactory.ID, ID).addUTFField(&quot;clientId&quot;).addUTFField(&quot;ip&quot;)</span>
+<span class="fc" id="L340">				.addIntField(&quot;port&quot;).addBooleanField(&quot;isConnected&quot;).addIntField(&quot;currentMessageId&quot;)</span>
+<span class="fc" id="L341">				.addPortableField(&quot;will&quot;, Message.classDefinition()).addBooleanField(&quot;cleanSession&quot;)</span>
+<span class="fc" id="L342">				.addIntField(&quot;keepAliveSeconds&quot;).addLongField(&quot;createTime&quot;).addLongField(&quot;lastIncomingTime&quot;)</span>
+<span class="fc" id="L343">				.addUTFArrayField(&quot;nullChecker&quot;).build();</span>
 	}
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.7.7.201606060606</span></div></body></html>

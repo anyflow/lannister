@@ -95,5 +95,9 @@ public class Hazelcast {
 	public &lt;K, V&gt; IMap&lt;K, V&gt; getMap(String name) {
 <span class="fc" id="L96">		return substance.getMap(name);</span>
 	}
+
+	public String currentId() {
+<span class="fc" id="L100">		return substance.getLocalEndpoint().getUuid();</span>
+	}
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.7.7.201606060606</span></div></body></html>

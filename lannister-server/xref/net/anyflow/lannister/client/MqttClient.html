@@ -107,7 +107,7 @@
 <a class="jxr_linenumber" name="L99" href="#L99">99</a>  		send(MessageFactory.connect(options));
 <a class="jxr_linenumber" name="L100" href="#L100">100</a> 
 <a class="jxr_linenumber" name="L101" href="#L101">101</a> 		<strong class="jxr_keyword">synchronized</strong> (sharedObject.locker()) {
-<a class="jxr_linenumber" name="L102" href="#L102">102</a> 			<strong class="jxr_keyword">int</strong> timeout = Settings.INSTANCE.getInt(<span class="jxr_string">"lannister.client.responseTimeoutSeconds"</span>, 15);
+<a class="jxr_linenumber" name="L102" href="#L102">102</a> 			<strong class="jxr_keyword">int</strong> timeout = Settings.INSTANCE.getInt(<span class="jxr_string">"mqttclient.responseTimeoutSeconds"</span>, 15);
 <a class="jxr_linenumber" name="L103" href="#L103">103</a> 
 <a class="jxr_linenumber" name="L104" href="#L104">104</a> 			sharedObject.locker().wait(timeout * 1000);
 <a class="jxr_linenumber" name="L105" href="#L105">105</a> 		}

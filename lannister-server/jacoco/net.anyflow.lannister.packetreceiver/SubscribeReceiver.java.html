@@ -90,77 +90,75 @@ import net.anyflow.lannister.topic.TopicSubscription;
 <span class="fc" id="L90">		topics.forEach(topic -&gt; {</span>
 <span class="nc bnc" id="L91" title="All 2 branches missed.">			if (topic.retainedMessage() == null) { return; }</span>
 
-<span class="nc" id="L93">			topic.putMessage(topic.retainedMessage().publisherId(), topic.retainedMessage());</span>
-
-<span class="nc" id="L95">			topic.publish(session, topic.retainedMessage().clone()); // [MQTT-3.3.1-6],[MQTT-3.3.1-8]</span>
-<span class="nc" id="L96">		});</span>
-<span class="fc" id="L97">	}</span>
+<span class="nc" id="L93">			topic.publish(session, topic.retainedMessage()); // [MQTT-3.3.1-6],[MQTT-3.3.1-8]</span>
+<span class="nc" id="L94">		});</span>
+<span class="fc" id="L95">	}</span>
 
 	private Map.Entry&lt;List&lt;Integer&gt;, Map&lt;String, TopicSubscription&gt;&gt; generateReturns(
 			List&lt;MqttTopicSubscription&gt; topicSubs) {
-<span class="fc" id="L101">		List&lt;Integer&gt; grantedQoss = Lists.newArrayList();</span>
-<span class="fc" id="L102">		Map&lt;String, TopicSubscription&gt; topicSubscriptions = Maps.newHashMap();</span>
+<span class="fc" id="L99">		List&lt;Integer&gt; grantedQoss = Lists.newArrayList();</span>
+<span class="fc" id="L100">		Map&lt;String, TopicSubscription&gt; topicSubscriptions = Maps.newHashMap();</span>
 
-<span class="fc" id="L104">		topicSubs.stream().forEach(topicSub -&gt; {</span>
-<span class="pc bpc" id="L105" title="1 of 2 branches missed.">			if (TopicMatcher.isValid(topicSub.topicName(), true)) {</span>
-<span class="fc" id="L106">				TopicSubscription topicSubscription = new TopicSubscription(topicSub.topicName(),</span>
-<span class="fc" id="L107">						topicSub.qualityOfService());</span>
+<span class="fc" id="L102">		topicSubs.stream().forEach(topicSub -&gt; {</span>
+<span class="pc bpc" id="L103" title="1 of 2 branches missed.">			if (TopicMatcher.isValid(topicSub.topicName(), true)) {</span>
+<span class="fc" id="L104">				TopicSubscription topicSubscription = new TopicSubscription(topicSub.topicName(),</span>
+<span class="fc" id="L105">						topicSub.qualityOfService());</span>
 
-<span class="fc" id="L109">				grantedQoss.add(topicSubscription.qos().value());</span>
-<span class="fc" id="L110">				topicSubscriptions.put(topicSubscription.topicFilter(), topicSubscription);</span>
-<span class="fc" id="L111">			}</span>
+<span class="fc" id="L107">				grantedQoss.add(topicSubscription.qos().value());</span>
+<span class="fc" id="L108">				topicSubscriptions.put(topicSubscription.topicFilter(), topicSubscription);</span>
+<span class="fc" id="L109">			}</span>
 			else {
-<span class="nc" id="L113">				grantedQoss.add(MqttQoS.FAILURE.value());</span>
+<span class="nc" id="L111">				grantedQoss.add(MqttQoS.FAILURE.value());</span>
 			}
-<span class="fc" id="L115">		});</span>
+<span class="fc" id="L113">		});</span>
 
-<span class="fc" id="L117">		return new Map.Entry&lt;List&lt;Integer&gt;, Map&lt;String, TopicSubscription&gt;&gt;() {</span>
+<span class="fc" id="L115">		return new Map.Entry&lt;List&lt;Integer&gt;, Map&lt;String, TopicSubscription&gt;&gt;() {</span>
 			@Override
 			public List&lt;Integer&gt; getKey() {
-<span class="fc" id="L120">				return grantedQoss;</span>
+<span class="fc" id="L118">				return grantedQoss;</span>
 			}
 
 			@Override
 			public Map&lt;String, TopicSubscription&gt; getValue() {
-<span class="fc" id="L125">				return topicSubscriptions;</span>
+<span class="fc" id="L123">				return topicSubscriptions;</span>
 			}
 
 			@Override
 			public Map&lt;String, TopicSubscription&gt; setValue(Map&lt;String, TopicSubscription&gt; value) {
-<span class="nc" id="L130">				return null; // Should not be called</span>
+<span class="nc" id="L128">				return null; // Should not be called</span>
 			}
 		};
 	}
 
 	private boolean executePlugins(Session session, Collection&lt;TopicSubscription&gt; topicSubscriptions) {
-<span class="fc" id="L136">		SubscribeEventArgs args = new SubscribeEventArgs() {</span>
+<span class="fc" id="L134">		SubscribeEventArgs args = new SubscribeEventArgs() {</span>
 			@Override
 			public List&lt;ITopicSubscription&gt; topicSubscriptions() {
-<span class="fc" id="L139">				return Lists.newArrayList(topicSubscriptions);</span>
+<span class="fc" id="L137">				return Lists.newArrayList(topicSubscriptions);</span>
 			}
 
 			@Override
 			public String clientId() {
-<span class="nc" id="L144">				return session.clientId();</span>
+<span class="nc" id="L142">				return session.clientId();</span>
 			}
 
 			@Override
 			public boolean cleanSession() {
-<span class="fc" id="L149">				return session.cleanSession();</span>
+<span class="fc" id="L147">				return session.cleanSession();</span>
 			}
 		};
 
-<span class="pc bpc" id="L153" title="1 of 2 branches missed.">		if (!DefaultSubscribeEventListener.SHARED.allowSubscribe(args)) {</span>
-<span class="nc" id="L154">			session.dispose(true);</span>
-<span class="nc" id="L155">			return false;</span>
+<span class="pc bpc" id="L151" title="1 of 2 branches missed.">		if (!DefaultSubscribeEventListener.SHARED.allowSubscribe(args)) {</span>
+<span class="nc" id="L152">			session.dispose(true);</span>
+<span class="nc" id="L153">			return false;</span>
 		}
 
-<span class="pc bpc" id="L158" title="1 of 2 branches missed.">		if (!Plugins.INSTANCE.get(SubscribeEventListener.class).allowSubscribe(args)) {</span>
-<span class="nc" id="L159">			session.dispose(true);</span>
-<span class="nc" id="L160">			return false;</span>
+<span class="pc bpc" id="L156" title="1 of 2 branches missed.">		if (!Plugins.INSTANCE.get(SubscribeEventListener.class).allowSubscribe(args)) {</span>
+<span class="nc" id="L157">			session.dispose(true);</span>
+<span class="nc" id="L158">			return false;</span>
 		}
 
-<span class="fc" id="L163">		return true;</span>
+<span class="fc" id="L161">		return true;</span>
 	}
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.7.7.201606060606</span></div></body></html>

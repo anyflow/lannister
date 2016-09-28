@@ -68,17 +68,18 @@
 <a class="jxr_linenumber" name="L60" href="#L60">60</a>  		Assert.assertThat(TopicMatcher.match(<span class="jxr_string">"test/+/2"</span>, <span class="jxr_string">"test/1/2"</span>), IsEqual.equalTo(<strong class="jxr_keyword">true</strong>));
 <a class="jxr_linenumber" name="L61" href="#L61">61</a>  		Assert.assertThat(TopicMatcher.match(<span class="jxr_string">"test/#/2"</span>, <span class="jxr_string">"test/1/2"</span>), IsEqual.equalTo(false));
 <a class="jxr_linenumber" name="L62" href="#L62">62</a>  
-<a class="jxr_linenumber" name="L63" href="#L63">63</a>  		Assert.assertThat(TopicMatcher.match(<span class="jxr_string">"/test/+"</span>, <span class="jxr_string">"/test/1"</span>), IsEqual.equalTo(<strong class="jxr_keyword">true</strong>));
-<a class="jxr_linenumber" name="L64" href="#L64">64</a>  		Assert.assertThat(TopicMatcher.match(<span class="jxr_string">"/test/#"</span>, <span class="jxr_string">"/test/1"</span>), IsEqual.equalTo(<strong class="jxr_keyword">true</strong>));
-<a class="jxr_linenumber" name="L65" href="#L65">65</a>  		Assert.assertThat(TopicMatcher.match(<span class="jxr_string">"/test/#"</span>, <span class="jxr_string">"/test/1/2"</span>), IsEqual.equalTo(<strong class="jxr_keyword">true</strong>));
-<a class="jxr_linenumber" name="L66" href="#L66">66</a>  		Assert.assertThat(TopicMatcher.match(<span class="jxr_string">"/test/+/"</span>, <span class="jxr_string">"/test/1"</span>), IsEqual.equalTo(<strong class="jxr_keyword">true</strong>));
-<a class="jxr_linenumber" name="L67" href="#L67">67</a>  		Assert.assertThat(TopicMatcher.match(<span class="jxr_string">"/test/+/"</span>, <span class="jxr_string">"/test/1/"</span>), IsEqual.equalTo(<strong class="jxr_keyword">true</strong>));
-<a class="jxr_linenumber" name="L68" href="#L68">68</a>  		Assert.assertThat(TopicMatcher.match(<span class="jxr_string">"/test/+/2"</span>, <span class="jxr_string">"/test/1/2"</span>), IsEqual.equalTo(<strong class="jxr_keyword">true</strong>));
-<a class="jxr_linenumber" name="L69" href="#L69">69</a>  		Assert.assertThat(TopicMatcher.match(<span class="jxr_string">"/test/#/2"</span>, <span class="jxr_string">"/test/1/2"</span>), IsEqual.equalTo(false));
-<a class="jxr_linenumber" name="L70" href="#L70">70</a>  
-<a class="jxr_linenumber" name="L71" href="#L71">71</a>  		Assert.assertThat(TopicMatcher.match(<span class="jxr_string">"/test/+/2"</span>, <span class="jxr_string">"/test/1/3"</span>), IsEqual.equalTo(false));
-<a class="jxr_linenumber" name="L72" href="#L72">72</a>  	}
-<a class="jxr_linenumber" name="L73" href="#L73">73</a>  }
+<a class="jxr_linenumber" name="L63" href="#L63">63</a>  		Assert.assertThat(TopicMatcher.match(<span class="jxr_string">"/#"</span>, <span class="jxr_string">"/test"</span>), IsEqual.equalTo(<strong class="jxr_keyword">true</strong>));
+<a class="jxr_linenumber" name="L64" href="#L64">64</a>  		Assert.assertThat(TopicMatcher.match(<span class="jxr_string">"/test/+"</span>, <span class="jxr_string">"/test/1"</span>), IsEqual.equalTo(<strong class="jxr_keyword">true</strong>));
+<a class="jxr_linenumber" name="L65" href="#L65">65</a>  		Assert.assertThat(TopicMatcher.match(<span class="jxr_string">"/test/#"</span>, <span class="jxr_string">"/test/1"</span>), IsEqual.equalTo(<strong class="jxr_keyword">true</strong>));
+<a class="jxr_linenumber" name="L66" href="#L66">66</a>  		Assert.assertThat(TopicMatcher.match(<span class="jxr_string">"/test/#"</span>, <span class="jxr_string">"/test/1/2"</span>), IsEqual.equalTo(<strong class="jxr_keyword">true</strong>));
+<a class="jxr_linenumber" name="L67" href="#L67">67</a>  		Assert.assertThat(TopicMatcher.match(<span class="jxr_string">"/test/+/"</span>, <span class="jxr_string">"/test/1"</span>), IsEqual.equalTo(<strong class="jxr_keyword">true</strong>));
+<a class="jxr_linenumber" name="L68" href="#L68">68</a>  		Assert.assertThat(TopicMatcher.match(<span class="jxr_string">"/test/+/"</span>, <span class="jxr_string">"/test/1/"</span>), IsEqual.equalTo(<strong class="jxr_keyword">true</strong>));
+<a class="jxr_linenumber" name="L69" href="#L69">69</a>  		Assert.assertThat(TopicMatcher.match(<span class="jxr_string">"/test/+/2"</span>, <span class="jxr_string">"/test/1/2"</span>), IsEqual.equalTo(<strong class="jxr_keyword">true</strong>));
+<a class="jxr_linenumber" name="L70" href="#L70">70</a>  		Assert.assertThat(TopicMatcher.match(<span class="jxr_string">"/test/#/2"</span>, <span class="jxr_string">"/test/1/2"</span>), IsEqual.equalTo(false));
+<a class="jxr_linenumber" name="L71" href="#L71">71</a>  
+<a class="jxr_linenumber" name="L72" href="#L72">72</a>  		Assert.assertThat(TopicMatcher.match(<span class="jxr_string">"/test/+/2"</span>, <span class="jxr_string">"/test/1/3"</span>), IsEqual.equalTo(false));
+<a class="jxr_linenumber" name="L73" href="#L73">73</a>  	}
+<a class="jxr_linenumber" name="L74" href="#L74">74</a>  }
 </pre>
 <hr/>
 <div id="footer">Copyright &#169; 2016 <a href="https://github.com/anyflow">anyflow.net</a>. All rights reserved.</div>

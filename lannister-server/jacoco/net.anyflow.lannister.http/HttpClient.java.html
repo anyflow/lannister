@@ -96,14 +96,14 @@ public class HttpClient implements IHttpClient {
 
 	@Override
 	public HttpResponse post() {
-<span class="nc" id="L99">		return post(null);</span>
+<span class="fc" id="L99">		return post(null);</span>
 	}
 
 	@Override
 	public HttpResponse post(final MessageReceiver receiver) {
-<span class="nc" id="L104">		httpRequest().setMethod(HttpMethod.POST);</span>
+<span class="fc" id="L104">		httpRequest().setMethod(HttpMethod.POST);</span>
 
-<span class="nc" id="L106">		return request(receiver);</span>
+<span class="fc" id="L106">		return request(receiver);</span>
 	}
 
 	@Override
@@ -152,7 +152,7 @@ public class HttpClient implements IHttpClient {
 			@Override
 			protected void initChannel(SocketChannel ch) throws Exception {
 
-<span class="pc bpc" id="L155" title="1 of 2 branches missed.">				if (&quot;true&quot;.equalsIgnoreCase(Settings.INSTANCE.getProperty(&quot;lannister.web.logging.writelogOfNettyLogger&quot;))) {</span>
+<span class="pc bpc" id="L155" title="1 of 2 branches missed.">				if (&quot;true&quot;.equalsIgnoreCase(Settings.INSTANCE.getProperty(&quot;webserver.logging.writelogOfNettyLogger&quot;))) {</span>
 <span class="nc" id="L156">					ch.pipeline().addLast(&quot;log&quot;, new LoggingHandler(&quot;lannister.web/server&quot;, LogLevel.DEBUG));</span>
 				}
 

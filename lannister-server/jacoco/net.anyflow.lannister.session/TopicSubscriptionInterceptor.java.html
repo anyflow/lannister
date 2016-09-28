@@ -64,7 +64,7 @@ public class TopicSubscriptionInterceptor implements MapInterceptor {
 <span class="fc" id="L64">		GlobalEventExecutor.INSTANCE.submit(() -&gt; {</span>
 <span class="fc" id="L65">			Topic.NEXUS.map().values().stream()</span>
 <span class="fc" id="L66">					.filter(t -&gt; TopicMatcher.match(topicSubscription.topicFilter(), t.name()))</span>
-<span class="fc" id="L67">					.forEach(t -&gt; t.subscribers().put(clientId, new TopicSubscriber(clientId, t.name())));</span>
+<span class="fc" id="L67">					.forEach(t -&gt; t.subscribers().set(clientId, new TopicSubscriber(clientId, t.name())));</span>
 <span class="fc" id="L68">		});</span>
 <span class="fc" id="L69">	}</span>
 

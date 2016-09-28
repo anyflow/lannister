@@ -25,8 +25,8 @@ under the License.
     <language>en-us</language>
     <copyright>&#169;2016 anyflow.net</copyright>
     <item>
-      <title>File: 74,
-             Errors: 2858,
+      <title>File: 76,
+             Errors: 2868,
              Warnings: 0,
              Infos: 0
       </title>
@@ -60,6 +60,20 @@ under the License.
               </tr>
                           <tr>
                 <td>
+                  <a href="https://github.com/anyflow/lannister/lannister-server/checkstyle.html#net.anyflow.lannister.Hazelcast.java">net/anyflow/lannister/Hazelcast.java</a>
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  35
+                </td>
+              </tr>
+                          <tr>
+                <td>
                   <a href="https://github.com/anyflow/lannister/lannister-server/checkstyle.html#net.anyflow.lannister.packetreceiver.DisconnectReceiver.java">net/anyflow/lannister/packetreceiver/DisconnectReceiver.java</a>
                 </td>
                 <td>
@@ -70,20 +84,6 @@ under the License.
                 </td>
                 <td>
                   16
-                </td>
-              </tr>
-                          <tr>
-                <td>
-                  <a href="https://github.com/anyflow/lannister/lannister-server/checkstyle.html#net.anyflow.lannister.Hazelcast.java">net/anyflow/lannister/Hazelcast.java</a>
-                </td>
-                <td>
-                  0
-                </td>
-                <td>
-                  0
-                </td>
-                <td>
-                  34
                 </td>
               </tr>
                           <tr>
@@ -125,7 +125,7 @@ under the License.
                   0
                 </td>
                 <td>
-                  8
+                  7
                 </td>
               </tr>
                           <tr>
@@ -139,7 +139,7 @@ under the License.
                   0
                 </td>
                 <td>
-                  30
+                  31
                 </td>
               </tr>
                           <tr>
@@ -153,7 +153,7 @@ under the License.
                   0
                 </td>
                 <td>
-                  21
+                  24
                 </td>
               </tr>
                           <tr>
@@ -195,7 +195,7 @@ under the License.
                   0
                 </td>
                 <td>
-                  143
+                  136
                 </td>
               </tr>
                           <tr>
@@ -210,20 +210,6 @@ under the License.
                 </td>
                 <td>
                   70
-                </td>
-              </tr>
-                          <tr>
-                <td>
-                  <a href="https://github.com/anyflow/lannister/lannister-server/checkstyle.html#net.anyflow.lannister.httphandler.Sessions.java">net/anyflow/lannister/httphandler/Sessions.java</a>
-                </td>
-                <td>
-                  0
-                </td>
-                <td>
-                  0
-                </td>
-                <td>
-                  19
                 </td>
               </tr>
                           <tr>
@@ -265,7 +251,7 @@ under the License.
                   0
                 </td>
                 <td>
-                  105
+                  104
                 </td>
               </tr>
                           <tr>
@@ -293,7 +279,7 @@ under the License.
                   0
                 </td>
                 <td>
-                  83
+                  84
                 </td>
               </tr>
                           <tr>
@@ -312,20 +298,6 @@ under the License.
               </tr>
                           <tr>
                 <td>
-                  <a href="https://github.com/anyflow/lannister/lannister-server/checkstyle.html#net.anyflow.lannister.session.MessageSender.java">net/anyflow/lannister/session/MessageSender.java</a>
-                </td>
-                <td>
-                  0
-                </td>
-                <td>
-                  0
-                </td>
-                <td>
-                  75
-                </td>
-              </tr>
-                          <tr>
-                <td>
                   <a href="https://github.com/anyflow/lannister/lannister-server/checkstyle.html#net.anyflow.lannister.http.WebsocketFrameHandler.java">net/anyflow/lannister/http/WebsocketFrameHandler.java</a>
                 </td>
                 <td>
@@ -340,6 +312,20 @@ under the License.
               </tr>
                           <tr>
                 <td>
+                  <a href="https://github.com/anyflow/lannister/lannister-server/checkstyle.html#net.anyflow.lannister.session.MessageSender.java">net/anyflow/lannister/session/MessageSender.java</a>
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  76
+                </td>
+              </tr>
+                          <tr>
+                <td>
                   <a href="https://github.com/anyflow/lannister/lannister-server/checkstyle.html#net.anyflow.lannister.Settings.java">net/anyflow/lannister/Settings.java</a>
                 </td>
                 <td>
@@ -349,7 +335,7 @@ under the License.
                   0
                 </td>
                 <td>
-                  72
+                  64
                 </td>
               </tr>
                           <tr>
@@ -368,34 +354,6 @@ under the License.
               </tr>
                           <tr>
                 <td>
-                  <a href="https://github.com/anyflow/lannister/lannister-server/checkstyle.html#net.anyflow.lannister.NettyUtil.java">net/anyflow/lannister/NettyUtil.java</a>
-                </td>
-                <td>
-                  0
-                </td>
-                <td>
-                  0
-                </td>
-                <td>
-                  9
-                </td>
-              </tr>
-                          <tr>
-                <td>
-                  <a href="https://github.com/anyflow/lannister/lannister-server/checkstyle.html#net.anyflow.lannister.httphandler.Topics.java">net/anyflow/lannister/httphandler/Topics.java</a>
-                </td>
-                <td>
-                  0
-                </td>
-                <td>
-                  0
-                </td>
-                <td>
-                  17
-                </td>
-              </tr>
-                          <tr>
-                <td>
                   <a href="https://github.com/anyflow/lannister/lannister-server/checkstyle.html#net.anyflow.lannister.http.HttpRequestHandler.java">net/anyflow/lannister/http/HttpRequestHandler.java</a>
                 </td>
                 <td>
@@ -405,7 +363,21 @@ under the License.
                   0
                 </td>
                 <td>
-                  92
+                  93
+                </td>
+              </tr>
+                          <tr>
+                <td>
+                  <a href="https://github.com/anyflow/lannister/lannister-server/checkstyle.html#net.anyflow.lannister.NettyUtil.java">net/anyflow/lannister/NettyUtil.java</a>
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  8
                 </td>
               </tr>
                           <tr>
@@ -466,6 +438,20 @@ under the License.
               </tr>
                           <tr>
                 <td>
+                  <a href="https://github.com/anyflow/lannister/lannister-server/checkstyle.html#net.anyflow.lannister.httphandler.api.Topics.java">net/anyflow/lannister/httphandler/api/Topics.java</a>
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  17
+                </td>
+              </tr>
+                          <tr>
+                <td>
                   <a href="https://github.com/anyflow/lannister/lannister-server/checkstyle.html#net.anyflow.lannister.packetreceiver.PublishReceiver.java">net/anyflow/lannister/packetreceiver/PublishReceiver.java</a>
                 </td>
                 <td>
@@ -475,21 +461,7 @@ under the License.
                   0
                 </td>
                 <td>
-                  31
-                </td>
-              </tr>
-                          <tr>
-                <td>
-                  <a href="https://github.com/anyflow/lannister/lannister-server/checkstyle.html#net.anyflow.lannister.session.TopicSubscriptionInterceptor.java">net/anyflow/lannister/session/TopicSubscriptionInterceptor.java</a>
-                </td>
-                <td>
-                  0
-                </td>
-                <td>
-                  0
-                </td>
-                <td>
-                  35
+                  32
                 </td>
               </tr>
                           <tr>
@@ -508,7 +480,7 @@ under the License.
               </tr>
                           <tr>
                 <td>
-                  <a href="https://github.com/anyflow/lannister/lannister-server/checkstyle.html#net.anyflow.lannister.session.Sessions.java">net/anyflow/lannister/session/Sessions.java</a>
+                  <a href="https://github.com/anyflow/lannister/lannister-server/checkstyle.html#net.anyflow.lannister.session.TopicSubscriptionInterceptor.java">net/anyflow/lannister/session/TopicSubscriptionInterceptor.java</a>
                 </td>
                 <td>
                   0
@@ -517,7 +489,7 @@ under the License.
                   0
                 </td>
                 <td>
-                  46
+                  35
                 </td>
               </tr>
                           <tr>
@@ -532,6 +504,20 @@ under the License.
                 </td>
                 <td>
                   140
+                </td>
+              </tr>
+                          <tr>
+                <td>
+                  <a href="https://github.com/anyflow/lannister/lannister-server/checkstyle.html#net.anyflow.lannister.session.Sessions.java">net/anyflow/lannister/session/Sessions.java</a>
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  45
                 </td>
               </tr>
                           <tr>
@@ -648,20 +634,6 @@ under the License.
               </tr>
                           <tr>
                 <td>
-                  <a href="https://github.com/anyflow/lannister/lannister-server/checkstyle.html#net.anyflow.lannister.packetreceiver.PubCompReceiver.java">net/anyflow/lannister/packetreceiver/PubCompReceiver.java</a>
-                </td>
-                <td>
-                  0
-                </td>
-                <td>
-                  0
-                </td>
-                <td>
-                  20
-                </td>
-              </tr>
-                          <tr>
-                <td>
                   <a href="https://github.com/anyflow/lannister/lannister-server/checkstyle.html#net.anyflow.lannister.message.MessageFactory.java">net/anyflow/lannister/message/MessageFactory.java</a>
                 </td>
                 <td>
@@ -672,6 +644,20 @@ under the License.
                 </td>
                 <td>
                   81
+                </td>
+              </tr>
+                          <tr>
+                <td>
+                  <a href="https://github.com/anyflow/lannister/lannister-server/checkstyle.html#net.anyflow.lannister.packetreceiver.PubCompReceiver.java">net/anyflow/lannister/packetreceiver/PubCompReceiver.java</a>
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  19
                 </td>
               </tr>
                           <tr>
@@ -727,7 +713,7 @@ under the License.
                   0
                 </td>
                 <td>
-                  87
+                  79
                 </td>
               </tr>
                           <tr>
@@ -755,7 +741,7 @@ under the License.
                   0
                 </td>
                 <td>
-                  19
+                  20
                 </td>
               </tr>
                           <tr>
@@ -769,7 +755,7 @@ under the License.
                   0
                 </td>
                 <td>
-                  27
+                  26
                 </td>
               </tr>
                           <tr>
@@ -788,20 +774,6 @@ under the License.
               </tr>
                           <tr>
                 <td>
-                  <a href="https://github.com/anyflow/lannister/lannister-server/checkstyle.html#net.anyflow.lannister.server.ByteCounterCodec.java">net/anyflow/lannister/server/ByteCounterCodec.java</a>
-                </td>
-                <td>
-                  0
-                </td>
-                <td>
-                  0
-                </td>
-                <td>
-                  19
-                </td>
-              </tr>
-                          <tr>
-                <td>
                   <a href="https://github.com/anyflow/lannister/lannister-server/checkstyle.html#net.anyflow.lannister.message.OutboundMessageStatus.java">net/anyflow/lannister/message/OutboundMessageStatus.java</a>
                 </td>
                 <td>
@@ -816,6 +788,20 @@ under the License.
               </tr>
                           <tr>
                 <td>
+                  <a href="https://github.com/anyflow/lannister/lannister-server/checkstyle.html#net.anyflow.lannister.server.ByteCounterCodec.java">net/anyflow/lannister/server/ByteCounterCodec.java</a>
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  19
+                </td>
+              </tr>
+                          <tr>
+                <td>
                   <a href="https://github.com/anyflow/lannister/lannister-server/checkstyle.html#net.anyflow.lannister.AbnormalDisconnectEventArgs.java">net/anyflow/lannister/AbnormalDisconnectEventArgs.java</a>
                 </td>
                 <td>
@@ -825,7 +811,7 @@ under the License.
                   0
                 </td>
                 <td>
-                  5
+                  6
                 </td>
               </tr>
                           <tr>
@@ -839,7 +825,7 @@ under the License.
                   0
                 </td>
                 <td>
-                  47
+                  46
                 </td>
               </tr>
                           <tr>
@@ -853,7 +839,7 @@ under the License.
                   0
                 </td>
                 <td>
-                  70
+                  71
                 </td>
               </tr>
                           <tr>
@@ -909,7 +895,7 @@ under the License.
                   0
                 </td>
                 <td>
-                  59
+                  58
                 </td>
               </tr>
                           <tr>
@@ -937,7 +923,7 @@ under the License.
                   0
                 </td>
                 <td>
-                  106
+                  109
                 </td>
               </tr>
                           <tr>
@@ -965,7 +951,21 @@ under the License.
                   0
                 </td>
                 <td>
-                  57
+                  56
+                </td>
+              </tr>
+                          <tr>
+                <td>
+                  <a href="https://github.com/anyflow/lannister/lannister-server/checkstyle.html#net.anyflow.lannister.httphandler.admin.Index.java">net/anyflow/lannister/httphandler/admin/Index.java</a>
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  13
                 </td>
               </tr>
                           <tr>
@@ -993,7 +993,7 @@ under the License.
                   0
                 </td>
                 <td>
-                  11
+                  12
                 </td>
               </tr>
                           <tr>
@@ -1007,7 +1007,21 @@ under the License.
                   0
                 </td>
                 <td>
-                  62
+                  61
+                </td>
+              </tr>
+                          <tr>
+                <td>
+                  <a href="https://github.com/anyflow/lannister/lannister-server/checkstyle.html#net.anyflow.lannister.httphandler.api.Sessions.java">net/anyflow/lannister/httphandler/api/Sessions.java</a>
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  18
                 </td>
               </tr>
                           <tr>
@@ -1040,6 +1054,20 @@ under the License.
               </tr>
                           <tr>
                 <td>
+                  <a href="https://github.com/anyflow/lannister/lannister-server/checkstyle.html#net.anyflow.lannister.httphandler.api.Clients.java">net/anyflow/lannister/httphandler/api/Clients.java</a>
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  13
+                </td>
+              </tr>
+                          <tr>
+                <td>
                   <a href="https://github.com/anyflow/lannister/lannister-server/checkstyle.html#net.anyflow.lannister.topic.Notification.java">net/anyflow/lannister/topic/Notification.java</a>
                 </td>
                 <td>
@@ -1049,7 +1077,7 @@ under the License.
                   0
                 </td>
                 <td>
-                  43
+                  44
                 </td>
               </tr>
                           <tr>
@@ -1077,7 +1105,7 @@ under the License.
                   0
                 </td>
                 <td>
-                  11
+                  12
                 </td>
               </tr>
                       </tbody>

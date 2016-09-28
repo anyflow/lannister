@@ -99,7 +99,7 @@ public class MqttClient {
 <span class="fc" id="L99">		send(MessageFactory.connect(options));</span>
 
 <span class="fc" id="L101">		synchronized (sharedObject.locker()) {</span>
-<span class="fc" id="L102">			int timeout = Settings.INSTANCE.getInt(&quot;lannister.client.responseTimeoutSeconds&quot;, 15);</span>
+<span class="fc" id="L102">			int timeout = Settings.INSTANCE.getInt(&quot;mqttclient.responseTimeoutSeconds&quot;, 15);</span>
 
 <span class="fc" id="L104">			sharedObject.locker().wait(timeout * 1000);</span>
 <span class="pc" id="L105">		}</span>

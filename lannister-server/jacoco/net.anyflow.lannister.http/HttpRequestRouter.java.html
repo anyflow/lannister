@@ -16,14 +16,13 @@
 
 package net.anyflow.lannister.http;
 
-import java.io.ByteArrayOutputStream;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.Date;
+
+import org.apache.commons.io.IOUtils;
 
 import com.google.common.io.Files;
 
@@ -37,188 +36,164 @@ import io.netty.handler.codec.http.HttpHeaderValues;
 import io.netty.handler.codec.http.HttpResponseStatus;
 import io.netty.handler.codec.http.HttpUtil;
 import io.netty.handler.codec.http.HttpVersion;
+import net.anyflow.lannister.Application;
 import net.anyflow.lannister.Settings;
 
 <span class="fc" id="L42">public class HttpRequestRouter extends SimpleChannelInboundHandler&lt;FullHttpRequest&gt; {</span>
 
 <span class="fc" id="L44">	private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(HttpRequestRouter.class);</span>
 
-	private boolean isWebResourcePath(String path) {
-<span class="fc" id="L47">		return Settings.INSTANCE.webResourceExtensionToMimes().keySet().stream().anyMatch(s -&gt; path.endsWith(&quot;.&quot; + s));</span>
+	private boolean isStaticResourcePath(String path) {
+<span class="fc" id="L47">		String ext = Files.getFileExtension(path);</span>
+<span class="pc bpc" id="L48" title="1 of 2 branches missed.">		if (ext == null) { return false; }</span>
+
+<span class="fc" id="L50">		return Settings.INSTANCE.webResourceExtensionToMimes().keySet().stream().anyMatch(s -&gt; s.equalsIgnoreCase(ext));</span>
 	}
 
 	@Override
-	protected void channelRead0(ChannelHandlerContext ctx, FullHttpRequest request) throws Exception {
-<span class="pc bpc" id="L52" title="1 of 2 branches missed.">		if (HttpHeaderValues.WEBSOCKET.toString().equalsIgnoreCase(request.headers().get(HttpHeaderNames.UPGRADE))</span>
-<span class="nc" id="L53">				&amp;&amp; HttpHeaderValues.UPGRADE.toString()</span>
-<span class="nc bnc" id="L54" title="All 2 branches missed.">						.equalsIgnoreCase(request.headers().get(HttpHeaderNames.CONNECTION))) {</span>
+	protected void channelRead0(ChannelHandlerContext ctx, FullHttpRequest rawRequest) throws Exception {
+<span class="fc" id="L55">		Date now = new Date();</span>
+<span class="fc" id="L56">		HttpRequest request = new HttpRequest(rawRequest);</span>
 
-<span class="nc bnc" id="L56" title="All 2 branches missed.">			if (ctx.pipeline().get(WebsocketFrameHandler.class) == null) {</span>
-<span class="nc" id="L57">				logger.error(&quot;No WebSocket Handler available&quot;);</span>
+<span class="pc bpc" id="L58" title="1 of 2 branches missed.">		if (HttpHeaderValues.WEBSOCKET.toString().equalsIgnoreCase(rawRequest.headers().get(HttpHeaderNames.UPGRADE))</span>
+<span class="nc" id="L59">				&amp;&amp; HttpHeaderValues.UPGRADE.toString()</span>
+<span class="nc bnc" id="L60" title="All 2 branches missed.">						.equalsIgnoreCase(rawRequest.headers().get(HttpHeaderNames.CONNECTION))) {</span>
 
-<span class="nc" id="L59">				ctx.channel()</span>
-<span class="nc" id="L60">						.writeAndFlush(new DefaultFullHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.FORBIDDEN))</span>
-<span class="nc" id="L61">						.addListener(ChannelFutureListener.CLOSE);</span>
-<span class="nc" id="L62">				return;</span>
+<span class="nc bnc" id="L62" title="All 2 branches missed.">			if (ctx.pipeline().get(WebsocketFrameHandler.class) == null) {</span>
+<span class="nc" id="L63">				logger.error(&quot;No WebSocket Handler available&quot;);</span>
+
+<span class="nc" id="L65">				ctx.channel()</span>
+<span class="nc" id="L66">						.writeAndFlush(new DefaultFullHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.FORBIDDEN))</span>
+<span class="nc" id="L67">						.addListener(ChannelFutureListener.CLOSE);</span>
+<span class="nc" id="L68">				return;</span>
 			}
 
-<span class="nc" id="L65">			ctx.fireChannelRead(request.retain());</span>
-<span class="nc" id="L66">			return;</span>
+<span class="nc" id="L71">			ctx.fireChannelRead(rawRequest.retain());</span>
+<span class="nc" id="L72">			return;</span>
 		}
 
-<span class="pc bpc" id="L69" title="1 of 2 branches missed.">		if (HttpUtil.is100ContinueExpected(request)) {</span>
-<span class="nc" id="L70">			ctx.write(new DefaultFullHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.CONTINUE));</span>
-<span class="nc" id="L71">			return;</span>
+<span class="pc bpc" id="L75" title="1 of 2 branches missed.">		if (HttpUtil.is100ContinueExpected(rawRequest)) {</span>
+<span class="nc" id="L76">			ctx.write(new DefaultFullHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.CONTINUE));</span>
+<span class="nc" id="L77">			return;</span>
 		}
 
-<span class="fc" id="L74">		HttpResponse response = HttpResponse.createServerDefault(request.headers().get(HttpHeaderNames.COOKIE));</span>
+<span class="fc" id="L80">		HttpResponse response = HttpResponse.createServerDefault(request.headers().get(HttpHeaderNames.COOKIE));</span>
 
-<span class="fc" id="L76">		String requestPath = new URI(request.uri()).getPath();</span>
+<span class="fc" id="L82">		String requestPath = new URI(request.uri()).getPath();</span>
 
-<span class="pc bpc" id="L78" title="1 of 2 branches missed.">		if (isWebResourcePath(requestPath)) {</span>
-<span class="nc" id="L79">			handleWebResourceRequest(ctx, request, response, requestPath);</span>
+<span class="pc bpc" id="L84" title="1 of 2 branches missed.">		if (isStaticResourcePath(requestPath)) {</span>
+<span class="nc" id="L85">			handleStaticResource(response, requestPath);</span>
 		}
 		else {
 			try {
-<span class="fc" id="L83">				processRequest(ctx, request, response);</span>
+<span class="fc" id="L89">				handleDynamicResource(request, response);</span>
 			}
-<span class="nc" id="L85">			catch (URISyntaxException e) {</span>
-<span class="nc" id="L86">				response.setStatus(HttpResponseStatus.NOT_FOUND);</span>
-<span class="nc" id="L87">				logger.info(&quot;unexcepted URI : {}&quot;, request.uri());</span>
+<span class="nc" id="L91">			catch (URISyntaxException e) {</span>
+<span class="nc" id="L92">				set404Response(response);</span>
 			}
-<span class="nc" id="L89">			catch (Exception e) {</span>
-<span class="nc" id="L90">				response.setStatus(HttpResponseStatus.INTERNAL_SERVER_ERROR);</span>
-<span class="nc" id="L91">				logger.error(&quot;Unknown exception was thrown in business logic handler.\r\n&quot; + e.getMessage(), e);</span>
-<span class="pc" id="L92">			}</span>
+<span class="nc" id="L94">			catch (Exception e) {</span>
+<span class="nc" id="L95">				response.setStatus(HttpResponseStatus.INTERNAL_SERVER_ERROR);</span>
+<span class="nc" id="L96">				logger.error(&quot;Unknown exception was thrown in business logic handler.\r\n{}&quot;, e.getMessage(), e);</span>
+<span class="pc" id="L97">			}</span>
 		}
-<span class="fc" id="L94">	}</span>
 
-	private void handleWebResourceRequest(ChannelHandlerContext ctx, FullHttpRequest rawRequest, HttpResponse response,
-			String webResourceRequestPath) throws IOException {
-<span class="fc" id="L98">		InputStream is = Thread.currentThread().getContextClassLoader().getResourceAsStream(webResourceRequestPath);</span>
+<span class="fc" id="L100">		setDefaultHeaders(rawRequest, response);</span>
+
+<span class="pc bpc" id="L102" title="1 of 2 branches missed.">		if (&quot;true&quot;.equalsIgnoreCase(Settings.INSTANCE.getProperty(&quot;webserver.logging.writeHttpRequest&quot;))) {</span>
+<span class="fc" id="L103">			logger.info(request.toString(now));</span>
+		}
+<span class="pc bpc" id="L105" title="1 of 2 branches missed.">		if (&quot;true&quot;.equalsIgnoreCase(Settings.INSTANCE.getProperty(&quot;webserver.logging.writeHttpResponse&quot;))) {</span>
+<span class="fc" id="L106">			logger.info(response.toString());</span>
+		}
+
+<span class="fc" id="L109">		ctx.write(response);</span>
+<span class="fc" id="L110">	}</span>
+
+	private void set404Response(HttpResponse response) {
+<span class="nc" id="L113">		response.headers().add(HttpHeaderNames.CONTENT_TYPE, HttpHeaderValues.TEXT_PLAIN);</span>
+<span class="nc" id="L114">		response.setStatus(HttpResponseStatus.NOT_FOUND);</span>
+<span class="nc" id="L115">		response.setContent(HttpResponseStatus.NOT_FOUND.toString());</span>
+<span class="nc" id="L116">	}</span>
+
+	private void handleStaticResource(HttpResponse response, String webResourceRequestPath) throws IOException {
+<span class="pc bpc" id="L119" title="1 of 2 branches missed.">		if (webResourceRequestPath.startsWith(&quot;/&quot;)) {</span>
+<span class="nc" id="L120">			webResourceRequestPath = webResourceRequestPath.substring(1, webResourceRequestPath.length());</span>
+		}
+
+<span class="fc" id="L123">		InputStream is = Application.class.getClassLoader().getResourceAsStream(webResourceRequestPath);</span>
 
 		try {
-<span class="pc bpc" id="L101" title="1 of 2 branches missed.">			if (is == null) {</span>
-<span class="fc" id="L102">				String rootPath = new File(Settings.INSTANCE.webResourcePhysicalRootPath(), webResourceRequestPath)</span>
-<span class="fc" id="L103">						.getPath();</span>
-				try {
-<span class="fc" id="L105">					is = new FileInputStream(rootPath);</span>
-				}
-<span class="nc" id="L107">				catch (FileNotFoundException e) {</span>
-<span class="nc" id="L108">					is = null;</span>
-<span class="fc" id="L109">				}</span>
-			}
-
-<span class="pc bpc" id="L112" title="1 of 2 branches missed.">			if (is == null) {</span>
-<span class="nc" id="L113">				response.setStatus(HttpResponseStatus.NOT_FOUND);</span>
+<span class="pc bpc" id="L126" title="1 of 2 branches missed.">			if (is == null) {</span>
+<span class="nc" id="L127">				set404Response(response);</span>
 			}
 			else {
-<span class="fc" id="L116">				ByteArrayOutputStream buffer = new ByteArrayOutputStream();</span>
+<span class="fc" id="L130">				response.content().writeBytes(IOUtils.toByteArray(is));</span>
 
-				int nRead;
-<span class="fc" id="L119">				byte[] data = new byte[16384];</span>
-
-<span class="fc bfc" id="L121" title="All 2 branches covered.">				while ((nRead = is.read(data, 0, data.length)) != -1) {</span>
-<span class="fc" id="L122">					buffer.write(data, 0, nRead);</span>
-				}
-
-<span class="fc" id="L125">				buffer.flush();</span>
-<span class="fc" id="L126">				response.content().writeBytes(buffer.toByteArray());</span>
-
-<span class="fc" id="L128">				String ext = Files.getFileExtension(webResourceRequestPath);</span>
-<span class="fc" id="L129">				response.headers().set(HttpHeaderNames.CONTENT_TYPE,</span>
-<span class="fc" id="L130">						Settings.INSTANCE.webResourceExtensionToMimes().get(ext));</span>
+<span class="fc" id="L132">				String ext = Files.getFileExtension(webResourceRequestPath);</span>
+<span class="fc" id="L133">				response.headers().set(HttpHeaderNames.CONTENT_TYPE,</span>
+<span class="fc" id="L134">						Settings.INSTANCE.webResourceExtensionToMimes().get(ext));</span>
 			}
 		}
 		finally {
-<span class="pc bpc" id="L134" title="3 of 4 branches missed.">			if (is != null) {</span>
-<span class="pc" id="L135">				is.close();</span>
+<span class="pc bpc" id="L138" title="3 of 4 branches missed.">			if (is != null) {</span>
+<span class="pc" id="L139">				is.close();</span>
 			}
 		}
+<span class="fc" id="L142">	}</span>
 
-<span class="fc" id="L139">		setDefaultHeaders(rawRequest, response);</span>
-
-<span class="pc bpc" id="L141" title="1 of 2 branches missed.">		if (&quot;true&quot;.equalsIgnoreCase(Settings.INSTANCE.getProperty(&quot;lannister.web.logging.writeHttpResponse&quot;))) {</span>
-<span class="fc" id="L142">			logger.info(response.toString());</span>
-		}
-
-<span class="fc" id="L145">		ctx.write(response);</span>
-<span class="fc" id="L146">	}</span>
-
-	private void processRequest(ChannelHandlerContext ctx, FullHttpRequest rawRequest, HttpResponse response)
+	private void handleDynamicResource(HttpRequest request, HttpResponse response)
 			throws InstantiationException, IllegalAccessException, IOException, URISyntaxException {
+<span class="fc" id="L146">		HttpRequestHandler.MatchedCriterion mc = HttpRequestHandler.findRequestHandler(new URI(request.uri()).getPath(),</span>
+<span class="fc" id="L147">				request.method().toString());</span>
 
-<span class="fc" id="L151">		HttpRequestHandler.MatchedCriterion mc = HttpRequestHandler</span>
-<span class="fc" id="L152">				.findRequestHandler(new URI(rawRequest.uri()).getPath(), rawRequest.method().toString());</span>
-
-<span class="pc bpc" id="L154" title="1 of 2 branches missed.">		if (mc.requestHandlerClass() == null) {</span>
-<span class="nc" id="L155">			response.setStatus(HttpResponseStatus.NOT_FOUND);</span>
-<span class="nc" id="L156">			logger.info(&quot;unexcepted URI : {}&quot;, rawRequest.uri());</span>
-
-<span class="nc" id="L158">			response.headers().add(HttpHeaderNames.CONTENT_TYPE, &quot;text/html&quot;);</span>
-
-<span class="nc" id="L160">			response.setContent(response.toString());</span>
+<span class="pc bpc" id="L149" title="1 of 2 branches missed.">		if (mc.requestHandlerClass() == null) {</span>
+<span class="nc" id="L150">			set404Response(response);</span>
 		}
 		else {
-<span class="fc" id="L163">			HttpRequest request = new HttpRequest(rawRequest, mc.pathParameters());</span>
+<span class="fc" id="L153">			HttpRequestHandler handler = mc.requestHandlerClass().newInstance();</span>
 
-<span class="fc" id="L165">			HttpRequestHandler handler = mc.requestHandlerClass().newInstance();</span>
+<span class="fc" id="L155">			String webResourcePath = handler.getClass().getAnnotation(HttpRequestHandler.Handles.class)</span>
+<span class="fc" id="L156">					.webResourcePath();</span>
 
-<span class="fc" id="L167">			String webResourcePath = handler.getClass().getAnnotation(HttpRequestHandler.Handles.class)</span>
-<span class="fc" id="L168">					.webResourcePath();</span>
-<span class="fc bfc" id="L169" title="All 2 branches covered.">			if (!&quot;none&quot;.equals(webResourcePath)) {</span>
-<span class="fc" id="L170">				handleWebResourceRequest(ctx, rawRequest, response, webResourcePath);</span>
-<span class="fc" id="L171">				return;</span>
+<span class="fc bfc" id="L158" title="All 2 branches covered.">			if (HttpRequestHandler.NO_WEB_RESOURCE_PATH.equals(webResourcePath)) {</span>
+<span class="fc" id="L159">				response.setContent(</span>
+<span class="fc" id="L160">						handler.initialize(request.pathParameters(mc.pathParameters()), response).service());</span>
 			}
-
-<span class="fc" id="L174">			handler.initialize(request, response);</span>
-
-<span class="pc bpc" id="L176" title="1 of 2 branches missed.">			if (&quot;true&quot;.equalsIgnoreCase(Settings.INSTANCE.getProperty(&quot;lannister.web.logging.writeHttpRequest&quot;))) {</span>
-<span class="fc" id="L177">				logger.info(request.toString());</span>
+			else {
+<span class="fc" id="L163">				handleStaticResource(response, webResourcePath);</span>
 			}
-
-<span class="fc" id="L180">			response.setContent(handler.service());</span>
 		}
-
-<span class="fc" id="L183">		setDefaultHeaders(rawRequest, response);</span>
-
-<span class="pc bpc" id="L185" title="1 of 2 branches missed.">		if (&quot;true&quot;.equalsIgnoreCase(Settings.INSTANCE.getProperty(&quot;lannister.web.logging.writeHttpResponse&quot;))) {</span>
-<span class="fc" id="L186">			logger.info(response.toString());</span>
-		}
-
-<span class="fc" id="L189">		ctx.write(response);</span>
-<span class="fc" id="L190">	}</span>
+<span class="fc" id="L166">	}</span>
 
 	@Override
 	public void channelReadComplete(ChannelHandlerContext ctx) throws Exception {
-<span class="fc" id="L194">		ctx.flush();</span>
-<span class="fc" id="L195">	}</span>
+<span class="fc" id="L170">		ctx.flush();</span>
+<span class="fc" id="L171">	}</span>
 
 	@Override
 	public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
-<span class="nc" id="L199">		logger.error(cause.getMessage(), cause);</span>
-<span class="nc" id="L200">		ctx.close();</span>
-<span class="nc" id="L201">	}</span>
+<span class="nc" id="L175">		logger.error(cause.getMessage(), cause);</span>
+<span class="nc" id="L176">		ctx.close();</span>
+<span class="nc" id="L177">	}</span>
 
 	protected static void setDefaultHeaders(FullHttpRequest request, HttpResponse response) {
-<span class="fc" id="L204">		response.headers().add(HttpHeaderNames.SERVER,</span>
-<span class="fc" id="L205">				&quot;lannister &quot; + net.anyflow.lannister.Settings.INSTANCE.getProperty(&quot;lannister.version&quot;));</span>
+<span class="fc" id="L180">		response.headers().add(HttpHeaderNames.SERVER,</span>
+<span class="fc" id="L181">				&quot;lannister &quot; + net.anyflow.lannister.Settings.INSTANCE.version());</span>
 
-<span class="fc" id="L207">		boolean keepAlive = HttpHeaderValues.KEEP_ALIVE.toString()</span>
-<span class="fc" id="L208">				.equals(request.headers().get(HttpHeaderNames.CONNECTION));</span>
-<span class="pc bpc" id="L209" title="1 of 2 branches missed.">		if (keepAlive) {</span>
-<span class="fc" id="L210">			response.headers().set(HttpHeaderNames.CONNECTION, HttpHeaderValues.KEEP_ALIVE);</span>
+<span class="fc" id="L183">		boolean keepAlive = HttpHeaderValues.KEEP_ALIVE.toString()</span>
+<span class="fc" id="L184">				.equals(request.headers().get(HttpHeaderNames.CONNECTION));</span>
+<span class="pc bpc" id="L185" title="1 of 2 branches missed.">		if (keepAlive) {</span>
+<span class="fc" id="L186">			response.headers().set(HttpHeaderNames.CONNECTION, HttpHeaderValues.KEEP_ALIVE);</span>
 		}
 
-<span class="fc" id="L213">		if (Settings.INSTANCE.getProperty(&quot;lannister.web.httpServer.allowCrossDomain&quot;, &quot;false&quot;)</span>
-<span class="pc bpc" id="L214" title="1 of 2 branches missed.">				.equalsIgnoreCase(&quot;true&quot;)) {</span>
-<span class="fc" id="L215">			response.headers().add(HttpHeaderNames.ACCESS_CONTROL_ALLOW_ORIGIN, &quot;*&quot;);</span>
-<span class="fc" id="L216">			response.headers().add(HttpHeaderNames.ACCESS_CONTROL_ALLOW_METHODS, &quot;POST, GET, PUT, DELETE&quot;);</span>
-<span class="fc" id="L217">			response.headers().add(HttpHeaderNames.ACCESS_CONTROL_ALLOW_HEADERS, &quot;X-PINGARUNER&quot;);</span>
-<span class="fc" id="L218">			response.headers().add(HttpHeaderNames.ACCESS_CONTROL_MAX_AGE, &quot;1728000&quot;);</span>
+<span class="pc bpc" id="L189" title="1 of 2 branches missed.">		if (Settings.INSTANCE.getProperty(&quot;webserver.allowCrossDomain&quot;, &quot;false&quot;).equalsIgnoreCase(&quot;true&quot;)) {</span>
+<span class="fc" id="L190">			response.headers().add(HttpHeaderNames.ACCESS_CONTROL_ALLOW_ORIGIN, &quot;*&quot;);</span>
+<span class="fc" id="L191">			response.headers().add(HttpHeaderNames.ACCESS_CONTROL_ALLOW_METHODS, &quot;POST, GET, PUT, DELETE&quot;);</span>
+<span class="fc" id="L192">			response.headers().add(HttpHeaderNames.ACCESS_CONTROL_ALLOW_HEADERS, &quot;X-PINGARUNER&quot;);</span>
+<span class="fc" id="L193">			response.headers().add(HttpHeaderNames.ACCESS_CONTROL_MAX_AGE, &quot;1728000&quot;);</span>
 		}
 
-<span class="fc" id="L221">		response.headers().set(HttpHeaderNames.CONTENT_LENGTH, response.content().readableBytes());</span>
-<span class="fc" id="L222">	}</span>
+<span class="fc" id="L196">		response.headers().set(HttpHeaderNames.CONTENT_LENGTH, response.content().readableBytes());</span>
+<span class="fc" id="L197">	}</span>
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.7.7.201606060606</span></div></body></html>

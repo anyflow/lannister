@@ -33,9 +33,11 @@ import net.anyflow.lannister.Settings;
 
 <span class="fc" id="L34">public abstract class HttpRequestHandler {</span>
 
-<span class="fc" id="L36">	private static final Map&lt;String, Class&lt;? extends HttpRequestHandler&gt;&gt; handlerClassMap = Maps.newHashMap();</span>
-	private static Set&lt;Class&lt;? extends HttpRequestHandler&gt;&gt; requestHandlerClasses;
-	private static String requestHandlerPakcageRoot;
+	public static final String NO_WEB_RESOURCE_PATH = &quot;none&quot;;
+
+<span class="fc" id="L38">	private static final Map&lt;String, Class&lt;? extends HttpRequestHandler&gt;&gt; HANDLER_CLASS_MAP = Maps.newHashMap();</span>
+	private static Set&lt;Class&lt;? extends HttpRequestHandler&gt;&gt; REQUEST_HANDLER_CLASSES;
+	private static String REQUEST_HANDLER_PACKAGE_ROOT;
 
 	private HttpRequest request;
 	private HttpResponse response;
@@ -47,130 +49,133 @@ import net.anyflow.lannister.Settings;
 
 		String[] httpMethods();
 
-		String webResourcePath() default &quot;none&quot;;
+		String webResourcePath() default NO_WEB_RESOURCE_PATH;
 	}
 
 	public abstract String service();
 
-	protected void initialize(HttpRequest request, HttpResponse response) throws URISyntaxException {
-<span class="fc" id="L56">		this.request = request;</span>
-<span class="fc" id="L57">		this.response = response;</span>
-<span class="fc" id="L58">	}</span>
+	protected HttpRequestHandler initialize(HttpRequest request, HttpResponse response) throws URISyntaxException {
+<span class="fc" id="L58">		this.request = request;</span>
+<span class="fc" id="L59">		this.response = response;</span>
+
+<span class="fc" id="L61">		return this;</span>
+	}
 
 	public HttpRequest httpRequest() {
-<span class="fc" id="L61">		return request;</span>
+<span class="fc" id="L65">		return request;</span>
 	}
 
 	public HttpResponse httpResponse() {
-<span class="nc" id="L65">		return response;</span>
+<span class="nc" id="L69">		return response;</span>
 	}
 
 	public static void setRequestHandlerPakcageRoot(String requestHandlerPakcageRoot) {
-<span class="fc" id="L69">		HttpRequestHandler.requestHandlerPakcageRoot = requestHandlerPakcageRoot;</span>
-<span class="fc" id="L70">	}</span>
+<span class="fc" id="L73">		REQUEST_HANDLER_PACKAGE_ROOT = requestHandlerPakcageRoot;</span>
+<span class="fc" id="L74">	}</span>
 
 	protected static MatchedCriterion findRequestHandler(String requestedPath, String httpMethod) {
-<span class="fc bfc" id="L73" title="All 2 branches covered.">		for (Map.Entry&lt;String, Class&lt;? extends HttpRequestHandler&gt;&gt; item : handlerClassMap.entrySet()) {</span>
-<span class="fc" id="L74">			MatchedCriterion mc = match(requestedPath, httpMethod, item.getKey());</span>
+<span class="fc bfc" id="L77" title="All 2 branches covered.">		for (Map.Entry&lt;String, Class&lt;? extends HttpRequestHandler&gt;&gt; item : HANDLER_CLASS_MAP.entrySet()) {</span>
+<span class="fc" id="L78">			MatchedCriterion mc = match(requestedPath, httpMethod, item.getKey());</span>
 
-<span class="fc bfc" id="L76" title="All 2 branches covered.">			if (mc.matched) {</span>
-<span class="fc" id="L77">				mc.requestHandlerClass = handlerClassMap.get(item.getKey());</span>
-<span class="fc" id="L78">				return mc;</span>
+<span class="fc bfc" id="L80" title="All 2 branches covered.">			if (mc.matched) {</span>
+<span class="fc" id="L81">				mc.requestHandlerClass = HANDLER_CLASS_MAP.get(item.getKey());</span>
+<span class="fc" id="L82">				return mc;</span>
 			}
-<span class="fc" id="L80">		}</span>
+<span class="fc" id="L84">		}</span>
 
-<span class="fc bfc" id="L82" title="All 2 branches covered.">		if (requestHandlerClasses == null) {</span>
-<span class="fc" id="L83">			requestHandlerClasses = new Reflections(requestHandlerPakcageRoot).getSubTypesOf(HttpRequestHandler.class);</span>
+<span class="fc bfc" id="L86" title="All 2 branches covered.">		if (REQUEST_HANDLER_CLASSES == null) {</span>
+<span class="fc" id="L87">			REQUEST_HANDLER_CLASSES = new Reflections(REQUEST_HANDLER_PACKAGE_ROOT)</span>
+<span class="fc" id="L88">					.getSubTypesOf(HttpRequestHandler.class);</span>
 		}
 
-<span class="fc" id="L86">		final ReturnWrapper wrapper = new ReturnWrapper();</span>
-<span class="fc" id="L87">		requestHandlerClasses.stream().anyMatch(c -&gt; {</span>
-<span class="fc" id="L88">			HttpRequestHandler.Handles annotation = c.getAnnotation(HttpRequestHandler.Handles.class);</span>
-<span class="pc bpc" id="L89" title="1 of 2 branches missed.">			if (annotation == null) { return false; }</span>
+<span class="fc" id="L91">		final ReturnWrapper wrapper = new ReturnWrapper();</span>
+<span class="fc" id="L92">		REQUEST_HANDLER_CLASSES.stream().anyMatch(c -&gt; {</span>
+<span class="fc" id="L93">			HttpRequestHandler.Handles annotation = c.getAnnotation(HttpRequestHandler.Handles.class);</span>
+<span class="pc bpc" id="L94" title="1 of 2 branches missed.">			if (annotation == null) { return false; }</span>
 
-<span class="fc" id="L91">			return Stream.of(annotation.httpMethods()).anyMatch(m -&gt; {</span>
-<span class="pc bpc" id="L92" title="1 of 2 branches missed.">				if (!m.equalsIgnoreCase(httpMethod)) { return false; }</span>
+<span class="fc" id="L96">			return Stream.of(annotation.httpMethods()).anyMatch(m -&gt; {</span>
+<span class="fc bfc" id="L97" title="All 2 branches covered.">				if (!m.equalsIgnoreCase(httpMethod)) { return false; }</span>
 
-<span class="fc" id="L94">				return Stream.of(annotation.paths()).anyMatch(p -&gt; {</span>
-<span class="fc" id="L95">					return wrapper.setValueIfMatch(requestedPath, c, m, p);</span>
+<span class="fc" id="L99">				return Stream.of(annotation.paths()).anyMatch(p -&gt; {</span>
+<span class="fc" id="L100">					return wrapper.setValueIfMatch(requestedPath, c, m, p);</span>
 				});
 			});
 		});
 
-<span class="pc bpc" id="L100" title="1 of 2 branches missed.">		return wrapper.value == null ? new MatchedCriterion() : wrapper.value;</span>
+<span class="pc bpc" id="L105" title="1 of 2 branches missed.">		return wrapper.value == null ? new MatchedCriterion() : wrapper.value;</span>
 	}
 
-<span class="fc" id="L103">	private static class ReturnWrapper {</span>
-<span class="fc" id="L104">		private MatchedCriterion value = null;</span>
+<span class="fc" id="L108">	private static class ReturnWrapper {</span>
+<span class="fc" id="L109">		private MatchedCriterion value = null;</span>
 
 		private boolean setValueIfMatch(String requestedPath, Class&lt;? extends HttpRequestHandler&gt; handlerClass,
 				String methodToCheck, String pathToCheck) {
-<span class="fc bfc" id="L108" title="All 2 branches covered.">			String path = (pathToCheck.charAt(0) == '/') ? pathToCheck</span>
-<span class="fc" id="L109">					: Settings.INSTANCE.httpContextRoot() + pathToCheck;</span>
-<span class="fc" id="L110">			String criterion = path + &quot;/&quot; + methodToCheck;</span>
+<span class="fc bfc" id="L113" title="All 2 branches covered.">			String path = (pathToCheck.charAt(0) == '/') ? pathToCheck</span>
+<span class="fc" id="L114">					: Settings.INSTANCE.httpContextRoot() + pathToCheck;</span>
+<span class="fc" id="L115">			String criterion = path + &quot;/&quot; + methodToCheck;</span>
 
-<span class="fc" id="L112">			MatchedCriterion mc = match(requestedPath, methodToCheck, criterion);</span>
+<span class="fc" id="L117">			MatchedCriterion mc = match(requestedPath, methodToCheck, criterion);</span>
 
-<span class="fc bfc" id="L114" title="All 2 branches covered.">			if (mc.matched) {</span>
-<span class="fc" id="L115">				handlerClassMap.put(criterion, handlerClass);</span>
-<span class="fc" id="L116">				mc.requestHandlerClass = handlerClass;</span>
-<span class="fc" id="L117">				this.value = mc;</span>
+<span class="fc bfc" id="L119" title="All 2 branches covered.">			if (mc.matched) {</span>
+<span class="fc" id="L120">				HANDLER_CLASS_MAP.put(criterion, handlerClass);</span>
+<span class="fc" id="L121">				mc.requestHandlerClass = handlerClass;</span>
+<span class="fc" id="L122">				this.value = mc;</span>
 
-<span class="fc" id="L119">				return true;</span>
+<span class="fc" id="L124">				return true;</span>
 			}
 			else {
-<span class="fc" id="L122">				return false;</span>
+<span class="fc" id="L127">				return false;</span>
 			}
 		};
 	}
 
-<span class="fc" id="L127">	protected static class MatchedCriterion {</span>
-<span class="fc" id="L128">		private boolean matched = false;</span>
+<span class="fc" id="L132">	protected static class MatchedCriterion {</span>
+<span class="fc" id="L133">		private boolean matched = false;</span>
 		private Class&lt;? extends HttpRequestHandler&gt; requestHandlerClass;
 		private String criterionPath;
 		private String criterionHttpMethod;
-<span class="fc" id="L132">		private final Map&lt;String, String&gt; pathParameters = Maps.newHashMap();</span>
+<span class="fc" id="L137">		private final Map&lt;String, String&gt; pathParameters = Maps.newHashMap();</span>
 
 		public Class&lt;? extends HttpRequestHandler&gt; requestHandlerClass() {
-<span class="fc" id="L135">			return requestHandlerClass;</span>
+<span class="fc" id="L140">			return requestHandlerClass;</span>
 		}
 
 		public String criterionPath() {
-<span class="nc" id="L139">			return criterionPath;</span>
+<span class="nc" id="L144">			return criterionPath;</span>
 		}
 
 		public String criterionHttpMethod() {
-<span class="nc" id="L143">			return criterionHttpMethod;</span>
+<span class="nc" id="L148">			return criterionHttpMethod;</span>
 		}
 
 		public Map&lt;String, String&gt; pathParameters() {
-<span class="fc" id="L147">			return pathParameters;</span>
+<span class="fc" id="L152">			return pathParameters;</span>
 		}
 	}
 
 	private static MatchedCriterion match(String requestedPath, String httpMethod, String criterion) {
-<span class="fc" id="L152">		MatchedCriterion ret = new MatchedCriterion();</span>
+<span class="fc" id="L157">		MatchedCriterion ret = new MatchedCriterion();</span>
 
-<span class="fc" id="L154">		String testTarget = requestedPath + &quot;/&quot; + httpMethod;</span>
+<span class="fc" id="L159">		String testTarget = requestedPath + &quot;/&quot; + httpMethod;</span>
 
-<span class="fc" id="L156">		String[] testTokens = testTarget.split(&quot;/&quot;);</span>
-<span class="fc" id="L157">		String[] criterionTokens = criterion.split(&quot;/&quot;);</span>
+<span class="fc" id="L161">		String[] testTokens = testTarget.split(&quot;/&quot;);</span>
+<span class="fc" id="L162">		String[] criterionTokens = criterion.split(&quot;/&quot;);</span>
 
-<span class="pc bpc" id="L159" title="1 of 2 branches missed.">		if (criterionTokens.length != testTokens.length) { return ret; }</span>
+<span class="fc bfc" id="L164" title="All 2 branches covered.">		if (criterionTokens.length != testTokens.length) { return ret; }</span>
 
 		// should start with #1 due to item[0] is whitespace.
-<span class="fc bfc" id="L162" title="All 2 branches covered.">		for (int i = 1; i &lt; criterionTokens.length; ++i) {</span>
-<span class="pc bpc" id="L163" title="3 of 4 branches missed.">			if (criterionTokens[i].startsWith(&quot;{&quot;) &amp;&amp; criterionTokens[i].endsWith(&quot;}&quot;)) {</span>
-<span class="nc" id="L164">				ret.pathParameters.put(criterionTokens[i].substring(1, criterionTokens[i].length() - 1), testTokens[i]);</span>
+<span class="fc bfc" id="L167" title="All 2 branches covered.">		for (int i = 1; i &lt; criterionTokens.length; ++i) {</span>
+<span class="pc bpc" id="L168" title="3 of 4 branches missed.">			if (criterionTokens[i].startsWith(&quot;{&quot;) &amp;&amp; criterionTokens[i].endsWith(&quot;}&quot;)) {</span>
+<span class="nc" id="L169">				ret.pathParameters.put(criterionTokens[i].substring(1, criterionTokens[i].length() - 1), testTokens[i]);</span>
 			}
-<span class="fc bfc" id="L166" title="All 2 branches covered.">			else if (!criterionTokens[i].equalsIgnoreCase(testTokens[i])) { return ret; }</span>
+<span class="fc bfc" id="L171" title="All 2 branches covered.">			else if (!criterionTokens[i].equalsIgnoreCase(testTokens[i])) { return ret; }</span>
 		}
 
-<span class="fc" id="L169">		ret.matched = true;</span>
-<span class="fc" id="L170">		ret.criterionHttpMethod = httpMethod;</span>
-<span class="fc" id="L171">		ret.criterionPath = criterion.replace(&quot;/&quot; + httpMethod, &quot;&quot;);</span>
+<span class="fc" id="L174">		ret.matched = true;</span>
+<span class="fc" id="L175">		ret.criterionHttpMethod = httpMethod;</span>
+<span class="fc" id="L176">		ret.criterionPath = criterion.replace(&quot;/&quot; + httpMethod, &quot;&quot;);</span>
 
-<span class="fc" id="L173">		return ret;</span>
+<span class="fc" id="L178">		return ret;</span>
 	}
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.7.7.201606060606</span></div></body></html>

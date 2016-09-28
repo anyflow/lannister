@@ -33,9 +33,9 @@ public class WebServer {
 	private final EventLoopGroup workerGroup;
 
 <span class="fc" id="L35">	public WebServer() {</span>
-<span class="fc" id="L36">		bossGroup = new NioEventLoopGroup(Settings.INSTANCE.getInt(&quot;lannister.web.system.bossThreadCount&quot;, 0),</span>
+<span class="fc" id="L36">		bossGroup = new NioEventLoopGroup(Settings.INSTANCE.getInt(&quot;webserver.system.bossThreadCount&quot;, 0),</span>
 				new DefaultThreadFactory(&quot;lannister.web/boss&quot;));
-<span class="fc" id="L38">		workerGroup = new NioEventLoopGroup(Settings.INSTANCE.getInt(&quot;lannister.web.system.workerThreadCount&quot;, 0),</span>
+<span class="fc" id="L38">		workerGroup = new NioEventLoopGroup(Settings.INSTANCE.getInt(&quot;webserver.system.workerThreadCount&quot;, 0),</span>
 				new DefaultThreadFactory(&quot;lannister.web/worker&quot;));
 <span class="fc" id="L40">	}</span>
 

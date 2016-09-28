@@ -94,7 +94,7 @@ public class HttpResponse extends DefaultFullHttpResponse {
 <span class="fc" id="L94">			}</span>
 		}
 
-<span class="pc bpc" id="L97" title="1 of 2 branches missed.">		if (!Settings.INSTANCE.getBoolean(&quot;lannister.web.logging.logWebResourceHttpResponseContent&quot;, false)</span>
+<span class="pc bpc" id="L97" title="1 of 2 branches missed.">		if (!Settings.INSTANCE.getBoolean(&quot;webserver.logging.logWebResourceHttpResponseContent&quot;, false)</span>
 <span class="fc" id="L98">				&amp;&amp; Settings.INSTANCE.webResourceExtensionToMimes()</span>
 <span class="fc bfc" id="L99" title="All 2 branches covered.">						.containsValue(headers().get(HttpHeaderNames.CONTENT_TYPE))) {</span>
 <span class="fc" id="L100">			buf.append(&quot;Content: WEB RESOURCE CONTENT&quot;);</span>
@@ -103,7 +103,7 @@ public class HttpResponse extends DefaultFullHttpResponse {
 
 <span class="fc" id="L104">		String content = this.content().toString(CharsetUtil.UTF_8);</span>
 
-<span class="fc" id="L106">		int size = Settings.INSTANCE.getInt(&quot;lannister.web.logging.httpResponseContentSize&quot;, 100);</span>
+<span class="fc" id="L106">		int size = Settings.INSTANCE.getInt(&quot;webserver.logging.httpResponseContentSize&quot;, 100);</span>
 
 <span class="pc bpc" id="L108" title="1 of 2 branches missed.">		if (size &lt; 0) {</span>
 <span class="fc" id="L109">			buf.append(&quot;Content:\r\n   &quot;).append(content);</span>

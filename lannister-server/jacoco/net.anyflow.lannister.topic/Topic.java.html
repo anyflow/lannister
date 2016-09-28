@@ -105,11 +105,11 @@ import net.anyflow.lannister.session.Session;
 	}
 
 	public void setRetainedMessage(Message message) {
-<span class="pc bpc" id="L108" title="2 of 4 branches missed.">		if (message == null || message.message().length &lt;= 0) {</span>
+<span class="pc bpc" id="L108" title="2 of 4 branches missed.">		if (message == null || message.message().length &lt;= 0) { // [mqtt-3.3.1-10],[MQTT-3.3.1-11]</span>
 <span class="nc" id="L109">			this.retainedMessage = null;</span>
 		}
 		else {
-<span class="fc" id="L112">			this.retainedMessage = message;</span>
+<span class="fc" id="L112">			this.retainedMessage = message.clone();</span>
 		}
 
 <span class="fc" id="L115">		NEXUS.persist(this);</span>
@@ -141,7 +141,7 @@ import net.anyflow.lannister.session.Session;
 <span class="fc" id="L141">		InboundMessageStatus messageStatus = new InboundMessageStatus(clientId, messageId, status);</span>
 <span class="fc" id="L142">		retain(messageStatus.key());</span>
 
-<span class="fc" id="L144">		inboundMessageStatuses.put(messageStatus.key(), messageStatus);</span>
+<span class="fc" id="L144">		inboundMessageStatuses.set(messageStatus.key(), messageStatus);</span>
 <span class="fc" id="L145">	}</span>
 
 	public void setInboundMessageStatus(String clientId, int messageId, Status status) {
@@ -154,15 +154,15 @@ import net.anyflow.lannister.session.Session;
 
 <span class="fc" id="L155">		messageStatus.status(status);</span>
 
-<span class="fc" id="L157">		inboundMessageStatuses.put(messageStatus.key(), messageStatus);</span>
+<span class="fc" id="L157">		inboundMessageStatuses.set(messageStatus.key(), messageStatus);</span>
 <span class="fc" id="L158">	}</span>
 
-	public void putMessage(String requesterId, Message message) {
+	private void putMessage(String requesterId, Message message) {
 <span class="pc bpc" id="L161" title="2 of 4 branches missed.">		assert name.equals(message.topicName());</span>
 
 <span class="fc bfc" id="L163" title="All 2 branches covered.">		if (message.qos() == MqttQoS.AT_MOST_ONCE) { return; }</span>
 
-<span class="fc" id="L165">		messages.put(message.key(), message);</span>
+<span class="fc" id="L165">		messages.set(message.key(), message);</span>
 
 <span class="fc" id="L167">		addInboundMessageStatus(requesterId, message.id(), Status.RECEIVED);</span>
 <span class="fc" id="L168">	}</span>
@@ -171,167 +171,166 @@ import net.anyflow.lannister.session.Session;
 <span class="pc bpc" id="L171" title="1 of 2 branches missed.">		return subscriptionQos.value() &lt;= publishQos.value() ? subscriptionQos : publishQos;</span>
 	}
 
-	protected void publish(Message message) {
-<span class="pc bpc" id="L175" title="2 of 4 branches missed.">		assert name.equals(message.topicName());</span>
+	public void publish(final Message message) {
+<span class="pc bpc" id="L175" title="2 of 4 branches missed.">		assert message != null;</span>
+<span class="pc bpc" id="L176" title="2 of 4 branches missed.">		assert name.equals(message.topicName());</span>
 
-<span class="pc bpc" id="L177" title="1 of 2 branches missed.">		if (message.isRetain()) {// else do nothing [MQTT-3.3.1-12]</span>
-<span class="nc" id="L178">			setRetainedMessage(message); // [MQTT-3.3.1-5],[MQTT-3.3.1-10],[MQTT-3.3.1-11]</span>
-		}
+<span class="fc" id="L178">		putMessage(message.publisherId(), message);</span>
 
-<span class="fc" id="L181">		putMessage(message.publisherId(), message);</span>
+<span class="fc" id="L180">		subscribers.keySet().stream().forEach(id -&gt; {</span>
+<span class="fc" id="L181">			Session session = Session.NEXUS.get(id);</span>
+<span class="pc bpc" id="L182" title="2 of 4 branches missed.">			assert session != null;</span>
 
-<span class="fc" id="L183">		subscribers.keySet().stream().forEach(id -&gt; {</span>
-<span class="fc" id="L184">			Session session = Session.NEXUS.get(id);</span>
-<span class="pc bpc" id="L185" title="2 of 4 branches missed.">			assert session != null;</span>
+<span class="fc" id="L184">			publish(session, message);</span>
+<span class="fc" id="L185">		});</span>
+<span class="fc" id="L186">	}</span>
 
-<span class="fc" id="L187">			Message toSend = message.clone();</span>
+	public void publish(final Session session, final Message message) {
+<span class="pc bpc" id="L189" title="2 of 4 branches missed.">		assert session != null;</span>
+<span class="pc bpc" id="L190" title="2 of 4 branches missed.">		assert message != null;</span>
 
-<span class="fc" id="L189">			TopicSubscription subscription = session.matches(name);</span>
-<span class="pc bpc" id="L190" title="2 of 4 branches missed.">			assert subscription != null;</span>
+<span class="fc" id="L192">		Message toSend = message.clone();</span>
 
-<span class="fc" id="L192">			toSend.setQos(adjustQoS(subscription.qos(), message.qos()));</span>
+<span class="fc" id="L194">		TopicSubscription subscription = session.matches(name);</span>
+<span class="pc bpc" id="L195" title="2 of 4 branches missed.">		assert subscription != null;</span>
 
-<span class="fc" id="L194">			publish(session, toSend);</span>
-<span class="fc" id="L195">		});</span>
-<span class="fc" id="L196">	}</span>
+<span class="fc" id="L197">		toSend.setQos(adjustQoS(subscription.qos(), toSend.qos()));</span>
 
-	public void publish(Session session, Message message) {
-<span class="pc bpc" id="L199" title="2 of 4 branches missed.">		assert session != null;</span>
-<span class="pc bpc" id="L200" title="2 of 4 branches missed.">		assert message != null;</span>
+<span class="fc" id="L199">		TopicSubscriber ts = subscribers().get(session.clientId());</span>
+<span class="pc bpc" id="L200" title="2 of 4 branches missed.">		assert ts != null;</span>
 
-<span class="fc" id="L202">		TopicSubscriber ts = subscribers().get(session.clientId());</span>
-<span class="pc bpc" id="L203" title="2 of 4 branches missed.">		assert ts != null;</span>
+<span class="pc bpc" id="L202" title="1 of 2 branches missed.">		if (!ts.outboundMessageStatuses().containsKey(toSend.id())) {</span>
+<span class="fc" id="L203">			String messageKey = toSend.key();</span>
 
-<span class="pc bpc" id="L205" title="1 of 2 branches missed.">		if (!ts.outboundMessageStatuses().containsKey(message.id())) {</span>
-<span class="fc" id="L206">			String messageKey = message.key();</span>
+<span class="fc" id="L205">			toSend.setId(session.nextMessageId()); // [MQTT-2.3.1-2]</span>
 
-<span class="fc" id="L208">			message.setId(session.nextMessageId()); // [MQTT-2.3.1-2]</span>
-
-<span class="pc bpc" id="L210" title="1 of 2 branches missed.">			if (message.qos() != MqttQoS.AT_MOST_ONCE) {</span>
-<span class="fc" id="L211">				ts.addOutboundMessageStatus(messageKey, message.id(), OutboundMessageStatus.Status.TO_PUBLISH,</span>
-<span class="fc" id="L212">						message.qos()); // [MQTT-3.1.2-5]</span>
+<span class="pc bpc" id="L207" title="1 of 2 branches missed.">			if (toSend.qos() != MqttQoS.AT_MOST_ONCE) {</span>
+<span class="fc" id="L208">				ts.addOutboundMessageStatus(messageKey, toSend.id(), OutboundMessageStatus.Status.TO_PUBLISH,</span>
+<span class="fc" id="L209">						toSend.qos()); // [MQTT-3.1.2-5]</span>
 			}
 		}
 
-<span class="fc" id="L216">		NEXUS.notifier().publish(new Notification(session.clientId(), this, message));</span>
-<span class="fc" id="L217">	}</span>
+<span class="fc" id="L213">		NEXUS.notifier().publish(new Notification(session.clientId(), this, toSend));</span>
+<span class="fc" id="L214">	}</span>
 
 	public void publish(Session session, String messageKey) {
-<span class="nc bnc" id="L220" title="All 4 branches missed.">		assert session != null;</span>
-<span class="nc bnc" id="L221" title="All 4 branches missed.">		assert messageKey != null;</span>
+<span class="nc bnc" id="L217" title="All 4 branches missed.">		assert session != null;</span>
+<span class="nc bnc" id="L218" title="All 4 branches missed.">		assert messageKey != null;</span>
 
-<span class="nc" id="L223">		Message message = messages.get(messageKey);</span>
-<span class="nc bnc" id="L224" title="All 4 branches missed.">		assert message != null;</span>
-<span class="nc bnc" id="L225" title="All 4 branches missed.">		assert subscribers().get(session.clientId()).outboundMessageStatuses().containsKey(message.id());</span>
+<span class="nc" id="L220">		Message message = messages.get(messageKey);</span>
+<span class="nc bnc" id="L221" title="All 4 branches missed.">		assert message != null;</span>
+<span class="nc bnc" id="L222" title="All 4 branches missed.">		assert subscribers().get(session.clientId()).outboundMessageStatuses().containsKey(message.id());</span>
 
-<span class="nc" id="L227">		NEXUS.notifier().publish(new Notification(session.clientId(), this, message));</span>
-<span class="nc" id="L228">	}</span>
+<span class="nc" id="L224">		NEXUS.notifier().publish(new Notification(session.clientId(), this, message));</span>
+<span class="nc" id="L225">	}</span>
 
 	public void updateSubscribers() {
-<span class="fc" id="L231">		Session.NEXUS.map().values().stream()</span>
-<span class="fc" id="L232">				.filter(s -&gt; s.topicSubscriptions().values().stream()</span>
-<span class="fc" id="L233">						.anyMatch(ts -&gt; TopicMatcher.match(ts.topicFilter(), name)))</span>
-<span class="fc" id="L234">				.forEach(s -&gt; subscribers.put(s.clientId(), new TopicSubscriber(s.clientId(), name)));</span>
-<span class="fc" id="L235">	}</span>
+<span class="fc" id="L228">		Session.NEXUS.map().values().stream()</span>
+<span class="fc" id="L229">				.filter(s -&gt; s.topicSubscriptions().values().stream()</span>
+<span class="fc" id="L230">						.anyMatch(ts -&gt; TopicMatcher.match(ts.topicFilter(), name)))</span>
+<span class="fc" id="L231">				.forEach(s -&gt; subscribers.set(s.clientId(), new TopicSubscriber(s.clientId(), name)));</span>
+<span class="fc" id="L232">	}</span>
 
 	public void retain(String messageKey) {
-<span class="fc" id="L238">		messageReferenceCountsLock.lock();</span>
+<span class="fc" id="L235">		messageReferenceCountsLock.lock();</span>
 
 		try {
-<span class="fc" id="L241">			Integer count = messageReferenceCounts.get(messageKey);</span>
-<span class="fc bfc" id="L242" title="All 2 branches covered.">			if (count == null) {</span>
-<span class="fc" id="L243">				count = 0;</span>
+<span class="fc" id="L238">			Integer count = messageReferenceCounts.get(messageKey);</span>
+<span class="fc bfc" id="L239" title="All 2 branches covered.">			if (count == null) {</span>
+<span class="fc" id="L240">				count = 0;</span>
 			}
 
-<span class="fc" id="L246">			messageReferenceCounts.put(messageKey, ++count);</span>
-<span class="fc" id="L247">			logger.debug(&quot;message reference added [count={}, messageKey={}]&quot;, count, messageKey);</span>
+<span class="fc" id="L243">			messageReferenceCounts.set(messageKey, ++count);</span>
+<span class="fc" id="L244">			logger.debug(&quot;message reference added [count={}, messageKey={}]&quot;, count, messageKey);</span>
 		}
 		finally {
-<span class="pc" id="L250">			messageReferenceCountsLock.unlock();</span>
-<span class="fc" id="L251">		}</span>
-<span class="fc" id="L252">	}</span>
+<span class="pc" id="L247">			messageReferenceCountsLock.unlock();</span>
+<span class="fc" id="L248">		}</span>
+<span class="fc" id="L249">	}</span>
 
 	public void release(String messageKey) {
+<span class="fc" id="L252">		Integer count = messageReferenceCounts.get(messageKey);</span>
+<span class="pc bpc" id="L253" title="1 of 2 branches missed.">		if (count == null) { return; }</span>
+
 <span class="fc" id="L255">		messageReferenceCountsLock.lock();</span>
 
 		try {
-<span class="fc" id="L258">			Integer count = messageReferenceCounts.get(messageKey);</span>
-<span class="pc bpc" id="L259" title="1 of 2 branches missed.">			if (count &lt;= 0) {</span>
-<span class="nc" id="L260">				logger.error(&quot;Message reference count error [key={}, count={}]&quot;, messageKey, count);</span>
-<span class="nc" id="L261">				return;</span>
+<span class="pc bpc" id="L258" title="1 of 2 branches missed.">			if (count &lt;= 0) {</span>
+<span class="nc" id="L259">				logger.error(&quot;Message reference count error [key={}, count={}]&quot;, messageKey, count);</span>
+<span class="nc" id="L260">				return;</span>
 			}
-<span class="pc bpc" id="L263" title="1 of 2 branches missed.">			else if (count == 1) {</span>
-<span class="nc" id="L264">				messageReferenceCounts.remove(messageKey);</span>
-<span class="nc" id="L265">				messages.remove(messageKey);</span>
-<span class="nc" id="L266">				logger.debug(&quot;message removed [messageKey={}]&quot;, messageKey);</span>
+<span class="pc bpc" id="L262" title="1 of 2 branches missed.">			else if (count == 1) {</span>
+<span class="nc" id="L263">				messageReferenceCounts.remove(messageKey);</span>
+<span class="nc" id="L264">				messages.remove(messageKey);</span>
+<span class="nc" id="L265">				logger.debug(&quot;message removed [messageKey={}]&quot;, messageKey);</span>
 			}
 			else {
-<span class="fc" id="L269">				messageReferenceCounts.put(messageKey, --count);</span>
-<span class="fc" id="L270">				logger.debug(&quot;message reference released [count={}, messageKey={}]&quot;, count, messageKey);</span>
+<span class="fc" id="L268">				messageReferenceCounts.put(messageKey, --count);</span>
+<span class="fc" id="L269">				logger.debug(&quot;message reference released [count={}, messageKey={}]&quot;, count, messageKey);</span>
 			}
 		}
 		finally {
-<span class="pc" id="L274">			messageReferenceCountsLock.unlock();</span>
-<span class="fc" id="L275">		}</span>
-<span class="fc" id="L276">	}</span>
+<span class="pc" id="L273">			messageReferenceCountsLock.unlock();</span>
+<span class="fc" id="L274">		}</span>
+<span class="fc" id="L275">	}</span>
 
 	public void dispose() {
-<span class="fc" id="L279">		subscribers.destroy();</span>
-<span class="fc" id="L280">		messages.destroy();</span>
-<span class="fc" id="L281">		inboundMessageStatuses.destroy();</span>
-<span class="fc" id="L282">		messageReferenceCounts.destroy();</span>
-<span class="fc" id="L283">		messageReferenceCountsLock.destroy();</span>
-<span class="fc" id="L284">	}</span>
+<span class="fc" id="L278">		subscribers.destroy();</span>
+<span class="fc" id="L279">		messages.destroy();</span>
+<span class="fc" id="L280">		inboundMessageStatuses.destroy();</span>
+<span class="fc" id="L281">		messageReferenceCounts.destroy();</span>
+<span class="fc" id="L282">		messageReferenceCountsLock.destroy();</span>
+<span class="fc" id="L283">	}</span>
 
 	@JsonIgnore
 	@Override
 	public int getFactoryId() {
-<span class="fc" id="L289">		return SerializableFactory.ID;</span>
+<span class="fc" id="L288">		return SerializableFactory.ID;</span>
 	}
 
 	@JsonIgnore
 	@Override
 	public int getClassId() {
-<span class="fc" id="L295">		return ID;</span>
+<span class="fc" id="L294">		return ID;</span>
 	}
 
 	@Override
 	public void writePortable(PortableWriter writer) throws IOException {
-<span class="fc" id="L300">		List&lt;String&gt; nullChecker = Lists.newArrayList();</span>
+<span class="fc" id="L299">		List&lt;String&gt; nullChecker = Lists.newArrayList();</span>
 
-<span class="pc bpc" id="L302" title="1 of 2 branches missed.">		if (name != null) {</span>
-<span class="fc" id="L303">			writer.writeUTF(&quot;name&quot;, name);</span>
-<span class="fc" id="L304">			nullChecker.add(&quot;name&quot;);</span>
+<span class="pc bpc" id="L301" title="1 of 2 branches missed.">		if (name != null) {</span>
+<span class="fc" id="L302">			writer.writeUTF(&quot;name&quot;, name);</span>
+<span class="fc" id="L303">			nullChecker.add(&quot;name&quot;);</span>
 		}
 
-<span class="fc bfc" id="L307" title="All 2 branches covered.">		if (retainedMessage != null) {</span>
-<span class="fc" id="L308">			writer.writePortable(&quot;retainedMessage&quot;, retainedMessage);</span>
+<span class="fc bfc" id="L306" title="All 2 branches covered.">		if (retainedMessage != null) {</span>
+<span class="fc" id="L307">			writer.writePortable(&quot;retainedMessage&quot;, retainedMessage);</span>
 		}
 		else {
-<span class="fc" id="L311">			writer.writeNullPortable(&quot;retainedMessage&quot;, SerializableFactory.ID, Message.ID);</span>
+<span class="fc" id="L310">			writer.writeNullPortable(&quot;retainedMessage&quot;, SerializableFactory.ID, Message.ID);</span>
 		}
 
-<span class="fc" id="L314">		writer.writeUTFArray(&quot;nullChecker&quot;, nullChecker.toArray(new String[0]));</span>
-<span class="fc" id="L315">	}</span>
+<span class="fc" id="L313">		writer.writeUTFArray(&quot;nullChecker&quot;, nullChecker.toArray(new String[0]));</span>
+<span class="fc" id="L314">	}</span>
 
 	@Override
 	public void readPortable(PortableReader reader) throws IOException {
-<span class="fc" id="L319">		List&lt;String&gt; nullChecker = Lists.newArrayList(reader.readUTFArray(&quot;nullChecker&quot;));</span>
+<span class="fc" id="L318">		List&lt;String&gt; nullChecker = Lists.newArrayList(reader.readUTFArray(&quot;nullChecker&quot;));</span>
 
-<span class="pc bpc" id="L321" title="1 of 2 branches missed.">		if (nullChecker.contains(&quot;name&quot;)) name = reader.readUTF(&quot;name&quot;);</span>
+<span class="pc bpc" id="L320" title="1 of 2 branches missed.">		if (nullChecker.contains(&quot;name&quot;)) name = reader.readUTF(&quot;name&quot;);</span>
 
-<span class="fc" id="L323">		retainedMessage = reader.readPortable(&quot;retainedMessage&quot;);</span>
+<span class="fc" id="L322">		retainedMessage = reader.readPortable(&quot;retainedMessage&quot;);</span>
 
-<span class="fc" id="L325">		subscribers = Hazelcast.INSTANCE.getMap(subscribersName());</span>
-<span class="fc" id="L326">		messages = Hazelcast.INSTANCE.getMap(messagesName());</span>
-<span class="fc" id="L327">		inboundMessageStatuses = Hazelcast.INSTANCE.getMap(inboundMessageStatusesName());</span>
-<span class="fc" id="L328">		messageReferenceCounts = Hazelcast.INSTANCE.getMap(inboundMessageReferenceCountsName());</span>
-<span class="fc" id="L329">		messageReferenceCountsLock = Hazelcast.INSTANCE.getLock(messageReferenceCountsLockName());</span>
-<span class="fc" id="L330">	}</span>
+<span class="fc" id="L324">		subscribers = Hazelcast.INSTANCE.getMap(subscribersName());</span>
+<span class="fc" id="L325">		messages = Hazelcast.INSTANCE.getMap(messagesName());</span>
+<span class="fc" id="L326">		inboundMessageStatuses = Hazelcast.INSTANCE.getMap(inboundMessageStatusesName());</span>
+<span class="fc" id="L327">		messageReferenceCounts = Hazelcast.INSTANCE.getMap(inboundMessageReferenceCountsName());</span>
+<span class="fc" id="L328">		messageReferenceCountsLock = Hazelcast.INSTANCE.getLock(messageReferenceCountsLockName());</span>
+<span class="fc" id="L329">	}</span>
 
 	public static ClassDefinition classDefinition() {
-<span class="fc" id="L333">		return new ClassDefinitionBuilder(SerializableFactory.ID, ID).addUTFField(&quot;name&quot;)</span>
-<span class="fc" id="L334">				.addPortableField(&quot;retainedMessage&quot;, Message.classDefinition()).addUTFArrayField(&quot;nullChecker&quot;).build();</span>
+<span class="fc" id="L332">		return new ClassDefinitionBuilder(SerializableFactory.ID, ID).addUTFField(&quot;name&quot;)</span>
+<span class="fc" id="L333">				.addPortableField(&quot;retainedMessage&quot;, Message.classDefinition()).addUTFArrayField(&quot;nullChecker&quot;).build();</span>
 	}
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.7.7.201606060606</span></div></body></html>
