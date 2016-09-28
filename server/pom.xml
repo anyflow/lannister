@@ -5,13 +5,13 @@
 	<parent>
 		<groupId>net.anyflow</groupId>
 		<artifactId>lannister</artifactId>
-		<version>0.9.8-SNAPSHOT</version>
+		<version>0.9.7.1</version>
 	</parent>
 	<scm>
 		<url>https://github.com/anyflow/lannister/tree/master/server</url>
 		<connection>scm:git:git@github.com:anyflow/lannister.git</connection>
 		<developerConnection>scm:git:git@github.com:anyflow/lannister.git</developerConnection>
-		<tag>HEAD</tag>
+		<tag>v0.9.7.1</tag>
 	</scm>
 	<dependencies>
 		<dependency>
