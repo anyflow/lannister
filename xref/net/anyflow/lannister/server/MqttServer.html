@@ -38,9 +38,9 @@
 <a class="jxr_linenumber" name="L30" href="#L30">30</a>  	<strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">final</strong> EventLoopGroup workerGroup;
 <a class="jxr_linenumber" name="L31" href="#L31">31</a>  
 <a class="jxr_linenumber" name="L32" href="#L32">32</a>  	<strong class="jxr_keyword">public</strong> <a href="../../../../net/anyflow/lannister/server/MqttServer.html">MqttServer</a>() {
-<a class="jxr_linenumber" name="L33" href="#L33">33</a>  		bossGroup = <strong class="jxr_keyword">new</strong> NioEventLoopGroup(Settings.INSTANCE.getInt(<span class="jxr_string">"lannister.system.bossThreadCount"</span>, 0),
+<a class="jxr_linenumber" name="L33" href="#L33">33</a>  		bossGroup = <strong class="jxr_keyword">new</strong> NioEventLoopGroup(Settings.INSTANCE.getInt(<span class="jxr_string">"mqttserver.system.bossThreadCount"</span>, 0),
 <a class="jxr_linenumber" name="L34" href="#L34">34</a>  				<strong class="jxr_keyword">new</strong> DefaultThreadFactory(<span class="jxr_string">"lannister/boss"</span>));
-<a class="jxr_linenumber" name="L35" href="#L35">35</a>  		workerGroup = <strong class="jxr_keyword">new</strong> NioEventLoopGroup(Settings.INSTANCE.getInt(<span class="jxr_string">"lannister.system.workerThreadCount"</span>, 0),
+<a class="jxr_linenumber" name="L35" href="#L35">35</a>  		workerGroup = <strong class="jxr_keyword">new</strong> NioEventLoopGroup(Settings.INSTANCE.getInt(<span class="jxr_string">"mqttserver.system.workerThreadCount"</span>, 0),
 <a class="jxr_linenumber" name="L36" href="#L36">36</a>  				<strong class="jxr_keyword">new</strong> DefaultThreadFactory(<span class="jxr_string">"lannister/worker"</span>));
 <a class="jxr_linenumber" name="L37" href="#L37">37</a>  	}
 <a class="jxr_linenumber" name="L38" href="#L38">38</a>  
