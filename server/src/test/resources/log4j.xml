@@ -13,37 +13,28 @@
 	<appender name="CONSOLE" class="org.apache.log4j.ConsoleAppender">
 		<param name="Target" value="System.out" />
 		<layout class="org.apache.log4j.PatternLayout">
-			<param name="ConversionPattern" value="%d %-5p [%t] (%13F:%L) %m%n" />
-
+			<param name="ConversionPattern" value="%d %-5p [%t] (%c:%L) %m%n" />
+			
 		</layout>
 	</appender>
 
-	<!-- output log file appender -->
+	<!-- console log file appender -->
 	<appender name="OUTPUT" class="org.apache.log4j.DailyRollingFileAppender">
-		<param name="File" value="${project.basedir}/target/test-logs/output.log" />
+		<param name="File" value="${log.path}/output.log" />
 		<param name="Append" value="true" />
 		<param name="DatePattern" value="'.'yyyy-MM-dd" />
 		<layout class="org.apache.log4j.PatternLayout">
-			<param name="ConversionPattern" value="%d %-5p [%t] (%13F:%L) %m%n" />
+			<param name="ConversionPattern" value="%d %-5p [%t] (%c:%L) %m%n" />
 		</layout>
 	</appender>
 
 	<!-- Application log file appender -->
 	<appender name="APPLICATION" class="org.apache.log4j.DailyRollingFileAppender">
-		<param name="File" value="${project.basedir}/target/test-logs/application.log" />
+		<param name="File" value="${log.path}/application.log" />
 		<param name="Append" value="true" />
 		<param name="DatePattern" value="'.'yyyy-MM-dd" />
 		<layout class="org.apache.log4j.PatternLayout">
-			<param name="ConversionPattern" value="%d %-5p [%t] (%13F:%L) %m%n" />
-		</layout>
-	</appender>
-
-	<!-- Console appender -->
-	<appender name="CONSOLE" class="org.apache.log4j.ConsoleAppender">
-		<param name="Target" value="System.out" />
-		<layout class="org.apache.log4j.PatternLayout">
-			<param name="ConversionPattern" value="%d %-5p [%t] (%13F:%L) %m%n" />
-
+			<param name="ConversionPattern" value="%d %-5p [%t] (%c:%L) %m%n" />
 		</layout>
 	</appender>
 
@@ -59,11 +50,12 @@
 		<appender-ref ref="APPLICATION" />
 	</appender>
 
-	<logger name="com.jayway.jsonpath.JsonPath" additivity="false">
+	<logger name="org.reflections.Reflections" additivity="false">
 		<level value="ERROR" />
 		<appender-ref ref="ASYNC_APPLICATION" />
+		<appender-ref ref="ASYNC_CONSOLE" />
 	</logger>
-
+	
 	<logger name="net.anyflow">
 		<level value="DEBUG" />
 		<appender-ref ref="ASYNC_APPLICATION" />

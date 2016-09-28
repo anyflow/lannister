@@ -1,13 +1,12 @@
-<project 
-	xmlns="http://maven.apache.org/POM/4.0.0" 
-	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 	<artifactId>lannister-server</artifactId>
 	<name>Lannister server</name>
 	<parent>
 		<groupId>net.anyflow</groupId>
 		<artifactId>lannister</artifactId>
-		<version>0.9.6-SNAPSHOT</version>
+		<version>0.9.7-SNAPSHOT</version>
 	</parent>
 	<scm>
 		<url>https://github.com/anyflow/lannister/tree/master/server</url>
@@ -83,6 +82,11 @@
 			<artifactId>json-path</artifactId>
 			<version>2.2.0</version>
 		</dependency>
+		<dependency>
+			<groupId>commons-io</groupId>
+			<artifactId>commons-io</artifactId>
+			<version>2.5</version>
+		</dependency>
 	</dependencies>
 	<build>
 		<filters>
@@ -108,6 +112,14 @@
 					<include>shutdown.sh</include>
 				</includes>
 			</resource>
+			<resource>
+				<filtering>false</filtering>
+				<directory>src/main/webapp</directory>
+				<targetPath>../webapp/</targetPath>
+				<includes>
+					<include>**/*</include>
+				</includes>
+			</resource>
 		</resources>
 		<testResources>
 			<testResource>
@@ -130,7 +142,7 @@
 					<outputDirectory>${project.build.directory}/lib</outputDirectory>
 					<archive>
 						<manifestEntries>
-							<Class-Path>../conf/</Class-Path>
+							<Class-Path>../conf/ ../webapp/</Class-Path>
 						</manifestEntries>
 						<manifest>
 							<addClasspath>true</addClasspath>
@@ -142,7 +154,8 @@
 					</archive>
 				</configuration>
 			</plugin>
-			<!-- skip test on mavening... To skip test, follow the command : mvn package -Dmaven.test.skip=true -->
+			<!-- skip test on mavening... To skip test, follow the command : mvn package 
+				-Dmaven.test.skip=true -->
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-surefire-plugin</artifactId>
@@ -152,6 +165,11 @@
 					<includes>
 						<include>**/TestSuite.java</include>
 					</includes>
+					<additionalClasspathElements>
+						<additionalClasspathElement>${project.build.directory}/conf</additionalClasspathElement>
+						<additionalClasspathElement>${project.build.directory}/plugin</additionalClasspathElement>
+						<additionalClasspathElement>${project.build.directory}/webapp</additionalClasspathElement>
+					</additionalClasspathElements>
 				</configuration>
 			</plugin>
 			<!-- run jar via maven (mvn exec:java) -->
@@ -170,6 +188,7 @@
 					<additionalClasspathElements>
 						<additionalClasspathElement>${project.build.directory}/conf</additionalClasspathElement>
 						<additionalClasspathElement>${project.build.directory}/plugin</additionalClasspathElement>
+						<additionalClasspathElement>${project.build.directory}/webapp</additionalClasspathElement>
 					</additionalClasspathElements>
 				</configuration>
 			</plugin>
@@ -204,8 +223,8 @@
 						<configuration>
 							<target>
 								<echo>Copying README.md / LICENSE...</echo>
-								<copy file="../LICENSE" todir="${project.build.directory}"/>
-								<copy file="../README.md" todir="${project.build.directory}"/>
+								<copy file="../LICENSE" todir="${project.build.directory}" />
+								<copy file="../README.md" todir="${project.build.directory}" />
 							</target>
 						</configuration>
 						<phase>package</phase>

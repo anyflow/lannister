@@ -19,7 +19,7 @@ package net.anyflow.lannister.http;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -53,16 +53,12 @@ public class HttpRequest extends DefaultFullHttpRequest {
 	private static final Logger logger = LoggerFactory.getLogger(HttpRequest.class);
 
 	private final Map<String, List<String>> parameters;
-	private final Map<String, String> pathParameters;
 	private final URI uri;
 	private final Set<Cookie> cookies;
 
-	protected HttpRequest(FullHttpRequest fullHttpRequest) throws URISyntaxException {
-		this(fullHttpRequest, new HashMap<String, String>());
-	}
+	private Map<String, String> pathParameters;
 
-	protected HttpRequest(FullHttpRequest fullHttpRequest, Map<String, String> pathParameters)
-			throws URISyntaxException {
+	protected HttpRequest(FullHttpRequest fullHttpRequest) throws URISyntaxException {
 		super(fullHttpRequest.protocolVersion(), fullHttpRequest.method(), fullHttpRequest.uri(),
 				fullHttpRequest.content().copy());
 
@@ -73,7 +69,7 @@ public class HttpRequest extends DefaultFullHttpRequest {
 
 		this.parameters = parameters();
 		this.cookies = cookies();
-		this.pathParameters = pathParameters;
+		this.pathParameters = Maps.newHashMap();
 	}
 
 	private URI createUriWithNormalizing(String uri) throws URISyntaxException {
@@ -114,6 +110,12 @@ public class HttpRequest extends DefaultFullHttpRequest {
 
 	public Map<String, String> pathParameters() {
 		return pathParameters;
+	}
+
+	public HttpRequest pathParameters(Map<String, String> pathParameters) {
+		this.pathParameters = pathParameters;
+
+		return this;
 	}
 
 	public String pathParameter(String name) {
@@ -182,13 +184,13 @@ public class HttpRequest extends DefaultFullHttpRequest {
 		return toString().hashCode(); // Just for removing FindBugs issue
 	}
 
-	@Override
-	public String toString() {
+	public String toString(Date incomingTime) {
 		StringBuilder buf = new StringBuilder();
 
 		buf.append("\r\n");
 		buf.append("Request URI: ").append(this.uri()).append("\r\n");
 		buf.append("HTTP METHOD: ").append(this.method().toString()).append("\r\n");
+		buf.append("Requested Time: ").append(incomingTime.toString()).append("\r\n");
 		buf.append("Version: ").append(this.protocolVersion()).append("\r\n");
 		buf.append("Request Headers:").append("\r\n");
 
@@ -234,6 +236,11 @@ public class HttpRequest extends DefaultFullHttpRequest {
 		}
 
 		return buf.toString();
+	}
+
+	@Override
+	public String toString() {
+		return toString(new Date());
 	}
 
 	public void setContent(String content) {

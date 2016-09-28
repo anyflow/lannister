@@ -14,17 +14,32 @@
  * limitations under the License.
  */
 
-package net.anyflow.lannister.httphandler;
+package net.anyflow.lannister.httphandler.api;
 
+import com.hazelcast.core.IdGenerator;
+
+import net.anyflow.lannister.Hazelcast;
 import net.anyflow.lannister.http.HttpRequestHandler;
+import net.anyflow.lannister.session.Session;
 
-@HttpRequestHandler.Handles(paths = { "/", "/index", }, httpMethods = { "GET" }, webResourcePath = "index.html")
-public class Index extends HttpRequestHandler {
+@HttpRequestHandler.Handles(paths = { "api/clients" }, httpMethods = { "POST" })
+public class Clients extends HttpRequestHandler {
 	@SuppressWarnings("unused")
-	private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(Index.class);
+	private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(Clients.class);
 
 	@Override
 	public String service() {
-		return null;
+		IdGenerator idgen = Hazelcast.INSTANCE.getIdGenerator("CLIENT_ID_GENERATOR");
+
+		String clientId = null;
+		while (clientId == null) {
+			clientId = String.format("laniClientId%011d", idgen.newId());
+
+			if (Session.NEXUS.get(clientId) != null) {
+				clientId = null;
+			}
+		}
+
+		return String.format("{\"id\":\"%s\"}", clientId);
 	}
 }

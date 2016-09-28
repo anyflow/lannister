@@ -95,4 +95,8 @@ public class Hazelcast {
 	public <K, V> IMap<K, V> getMap(String name) {
 		return substance.getMap(name);
 	}
+
+	public String currentId() {
+		return substance.getLocalEndpoint().getUuid();
+	}
 }

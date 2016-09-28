@@ -78,12 +78,12 @@ public class ConnectReceiverTest {
 
 	@Test
 	public void testCleanSessionWithoutClientIdReturnFalse() throws Exception {
-		Settings.INSTANCE.setProperty("mqtt.acceptEmptyClientId", "false");
+		Settings.INSTANCE.setProperty("mqttserver.acceptEmptyClientId", "false");
 		MqttConnAckMessage ret = executeNormalChannelRead0("", true, null);
 
 		Assert.assertEquals(MqttConnectReturnCode.CONNECTION_REFUSED_IDENTIFIER_REJECTED,
 				ret.variableHeader().connectReturnCode());
-		Settings.INSTANCE.setProperty("mqtt.acceptEmptyClientId", "true");
+		Settings.INSTANCE.setProperty("mqttserver.acceptEmptyClientId", "true");
 	}
 
 	@Test

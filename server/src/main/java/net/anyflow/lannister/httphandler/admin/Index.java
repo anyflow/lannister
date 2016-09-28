@@ -14,11 +14,13 @@
  * limitations under the License.
  */
 
-package net.anyflow.lannister.httphandler;
+package net.anyflow.lannister.httphandler.admin;
 
 import net.anyflow.lannister.http.HttpRequestHandler;
 
-@HttpRequestHandler.Handles(paths = { "/", "/index", }, httpMethods = { "GET" }, webResourcePath = "index.html")
+@HttpRequestHandler.Handles(paths = { "/admin", "/admin/index", "/admin/dashboard", "/admin/messages", "/admin/clients",
+		"/admin/broker", "/admin/credential", "/admin/websocket_tester",
+		"/admin/about" }, httpMethods = { "GET" }, webResourcePath = "admin/index.html")
 public class Index extends HttpRequestHandler {
 	@SuppressWarnings("unused")
 	private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(Index.class);

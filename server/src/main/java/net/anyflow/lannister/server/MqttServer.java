@@ -30,9 +30,9 @@ public class MqttServer {
 	private final EventLoopGroup workerGroup;
 
 	public MqttServer() {
-		bossGroup = new NioEventLoopGroup(Settings.INSTANCE.getInt("lannister.system.bossThreadCount", 0),
+		bossGroup = new NioEventLoopGroup(Settings.INSTANCE.getInt("mqttserver.system.bossThreadCount", 0),
 				new DefaultThreadFactory("lannister/boss"));
-		workerGroup = new NioEventLoopGroup(Settings.INSTANCE.getInt("lannister.system.workerThreadCount", 0),
+		workerGroup = new NioEventLoopGroup(Settings.INSTANCE.getInt("mqttserver.system.workerThreadCount", 0),
 				new DefaultThreadFactory("lannister/worker"));
 	}
 

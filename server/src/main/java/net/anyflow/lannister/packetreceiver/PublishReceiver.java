@@ -82,7 +82,15 @@ public class PublishReceiver extends SimpleChannelInboundHandler<MqttPublishMess
 		// messages to be delivered to any onward recipients in this
 		// case.[MQTT-4.3.3-2].
 
-		final Topic topic = Topic.NEXUS.publish(message);
+		final Topic topic = Topic.NEXUS.prepare(message);
+
+		if (message.isRetain()) {// else do nothing [MQTT-3.3.1-12]
+			topic.setRetainedMessage(message); // [MQTT-3.3.1-5]
+		}
+
+		message.setRetain(false);
+
+		topic.publish(message);
 
 		switch (msg.fixedHeader().qosLevel()) {
 		case AT_MOST_ONCE:

@@ -60,7 +60,7 @@ public class Settings extends java.util.Properties {
 		}
 
 		try {
-			webResourceExtensionToMimes = new ObjectMapper().readValue(getProperty("lannister.web.httpServer.MIME"),
+			webResourceExtensionToMimes = new ObjectMapper().readValue(getProperty("webserver.MIME"),
 					Map.class);
 		}
 		catch (IOException e) {
@@ -104,27 +104,27 @@ public class Settings extends java.util.Properties {
 	}
 
 	public Integer mqttPort() {
-		return tryParse(getProperty("lannister.tcp.port", null));
+		return tryParse(getProperty("mqttserver.tcp.port", null));
 	}
 
 	public Integer mqttsPort() {
-		return tryParse(getProperty("lannister.tcp.ssl.port", null));
+		return tryParse(getProperty("mqttserver.tcp.ssl.port", null));
 	}
 
 	public Integer websocketPort() {
-		return tryParse(getProperty("lannister.websocket.port", null));
+		return tryParse(getProperty("mqttserver.websocket.port", null));
 	}
 
 	public Integer websocketSslPort() {
-		return tryParse(getProperty("lannister.websocket.ssl.port", null));
+		return tryParse(getProperty("mqttserver.websocket.ssl.port", null));
 	}
 
 	public Integer httpPort() {
-		return tryParse(getProperty("lannister.web.httpServer.http.port", null));
+		return tryParse(getProperty("webserver.http.port", null));
 	}
 
 	public Integer httpsPort() {
-		return tryParse(getProperty("lannister.web.httpServer.https.port", null));
+		return tryParse(getProperty("webserver.https.port", null));
 	}
 
 	public File certChainFile() {
@@ -142,7 +142,7 @@ public class Settings extends java.util.Properties {
 	public List<String> bannedTopicFilters() {
 		List<String> ret = Lists.newArrayList();
 
-		String tokens = getProperty("lannister.subscribe.banned_topicfilters", "");
+		String tokens = getProperty("mqttserver.subscribe.banned_topicfilters", "");
 		if (Strings.isNullOrEmpty(tokens)) { return ret; }
 
 		return Lists.newArrayList(tokens.split(","));
@@ -152,21 +152,13 @@ public class Settings extends java.util.Properties {
 	 * @return context root path
 	 */
 	public String httpContextRoot() {
-		String ret = getProperty("lannister.web.httpServer.contextRoot", "/");
+		String ret = getProperty("webserver.contextRoot", "/");
 
 		if (ret.equalsIgnoreCase("") || ret.charAt(ret.length() - 1) != '/') {
 			ret += "/";
 		}
 
 		return ret;
-	}
-
-	public String webResourcePhysicalRootPath() {
-		return this.getProperty("lannister.web.httpServer.webResourcePhysicalRootPath", null);
-	}
-
-	public void setWebResourcePhysicalRootPath(String physicalRootPath) {
-		this.setProperty("lannister.web.httpServer.webResourcePhysicalRootPath", physicalRootPath);
 	}
 
 	public String version() {
