@@ -46,20 +46,6 @@ under the License.
           <tbody>
                           <tr>
                 <td>
-                  <a href="https://github.com/anyflow/lannister/lannister-plugin-example/checkstyle.html#net.anyflow.lannister.pluginexample.ExamplePublishEventListener.java">net/anyflow/lannister/pluginexample/ExamplePublishEventListener.java</a>
-                </td>
-                <td>
-                  0
-                </td>
-                <td>
-                  0
-                </td>
-                <td>
-                  13
-                </td>
-              </tr>
-                          <tr>
-                <td>
                   <a href="https://github.com/anyflow/lannister/lannister-plugin-example/checkstyle.html#net.anyflow.lannister.pluginexample.ExampleDisconnectEventListener.java">net/anyflow/lannister/pluginexample/ExampleDisconnectEventListener.java</a>
                 </td>
                 <td>
@@ -70,6 +56,20 @@ under the License.
                 </td>
                 <td>
                   9
+                </td>
+              </tr>
+                          <tr>
+                <td>
+                  <a href="https://github.com/anyflow/lannister/lannister-plugin-example/checkstyle.html#net.anyflow.lannister.pluginexample.ExamplePublishEventListener.java">net/anyflow/lannister/pluginexample/ExamplePublishEventListener.java</a>
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  13
                 </td>
               </tr>
                           <tr>
@@ -111,7 +111,7 @@ under the License.
                   0
                 </td>
                 <td>
-                  19
+                  20
                 </td>
               </tr>
                           <tr>
@@ -125,7 +125,7 @@ under the License.
                   0
                 </td>
                 <td>
-                  13
+                  12
                 </td>
               </tr>
                           <tr>

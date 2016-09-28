@@ -1,9 +1,9 @@
 GROUP,PACKAGE,CLASS,INSTRUCTION_MISSED,INSTRUCTION_COVERED,BRANCH_MISSED,BRANCH_COVERED,LINE_MISSED,LINE_COVERED,COMPLEXITY_MISSED,COMPLEXITY_COVERED,METHOD_MISSED,METHOD_COVERED
 Lannister plugin example/lannister-interface,net.anyflow.lannister.plugin,ConnectEventArgs,25,0,0,0,3,0,1,0,1,0
 Lannister plugin example/lannister-interface,net.anyflow.lannister.plugin,DisconnectEventArgs,20,0,0,0,2,0,1,0,1,0
-Lannister plugin example/lannister-interface,net.anyflow.lannister.plugin,ITopicSubscription,15,0,0,0,2,0,1,0,1,0
-Lannister plugin example/lannister-interface,net.anyflow.lannister.plugin,UnsubscribeEventArgs,32,0,2,0,5,0,3,0,2,0
 Lannister plugin example/lannister-interface,net.anyflow.lannister.plugin,DeliveredEventArgs,15,0,0,0,2,0,1,0,1,0
+Lannister plugin example/lannister-interface,net.anyflow.lannister.plugin,ITopicSubscription,15,0,0,0,2,0,1,0,1,0
 Lannister plugin example/lannister-interface,net.anyflow.lannister.plugin,PublishEventArgs,9,0,0,0,1,0,1,0,1,0
+Lannister plugin example/lannister-interface,net.anyflow.lannister.plugin,UnsubscribeEventArgs,32,0,2,0,5,0,3,0,2,0
 Lannister plugin example/lannister-interface,net.anyflow.lannister.plugin,IMessage,35,0,0,0,3,0,1,0,1,0
 Lannister plugin example/lannister-interface,net.anyflow.lannister.plugin,SubscribeEventArgs,26,0,2,0,4,0,3,0,2,0
