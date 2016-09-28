@@ -19,8 +19,14 @@
     </fluidoSkin>
   </custom>
   <body>
-    <menu name="OVERVIEW">
+    <menu name="MAIN">
       <item name="Introduction" href="index.html" />
+      <item name="Installation" href="installation.html" />
+      <item name="Architecture" href="architecture.html" />
+      <item name="Configuration" href="configuration.html" />
+      <item name="Clustering" href="clustering.html" />
+      <item name="$SYS topics" href="dollarSys.html" />
+      <item name="REST APIs" href="restapis.html" />
       <item name="Version History" href="history.html" />
       <item name="Specification REVIEW/TEST status" href="specification.html" />
     </menu>
