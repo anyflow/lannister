@@ -19,6 +19,8 @@ import net.anyflow.lannister.packetreceiver.PubAckReceiver;
 import net.anyflow.lannister.packetreceiver.PublishReceiver;
 import net.anyflow.lannister.packetreceiver.SubscribeReceiver;
 import net.anyflow.lannister.packetreceiver.UnsubscribeReceiver;
+import net.anyflow.lannister.server.ByteCounterCodec;
+import net.anyflow.lannister.server.MqttWebSocketCodec;
 
 public class MqttChannelInitializer extends ChannelInitializer<SocketChannel> {
 
@@ -58,7 +60,7 @@ public class MqttChannelInitializer extends ChannelInitializer<SocketChannel> {
 			ch.pipeline().addLast(HttpObjectAggregator.class.getName(), new HttpObjectAggregator(1048576));
 			ch.pipeline().addLast(HttpContentCompressor.class.getName(), new HttpContentCompressor());
 			ch.pipeline().addLast(WebSocketServerProtocolHandler.class.getName(),
-					new WebSocketServerProtocolHandler(websocketPath, "mqtt,mqttv3.1,mqttv3.1.1", true, 65536));
+					new WebSocketServerProtocolHandler(websocketPath, "mqtt,mqttv3.1,mqttv3.1.1", true, 65536)); // [MQTT-6.0.0-3]
 			ch.pipeline().addLast(new MqttWebSocketCodec());
 		}
 

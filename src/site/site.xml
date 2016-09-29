@@ -19,16 +19,24 @@
     </fluidoSkin>
   </custom>
   <body>
-    <menu name="MAIN">
+    <menu name="Overview">
       <item name="Introduction" href="index.html" />
-      <item name="Installation" href="installation.html" />
-      <item name="Architecture" href="architecture.html" />
-      <item name="Configuration" href="configuration.html" />
+      <item name="Getting Started" href="gettingStarted.html" />
+      <item name="Version History" href="history.html" />
+      <item name="License" href="license.html" />
+      <item name="Download" href="https://goo.gl/GJ1piF" />
+    </menu>
+    <menu name="References">
+      <item name="Project/Package Structure" href="structure.html" />
       <item name="Clustering" href="clustering.html" />
+      <item name="Plug-In" href="plugin.html" />
       <item name="$SYS topics" href="dollarSys.html" />
       <item name="REST APIs" href="restapis.html" />
-      <item name="Version History" href="history.html" />
-      <item name="Specification REVIEW/TEST status" href="specification.html" />
+      <item name="Configuration" href="configuration.html" />
+    </menu>
+    <menu name="Test/Review Report">
+      <item name="Specification Conformance" href="specification.html" />
+      <item name="Performance" href="performance.html" />
     </menu>
     <menu ref="modules" />
     <menu ref="reports" />

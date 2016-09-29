@@ -1,4 +1,13 @@
-# Specification REVIEW/TEST status
+## Specification Review/Test Report
+
+Referenced Specification : [MQTT Version 3.1.1 OASIS Standard, 29 October 2014](http://docs.oasis-open.org/mqtt/mqtt/v3.1.1/os/mqtt-v3.1.1-os.html)
+
+* `reviewed` means the statement is identified and marked in source code of Lannister.
+* `tested#1` means the statement is tested via [Eclipse Paho Testing Utilities](https://github.com/eclipse/paho.mqtt.testing).
+* `tested#2` means the statement is tested via unit test code of Lannister.
+* `tested#3` means the statement is tested manually.
+* `client spec` means the statement is for MQTT client.
+
 |Number|Status|Normative Statement|
 |---|---|---|
 |**CHAPTER #1**|||
@@ -8,13 +17,13 @@
 |**CHAPTER #2**|||
 |[MQTT-2.2.2-1]||Where a flag bit is marked as “Reserved” in Table 2.2 - Flag Bits, it is reserved for future use and MUST be set to the value listed in that table.|
 |[MQTT-2.2.2-2]||If invalid flags are received, the receiver MUST close the Network Connection.|
-|[MQTT-2.3.1-1]|`tested`|SUBSCRIBE, UNSUBSCRIBE, and PUBLISH (in cases where QoS > 0) Control Packets MUST contain a non-zero 16-bit Packet Identifier.|
+|[MQTT-2.3.1-1]|`tested#1`|SUBSCRIBE, UNSUBSCRIBE, and PUBLISH (in cases where QoS > 0) Control Packets MUST contain a non-zero 16-bit Packet Identifier.|
 |[MQTT-2.3.1-2]||Each time a Client sends a new packet of one of these types it MUST assign it a currently unused Packet Identifier.|
 |[MQTT-2.3.1-3]||If a Client re-sends a particular Control Packet, then it MUST use the same Packet Identifier in subsequent re-sends of that packet. The Packet Identifier becomes available for reuse after the Client has processed the corresponding acknowledgement packet. In the case of a QoS 1 PUBLISH this is the corresponding PUBACK; in the case of QO2 it is PUBCOMP. For SUBSCRIBE or UNSUBSCRIBE it is the corresponding SUBACK or UNSUBACK.|
 |[MQTT-2.3.1-4]||The same conditions[MQTT-2.3.1-3] apply to a Server when it sends a PUBLISH with QoS >0.|
 |[MQTT-2.3.1-5]||A PUBLISH Packet MUST NOT contain a Packet Identifier if its QoS value is set to 0.|
-|[MQTT-2.3.1-6]|`tested`|A PUBACK, PUBREC or PUBREL Packet MUST contain the same Packet Identifier as the PUBLISH Packet that was originally sent.|
-|[MQTT-2.3.1-7]||Similarly to[MQTT-2.3.1-6], SUBACK and UNSUBACK MUST contain the Packet Identifier that was used in the corresponding SUBSCRIBE and UNSUBSCRIBE Packet respectively.|
+|[MQTT-2.3.1-6]|`tested#1`|A PUBACK, PUBREC or PUBREL Packet MUST contain the same Packet Identifier as the PUBLISH Packet that was originally sent.|
+|[MQTT-2.3.1-7]|`tested#1`|Similarly to[MQTT-2.3.1-6], SUBACK and UNSUBACK MUST contain the Packet Identifier that was used in the corresponding SUBSCRIBE and UNSUBSCRIBE Packet respectively.|
 |**CHAPTER #3**|||
 |[MQTT-3.1.0-1]|`client spec`|After a Network Connection is established by a Client to a Server, the first Packet sent from the Client to the Server MUST be a CONNECT Packet.|
 |[MQTT-3.1.0-2]|`reviewed`|The Server MUST process a second CONNECT Packet sent from a Client as a protocol violation and disconnect the Client.|
@@ -23,7 +32,7 @@
 |[MQTT-3.1.2-3]|`CODEC`|The Server MUST validate that the reserved flag in the CONNECT Control Packet is set to zero and disconnect the Client if it is not zero.|
 |[MQTT-3.1.2-4]|`reviewed`|If CleanSession is set to 0, the Server MUST resume communications with the Client based on state from the current Session (as identified by the Client identifier). If there is no Session associated with the Client identifier the Server MUST create a new Session. The Client and Server MUST store the Session after the Client and Server are disconnected.|
 |[MQTT-3.1.2-5]|`reviewed`|After the disconnection of a Session that had CleanSession set to 0, the Server MUST store further QoS 1 and QoS 2 messages that match any subscriptions that the client had at the time of disconnection as part of the Session state.|
-|[MQTT-3.1.2-6]|`reviewed` `tested`|If CleanSession is set to 1, the Client and Server MUST discard any previous Session and start a new one. This Session lasts as long as the Network Connection. State data associated with this Session MUST NOT be reused in any subsequent Session.|
+|[MQTT-3.1.2-6]|`reviewed` `tested#1`|If CleanSession is set to 1, the Client and Server MUST discard any previous Session and start a new one. This Session lasts as long as the Network Connection. State data associated with this Session MUST NOT be reused in any subsequent Session.|
 |[MQTT-3.1.2.7]|`reviewed`|Retained messages do not form part of the Session state in the Server, they MUST NOT be deleted when the Session ends.|
 |[MQTT-3.1.2-8]|`reviewed`|If the Will Flag is set to 1 this indicates that, if the Connect request is accepted, a Will Message MUST be stored on the Server and associated with the Network Connection. The Will Message MUST be published when the Network Connection is subsequently closed unless the Will Message has been deleted by the Server on receipt of a DISCONNECT Packet.|
 |[MQTT-3.1.2-9]|`client spec`|If the Will Flag is set to 1, the Will QoS and Will Retain fields in the Connect Flags will be used by the Server, and the Will Topic and Will Message fields MUST be present in the payload.|
@@ -35,7 +44,7 @@
 |[MQTT-3.1.2-15]|`client spec`|If the Will Flag is set to 0, then the Will Retain Flag MUST be set to 0.|
 |[MQTT-3.1.2-16]|`reviewed`|If the Will Flag is set to 1 and If Will Retain is set to 0, the Server MUST publish the Will Message as a non-retained message.|
 |[MQTT-3.1.2-17]|`reviewed`|If the Will Flag is set to 1 and If Will Retain is set to 1, the Server MUST publish the Will Message as a retained message.|
-|[MQTT-3.1.2-18]|`tested`|If the User Name Flag is set to 0, a user name MUST NOT be present in the payload.|
+|[MQTT-3.1.2-18]|`tested#1`|If the User Name Flag is set to 0, a user name MUST NOT be present in the payload.|
 |[MQTT-3.1.2-19]|`client spec`|If the User Name Flag is set to 1, a user name MUST be present in the payload.|
 |[MQTT-3.1.2-20]|`client spec`|If the Password Flag is set to 0, a password MUST NOT be present in the payload.|
 |[MQTT-3.1.2-21]|`client spec`|If the Password Flag is set to 1, a password MUST be present in the payload.|
@@ -44,9 +53,9 @@
 |[MQTT-3.1.2-24]|`reviewed`|If the Keep Alive value is non-zero and the Server does not receive a Control Packet from the Client within one and a half times the Keep Alive time period, it MUST disconnect the Network Connection to the Client as if the network had failed.|
 |[MQTT-3.1.3-1]|`CODEC`|These fields, if present, MUST appear in the order Client Identifier, Will Topic, Will Message, User Name, Password.|
 |[MQTT-3.1.3-2]|`USER MANDATORY`|Each Client connecting to the Server has a unique ClientId. The ClientId MUST be used by Clients and by Servers to identify state that they hold relating to this MQTT Session between the Client and the Server.|
-|[MQTT-3.1.3-3]|`CODEC` `tested`|The Client Identifier (ClientId) MUST be present and MUST be the first field in the CONNECT packet payload.|
-|[MQTT-3.1.3-4]|`CODEC` `tested`|The ClientId MUST be a UTF-8 encoded string as defined in Section 1.5.3.|
-|[MQTT-3.1.3-5]|`CODEC` `tested`|"The Server MUST allow ClientIds which are between 1 and 23 UTF-8 encoded bytes in length, and that contain only the characters "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"||
+|[MQTT-3.1.3-3]|`CODEC` `tested#1`|The Client Identifier (ClientId) MUST be present and MUST be the first field in the CONNECT packet payload.|
+|[MQTT-3.1.3-4]|`CODEC` `tested#1`|The ClientId MUST be a UTF-8 encoded string as defined in Section 1.5.3.|
+|[MQTT-3.1.3-5]|`CODEC` `tested#1`|The Server MUST allow ClientIds which are between 1 and 23 UTF-8 encoded bytes in length, and that contain only the characters "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ" |
 |[MQTT-3.1.3-6]|`reviewed`|A Server MAY allow a Client to supply a ClientId that has a length of zero bytes. However if it does so the Server MUST treat this as a special case and assign a unique ClientId to that Client. It MUST then process the CONNECT packet as if the Client had provided that unique ClientId.|
 |[MQTT-3.1.3-7]|`reviewed`|If the Client supplies a zero-byte ClientId, the Client MUST also set CleanSession to 1.|
 |[MQTT-3.1.3-8]|`reviewed`|If the Client supplies a zero-byte ClientId with CleanSession set to 0, the Server MUST respond to the CONNECT Packet with a CONNACK return code 0x02 (Identifier rejected) and then close the Network Connection.|
@@ -57,8 +66,8 @@
 |[MQTT-3.1.4-2]|`reviewed`|If the ClientId represents a Client already connected to the Server then the Server MUST disconnect the existing Client.|
 |[MQTT-3.1.4-3]|`reviewed`|If CONNECT validation is successful the Server MUST perform the processing of CleanSession that is described in section 3.1.2.4.|
 |[MQTT-3.1.4-4]|`reviewed`|If CONNECT validation is successful the Server MUST acknowledge the CONNECT Packet with a CONNACK Packet containing a zero return code.|
-|[MQTT-3.1.4-5]|`reviewed` `tested`|If the Server rejects the CONNECT, it MUST NOT process any data sent by the Client after the CONNECT Packet.|
-|[MQTT-3.2.0-1]|`reviewed` `tested`|The first packet sent from the Server to the Client MUST be a CONNACK Packet.|
+|[MQTT-3.1.4-5]|`reviewed` `tested#1`|If the Server rejects the CONNECT, it MUST NOT process any data sent by the Client after the CONNECT Packet.|
+|[MQTT-3.2.0-1]|`reviewed` `tested#1`|The first packet sent from the Server to the Client MUST be a CONNACK Packet.|
 |[MQTT-3.2.2-1]|`reviewed`|If the Server accepts a connection with CleanSession set to 1, the Server MUST set Session Present to 0 in the CONNACK packet in addition to setting a zero return code in the CONNACK packet.|
 |[MQTT-3.2.2-2]|`reviewed`|If the Server accepts a connection with CleanSession set to 0, the value set in Session Present depends on whether the Server already has stored Session state for the supplied client ID. If the Server has stored Session state, it MUST set Session Present to 1 in the CONNACK packet.|
 |[MQTT-3.2.2-3]|`reviewed`|If the Server does not have stored Session state, it MUST set Session Present to 0 in the CONNACK packet. This is in addition to setting a zero return code in the CONNACK packet.|
@@ -76,7 +85,7 @@
 |[MQTT-3.3.1-9]||It MUST set the RETAIN flag to 0 when a PUBLISH Packet is sent to a Client because it matches an established subscription regardless of how the flag was set in the message it received.|
 |[MQTT-3.3.1-10]|`reviewed`|A PUBLISH Packet with a RETAIN flag set to 1 and a payload containing zero bytes will be processed as normal by the Server and sent to Clients with a subscription matching the topic name. Additionally any existing retained message with the same topic name MUST be removed and any future subscribers for the topic will not receive a retained message.|
 |[MQTT-3.3.1-11]|`reviewed`|A zero byte retained message MUST NOT be stored as a retained message on the Server.|
-|[MQTT-3.3.1-12]|`reviewed` `tested`|If the RETAIN flag is 0, in a PUBLISH Packet sent by a Client to a Server, the Server MUST NOT store the message and MUST NOT remove or replace any existing retained message.|
+|[MQTT-3.3.1-12]|`reviewed` `tested#1`|If the RETAIN flag is 0, in a PUBLISH Packet sent by a Client to a Server, the Server MUST NOT store the message and MUST NOT remove or replace any existing retained message.|
 |[MQTT-3.3.2-1]||The Topic Name MUST be present as the first field in the PUBLISH Packet Variable header. It MUST be a UTF-8 encoded string.|
 |[MQTT-3.3.2-2]||The Topic Name in the PUBLISH Packet MUST NOT contain wildcard characters.|
 |[MQTT-3.3.2-3]||The Topic Name in a PUBLISH Packet sent by a Server to a subscribing Client MUST match the Subscription’s Topic Filter according to the matching process defined in Section 4.7.|
@@ -90,8 +99,8 @@
 |[MQTT-3.8.3-3]||The payload of a SUBSCRIBE packet MUST contain at least one Topic Filter / QoS pair. A SUBSCRIBE packet with no payload is a protocol violation.|
 |[MQTT-3-8.3-4]||The Server MUST treat a SUBSCRIBE packet as malformed and close the Network Connection if any of Reserved bits in the payload are non-zero, or QoS is not 0,1 or 2.|
 |[MQTT-3.8.4-1]||When the Server receives a SUBSCRIBE Packet from a Client, the Server MUST respond with a SUBACK Packet.|
-|[MQTT-3.8.4-2]||The SUBACK Packet MUST have the same Packet Identifier as the SUBSCRIBE Packet that it is acknowledging.|
-|[MQTT-3.8.4-3]||If a Server receives a SUBSCRIBE Packet containing a Topic Filter that is identical to an existing Subscription’s Topic Filter then it MUST completely replace that existing Subscription with a new Subscription. The Topic Filter in the new Subscription will be identical to that in the previous Subscription, although its maximum QoS value could be different. Any existing retained messages matching the Topic Filter MUST be re-sent, but the flow of publications MUST NOT be interrupted.|
+|[MQTT-3.8.4-2]|`tested#1`|The SUBACK Packet MUST have the same Packet Identifier as the SUBSCRIBE Packet that it is acknowledging.|
+|[MQTT-3.8.4-3]|`tested#1`|If a Server receives a SUBSCRIBE Packet containing a Topic Filter that is identical to an existing Subscription’s Topic Filter then it MUST completely replace that existing Subscription with a new Subscription. The Topic Filter in the new Subscription will be identical to that in the previous Subscription, although its maximum QoS value could be different. Any existing retained messages matching the Topic Filter MUST be re-sent, but the flow of publications MUST NOT be interrupted.|
 |[MQTT-3.8.4-4]||If a Server receives a SUBSCRIBE packet that contains multiple Topic Filters it MUST handle that packet as if it had received a sequence of multiple SUBSCRIBE packets, except that it combines their responses into a single SUBACK response.|
 |[MQTT-3.8.4-5]||The SUBACK Packet sent by the Server to the Client MUST contain a return code for each Topic Filter/QoS pair. This return code MUST either show the maximum QoS that was granted for that Subscription or indicate that the subscription failed.|
 |[MQTT-3.8.4-6]||The Server might grant a lower maximum QoS than the subscriber requested. The QoS of Payload Messages sent in response to a Subscription MUST be the minimum of the QoS of the originally published message and the maximum QoS granted by the Server. The server is permitted to send duplicate copies of a message to a subscriber in the case where the original message was published with QoS 1 and the maximum QoS granted was QoS 0.|
@@ -112,13 +121,13 @@
 |[MQTT-3.14.4-2]|`client spec`|After sending a DISCONNECT Packet the Client MUST NOT send any more Control Packets on that Network Connection.|
 |[MQTT-3.14.4-3]||On receipt of DISCONNECT the Server MUST discard any Will Message associated with the current connection without publishing it, as described in Section3.1.2.5.|
 |**CHAPTER #4**|||
-|[MQTT-4.1.0-1]|`tested`|The Client and Server MUST store Session state for the entire duration of the Session.|
+|[MQTT-4.1.0-1]|`tested#1`|The Client and Server MUST store Session state for the entire duration of the Session.|
 |[MQTT-4.1.0-2]||A Session MUST last at least as long it has an active Network Connection.|
-|[MQTT-4.3.1-1]||In the QoS 0 delivery protocol, the Sender · MUST send a PUBLISH packet with QoS=0, DUP=0."|
-|[MQTT-4.3.2-1]||In the QoS 1 delivery protocol, the Sender · MUST assign an unused Packet Identifier each time it has a new Application Message to publish. · MUST send a PUBLISH Packet containing this Packet Identifier with QoS=1, DUP=0. · MUST treat the PUBLISH Packet as "unacknowledged" until it has received the corresponding PUBACK packet from the receiver. See Section 4.4 for a discussion of unacknowledged messages."|
-|[MQTT-4.3.2-2]||In the QoS 1 delivery protocol, the Receiver · MUST respond with a PUBACK Packet containing the Packet Identifier from the incoming PUBLISH Packet, having accepted ownership of the Application Message. After it has sent a PUBACK Packet the Receiver MUST treat any incoming PUBLISH packet that contains the same Packet Identifier as being a new publication, irrespective of the setting of its DUP flag."|
-|[MQTT-4.3.3-1]||In the QoS 2 delivery protocol, the Sender · MUST assign an unused Packet Identifier when it has a new Application Message to publish. MUST send a PUBLISH packet containing this Packet Identifier with QoS=2, DUP=0. MUST treat the PUBLISH packet as ""unacknowledged"" until it has received the corresponding PUBREC packet from the receiver. See Section 4.4 for a discussion of unacknowledged messages. MUST send a PUBREL packet when it receives a PUBREC packet from the receiver. This PUBREL packet MUST contain the same Packet Identifier as the original PUBLISH packet. MUST treat the PUBREL packet as ""unacknowledged"" until it has received the corresponding PUBCOMP packet from the receiver. MUST NOT re-send the PUBLISH once it has sent the corresponding PUBREL packet."|
-|[MQTT-4.3.3-2]||In the QoS 2 delivery protocol, the Receiver · MUST respond with a PUBREC containing the Packet Identifier from the incoming PUBLISH Packet, having accepted ownership of the Application Message. Until it has received the corresponding PUBREL packet, the Receiver MUST acknowledge any subsequent PUBLISH packet with the same Packet Identifier by sending a PUBREC. It MUST NOT cause duplicate messages to be delivered to any onward recipients in this case. MUST respond to a PUBREL packet by sending a PUBCOMP packet containing the same Packet Identifier as the PUBREL. After it has sent a PUBCOMP, the receiver MUST treat any subsequent PUBLISH packet that contains that Packet Identifier as being a new publication."|
+|[MQTT-4.3.1-1]||In the QoS 0 delivery protocol, the Sender<br />· MUST send a PUBLISH packet with QoS=0, DUP=0.|
+|[MQTT-4.3.2-1]||In the QoS 1 delivery protocol, the Sender<br />· MUST assign an unused Packet Identifier each time it has a new Application Message to publish.<br />· MUST send a PUBLISH Packet containing this Packet Identifier with QoS=1, DUP=0.<br />· MUST treat the PUBLISH Packet as "unacknowledged" until it has received the corresponding PUBACK packet from the receiver. See Section 4.4 for a discussion of unacknowledged messages.|
+|[MQTT-4.3.2-2]||In the QoS 1 delivery protocol, the Receiver <br />· MUST respond with a PUBACK Packet containing the Packet Identifier from the incoming PUBLISH Packet, having accepted ownership of the Application Message.<br />· After it has sent a PUBACK Packet the Receiver MUST treat any incoming PUBLISH packet that contains the same Packet Identifier as being a new publication, irrespective of the setting of its DUP flag.|
+|[MQTT-4.3.3-1]||In the QoS 2 delivery protocol, the Sender<br />· MUST assign an unused Packet Identifier when it has a new Application Message to publish.<br />· MUST send a PUBLISH packet containing this Packet Identifier with QoS=2, DUP=0.<br />· MUST treat the PUBLISH packet as unacknowledged" until it has received the corresponding PUBREC packet from the receiver. See Section 4.4 for a discussion of unacknowledged messages.<br />· MUST send a PUBREL packet when it receives a PUBREC packet from the receiver. This PUBREL packet MUST contain the same Packet Identifier as the original PUBLISH packet.<br />· MUST treat the PUBREL packet as unacknowledged" until it has received the corresponding PUBCOMP packet from the receiver.<br />· MUST NOT re-send the PUBLISH once it has sent the corresponding PUBREL packet.|
+|[MQTT-4.3.3-2]||In the QoS 2 delivery protocol, the Receiver<br />· MUST respond with a PUBREC containing the Packet Identifier from the incoming PUBLISH Packet, having accepted ownership of the Application Message.<br />· Until it has received the corresponding PUBREL packet, the Receiver MUST acknowledge any subsequent PUBLISH packet with the same Packet Identifier by sending a PUBREC. It MUST NOT cause duplicate messages to be delivered to any onward recipients in this case.<br />· MUST respond to a PUBREL packet by sending a PUBCOMP packet containing the same Packet Identifier as the PUBREL.<br />· After it has sent a PUBCOMP, the receiver MUST treat any subsequent PUBLISH packet that contains that Packet Identifier as being a new publication.|
 |[MQTT-4.4.0-1]||When a Client reconnects with CleanSession set to 0, both the Client and Server MUST re-send any unacknowledged PUBLISH Packets (where QoS > 0) and PUBREL Packets using their original Packet Identifiers.|
 |[MQTT-4.5.0-1]||When a Server takes ownership of an incoming Application Message it MUST add it to the Session state of those clients that have matching Subscriptions. Matching rules are defined in Section 4.7.|
 |[MQTT-4.5.0-2]||The Client MUST acknowledge any Publish Packet it receives according to the applicable QoS rules regardless of whether it elects to process the Application Message that it contains.|
@@ -130,10 +139,10 @@
 |[MQTT-4.6.0-6]||When a Server processes a message that has been published to an Ordered Topic, it MUST follow the rules listed above when delivering messages to each of its subscribers. In addition it MUST send PUBLISH packets to consumers (for the same Topic and QoS) in the order that they were received from any given Client.|
 |[MQTT-4.7.1-1]||The wildcard characters can be used in Topic Filters, but MUST NOT be used within a Topic Name.|
 |[MQTT-4.7.1-2]||The multi-level wildcard character MUST be specified either on its own or following a topic level separator. In either case it MUST be the last character specified in the Topic Filter.|
-|[MQTT-4.7.1-3]||The single-level wildcard can be used at any level in the Topic Filter, including first and last levels. Where it is used it MUST occupy an entire level of the filter.|
+|[MQTT-4.7.1-3]|`tested#1`|The single-level wildcard can be used at any level in the Topic Filter, including first and last levels. Where it is used it MUST occupy an entire level of the filter.|
 |[MQTT-4.7.2-1]||The Server MUST NOT match Topic Filters starting with a wildcard character (# or +) with Topic Names beginning with a $ character.|
 |[MQTT-4.7.3-1]||All Topic Names and Topic Filters MUST be at least one character long.|
-|[MQTT-4.7.3-2]||Topic Names and Topic Filters MUST NOT include the null character (Unicode U+0000).|
+|[MQTT-4.7.3-2]|`tested#1`|Topic Names and Topic Filters MUST NOT include the null character (Unicode U+0000).|
 |[MQTT-4.7.3-3]||Topic Names and Topic Filters are UTF-8 encoded strings, they MUST NOT encode to more than 65535 bytes.|
 |[MQTT-4.7.3-4]||When it performs subscription matching the Server MUST NOT perform any normalization of Topic Names or Topic Filters, or any modification or substitution of unrecognized characters.|
 |[MQTT-4.8.0-1]||Unless stated otherwise, if either the Server or Client encounters a protocol violation, it MUST close the Network Connection on which it received that Control Packet which caused the protocol violation.|
@@ -141,7 +150,7 @@
 |**CHAPTER #6**|||
 |[MQTT-6.0.0-1]||MQTT Control Packets MUST be sent in WebSocket binary data frames. If any other type of data frame is received the recipient MUST close the Network Connection.|
 |[MQTT-6.0.0-2]||A single WebSocket data frame can contain multiple or partial MQTT Control Packets. The receiver MUST NOT assume that MQTT Control Packets are aligned on WebSocket frame boundaries.|
-|[MQTT-6.0.0-3]||The client MUST include “mqtt” in the list of WebSocket Sub Protocols it offers.|
+|[MQTT-6.0.0-3]|`reviewed` `tested#3`|The client MUST include “mqtt” in the list of WebSocket Sub Protocols it offers.|
 |[MQTT-6.0.0-4]||The WebSocket Sub Protocol name selected and returned by the server MUST be “mqtt”.|
 |**CHAPTER #7**|||
 |[MQTT-7.0.0-1]||A Server that both accepts inbound connections and establishes outbound connections to other Servers MUST conform as both an MQTT Client and MQTT Server.|
