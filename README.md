@@ -1,3 +1,18 @@
+<!--
+  Copyright 2016 The Lannister Project
+
+  Licensed under the Apache License, Version 2.0 (the "License");
+  you may not use this file except in compliance with the License.
+  You may obtain a copy of the License at
+
+      http://www.apache.org/licenses/LICENSE-2.0
+
+  Unless required by applicable law or agreed to in writing, software
+  distributed under the License is distributed on an "AS IS" BASIS,
+  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  See the License for the specific language governing permissions and
+  limitations under the License.
+ --> 
 # Lannister
 
 [![Build Status](https://travis-ci.org/anyflow/lannister.svg?branch=master)](https://travis-ci.org/anyflow/lannister) [![Codacy Badge](https://api.codacy.com/project/badge/Grade/8d72feca76504d89a9846beecbbbc34b)](https://www.codacy.com/app/anyflow/lannister?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=anyflow/lannister&amp;utm_campaign=Badge_Grade) [![Codacy Badge](https://api.codacy.com/project/badge/Coverage/8d72feca76504d89a9846beecbbbc34b)](https://www.codacy.com/app/anyflow/lannister?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=anyflow/lannister&amp;utm_campaign=Badge_Coverage)
@@ -93,7 +108,7 @@ For more information, visit http://anyflow.github.io/lannister/
 - Handle overlapped topic filters
 - Add nosys filter in topics REST API(`/topics?filter=nosys`)
 - Add [MQTT-4.7.2-1] feature(no matching an invalid topic filter case)
-- Add feature : Ban subscribing specific topic filters(`mqttserver.subscribe.banned_topicfilters` property in `lannister.cfg`) 
+- Add feature : Ban subscribing specific topic filters(`mqttserver.subscribe.banned_topicfilters` property in `lannister.cfg`)
 - Fix failing queued message delivery
 - Fix disconnection on receiving retained message puback
 - Fix disconnection on receiving message pubrec(on resending QoS2 message)
