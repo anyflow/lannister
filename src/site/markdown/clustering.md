@@ -13,7 +13,7 @@ In the chapter, general characteristics and configuration of Lannister cluster a
 ### Runtime Architecture
 ![runtime architecture](images/clustering_architecture.svg)
 
-The diagram below depicts characteristics described in the above section. 3 Lannister nodes works in a cluster and a MQTT client access one of the nodes. The client accesses all data in the cluster but it doesn't care where the data is in thanks to logical view. Behind the scene, the node access data to local or remote master and update backup at each access.
+The diagram depicts characteristics described in the above section. 3 Lannister nodes works in a cluster and a MQTT client access one of the nodes. The client accesses all data in the cluster but it doesn't care where the data is in thanks to logical view. Behind the scene, the node access data to local or remote master and update backup at each access.
 
 Every nodes works in its own single process(JVM) and has no dependency on other process.
 
