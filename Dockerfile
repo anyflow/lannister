@@ -6,11 +6,10 @@ RUN mkdir /opt/lannister/logs
 RUN touch /opt/lannister/logs/application.log
 RUN touch /opt/lannister/logs/output.log
 
-ADD server/target/*.jar   /opt/lannister/
 ADD server/target/bin/*   /opt/lannister/bin/
 ADD server/target/conf/*  /opt/lannister/conf/
 ADD server/target/lib/*   /opt/lannister/lib/
-
+ADD server/target/webapp/*   /opt/lannister/webapp/
 
 RUN chmod 700 /opt/lannister/bin/startup.sh
 RUN chmod 700 /opt/lannister/bin/shutdown.sh

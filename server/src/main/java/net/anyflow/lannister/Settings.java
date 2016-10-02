@@ -60,8 +60,7 @@ public class Settings extends java.util.Properties {
 		}
 
 		try {
-			webResourceExtensionToMimes = new ObjectMapper().readValue(getProperty("webserver.MIME"),
-					Map.class);
+			webResourceExtensionToMimes = new ObjectMapper().readValue(getProperty("webserver.MIME"), Map.class);
 		}
 		catch (IOException e) {
 			logger.error(e.getMessage(), e);
@@ -159,6 +158,10 @@ public class Settings extends java.util.Properties {
 		}
 
 		return ret;
+	}
+
+	public String nettyTransportMode() {
+		return System.getProperty("os.name").startsWith("Linux") ? Literals.NETTY_EPOLL : Literals.NETTY_NIO;
 	}
 
 	public String version() {

@@ -16,11 +16,17 @@
 
 package net.anyflow.lannister.server;
 
+import java.util.concurrent.ThreadFactory;
+
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.EventLoopGroup;
+import io.netty.channel.ServerChannel;
+import io.netty.channel.epoll.EpollEventLoopGroup;
+import io.netty.channel.epoll.EpollServerSocketChannel;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
 import io.netty.util.concurrent.DefaultThreadFactory;
+import net.anyflow.lannister.Literals;
 import net.anyflow.lannister.Settings;
 
 public class MqttServer {
@@ -30,10 +36,20 @@ public class MqttServer {
 	private final EventLoopGroup workerGroup;
 
 	public MqttServer() {
-		bossGroup = new NioEventLoopGroup(Settings.INSTANCE.getInt("mqttserver.system.bossThreadCount", 0),
-				new DefaultThreadFactory("lannister/boss"));
-		workerGroup = new NioEventLoopGroup(Settings.INSTANCE.getInt("mqttserver.system.workerThreadCount", 0),
-				new DefaultThreadFactory("lannister/worker"));
+		int bossThreadCount = Settings.INSTANCE.getInt("mqttserver.system.bossThreadCount", 0);
+		int workerThreadCount = Settings.INSTANCE.getInt("mqttserver.system.workerThreadCount", 0);
+
+		ThreadFactory bossThreadFactory = new DefaultThreadFactory("lannister/boss");
+		ThreadFactory workerThreadFactory = new DefaultThreadFactory("lannister/worker");
+
+		if (Literals.NETTY_EPOLL.equals(Settings.INSTANCE.nettyTransportMode())) {
+			bossGroup = new EpollEventLoopGroup(bossThreadCount, bossThreadFactory);
+			workerGroup = new EpollEventLoopGroup(workerThreadCount, workerThreadFactory);
+		}
+		else {
+			bossGroup = new NioEventLoopGroup(bossThreadCount, bossThreadFactory);
+			workerGroup = new NioEventLoopGroup(workerThreadCount, workerThreadFactory);
+		}
 	}
 
 	public void start() throws Exception {
@@ -82,7 +98,16 @@ public class MqttServer {
 			throws InterruptedException {
 		ServerBootstrap bootstrap = new ServerBootstrap();
 
-		bootstrap = bootstrap.group(bossGroup, workerGroup).channel(NioServerSocketChannel.class);
+		Class<? extends ServerChannel> serverChannelClass;
+
+		if (Literals.NETTY_EPOLL.equals(Settings.INSTANCE.nettyTransportMode())) {
+			serverChannelClass = EpollServerSocketChannel.class;
+		}
+		else {
+			serverChannelClass = NioServerSocketChannel.class;
+		}
+
+		bootstrap = bootstrap.group(bossGroup, workerGroup).channel(serverChannelClass);
 
 		if (scheduledExecutor != null) {
 			bootstrap.handler(scheduledExecutor);

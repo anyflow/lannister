@@ -27,6 +27,8 @@ import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.EventLoopGroup;
+import io.netty.channel.epoll.EpollEventLoopGroup;
+import io.netty.channel.epoll.EpollSocketChannel;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioSocketChannel;
@@ -40,6 +42,7 @@ import io.netty.handler.ssl.SslContext;
 import io.netty.handler.ssl.SslContextBuilder;
 import io.netty.handler.ssl.util.InsecureTrustManagerFactory;
 import io.netty.util.concurrent.DefaultThreadFactory;
+import net.anyflow.lannister.Literals;
 import net.anyflow.lannister.Settings;
 import net.anyflow.lannister.message.ConnectOptions;
 import net.anyflow.lannister.message.Message;
@@ -75,9 +78,21 @@ public class MqttClient {
 	}
 
 	public MqttConnectReturnCode connect() throws InterruptedException {
+
+		Class<? extends SocketChannel> socketChannelClass;
+
+		if (Literals.NETTY_EPOLL.equals(Settings.INSTANCE.nettyTransportMode())) {
+			group = new EpollEventLoopGroup(1, new DefaultThreadFactory("client"));
+			socketChannelClass = EpollSocketChannel.class;
+		}
+		else {
+			group = new NioEventLoopGroup(1, new DefaultThreadFactory("client"));
+			socketChannelClass = NioSocketChannel.class;
+		}
+
 		group = new NioEventLoopGroup(1, new DefaultThreadFactory("lannister/client"));
 
-		bootstrap.group(group).channel(NioSocketChannel.class).handler(new ChannelInitializer<SocketChannel>() {
+		bootstrap.group(group).channel(socketChannelClass).handler(new ChannelInitializer<SocketChannel>() {
 			@Override
 			protected void initChannel(SocketChannel ch) throws Exception {
 				if ("mqtts".equalsIgnoreCase(uri.getScheme())) {

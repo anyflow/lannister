@@ -16,14 +16,20 @@
 
 package net.anyflow.lannister.http;
 
+import java.util.concurrent.ThreadFactory;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.EventLoopGroup;
+import io.netty.channel.ServerChannel;
+import io.netty.channel.epoll.EpollEventLoopGroup;
+import io.netty.channel.epoll.EpollServerSocketChannel;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
 import io.netty.util.concurrent.DefaultThreadFactory;
+import net.anyflow.lannister.Literals;
 import net.anyflow.lannister.Settings;
 
 public class WebServer {
@@ -33,10 +39,20 @@ public class WebServer {
 	private final EventLoopGroup workerGroup;
 
 	public WebServer() {
-		bossGroup = new NioEventLoopGroup(Settings.INSTANCE.getInt("webserver.system.bossThreadCount", 0),
-				new DefaultThreadFactory("lannister.web/boss"));
-		workerGroup = new NioEventLoopGroup(Settings.INSTANCE.getInt("webserver.system.workerThreadCount", 0),
-				new DefaultThreadFactory("lannister.web/worker"));
+		int bossThreadCount = Settings.INSTANCE.getInt("webserver.system.bossThreadCount", 0);
+		int workerThreadCount = Settings.INSTANCE.getInt("webserver.system.workerThreadCount", 0);
+
+		ThreadFactory bossThreadFactory = new DefaultThreadFactory("lannister.web/boss");
+		ThreadFactory workerThreadFactory = new DefaultThreadFactory("lannister.web/worker");
+
+		if (Literals.NETTY_EPOLL.equals(Settings.INSTANCE.nettyTransportMode())) {
+			bossGroup = new EpollEventLoopGroup(bossThreadCount, bossThreadFactory);
+			workerGroup = new EpollEventLoopGroup(workerThreadCount, workerThreadFactory);
+		}
+		else {
+			bossGroup = new NioEventLoopGroup(bossThreadCount, bossThreadFactory);
+			workerGroup = new NioEventLoopGroup(workerThreadCount, workerThreadFactory);
+		}
 	}
 
 	public EventLoopGroup bossGroup() {
@@ -54,11 +70,21 @@ public class WebServer {
 	public void start(String requestHandlerPakcageRoot,
 			final Class<? extends WebsocketFrameHandler> websocketFrameHandlerClass) throws Exception {
 		HttpRequestHandler.setRequestHandlerPakcageRoot(requestHandlerPakcageRoot);
+
+		Class<? extends ServerChannel> serverChannelClass;
+
+		if (Literals.NETTY_EPOLL.equals(Settings.INSTANCE.nettyTransportMode())) {
+			serverChannelClass = EpollServerSocketChannel.class;
+		}
+		else {
+			serverChannelClass = NioServerSocketChannel.class;
+		}
+
 		try {
 			if (Settings.INSTANCE.httpPort() != null) {
 				ServerBootstrap bootstrap = new ServerBootstrap();
 
-				bootstrap.group(bossGroup, workerGroup).channel(NioServerSocketChannel.class)
+				bootstrap.group(bossGroup, workerGroup).channel(serverChannelClass)
 						.childHandler(new WebServerChannelInitializer(false, websocketFrameHandlerClass));
 
 				bootstrap.bind(Settings.INSTANCE.httpPort()).sync();
@@ -67,7 +93,7 @@ public class WebServer {
 			if (Settings.INSTANCE.httpsPort() != null) {
 				ServerBootstrap bootstrap = new ServerBootstrap();
 
-				bootstrap.group(bossGroup, workerGroup).channel(NioServerSocketChannel.class)
+				bootstrap.group(bossGroup, workerGroup).channel(serverChannelClass)
 						.childHandler(new WebServerChannelInitializer(true, websocketFrameHandlerClass));
 
 				bootstrap.bind(Settings.INSTANCE.httpsPort()).sync();

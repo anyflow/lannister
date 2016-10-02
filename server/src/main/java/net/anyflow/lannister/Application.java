@@ -62,6 +62,7 @@ public class Application {
 			logger.info("commit ID      : {}", Settings.INSTANCE.commitId());
 			logger.info("commit ID desc : {}", Settings.INSTANCE.commitIdDescribe());
 			logger.info("commit message : {}", Settings.INSTANCE.commitMessage());
+			logger.info("Netty transport mode : {}", Settings.INSTANCE.nettyTransportMode());
 
 			return true;
 		}

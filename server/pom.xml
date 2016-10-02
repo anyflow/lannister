@@ -14,9 +14,8 @@
   See the License for the specific language governing permissions and
   limitations under the License.
 -->
-<project
-	xmlns="http://maven.apache.org/POM/4.0.0"
-	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 	<artifactId>lannister-server</artifactId>
 	<name>Lannister server</name>
@@ -47,14 +46,14 @@
 			<artifactId>guava</artifactId>
 			<version>17.0</version>
 		</dependency>
-		<!-- the core, which includes Streaming API, shared low-level abstractions
+		<!-- the core, which includes Streaming API, shared low-level abstractions 
 			(but NOT data-binding) -->
 		<dependency>
 			<groupId>com.fasterxml.jackson.core</groupId>
 			<artifactId>jackson-core</artifactId>
 			<version>2.7.4</version>
 		</dependency>
-		<!-- Just the annotations; use this dependency if you want to attach annotations
+		<!-- Just the annotations; use this dependency if you want to attach annotations 
 			to classes without connecting them to the code. -->
 		<dependency>
 			<groupId>com.fasterxml.jackson.core</groupId>
@@ -88,6 +87,12 @@
 			<groupId>io.netty</groupId>
 			<artifactId>netty-tcnative-boringssl-static</artifactId>
 			<version>1.1.33.Fork22</version>
+		</dependency>
+		<dependency>
+			<groupId>io.netty</groupId>
+			<artifactId>netty-transport-native-epoll</artifactId>
+			<version>4.1.5.Final</version>
+			<classifier>linux-x86_64</classifier>
 		</dependency>
 		<dependency>
 			<groupId>org.javassist</groupId>
@@ -149,6 +154,7 @@
 				</includes>
 			</testResource>
 		</testResources>
+
 		<plugins>
 			<!-- for jar packaging -->
 			<plugin>
@@ -171,7 +177,8 @@
 					</archive>
 				</configuration>
 			</plugin>
-			<!-- skip test on mavening... To skip test, follow the command : mvn package -Dmaven.test.skip=true -->
+			<!-- skip test on mavening... To skip test, follow the command : mvn package 
+				-Dmaven.test.skip=true -->
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-surefire-plugin</artifactId>
