@@ -43,7 +43,7 @@
       <item name="Download" href="https://goo.gl/GJ1piF" />
     </menu>
     <menu name="References">
-      <item name="Project/Package Structure" href="structure.html" />
+      <item name="Package/Project structure" href="structure.html" />
       <item name="Clustering" href="clustering.html" />
       <item name="Plug-In" href="plugin.html" />
       <item name="$SYS topics" href="dollarSys.html" />

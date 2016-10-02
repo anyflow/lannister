@@ -16,6 +16,8 @@
 
 package net.anyflow.lannister.plugin;
 
+import java.util.Arrays;
+
 import io.netty.handler.codec.mqtt.MqttQoS;
 
 public interface IMessage {
@@ -33,7 +35,7 @@ public interface IMessage {
 
 	default String log() {
 		return (new StringBuilder()).append("messageId=").append(id()).append(", topicName=").append(topicName())
-				.append(", publisherId=").append(publisherId()).append(", message=").append(message()).append(", qos=")
-				.append(qos()).append(", isRetain=").append(isRetain()).toString();
+				.append(", publisherId=").append(publisherId()).append(", message=").append(Arrays.toString(message()))
+				.append(", qos=").append(qos()).append(", isRetain=").append(isRetain()).toString();
 	}
 }

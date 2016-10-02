@@ -27,6 +27,7 @@
         <include>conf/*</include>
         <include>lib/*</include>
         <include>webapp/*</include>
+        <include>plugin/*</include>
       </includes>
     </fileSet>
   </fileSets>
