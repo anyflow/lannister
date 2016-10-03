@@ -22,9 +22,9 @@ import java.util.List;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.common.collect.Lists;
+import com.hazelcast.nio.ObjectDataInput;
 import com.hazelcast.nio.serialization.ClassDefinition;
 import com.hazelcast.nio.serialization.ClassDefinitionBuilder;
-import com.hazelcast.nio.serialization.PortableReader;
 import com.hazelcast.nio.serialization.PortableWriter;
 
 import io.netty.handler.codec.mqtt.MqttPublishMessage;
@@ -35,7 +35,7 @@ import net.anyflow.lannister.NettyUtil;
 import net.anyflow.lannister.plugin.IMessage;
 import net.anyflow.lannister.serialization.SerializableFactory;
 
-public class Message implements com.hazelcast.nio.serialization.Portable, IMessage, Cloneable {
+public class Message implements com.hazelcast.nio.serialization.IdentifiedDataSerializable, IMessage, Cloneable {
 	public final static int ID = 1;
 
 	public static final int MAX_MESSAGE_ID_NUM = 0xffff;
@@ -168,12 +168,6 @@ public class Message implements com.hazelcast.nio.serialization.Portable, IMessa
 		return SerializableFactory.ID;
 	}
 
-	@JsonIgnore
-	@Override
-	public int getClassId() {
-		return ID;
-	}
-
 	@Override
 	public void writePortable(PortableWriter writer) throws IOException {
 		List<String> nullChecker = Lists.newArrayList();
@@ -212,15 +206,13 @@ public class Message implements com.hazelcast.nio.serialization.Portable, IMessa
 	}
 
 	@Override
-	public void readPortable(PortableReader reader) throws IOException {
-		List<String> nullChecker = Lists.newArrayList(reader.readUTFArray("nullChecker"));
-
-		if (nullChecker.contains("id")) id = reader.readInt("id");
-		if (nullChecker.contains("topicName")) topicName = reader.readUTF("topicName");
-		if (nullChecker.contains("publisherId")) publisherId = reader.readUTF("publisherId");
-		if (nullChecker.contains("message")) message = reader.readByteArray("message");
-		if (nullChecker.contains("qos")) qos = MqttQoS.valueOf(reader.readInt("qos"));
-		if (nullChecker.contains("isRetain")) isRetain = reader.readBoolean("isRetain");
+	public void readData(ObjectDataInput in) throws IOException {
+		id = in.readInt();
+		topicName = in.readUTF();
+		publisherId = in.readUTF();
+		message = in.readByteArray();
+		qos = MqttQoS.valueOf(in.readInt());
+		isRetain = in.readBoolean();
 	}
 
 	public static ClassDefinition classDefinition() {

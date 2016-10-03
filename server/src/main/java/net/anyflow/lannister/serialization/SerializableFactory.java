@@ -16,8 +16,8 @@
 
 package net.anyflow.lannister.serialization;
 
-import com.hazelcast.nio.serialization.Portable;
-import com.hazelcast.nio.serialization.PortableFactory;
+import com.hazelcast.nio.serialization.DataSerializableFactory;
+import com.hazelcast.nio.serialization.IdentifiedDataSerializable;
 
 import net.anyflow.lannister.message.InboundMessageStatus;
 import net.anyflow.lannister.message.Message;
@@ -28,11 +28,11 @@ import net.anyflow.lannister.topic.Topic;
 import net.anyflow.lannister.topic.TopicSubscriber;
 import net.anyflow.lannister.topic.TopicSubscription;
 
-public class SerializableFactory implements PortableFactory {
+public class SerializableFactory implements DataSerializableFactory {
 	public static final int ID = 1;
 
 	@Override
-	public Portable create(int classId) {
+	public IdentifiedDataSerializable create(int classId) {
 		switch (classId) {
 		case Message.ID:
 			return new Message();
