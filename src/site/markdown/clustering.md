@@ -4,9 +4,9 @@ Lannister's clustering features mainly rely on [Hazelcast](https://github.com/ha
 In the chapter, general characteristics and configuration of Lannister cluster are explained.
 
 ### Characteristics
-* **Distribution Transparency** : Clustered data are fully accessible on any node in the same cluster without knowing cluster information.
-* **Data Redundancy** : Backups are distributed on every update on Topic / Session / Message / Message Status data in a cluster.
-* **Data Partitioning** : Clustered data is stored in Distributed Cache, thus it minimize redundancy overhead and makes scaling out easy. (compared to data replication manner)
+* **Distribution Transparency** : Clustered data are fully accessible on any node in the same cluster without knowing cluster information include location.
+* **High Availability** : Backups are distributed on every update of Topic / Session / Message / Message Status data in a cluster.
+* **Data Partitioning** : Clustered data is stored in Distributed Cache, thus it minimize redundancy overhead and makes scaling out easy(compared to data replication manner).
 * **Single process(JVM) per node** : Logics and (clustered) data in a Lannister node are co-located in a single process(JVM), which removes additional dependency and configuration(Hazelcast Embedded Mode).
 * **Dynamic Joining** : Lannister nodes can be joined/unjoined dynamically, which makes scaling elastic. It also supports auto-scaling of AWS explicitly.
 

@@ -28,7 +28,7 @@ Lannister is high performance MQTT broker equipped with full specifications supp
 * For more information, refer [Specification Conformance Test/Review Report](./specification.html).
 
 ##### Clustering
-* Distribution Transparency / data redundancy / distributed cache 
+* Distribution Transparency / High Availability / Distributed Cache 
 * Easy, elastic Scaling out
 * For more information, refer [Clustering](./clustering.html).
 
