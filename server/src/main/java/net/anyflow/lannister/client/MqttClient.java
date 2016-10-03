@@ -90,8 +90,6 @@ public class MqttClient {
 			socketChannelClass = NioSocketChannel.class;
 		}
 
-		group = new NioEventLoopGroup(1, new DefaultThreadFactory("lannister/client"));
-
 		bootstrap.group(group).channel(socketChannelClass).handler(new ChannelInitializer<SocketChannel>() {
 			@Override
 			protected void initChannel(SocketChannel ch) throws Exception {
