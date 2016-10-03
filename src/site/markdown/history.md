@@ -15,6 +15,10 @@
 -->
 ## Version History
 
+#### version 0.9.8 / Oct 05, 2016
+- Add Netty epoll mode(bump up performance on linux)
+- Grand update on documentation
+
 #### version 0.9.7.1 / Sep 28, 2016
 - Move deploy-repo to https://goo.gl/GJ1piF
 
@@ -22,7 +26,6 @@
 - **Pass specification tests**  
   * test suite : [Eclipse Paho Testing Utilities](https://github.com/eclipse/paho.mqtt.testing)
   * command : `run_test.py --testdir testsuites/basic`
-  * passed testcase count : 321/321
 - Fix failing to delete retain message
 - Fix failing QoS adjustment in retain message publish
 - Fix message reference counting error
