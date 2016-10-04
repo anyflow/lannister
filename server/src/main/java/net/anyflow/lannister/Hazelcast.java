@@ -32,56 +32,56 @@ import net.anyflow.lannister.serialization.JsonSerializer;
 import net.anyflow.lannister.serialization.SerializableFactory;
 
 public class Hazelcast {
-    private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(Hazelcast.class);
+	private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(Hazelcast.class);
 
-    public static final Hazelcast INSTANCE = new Hazelcast();
-    private static final String CONFIG_NAME = "hazelcast.config.xml";
+	public static final Hazelcast INSTANCE = new Hazelcast();
+	private static final String CONFIG_NAME = "hazelcast.config.xml";
 
-    private final HazelcastInstance substance;
+	private final HazelcastInstance substance;
 
-    private Hazelcast() {
-        substance = com.hazelcast.core.Hazelcast.newHazelcastInstance(createConfig());
-    }
+	private Hazelcast() {
+		substance = com.hazelcast.core.Hazelcast.newHazelcastInstance(createConfig());
+	}
 
-    private Config createConfig() {
-        Config config;
-        try {
-            config = new XmlConfigBuilder(Application.class.getClassLoader().getResource(CONFIG_NAME)).build();
-        }
-        catch (IOException e) {
-            logger.error(e.getMessage(), e);
-            throw new RuntimeException(e);
-        }
+	private Config createConfig() {
+		Config config;
+		try {
+			config = new XmlConfigBuilder(Application.class.getClassLoader().getResource(CONFIG_NAME)).build();
+		}
+		catch (IOException e) {
+			logger.error(e.getMessage(), e);
+			throw new Error(e);
+		}
 
-        config.getSerializationConfig().addDataSerializableFactory(SerializableFactory.ID, new SerializableFactory());
+		config.getSerializationConfig().addDataSerializableFactory(SerializableFactory.ID, new SerializableFactory());
 
-        config.getSerializationConfig().getSerializerConfigs().add(new SerializerConfig().setTypeClass(JsonNode.class)
-                .setImplementation(JsonSerializer.makePlain(JsonNode.class)));
+		config.getSerializationConfig().getSerializerConfigs().add(new SerializerConfig().setTypeClass(JsonNode.class)
+				.setImplementation(JsonSerializer.makePlain(JsonNode.class)));
 
-        return config;
-    }
+		return config;
+	}
 
-    public void shutdown() {
-        substance.shutdown();
-    }
+	public void shutdown() {
+		substance.shutdown();
+	}
 
-    public ILock getLock(String key) {
-        return substance.getLock(key);
-    }
+	public ILock getLock(String key) {
+		return substance.getLock(key);
+	}
 
-    public <E> ITopic<E> getTopic(String name) {
-        return substance.getTopic(name);
-    }
+	public <E> ITopic<E> getTopic(String name) {
+		return substance.getTopic(name);
+	}
 
-    public IdGenerator getIdGenerator(String name) {
-        return substance.getIdGenerator(name);
-    }
+	public IdGenerator getIdGenerator(String name) {
+		return substance.getIdGenerator(name);
+	}
 
-    public <K, V> IMap<K, V> getMap(String name) {
-        return substance.getMap(name);
-    }
+	public <K, V> IMap<K, V> getMap(String name) {
+		return substance.getMap(name);
+	}
 
-    public String currentId() {
-        return substance.getLocalEndpoint().getUuid();
-    }
+	public String currentId() {
+		return substance.getLocalEndpoint().getUuid();
+	}
 }
