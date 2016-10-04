@@ -13,14 +13,16 @@
   See the License for the specific language governing permissions and
   limitations under the License.
  -->
-## Lannister
+## `[DRAFT]` Lannister
 
 [![Build Status](https://travis-ci.org/anyflow/lannister.svg?branch=master)](https://travis-ci.org/anyflow/lannister) [![Codacy Badge](https://api.codacy.com/project/badge/Grade/8d72feca76504d89a9846beecbbbc34b)](https://www.codacy.com/app/anyflow/lannister?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=anyflow/lannister&amp;utm_campaign=Badge_Grade) [![Codacy Badge](https://api.codacy.com/project/badge/Coverage/8d72feca76504d89a9846beecbbbc34b)](https://www.codacy.com/app/anyflow/lannister?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=anyflow/lannister&amp;utm_campaign=Badge_Coverage)
 
 Lannister is high performance MQTT broker equipped with full specifications support, Clustering, WebSocket, SSL written in Java with using [Netty](https://github.com/netty/netty) & [Hazelcast](https://github.com/hazelcast/hazelcast).
 
-### Features
+### Getting Started
+For installing and starting up Lannister, move into [Getting Started](./gettingStarted.html).
 
+### Features
 ##### Full Protocol Specifications([MQTT Version 3.1.1](http://docs.oasis-open.org/mqtt/mqtt/v3.1.1/os/mqtt-v3.1.1-os.html), [MQTT Version 3.1](http://public.dhe.ibm.com/software/dw/webservices/ws-mqtt/mqtt-v3r1.html)) support includes
 * QoS 0,1,2 on Publish / Subscribe
 * Clean / Persistent Session
@@ -28,7 +30,7 @@ Lannister is high performance MQTT broker equipped with full specifications supp
 * For more information, refer [Specification Conformance Test/Review Report](./specification.html).
 
 ##### Clustering
-* Distribution Transparency / High Availability / Distributed Cache 
+* Distribution Transparency / High Availability / Distributed Cache
 * Easy, elastic Scaling out
 * For more information, refer [Clustering](./clustering.html).
 
@@ -65,6 +67,3 @@ Lannister is high performance MQTT broker equipped with full specifications supp
 * Bridge
 * Data Persistency
 * Optional $SYS Topics
-
-### Getting Started
-For installing and starting up Lannister, move into [Getting Started](./gettingStarted.html).

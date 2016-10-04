@@ -1,7 +1,6 @@
-## Clustering
+## `[DRAFT]` Clustering
 
-Lannister's clustering features mainly rely on [Hazelcast](https://github.com/hazelcast/hazelcast), hence the documentation briefly depicts features, runtime architecture and configuration related with clustering.
-In the chapter, general characteristics and configuration of Lannister cluster are explained.
+Lannister's clustering features mainly rely on Hazelcast and follows its guidance strictly, hence the documentation focused on general clustering characteristics of Lannister and configuration used. For detailed information and fine tuning, refer [Hazelcast Reference Manual](http://docs.hazelcast.org/docs/3.7/manual/html-single/index.html)
 
 ### Characteristics
 * **Distribution Transparency** : Clustered data are fully accessible on any node in the same cluster without knowing cluster information include location.
@@ -10,8 +9,7 @@ In the chapter, general characteristics and configuration of Lannister cluster a
 * **Single process(JVM) per node** : Logics and (clustered) data in a Lannister node are co-located in a single process(JVM), which removes additional dependency and configuration(Hazelcast Embedded Mode).
 * **Dynamic Joining** : Lannister nodes can be joined/unjoined dynamically, which makes scaling elastic. It also supports auto-scaling of AWS explicitly.
 
-### Runtime Architecture
-![runtime architecture](images/clustering_architecture.svg)
+![characteristics diagram](images/clustering_architecture.svg)
 
 The diagram depicts characteristics described in the above section. 3 Lannister nodes works in a cluster and a MQTT client access one of the nodes. The client accesses all data in the cluster but it doesn't care where the data is in thanks to logical view. Behind the scene, the node access data to local or remote master and update backup at each access.
 

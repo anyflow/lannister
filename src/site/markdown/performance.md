@@ -13,8 +13,7 @@
   See the License for the specific language governing permissions and
   limitations under the License.
 -->
-## Performance Test
-
+## `[DRAFT]` [DRAFT] Performance Test
 
 * linear performance drop due to the nature of distributed cache manner.
 
@@ -36,8 +35,8 @@
 |---|---|---|---|---|---|
 ||||||||
 
-#### server spec
-r3.2xlarge : 8 core / 64G
+#### server spec.
+<!-- r3.2xlarge : 8 core / 64G -->
 
 #### server OS
 Ubuntu 14.0.3LTS

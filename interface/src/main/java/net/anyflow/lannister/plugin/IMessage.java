@@ -20,17 +20,39 @@ import java.util.Arrays;
 
 import io.netty.handler.codec.mqtt.MqttQoS;
 
+/**
+ * Represent MQTT message.
+ */
 public interface IMessage {
+	/**
+	 * @return message identifier(packet identifier in MQTT 3.1.1)
+	 */
 	int id();
 
+	/**
+	 * @return topic's name the message belongs to
+	 */
 	String topicName();
 
+	/**
+	 * @return client identifier whose client published the message
+	 */
 	String publisherId();
 
+	/**
+	 * @return message itself
+	 */
 	byte[] message();
 
+	/**
+	 * @return message QoS. The value can be used different in client publishing
+	 *         time and broker publishing time
+	 */
 	MqttQoS qos();
 
+	/**
+	 * @return whether the message is retained or not
+	 */
 	boolean isRetain();
 
 	default String log() {
