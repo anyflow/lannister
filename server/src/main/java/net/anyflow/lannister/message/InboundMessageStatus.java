@@ -18,103 +18,94 @@ package net.anyflow.lannister.message;
 
 import java.io.IOException;
 import java.util.Date;
-import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.google.common.collect.Lists;
-import com.hazelcast.nio.serialization.ClassDefinition;
-import com.hazelcast.nio.serialization.ClassDefinitionBuilder;
-import com.hazelcast.nio.serialization.PortableReader;
-import com.hazelcast.nio.serialization.PortableWriter;
+import com.hazelcast.nio.ObjectDataInput;
+import com.hazelcast.nio.ObjectDataOutput;
 
 import net.anyflow.lannister.serialization.SerializableFactory;
 
 public class InboundMessageStatus extends MessageStatus {
 
-	public static final int ID = 2;
+    public static final int ID = 2;
 
-	@JsonProperty
-	private Status status;
+    @JsonProperty
+    private Status status;
 
-	public InboundMessageStatus() { // just for Serialization
-	}
+    public InboundMessageStatus() { // just for Serialization
+    }
 
-	public InboundMessageStatus(String clientId, int messageId, Status status) {
-		super(clientId, messageId);
+    public InboundMessageStatus(String clientId, int messageId, Status status) {
+        super(clientId, messageId);
 
-		this.status = status;
-	}
+        this.status = status;
+    }
 
-	public Status status() {
-		return status;
-	}
+    public Status status() {
+        return status;
+    }
 
-	public void status(Status status) {
-		this.status = status;
-		super.updateTime = new Date();
-	}
+    public void status(Status status) {
+        this.status = status;
+        super.updateTime = new Date();
+    }
 
-	@JsonIgnore
-	@Override
-	public int getFactoryId() {
-		return SerializableFactory.ID;
-	}
+    @JsonIgnore
+    @Override
+    public int getFactoryId() {
+        return SerializableFactory.ID;
+    }
 
-	@JsonIgnore
-	@Override
-	public int getClassId() {
-		return ID;
-	}
+    @Override
+    public int getId() {
+        return ID;
+    }
 
-	@Override
-	public void writePortable(PortableWriter writer) throws IOException {
-		List<String> nullChecker = Lists.newArrayList();
+    @Override
+    public void writeData(ObjectDataOutput out) throws IOException {
+        super.writeData(out);
 
-		writePortable(nullChecker, writer);
+        if (status != null) {
+            out.writeByte(status.value());
+        }
+        else {
+            out.writeByte(Byte.MIN_VALUE);
+        }
+    }
 
-		if (status != null) {
-			writer.writeByte("targetStatus", status.value());
-			nullChecker.add("id");
-		}
+    @Override
+    public void readData(ObjectDataInput in) throws IOException {
+        super.readData(in);
 
-		writer.writeUTFArray("nullChecker", nullChecker.toArray(new String[0]));
-	}
+        byte rawByte = in.readByte();
+        if(rawByte != Byte.MIN_VALUE) {
+            status = Status.valueOf(rawByte);
+        }
+        else {
+            status = null;
+        }
+    }
 
-	@Override
-	public void readPortable(PortableReader reader) throws IOException {
-		List<String> nullChecker = Lists.newArrayList(reader.readUTFArray("nullChecker"));
+    public enum Status {
+        RECEIVED((byte) 0),
+        PUBRECED((byte) 1);
 
-		readPortable(nullChecker, reader);
+        private byte value;
 
-		if (nullChecker.contains("status")) status = Status.valueOf(reader.readByte("targetStatus"));
-	}
+        private Status(byte value) {
+            this.value = value;
+        }
 
-	public static ClassDefinition classDefinition() {
-		return new ClassDefinitionBuilder(SerializableFactory.ID, ID).addUTFField("clientId").addIntField("messageId")
-				.addByteField("targetStatus").addLongField("createTime").addLongField("updateTime")
-				.addUTFArrayField("nullChecker").build();
-	}
+        public byte value() {
+            return value;
+        }
 
-	public enum Status {
-		RECEIVED((byte) 0),
-		PUBRECED((byte) 1);
-
-		private byte value;
-
-		private Status(byte value) {
-			this.value = value;
-		}
-
-		public byte value() {
-			return value;
-		}
-
-		public static Status valueOf(byte value) {
-			for (Status q : values()) {
-				if (q.value == value) { return q; }
-			}
-			throw new IllegalArgumentException("Invalid ReceiverTargetStatus: " + value);
-		}
-	}
+        public static Status valueOf(byte value) {
+            for (Status q : values()) {
+                if (q.value == value) { return q; }
+            }
+            throw new IllegalArgumentException("Invalid ReceiverTargetStatus: " + value);
+        }
+    }
 }

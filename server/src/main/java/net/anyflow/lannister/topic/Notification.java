@@ -17,94 +17,80 @@
 package net.anyflow.lannister.topic;
 
 import java.io.IOException;
-import java.util.List;
 
-import com.google.common.collect.Lists;
-import com.hazelcast.nio.serialization.ClassDefinition;
-import com.hazelcast.nio.serialization.ClassDefinitionBuilder;
-import com.hazelcast.nio.serialization.PortableReader;
-import com.hazelcast.nio.serialization.PortableWriter;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.hazelcast.nio.ObjectDataInput;
+import com.hazelcast.nio.ObjectDataOutput;
 
 import net.anyflow.lannister.message.Message;
 import net.anyflow.lannister.serialization.SerializableFactory;
 
-public class Notification implements com.hazelcast.nio.serialization.Portable {
-	public final static int ID = 5;
+public class Notification implements com.hazelcast.nio.serialization.IdentifiedDataSerializable {
+    public final static int ID = 5;
 
-	private String clientId;
-	private Topic topic;
-	private Message message;
+    private String clientId;
+    private Topic topic;
+    private Message message;
 
-	public Notification() { // just for Serialization
-	}
+    public Notification() { // just for Serialization
+    }
 
-	protected Notification(String clientId, Topic topic, Message message) {
-		this.clientId = clientId;
-		this.topic = topic;
-		this.message = message;
-	}
+    protected Notification(String clientId, Topic topic, Message message) {
+        this.clientId = clientId;
+        this.topic = topic;
+        this.message = message;
+    }
 
-	public String clientId() {
-		return clientId;
-	}
+    public String clientId() {
+        return clientId;
+    }
 
-	public Topic topic() {
-		return topic;
-	}
+    public Topic topic() {
+        return topic;
+    }
 
-	public Message message() {
-		return message;
-	}
+    public Message message() {
+        return message;
+    }
 
-	@Override
-	public int getFactoryId() {
-		return SerializableFactory.ID;
-	}
+    @JsonIgnore
+    @Override
+    public int getFactoryId() {
+        return SerializableFactory.ID;
+    }
 
-	@Override
-	public int getClassId() {
-		return ID;
-	}
+    @Override
+    public int getId() {
+        return ID;
+    }
 
-	@Override
-	public void writePortable(PortableWriter writer) throws IOException {
-		List<String> nullChecker = Lists.newArrayList();
+    @Override
+    public void writeData(ObjectDataOutput out) throws IOException {
+        out.writeUTF(clientId);
+        out.writeBoolean(topic != null);
+        if (topic != null) {
+            topic.writeData(out);
+        }
+        out.writeBoolean(message != null);
+        if (message != null) {
+            message.writeData(out);
+        }
+    }
 
-		if (clientId != null) {
-			writer.writeUTF("clientId", clientId);
-			nullChecker.add("clientId");
-		}
+    @Override
+    public void readData(ObjectDataInput in) throws IOException {
+        clientId = in.readUTF();
+        if (in.readBoolean()) {
+            Topic temp = new Topic();
+            temp.readData(in);
 
-		if (topic != null) {
-			writer.writePortable("topic", topic);
-		}
-		else {
-			writer.writeNullPortable("topic", SerializableFactory.ID, Topic.ID);
-		}
+            topic = temp;
+        }
+        if (in.readBoolean()) {
+            Message temp = new Message();
+            temp.readData(in);
 
-		if (message != null) {
-			writer.writePortable("message", message);
-		}
-		else {
-			writer.writeNullPortable("message", SerializableFactory.ID, Message.ID);
-		}
-
-		writer.writeUTFArray("nullChecker", nullChecker.toArray(new String[0]));
-	}
-
-	@Override
-	public void readPortable(PortableReader reader) throws IOException {
-		List<String> nullChecker = Lists.newArrayList(reader.readUTFArray("nullChecker"));
-
-		if (nullChecker.contains("clientId")) clientId = reader.readUTF("clientId");
-
-		topic = reader.readPortable("topic");
-		message = reader.readPortable("message");
-	}
-
-	public static ClassDefinition classDefinition() {
-		return new ClassDefinitionBuilder(SerializableFactory.ID, ID).addUTFField("clientId")
-				.addPortableField("topic", Topic.classDefinition())
-				.addPortableField("message", Message.classDefinition()).addUTFArrayField("nullChecker").build();
-	}
+            message = temp;
+        }
+    }
 }
