@@ -18,84 +18,94 @@ package net.anyflow.lannister.message;
 
 import java.io.IOException;
 import java.util.Date;
-import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.hazelcast.nio.serialization.PortableReader;
-import com.hazelcast.nio.serialization.PortableWriter;
+import com.hazelcast.nio.ObjectDataInput;
+import com.hazelcast.nio.ObjectDataOutput;
 
 import net.anyflow.lannister.Literals;
 
-public abstract class MessageStatus implements com.hazelcast.nio.serialization.Portable {
+public abstract class MessageStatus implements com.hazelcast.nio.serialization.IdentifiedDataSerializable {
 
-	@JsonProperty
-	private String clientId;
-	@JsonProperty
-	private Integer messageId;
-	@JsonFormat(shape = JsonFormat.Shape.STRING, pattern = Literals.DATE_DEFAULT_FORMAT, timezone = Literals.DATE_DEFAULT_TIMEZONE)
-	@JsonProperty
-	private Date createTime;
-	@JsonFormat(shape = JsonFormat.Shape.STRING, pattern = Literals.DATE_DEFAULT_FORMAT, timezone = Literals.DATE_DEFAULT_TIMEZONE)
-	@JsonProperty
-	protected Date updateTime;
+    @JsonProperty
+    private String clientId;
+    @JsonProperty
+    private int messageId;
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = Literals.DATE_DEFAULT_FORMAT, timezone = Literals.DATE_DEFAULT_TIMEZONE)
+    @JsonProperty
+    private Date createTime;
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = Literals.DATE_DEFAULT_FORMAT, timezone = Literals.DATE_DEFAULT_TIMEZONE)
+    @JsonProperty
+    protected Date updateTime;
 
-	public MessageStatus() { // just for Serialization
-	}
+    public MessageStatus() { // just for Serialization
+    }
 
-	protected MessageStatus(String clientId, int messageId) {
-		this.clientId = clientId;
-		this.messageId = messageId;
-		this.createTime = new Date();
-		this.updateTime = createTime;
-	}
+    protected MessageStatus(String clientId, int messageId) {
+        this.clientId = clientId;
+        this.messageId = messageId;
+        this.createTime = new Date();
+        this.updateTime = createTime;
+    }
 
-	public String key() {
-		return Message.key(clientId, messageId);
-	}
+    public String key() {
+        return Message.key(clientId, messageId);
+    }
 
-	public String clientId() {
-		return clientId;
-	}
+    public String clientId() {
+        return clientId;
+    }
 
-	public int messageId() {
-		return messageId;
-	}
+    public int messageId() {
+        return messageId;
+    }
 
-	public Date createTime() {
-		return createTime;
-	}
+    public Date createTime() {
+        return createTime;
+    }
 
-	public Date updateTime() {
-		return updateTime;
-	}
+    public Date updateTime() {
+        return updateTime;
+    }
 
-	protected void writePortable(List<String> nullChecker, PortableWriter writer) throws IOException {
-		if (clientId != null) {
-			writer.writeUTF("clientId", clientId);
-			nullChecker.add("clientId");
-		}
+    public void writeData(ObjectDataOutput out) throws IOException {
+        out.writeUTF(clientId);
+        out.writeInt(messageId);
 
-		if (messageId != null) {
-			writer.writeInt("messageId", messageId);
-			nullChecker.add("messageId");
-		}
+        if (createTime != null) {
+            out.writeLong(createTime.getTime());
+        }
+        else {
+            out.writeLong(Long.MIN_VALUE);
+        }
 
-		if (createTime != null) {
-			writer.writeLong("createTime", createTime.getTime());
-			nullChecker.add("createTime");
-		}
+        if (updateTime != null) {
+            out.writeLong(updateTime.getTime());
+        }
+        else {
+            out.writeLong(Long.MIN_VALUE);
+        }
+    }
 
-		if (updateTime != null) {
-			writer.writeLong("updateTime", updateTime.getTime());
-			nullChecker.add("updateTime");
-		}
-	}
-
-	public void readPortable(List<String> nullChecker, PortableReader reader) throws IOException {
-		if (nullChecker.contains("clientId")) clientId = reader.readUTF("clientId");
-		if (nullChecker.contains("messageId")) messageId = reader.readInt("messageId");
-		if (nullChecker.contains("createTime")) createTime = new Date(reader.readLong("createTime"));
-		if (nullChecker.contains("updateTime")) updateTime = new Date(reader.readLong("updateTime"));
-	}
+    public void readData(ObjectDataInput in) throws IOException {
+        clientId = in.readUTF();
+        messageId = in.readInt();
+        
+        long rawLong = in.readLong();
+        if(rawLong != Long.MIN_VALUE) {
+            createTime = new Date(rawLong);
+        }
+        else {
+            createTime = null;
+        }
+        
+        rawLong = in.readLong();
+        if(rawLong != Long.MIN_VALUE) {
+            updateTime = new Date(rawLong);
+        }
+        else {
+            updateTime = null;
+        }
+    }
 }

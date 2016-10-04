@@ -17,96 +17,85 @@
 package net.anyflow.lannister.topic;
 
 import java.io.IOException;
-import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.google.common.collect.Lists;
-import com.hazelcast.nio.serialization.ClassDefinition;
-import com.hazelcast.nio.serialization.ClassDefinitionBuilder;
-import com.hazelcast.nio.serialization.PortableReader;
-import com.hazelcast.nio.serialization.PortableWriter;
+import com.hazelcast.nio.ObjectDataInput;
+import com.hazelcast.nio.ObjectDataOutput;
 
 import io.netty.handler.codec.mqtt.MqttQoS;
 import net.anyflow.lannister.plugin.ITopicSubscription;
 import net.anyflow.lannister.serialization.SerializableFactory;
 
-public class TopicSubscription implements com.hazelcast.nio.serialization.Portable, ITopicSubscription {
+public class TopicSubscription implements com.hazelcast.nio.serialization.IdentifiedDataSerializable, ITopicSubscription {
 
-	public final static int ID = 8;
+    public final static int ID = 8;
 
-	@JsonProperty
-	private String topicFilter;
-	@JsonProperty
-	private MqttQoS qos;
+    @JsonProperty
+    private String topicFilter;
+    @JsonProperty
+    private MqttQoS qos;
 
-	public TopicSubscription() { // just for Serialization
-	}
+    public TopicSubscription() { // just for Serialization
+    }
 
-	public TopicSubscription(String topicFilter, MqttQoS qos) {
-		this.topicFilter = topicFilter;
-		this.qos = qos;
-	}
+    public TopicSubscription(String topicFilter, MqttQoS qos) {
+        this.topicFilter = topicFilter;
+        this.qos = qos;
+    }
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see net.anyflow.lannister.topic.ITopicSubscription#topicFilter()
-	 */
-	@Override
-	public String topicFilter() {
-		return topicFilter;
-	}
+    /*
+     * (non-Javadoc)
+     * 
+     * @see net.anyflow.lannister.topic.ITopicSubscription#topicFilter()
+     */
+    @Override
+    public String topicFilter() {
+        return topicFilter;
+    }
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see net.anyflow.lannister.topic.ITopicSubscription#qos()
-	 */
-	@Override
-	public MqttQoS qos() {
-		return qos;
-	}
+    /*
+     * (non-Javadoc)
+     * 
+     * @see net.anyflow.lannister.topic.ITopicSubscription#qos()
+     */
+    @Override
+    public MqttQoS qos() {
+        return qos;
+    }
 
-	@JsonIgnore
-	@Override
-	public int getFactoryId() {
-		return SerializableFactory.ID;
-	}
+    @JsonIgnore
+    @Override
+    public int getFactoryId() {
+        return SerializableFactory.ID;
+    }
 
-	@JsonIgnore
-	@Override
-	public int getClassId() {
-		return ID;
-	}
+    @Override
+    public int getId() {
+        return ID;
+    }
 
-	@Override
-	public void writePortable(PortableWriter writer) throws IOException {
-		List<String> nullChecker = Lists.newArrayList();
+    @Override
+    public void writeData(ObjectDataOutput out) throws IOException {
+        out.writeUTF(topicFilter);
+        if (qos != null) {
+            out.writeInt(qos.value());
+        }
+        else {
+            out.writeInt(Integer.MIN_VALUE);
+        }
+    }
 
-		if (topicFilter != null) {
-			writer.writeUTF("topicFilter", topicFilter);
-			nullChecker.add("topicFilter");
-		}
+    @Override
+    public void readData(ObjectDataInput in) throws IOException {
+        topicFilter = in.readUTF();
 
-		if (qos != null) {
-			writer.writeInt("qos", qos.value());
-			nullChecker.add("qos");
-		}
-
-		writer.writeUTFArray("nullChecker", nullChecker.toArray(new String[0]));
-	}
-
-	@Override
-	public void readPortable(PortableReader reader) throws IOException {
-		List<String> nullChecker = Lists.newArrayList(reader.readUTFArray("nullChecker"));
-
-		if (nullChecker.contains("topicFilter")) topicFilter = reader.readUTF("topicFilter");
-		if (nullChecker.contains("qos")) qos = MqttQoS.valueOf(reader.readInt("qos"));
-	}
-
-	public static ClassDefinition classDefinition() {
-		return new ClassDefinitionBuilder(SerializableFactory.ID, ID).addUTFField("topicFilter").addIntField("qos")
-				.addUTFArrayField("nullChecker").build();
-	}
+        int rawInt = in.readInt();
+        if (rawInt != Integer.MIN_VALUE) {
+            qos = MqttQoS.valueOf(rawInt);
+        }
+        else {
+            qos = null;
+        }
+    }
 }
