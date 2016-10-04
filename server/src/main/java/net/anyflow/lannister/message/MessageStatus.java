@@ -28,84 +28,64 @@ import net.anyflow.lannister.Literals;
 
 public abstract class MessageStatus implements com.hazelcast.nio.serialization.IdentifiedDataSerializable {
 
-    @JsonProperty
-    private String clientId;
-    @JsonProperty
-    private int messageId;
-    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = Literals.DATE_DEFAULT_FORMAT, timezone = Literals.DATE_DEFAULT_TIMEZONE)
-    @JsonProperty
-    private Date createTime;
-    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = Literals.DATE_DEFAULT_FORMAT, timezone = Literals.DATE_DEFAULT_TIMEZONE)
-    @JsonProperty
-    protected Date updateTime;
+	@JsonProperty
+	private String clientId;
+	@JsonProperty
+	private int messageId;
+	@JsonFormat(shape = JsonFormat.Shape.STRING, pattern = Literals.DATE_DEFAULT_FORMAT, timezone = Literals.DATE_DEFAULT_TIMEZONE)
+	@JsonProperty
+	private Date createTime;
+	@JsonFormat(shape = JsonFormat.Shape.STRING, pattern = Literals.DATE_DEFAULT_FORMAT, timezone = Literals.DATE_DEFAULT_TIMEZONE)
+	@JsonProperty
+	protected Date updateTime;
 
-    public MessageStatus() { // just for Serialization
-    }
+	public MessageStatus() { // just for Serialization
+	}
 
-    protected MessageStatus(String clientId, int messageId) {
-        this.clientId = clientId;
-        this.messageId = messageId;
-        this.createTime = new Date();
-        this.updateTime = createTime;
-    }
+	protected MessageStatus(String clientId, int messageId) {
+		this.clientId = clientId;
+		this.messageId = messageId;
+		this.createTime = new Date();
+		this.updateTime = createTime;
+	}
 
-    public String key() {
-        return Message.key(clientId, messageId);
-    }
+	public String key() {
+		return Message.key(clientId, messageId);
+	}
 
-    public String clientId() {
-        return clientId;
-    }
+	public String clientId() {
+		return clientId;
+	}
 
-    public int messageId() {
-        return messageId;
-    }
+	public int messageId() {
+		return messageId;
+	}
 
-    public Date createTime() {
-        return createTime;
-    }
+	public Date createTime() {
+		return createTime;
+	}
 
-    public Date updateTime() {
-        return updateTime;
-    }
+	public Date updateTime() {
+		return updateTime;
+	}
 
-    public void writeData(ObjectDataOutput out) throws IOException {
-        out.writeUTF(clientId);
-        out.writeInt(messageId);
+	@Override
+	public void writeData(ObjectDataOutput out) throws IOException {
+		out.writeUTF(clientId);
+		out.writeInt(messageId);
+		out.writeLong(createTime != null ? createTime.getTime() : Long.MIN_VALUE);
+		out.writeLong(updateTime != null ? updateTime.getTime() : Long.MIN_VALUE);
+	}
 
-        if (createTime != null) {
-            out.writeLong(createTime.getTime());
-        }
-        else {
-            out.writeLong(Long.MIN_VALUE);
-        }
+	@Override
+	public void readData(ObjectDataInput in) throws IOException {
+		clientId = in.readUTF();
+		messageId = in.readInt();
 
-        if (updateTime != null) {
-            out.writeLong(updateTime.getTime());
-        }
-        else {
-            out.writeLong(Long.MIN_VALUE);
-        }
-    }
+		long rawLong = in.readLong();
+		createTime = rawLong != Long.MIN_VALUE ? new Date(rawLong) : null;
 
-    public void readData(ObjectDataInput in) throws IOException {
-        clientId = in.readUTF();
-        messageId = in.readInt();
-        
-        long rawLong = in.readLong();
-        if(rawLong != Long.MIN_VALUE) {
-            createTime = new Date(rawLong);
-        }
-        else {
-            createTime = null;
-        }
-        
-        rawLong = in.readLong();
-        if(rawLong != Long.MIN_VALUE) {
-            updateTime = new Date(rawLong);
-        }
-        else {
-            updateTime = null;
-        }
-    }
+		rawLong = in.readLong();
+		updateTime = rawLong != Long.MIN_VALUE ? new Date(rawLong) : null;
+	}
 }

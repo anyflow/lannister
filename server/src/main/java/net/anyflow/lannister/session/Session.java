@@ -47,276 +47,251 @@ import net.anyflow.lannister.topic.TopicSubscription;
 
 public class Session implements com.hazelcast.nio.serialization.IdentifiedDataSerializable {
 
-    private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(Session.class);
+	private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(Session.class);
 
-    public static final Sessions NEXUS = new Sessions();
-    public static final int ID = 4;
+	public static final Sessions NEXUS = new Sessions();
+	public static final int ID = 4;
 
-    @JsonProperty
-    private String clientId;
-    @JsonProperty
-    private String ip;
-    @JsonProperty
-    private int port;
-    @JsonProperty
-    private boolean isConnected;
-    @JsonProperty
-    private IMap<String, TopicSubscription> topicSubscriptions;
-    @JsonProperty
-    private int currentMessageId;
-    @JsonProperty
-    private Message will;
-    @JsonProperty
-    private boolean cleanSession;
-    @JsonProperty
-    private int keepAliveSeconds;
-    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = Literals.DATE_DEFAULT_FORMAT, timezone = Literals.DATE_DEFAULT_TIMEZONE)
-    @JsonProperty
-    private Date createTime;
-    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = Literals.DATE_DEFAULT_FORMAT, timezone = Literals.DATE_DEFAULT_TIMEZONE)
-    @JsonProperty
-    private Date lastIncomingTime;
+	@JsonProperty
+	private String clientId;
+	@JsonProperty
+	private String ip;
+	@JsonProperty
+	private int port;
+	@JsonProperty
+	private boolean isConnected;
+	@JsonProperty
+	private IMap<String, TopicSubscription> topicSubscriptions;
+	@JsonProperty
+	private int currentMessageId;
+	@JsonProperty
+	private Message will;
+	@JsonProperty
+	private boolean cleanSession;
+	@JsonProperty
+	private int keepAliveSeconds;
+	@JsonFormat(shape = JsonFormat.Shape.STRING, pattern = Literals.DATE_DEFAULT_FORMAT, timezone = Literals.DATE_DEFAULT_TIMEZONE)
+	@JsonProperty
+	private Date createTime;
+	@JsonFormat(shape = JsonFormat.Shape.STRING, pattern = Literals.DATE_DEFAULT_FORMAT, timezone = Literals.DATE_DEFAULT_TIMEZONE)
+	@JsonProperty
+	private Date lastIncomingTime;
 
-    private MessageSender messageSender;
+	private MessageSender messageSender;
 
-    public Session() { // just for serialization
-    }
+	public Session() { // just for serialization
+	}
 
-    public Session(String clientId, String ip, int port, int keepAliveSeconds, boolean cleanSession, Message will) {
-        this.clientId = clientId;
-        this.ip = ip;
-        this.port = port;
-        this.isConnected = true;
-        this.createTime = new Date();
-        this.currentMessageId = 0;
-        this.keepAliveSeconds = keepAliveSeconds;
-        this.lastIncomingTime = new Date();
-        this.cleanSession = cleanSession;
-        this.will = will; // [MQTT-3.1.2-9]
-        this.topicSubscriptions = Hazelcast.INSTANCE.getMap(topicSubscriptionsName());
-        this.topicSubscriptions.addInterceptor(new TopicSubscriptionInterceptor(clientId));
+	public Session(String clientId, String ip, int port, int keepAliveSeconds, boolean cleanSession, Message will) {
+		this.clientId = clientId;
+		this.ip = ip;
+		this.port = port;
+		this.isConnected = true;
+		this.createTime = new Date();
+		this.currentMessageId = 0;
+		this.keepAliveSeconds = keepAliveSeconds;
+		this.lastIncomingTime = new Date();
+		this.cleanSession = cleanSession;
+		this.will = will; // [MQTT-3.1.2-9]
+		this.topicSubscriptions = Hazelcast.INSTANCE.getMap(topicSubscriptionsName());
+		this.topicSubscriptions.addInterceptor(new TopicSubscriptionInterceptor(clientId));
 
-        this.messageSender = new MessageSender(this);
-    }
+		this.messageSender = new MessageSender(this);
+	}
 
-    private String topicSubscriptionsName() {
-        return "CLIENTID(" + clientId + ")_topicSubscriptions";
-    }
+	private String topicSubscriptionsName() {
+		return "CLIENTID(" + clientId + ")_topicSubscriptions";
+	}
 
-    @JsonSerialize(using = ChannelIdSerializer.class)
-    @JsonProperty
-    public ChannelId channelId() {
-        ChannelHandlerContext ctx = NEXUS.channelHandlerContext(clientId);
-        if (ctx == null) { return null; }
+	@JsonSerialize(using = ChannelIdSerializer.class)
+	@JsonProperty
+	public ChannelId channelId() {
+		ChannelHandlerContext ctx = NEXUS.channelHandlerContext(clientId);
+		if (ctx == null) { return null; }
 
-        return ctx.channel().id();
-    }
+		return ctx.channel().id();
+	}
 
-    public boolean isConnected(boolean checkOwnership) {
-        if (!isConnected) { return false; }
-        if (!checkOwnership) { return isConnected; }
+	public boolean isConnected(boolean checkOwnership) {
+		if (!isConnected) { return false; }
+		if (!checkOwnership) { return isConnected; }
 
-        ChannelHandlerContext ctx = NEXUS.channelHandlerContext(clientId);
-        if (ctx == null) { return false; }
+		ChannelHandlerContext ctx = NEXUS.channelHandlerContext(clientId);
+		if (ctx == null) { return false; }
 
-        return ctx.channel().isActive();
-    }
+		return ctx.channel().isActive();
+	}
 
-    public void setConnected(boolean isConnected) {
-        this.isConnected = isConnected;
+	public void setConnected(boolean isConnected) {
+		this.isConnected = isConnected;
 
-        Session.NEXUS.persist(this);
-    }
+		Session.NEXUS.persist(this);
+	}
 
-    public String clientId() {
-        return clientId;
-    }
+	public String clientId() {
+		return clientId;
+	}
 
-    public Message will() {
-        return will;
-    }
+	public Message will() {
+		return will;
+	}
 
-    public void will(Message will) {
-        this.will = will;
+	public void will(Message will) {
+		this.will = will;
 
-        Session.NEXUS.persist(this);
-    }
+		Session.NEXUS.persist(this);
+	}
 
-    public boolean cleanSession() {
-        return cleanSession;
-    }
+	public boolean cleanSession() {
+		return cleanSession;
+	}
 
-    public boolean isExpired() {
-        if (keepAliveSeconds == 0) { return false; }
+	public boolean isExpired() {
+		if (keepAliveSeconds == 0) { return false; }
 
-        return (new Date().getTime() - lastIncomingTime.getTime()) > keepAliveSeconds * 1.5 * 1000;
-    }
+		return (new Date().getTime() - lastIncomingTime.getTime()) > keepAliveSeconds * 1.5 * 1000;
+	}
 
-    public void setLastIncomingTime(Date lastIncomingTime) {
-        this.lastIncomingTime = lastIncomingTime;
+	public void setLastIncomingTime(Date lastIncomingTime) {
+		this.lastIncomingTime = lastIncomingTime;
 
-        Session.NEXUS.persist(this);
-    }
+		Session.NEXUS.persist(this);
+	}
 
-    public IMap<String, TopicSubscription> topicSubscriptions() {
-        return topicSubscriptions;
-    }
+	public IMap<String, TopicSubscription> topicSubscriptions() {
+		return topicSubscriptions;
+	}
 
-    public TopicSubscription matches(String topicName) {
-        return topicSubscriptions.values().stream().filter(t -> TopicMatcher.match(t.topicFilter(), topicName))
-                .max((p1, p2) -> p1.qos().compareTo(p2.qos())).orElse(null); // [MQTT-3.3.5-1]
-    }
+	public TopicSubscription matches(String topicName) {
+		return topicSubscriptions.values().stream().filter(t -> TopicMatcher.match(t.topicFilter(), topicName))
+				.max((p1, p2) -> p1.qos().compareTo(p2.qos())).orElse(null); // [MQTT-3.3.5-1]
+	}
 
-    public ChannelFuture send(MqttMessage message) {
-        return messageSender.send(message);
-    }
+	public ChannelFuture send(MqttMessage message) {
+		return messageSender.send(message);
+	}
 
-    protected void sendPublish(Topic topic, Message message) {
-        messageSender.sendPublish(topic, message);
-    }
+	protected void sendPublish(Topic topic, Message message) {
+		messageSender.sendPublish(topic, message);
+	}
 
-    public void completeRemainedMessages() {
-        messageSender.completeRemainedMessages();
-    }
+	public void completeRemainedMessages() {
+		messageSender.completeRemainedMessages();
+	}
 
-    public int nextMessageId() {
-        currentMessageId = currentMessageId + 1;
+	public int nextMessageId() {
+		currentMessageId = currentMessageId + 1;
 
-        if (currentMessageId > Message.MAX_MESSAGE_ID_NUM) {
-            currentMessageId = Message.MIN_MESSAGE_ID_NUM;
-        }
+		if (currentMessageId > Message.MAX_MESSAGE_ID_NUM) {
+			currentMessageId = Message.MIN_MESSAGE_ID_NUM;
+		}
 
-        Session.NEXUS.persist(this);
+		Session.NEXUS.persist(this);
 
-        return currentMessageId;
-    }
+		return currentMessageId;
+	}
 
-    public void dispose(boolean sendWill) {
-        setConnected(false);
+	public void dispose(boolean sendWill) {
+		setConnected(false);
 
-        if (sendWill && will != null) { // [MQTT-3.1.2-12]
-            Topic topic = Topic.NEXUS.prepare(will);
-            topic.publish(will);
+		if (sendWill && will != null) { // [MQTT-3.1.2-12]
+			Topic topic = Topic.NEXUS.prepare(will);
+			topic.publish(will);
 
-            will(null); // [MQTT-3.1.2-10]
-        }
+			will(null); // [MQTT-3.1.2-10]
+		}
 
-        ChannelId channelId = null;
-        ChannelHandlerContext ctx = NEXUS.channelHandlerContext(clientId);
-        if (ctx != null) {
-            ctx.channel().disconnect().addListener(ChannelFutureListener.CLOSE).addListener(fs -> Plugins.INSTANCE
-                    .get(DisconnectEventListener.class).disconnected(new AbnormalDisconnectEventArgs()));
+		ChannelId channelId = null;
+		ChannelHandlerContext ctx = NEXUS.channelHandlerContext(clientId);
+		if (ctx != null) {
+			ctx.channel().disconnect().addListener(ChannelFutureListener.CLOSE).addListener(fs -> Plugins.INSTANCE
+					.get(DisconnectEventListener.class).disconnected(new AbnormalDisconnectEventArgs()));
 
-            channelId = ctx.channel().id();
-        }
+			channelId = ctx.channel().id();
+		}
 
-        logger.debug("Session disposed [clientId={}/channelId={}]", clientId, ctx == null ? "null" : channelId);
+		logger.debug("Session disposed [clientId={}/channelId={}]", clientId, ctx == null ? "null" : channelId);
 
-        if (cleanSession) {
-            this.topicSubscriptions.values().stream().forEach(ts -> {
-                Topic.NEXUS.matches(ts.topicFilter()).forEach(t -> t.subscribers().remove(clientId));
-            });
+		if (cleanSession) {
+			this.topicSubscriptions.values().stream().forEach(ts -> {
+				Topic.NEXUS.matches(ts.topicFilter()).forEach(t -> t.subscribers().remove(clientId));
+			});
 
-            this.topicSubscriptions.destroy();
-        }
+			this.topicSubscriptions.destroy();
+		}
 
-        NEXUS.remove(this);
+		NEXUS.remove(this);
 
-        Plugins.INSTANCE.get(DisconnectEventListener.class).disconnected(new DisconnectEventArgs() {
-            @Override
-            public String clientId() {
-                return clientId;
-            }
+		Plugins.INSTANCE.get(DisconnectEventListener.class).disconnected(new DisconnectEventArgs() {
+			@Override
+			public String clientId() {
+				return clientId;
+			}
 
-            @Override
-            public Boolean cleanSession() {
-                return cleanSession;
-            }
+			@Override
+			public Boolean cleanSession() {
+				return cleanSession;
+			}
 
-            @Override
-            public Boolean byDisconnectMessage() {
-                return !sendWill;
-            }
-        });
-    }
+			@Override
+			public Boolean byDisconnectMessage() {
+				return !sendWill;
+			}
+		});
+	}
 
-    @JsonIgnore
-    @Override
-    public int getFactoryId() {
-        return SerializableFactory.ID;
-    }
+	@JsonIgnore
+	@Override
+	public int getFactoryId() {
+		return SerializableFactory.ID;
+	}
 
-    @Override
-    public int getId() {
-        return ID;
-    }
+	@Override
+	public int getId() {
+		return ID;
+	}
 
-    @Override
-    public void writeData(ObjectDataOutput out) throws IOException {
-        out.writeUTF(clientId);
-        out.writeUTF(ip);
-        out.writeInt(port);
-        out.writeBoolean(isConnected);
-        out.writeInt(currentMessageId);
+	@Override
+	public void writeData(ObjectDataOutput out) throws IOException {
+		out.writeUTF(clientId);
+		out.writeUTF(ip);
+		out.writeInt(port);
+		out.writeBoolean(isConnected);
+		out.writeInt(currentMessageId);
 
-        out.writeBoolean(will != null);
-        if (will != null) {
-            will.writeData(out);
-        }
-        
-        out.writeBoolean(cleanSession);
-        out.writeInt(keepAliveSeconds);
+		out.writeBoolean(will != null);
+		if (will != null) {
+			will.writeData(out);
+		}
 
-        if (createTime != null) {
-            out.writeLong(createTime.getTime());
-        }
-        else {
-            out.writeLong(Long.MIN_VALUE);
-        }
+		out.writeBoolean(cleanSession);
+		out.writeInt(keepAliveSeconds);
+		out.writeLong(createTime != null ? createTime.getTime() : Long.MIN_VALUE);
+		out.writeLong(lastIncomingTime != null ? lastIncomingTime.getTime() : Long.MIN_VALUE);
+	}
 
-        if (lastIncomingTime != null) {
-            out.writeLong(lastIncomingTime.getTime());
-        }
-        else {
-            out.writeLong(Long.MIN_VALUE);
-        }
-    }
+	@Override
+	public void readData(ObjectDataInput in) throws IOException {
+		clientId = in.readUTF();
+		ip = in.readUTF();
+		port = in.readInt();
+		isConnected = in.readBoolean();
+		currentMessageId = in.readInt();
 
-    @Override
-    public void readData(ObjectDataInput in) throws IOException {
-        clientId = in.readUTF();
-        ip = in.readUTF();
-        port = in.readInt();
-        isConnected = in.readBoolean();
-        currentMessageId = in.readInt();
-        
-        if(in.readBoolean()) {
-            Message temp = new Message();
-            temp.readData(in);
-            will = temp;
-        }
-        
-        cleanSession = in.readBoolean();
-        keepAliveSeconds = in.readInt();
-        
-        long rawLong = in.readLong();
-        if(rawLong != Long.MIN_VALUE) {
-            createTime = new Date(rawLong);
-        }
-        else {
-            createTime = null;
-        }
-        
-        rawLong = in.readLong();
-        if(rawLong != Long.MIN_VALUE) {
-            lastIncomingTime = new Date(rawLong);
-        }
-        else {
-            lastIncomingTime = null;
-        }
+		if (in.readBoolean()) {
+			will = new Message(in);
+		}
 
-        topicSubscriptions = Hazelcast.INSTANCE.getMap(topicSubscriptionsName());
+		cleanSession = in.readBoolean();
+		keepAliveSeconds = in.readInt();
 
-        messageSender = new MessageSender(this);
-    }
+		long rawLong = in.readLong();
+		createTime = rawLong != Long.MIN_VALUE ? new Date(rawLong) : null;
+
+		rawLong = in.readLong();
+		lastIncomingTime = rawLong != Long.MIN_VALUE ? new Date(rawLong) : null;
+
+		topicSubscriptions = Hazelcast.INSTANCE.getMap(topicSubscriptionsName());
+		messageSender = new MessageSender(this);
+	}
 }

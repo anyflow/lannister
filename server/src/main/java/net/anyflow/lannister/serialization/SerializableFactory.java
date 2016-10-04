@@ -59,7 +59,7 @@ public class SerializableFactory implements DataSerializableFactory {
 			return new TopicSubscription();
 
 		default:
-			return null;
+			throw new RuntimeException("Invalid class ID of Hazelcast Serialization [ID=" + classId + "]");
 		}
 	}
 }

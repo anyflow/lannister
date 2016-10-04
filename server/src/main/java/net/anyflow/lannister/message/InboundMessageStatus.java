@@ -28,84 +28,74 @@ import net.anyflow.lannister.serialization.SerializableFactory;
 
 public class InboundMessageStatus extends MessageStatus {
 
-    public static final int ID = 2;
+	public static final int ID = 2;
 
-    @JsonProperty
-    private Status status;
+	@JsonProperty
+	private Status status;
 
-    public InboundMessageStatus() { // just for Serialization
-    }
+	public InboundMessageStatus() { // just for Serialization
+	}
 
-    public InboundMessageStatus(String clientId, int messageId, Status status) {
-        super(clientId, messageId);
+	public InboundMessageStatus(String clientId, int messageId, Status status) {
+		super(clientId, messageId);
 
-        this.status = status;
-    }
+		this.status = status;
+	}
 
-    public Status status() {
-        return status;
-    }
+	public Status status() {
+		return status;
+	}
 
-    public void status(Status status) {
-        this.status = status;
-        super.updateTime = new Date();
-    }
+	public void status(Status status) {
+		this.status = status;
+		super.updateTime = new Date();
+	}
 
-    @JsonIgnore
-    @Override
-    public int getFactoryId() {
-        return SerializableFactory.ID;
-    }
+	@JsonIgnore
+	@Override
+	public int getFactoryId() {
+		return SerializableFactory.ID;
+	}
 
-    @Override
-    public int getId() {
-        return ID;
-    }
+	@Override
+	public int getId() {
+		return ID;
+	}
 
-    @Override
-    public void writeData(ObjectDataOutput out) throws IOException {
-        super.writeData(out);
+	@Override
+	public void writeData(ObjectDataOutput out) throws IOException {
+		super.writeData(out);
 
-        if (status != null) {
-            out.writeByte(status.value());
-        }
-        else {
-            out.writeByte(Byte.MIN_VALUE);
-        }
-    }
+		out.writeByte(status != null ? status.value() : Byte.MIN_VALUE);
+	}
 
-    @Override
-    public void readData(ObjectDataInput in) throws IOException {
-        super.readData(in);
+	@Override
+	public void readData(ObjectDataInput in) throws IOException {
+		super.readData(in);
 
-        byte rawByte = in.readByte();
-        if(rawByte != Byte.MIN_VALUE) {
-            status = Status.valueOf(rawByte);
-        }
-        else {
-            status = null;
-        }
-    }
+		byte rawByte = in.readByte();
+		status = rawByte != Byte.MIN_VALUE ? Status.valueOf(rawByte) : null;
+	}
 
-    public enum Status {
-        RECEIVED((byte) 0),
-        PUBRECED((byte) 1);
+	public enum Status {
+		RECEIVED((byte) 0),
+		PUBRECED((byte) 1);
 
-        private byte value;
+		private byte value;
 
-        private Status(byte value) {
-            this.value = value;
-        }
+		private Status(byte value) {
+			this.value = value;
+		}
 
-        public byte value() {
-            return value;
-        }
+		public byte value() {
+			return value;
+		}
 
-        public static Status valueOf(byte value) {
-            for (Status q : values()) {
-                if (q.value == value) { return q; }
-            }
-            throw new IllegalArgumentException("Invalid ReceiverTargetStatus: " + value);
-        }
-    }
+		public static Status valueOf(byte value) {
+			for (Status q : values()) {
+				if (q.value == value) { return q; }
+			}
+			throw new IllegalArgumentException("Invalid ReceiverTargetStatus: " + value);
+		}
+	}
 }

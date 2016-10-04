@@ -18,6 +18,7 @@
 #### version 0.9.8 / Oct 05, 2016
 - Add Netty epoll mode(bump up performance on linux)
 - Grand update on documentation
+- Optimize performance : Change serialization method(IdentifiedDataSerializable)
 
 #### version 0.9.7.1 / Sep 28, 2016
 - Move deploy-repo to https://goo.gl/GJ1piF

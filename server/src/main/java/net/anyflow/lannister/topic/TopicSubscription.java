@@ -27,75 +27,66 @@ import io.netty.handler.codec.mqtt.MqttQoS;
 import net.anyflow.lannister.plugin.ITopicSubscription;
 import net.anyflow.lannister.serialization.SerializableFactory;
 
-public class TopicSubscription implements com.hazelcast.nio.serialization.IdentifiedDataSerializable, ITopicSubscription {
+public class TopicSubscription
+		implements com.hazelcast.nio.serialization.IdentifiedDataSerializable, ITopicSubscription {
 
-    public final static int ID = 8;
+	public final static int ID = 8;
 
-    @JsonProperty
-    private String topicFilter;
-    @JsonProperty
-    private MqttQoS qos;
+	@JsonProperty
+	private String topicFilter;
+	@JsonProperty
+	private MqttQoS qos;
 
-    public TopicSubscription() { // just for Serialization
-    }
+	public TopicSubscription() { // just for Serialization
+	}
 
-    public TopicSubscription(String topicFilter, MqttQoS qos) {
-        this.topicFilter = topicFilter;
-        this.qos = qos;
-    }
+	public TopicSubscription(String topicFilter, MqttQoS qos) {
+		this.topicFilter = topicFilter;
+		this.qos = qos;
+	}
 
-    /*
-     * (non-Javadoc)
-     * 
-     * @see net.anyflow.lannister.topic.ITopicSubscription#topicFilter()
-     */
-    @Override
-    public String topicFilter() {
-        return topicFilter;
-    }
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see net.anyflow.lannister.topic.ITopicSubscription#topicFilter()
+	 */
+	@Override
+	public String topicFilter() {
+		return topicFilter;
+	}
 
-    /*
-     * (non-Javadoc)
-     * 
-     * @see net.anyflow.lannister.topic.ITopicSubscription#qos()
-     */
-    @Override
-    public MqttQoS qos() {
-        return qos;
-    }
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see net.anyflow.lannister.topic.ITopicSubscription#qos()
+	 */
+	@Override
+	public MqttQoS qos() {
+		return qos;
+	}
 
-    @JsonIgnore
-    @Override
-    public int getFactoryId() {
-        return SerializableFactory.ID;
-    }
+	@JsonIgnore
+	@Override
+	public int getFactoryId() {
+		return SerializableFactory.ID;
+	}
 
-    @Override
-    public int getId() {
-        return ID;
-    }
+	@Override
+	public int getId() {
+		return ID;
+	}
 
-    @Override
-    public void writeData(ObjectDataOutput out) throws IOException {
-        out.writeUTF(topicFilter);
-        if (qos != null) {
-            out.writeInt(qos.value());
-        }
-        else {
-            out.writeInt(Integer.MIN_VALUE);
-        }
-    }
+	@Override
+	public void writeData(ObjectDataOutput out) throws IOException {
+		out.writeUTF(topicFilter);
+		out.writeInt(qos != null ? qos.value() : Integer.MIN_VALUE);
+	}
 
-    @Override
-    public void readData(ObjectDataInput in) throws IOException {
-        topicFilter = in.readUTF();
+	@Override
+	public void readData(ObjectDataInput in) throws IOException {
+		topicFilter = in.readUTF();
 
-        int rawInt = in.readInt();
-        if (rawInt != Integer.MIN_VALUE) {
-            qos = MqttQoS.valueOf(rawInt);
-        }
-        else {
-            qos = null;
-        }
-    }
+		int rawInt = in.readInt();
+		qos = rawInt != Integer.MIN_VALUE ? MqttQoS.valueOf(rawInt) : null;
+	}
 }

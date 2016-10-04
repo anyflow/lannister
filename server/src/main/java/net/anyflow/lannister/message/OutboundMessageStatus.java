@@ -28,118 +28,96 @@ import io.netty.handler.codec.mqtt.MqttQoS;
 import net.anyflow.lannister.serialization.SerializableFactory;
 
 public class OutboundMessageStatus extends MessageStatus {
-    public static final int ID = 3;
+	public static final int ID = 3;
 
-    @JsonProperty
-    private String messageKey;
-    @JsonProperty
-    private Status status;
-    @JsonProperty
-    private MqttQoS qos;
+	@JsonProperty
+	private String messageKey;
+	@JsonProperty
+	private Status status;
+	@JsonProperty
+	private MqttQoS qos;
 
-    public OutboundMessageStatus() { // just for Serialization
-    }
+	public OutboundMessageStatus() { // just for Serialization
+	}
 
-    public OutboundMessageStatus(String messageKey, String clientId, int messageId, Status status, MqttQoS qos) {
-        super(clientId, messageId);
+	public OutboundMessageStatus(String messageKey, String clientId, int messageId, Status status, MqttQoS qos) {
+		super(clientId, messageId);
 
-        this.messageKey = messageKey;
-        this.status = status;
-        this.qos = qos;
-    }
+		this.messageKey = messageKey;
+		this.status = status;
+		this.qos = qos;
+	}
 
-    public String messageKey() {
-        return messageKey;
-    }
+	public String messageKey() {
+		return messageKey;
+	}
 
-    public Status status() {
-        return status;
-    }
+	public Status status() {
+		return status;
+	}
 
-    public void status(Status status) {
-        this.status = status;
-        super.updateTime = new Date();
-    }
+	public void status(Status status) {
+		this.status = status;
+		super.updateTime = new Date();
+	}
 
-    public MqttQoS qos() {
-        return qos;
-    }
+	public MqttQoS qos() {
+		return qos;
+	}
 
-    @JsonIgnore
-    @Override
-    public int getFactoryId() {
-        return SerializableFactory.ID;
-    }
+	@JsonIgnore
+	@Override
+	public int getFactoryId() {
+		return SerializableFactory.ID;
+	}
 
-    @Override
-    public int getId() {
-        return ID;
-    }
+	@Override
+	public int getId() {
+		return ID;
+	}
 
-    @Override
-    public void writeData(ObjectDataOutput out) throws IOException {
-        super.writeData(out);
+	@Override
+	public void writeData(ObjectDataOutput out) throws IOException {
+		super.writeData(out);
 
-        out.writeUTF(messageKey);
+		out.writeUTF(messageKey);
+		out.writeByte(status != null ? status.value() : Byte.MIN_VALUE);
+		out.writeInt(qos != null ? qos.value() : Byte.MIN_VALUE);
+	}
 
-        if (status != null) {
-            out.writeByte(status.value());
-        }
-        else {
-            out.writeByte(Byte.MIN_VALUE);
-        }
+	@Override
+	public void readData(ObjectDataInput in) throws IOException {
+		super.readData(in);
 
-        if (qos != null) {
-            out.writeInt(qos.value());
-        }
-        else {
-            out.writeInt(Byte.MIN_VALUE);
-        }
-    }
+		messageKey = in.readUTF();
 
-    @Override
-    public void readData(ObjectDataInput in) throws IOException {
-        super.readData(in);
+		Byte rawByte = in.readByte();
+		status = rawByte != Byte.MIN_VALUE ? Status.valueOf(rawByte) : null;
 
-        messageKey = in.readUTF();
-        
-        Byte rawByte = in.readByte();
-        if(rawByte != Byte.MIN_VALUE) {
-            status = Status.valueOf(rawByte);    
-        }
-        else {
-            status = null;
-        }
-        
-        int rawInt = in.readInt();
-        if(rawInt != Byte.MIN_VALUE) {
-            qos = MqttQoS.valueOf(rawInt);    
-        }
-        else {
-            qos = null;
-        }
-    }
+		int rawInt = in.readInt();
+		qos = rawInt != Byte.MIN_VALUE ? MqttQoS.valueOf(rawInt) : null;
+	}
 
-    public enum Status {
-        TO_PUBLISH((byte) 0),
-        PUBLISHED((byte) 1),
-        PUBRECED((byte) 2);
+	public enum Status {
+		TO_PUBLISH((byte) 0),
+		PUBLISHED((byte) 1),
+		PUBRECED((byte) 2);
 
-        private byte value;
+		private byte value;
 
-        private Status(byte value) {
-            this.value = value;
-        }
+		private Status(byte value) {
+			this.value = value;
+		}
 
-        public byte value() {
-            return value;
-        }
+		public byte value() {
+			return value;
+		}
 
-        public static Status valueOf(byte value) {
-            for (Status q : values()) {
-                if (q.value == value) { return q; }
-            }
-            throw new IllegalArgumentException("Invalid SenderTargetStatus: " + value);
-        }
-    }
+		public static Status valueOf(byte value) {
+			for (Status q : values()) {
+				if (q.value == value) { return q; }
+			}
+			throw new IllegalArgumentException("Invalid SenderTargetStatus: " + value);
+		}
+	}
 }
