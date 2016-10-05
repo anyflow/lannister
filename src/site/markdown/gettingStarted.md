@@ -28,8 +28,7 @@
 
 #### Starting from source
 
-```{r, engine='bash', count_lines}
-
+```
 # Download lannister source
 git clone https://github.com/anyflow/lannister.git
 

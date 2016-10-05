@@ -15,130 +15,73 @@
  -->
 # Lannister
 
-[![Build Status](https://travis-ci.org/anyflow/lannister.svg?branch=master)](https://travis-ci.org/anyflow/lannister) [![Codacy Badge](https://api.codacy.com/project/badge/Grade/8d72feca76504d89a9846beecbbbc34b)](https://www.codacy.com/app/anyflow/lannister?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=anyflow/lannister&amp;utm_campaign=Badge_Grade) [![Codacy Badge](https://api.codacy.com/project/badge/Coverage/8d72feca76504d89a9846beecbbbc34b)](https://www.codacy.com/app/anyflow/lannister?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=anyflow/lannister&amp;utm_campaign=Badge_Coverage)
+[![Build Status](https://travis-ci.org/anyflow/lannister.svg?branch=develop)](https://travis-ci.org/anyflow/lannister/branches) [![Codacy Badge](https://api.codacy.com/project/badge/Grade/8d72feca76504d89a9846beecbbbc34b)](https://www.codacy.com/app/anyflow/lannister?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=anyflow/lannister&amp;utm_campaign=Badge_Grade) [![Codacy Badge](https://api.codacy.com/project/badge/Coverage/8d72feca76504d89a9846beecbbbc34b)](https://www.codacy.com/app/anyflow/lannister?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=anyflow/lannister&amp;utm_campaign=Badge_Coverage)
 
-High performance MQTT broker w/ full specifications support, Clustering, WebSocket, SSL on Java - [Netty](https://github.com/netty/netty) & [Hazelcast](https://github.com/hazelcast/hazelcast) **under CONSTRUCTION**.
+Lannister is high performance MQTT broker equipped with full specifications support, Clustering, WebSocket, SSL written in Java with using [Netty](http://netty.io/) & [Hazelcast](https://hazelcast.org/).
+
+> MQTT is a machine-to-machine (M2M)/"Internet of Things" connectivity protocol. It was designed as an extremely lightweight publish/subscribe messaging transport. It is useful for connections with remote locations where a small code footprint is required and/or network bandwidth is at a premium. For example, it has been used in sensors communicating to a broker via satellite link, over occasional dial-up connections with healthcare providers, and in a range of home automation and small device scenarios. It is also ideal for mobile applications because of its small size, low power usage, minimised data packets, and efficient distribution of information to one or many receivers - [http://mqtt.org](http://mqtt.org/)
 
 ## Features
-1. Full Protocol Specifications([MQTT Version 3.1.1](http://docs.oasis-open.org/mqtt/mqtt/v3.1.1/os/mqtt-v3.1.1-os.html), [MQTT Version 3.1](http://public.dhe.ibm.com/software/dw/webservices/ws-mqtt/mqtt-v3r1.html)) Support includes
-   * QoS 0,1,2 on Publish / Subscribe
-   * Clean / Persistent Session
-   * Retained / Will Message
-2. 1000K connections per node
-3. Clustering
-   * Topic / Message / Message Status / Session redundant
-   * peer-to-peer based : No master and slave
-   * Easy Scaling out
-4. WebSocket
-5. SSL (TCP / WebSocket both)
-6. $SYS
-7. Plugin Support
-   * Authenticator
-   * Authorizer
-   * ServiceChecker
-   * ConnectEventListener
-   * DisconnectEventListener
-   * PublishEventListener
-   * DeliveredEventListener
-   * SubscribeEventListener
-   * UnsubscribeEventListener
-8. HTTP REST APIs for admin, client
-9. Web admin Dashboard _(arranged for Lannister version 1.0)_
-10. Data Persistency _(arranged for Lannister version 1.1)_
+* **Full Protocol Specifications([MQTT Version 3.1.1](http://docs.oasis-open.org/mqtt/mqtt/v3.1.1/os/mqtt-v3.1.1-os.html), [MQTT Version 3.1](http://public.dhe.ibm.com/software/dw/webservices/ws-mqtt/mqtt-v3r1.html)) support includes**
+  * QoS 0,1,2 on Publish / Subscribe
+  * Clean / Persistent Session
+  * Retained / Will Message
+  * For more information, refer [Specification Conformance Test/Review Report](./specification.html).
+* **Clustering**
+  * Distribution Transparency / High Availability / Distributed Cache
+  * Easy, elastic Scaling out
+  * For more information, refer [Clustering](http://anyflow.github.io/lannister/clustering.html).
+* **High performance**
+  * 1M connections per node, and etc.
+  * For more information, refer [Performance Test Report](http://anyflow.github.io/lannister/performance.html).
+* **Plug-In Support**
+  * Adapter/Framework for customizing broker logics against MQTT events
+  * For more information, refer [Plug-In](http://anyflow.github.io/lannister/plugin.html).
+* **WebSocket**
+  * Built-in WebSocket support on the same JVM of regular TCP channel
+  * For more information, refer [WebSocket settings](http://anyflow.github.io/lannister/configuration.html#websocket).
+* **SSL** (TCP / WebSocket channels both)
+  * Built-in SSL support for both TCP(`mqtts://`) and WebSocket(`wss://`) channels
+  * For more information, refer [SSL settings](http://anyflow.github.io/lannister/configuration.html#ssl).
+* **$SYS topics**
+  * Static / Required Topics supported described in [SYS Topics](https://github.com/mqtt/mqtt.github.io/wiki/SYS-Topics)
+  * For more information, refer [$SYS topics](http://anyflow.github.io/lannister/dollarSys.html).
+* **Features arranged for Lannister version 1.1 _(Under development)_**
+  * Web administration Site
+  * extended HTTP REST APIs for admin, client
+  * Bridge
+  * Data Persistency
+  * Optional $SYS Topics
 
 ## Getting Started
-Lannister is **under CONSTRUCTION**. But the most of features above are implemented and tested. You can run and test Lannister simply via,
+- Before getting into Lannister installation, check the follows are installed in your machine.
+  * Java 8 or later
+  * Maven 3 (case for starting from source)
 
-#### Executing pre-packaged version
-1. Install java 8
-2. Go to https://goo.gl/GJ1piF
-3. Download a prefered compressed file(`zip` / `tar.gz` / `tar.bz2`)
-4. Unpack downloaded file and move into the directory
-5. Execute `./bin/startup.sh` (before execution, change mode may be required via `chmod 700 ./bin/startup.sh`)
-6. For shutdown, execute `./bin/shutdown.sh` (Like `startup.sh`, `chmod` may be required before execution)
+### Starting from package
+1. Go to https://goo.gl/GJ1piF
+2. Download a compressed file preferred (`zip` / `tar.gz` / `tar.bz2`)
+3. Unpack downloaded file and move into the directory
+4. Execute `./bin/startup.sh`
+5. For shutdown, execute `./bin/shutdown.sh`
 
-#### Source compiling version
-
+### Starting from source
 ```{r, engine='bash', count_lines}
-# The below commands require Java 8 and Maven 3
-
-# Clone lannister source
+# Download lannister source
 git clone https://github.com/anyflow/lannister.git
 
 # Change directory to lannister
 cd lannister
 
-# Build all(interface, server, plugin-example) projects
+# Build(The command builds all sub-projects(interface, server, plugin-example simultaneously)
 mvn install
 
-# Run lannister server directed by lannister.cfg/hazelcast.config.xml/log4j.xml files in conf directory
+# Run lannister server
 mvn exec:java -pl server
 ```
 
 ## Project site
-For more information, visit http://anyflow.github.io/lannister/
-
-## Version History
-##### version 0.9.7.1 / Sep 28, 2016
-- Move deploy-repo to https://goo.gl/GJ1piF
-
-##### version 0.9.7 / Sep 28, 2016
-- **Pass specification tests**  
-  * test suite : [Eclipse Paho Testing Utilities](https://github.com/eclipse/paho.mqtt.testing)
-  * command : `run_test.py --testdir testsuites/basic`
-  * passed testcase count : 321/321
-- Fix failing to delete retain message
-- Fix failing QoS adjustment in retain message publish
-- Fix message reference counting error
-- Refine `lannister.cfg` property names
-- Optimize performance : Minimize serialization
-- Update REST API address(default port : `8090`)
-  * GET /topics => GET /api/topics
-  * GET /session => GET /api/sessions
-- Add Client ID generation REST API
-  * POST /api/clients
-
-##### version 0.9.6 / Sep 21, 2016
-- **Open project site**(http://anyflow.github.io/lannister/)
-- **Open deploy repository**(https://github.com/anyflow/lannister/tree/deploy-repo)
-- **Pass specification tests**
-  * test suite : [Eclipse Paho Testing Utilities](https://github.com/eclipse/paho.mqtt.testing)
-  * command : `client_test.py -z -d -s -n`
-  * passed testcase count : 15/15
-- Handle overlapped topic filters
-- Add nosys filter in topics REST API(`/topics?filter=nosys`)
-- Add [MQTT-4.7.2-1] feature(no matching an invalid topic filter case)
-- Add feature : Ban subscribing specific topic filters(`mqttserver.subscribe.banned_topicfilters` property in `lannister.cfg`)
-- Fix failing queued message delivery
-- Fix disconnection on receiving retained message puback
-- Fix disconnection on receiving message pubrec(on resending QoS2 message)
-
-##### version 0.9.5.1 / Sep 11, 2016
-- Externalize Hazelcast config - Add hazelcast.config.xml
-- Add docker file and docker property - Run maven with profile (`mvn install -Pdocker`)
-- Add null checker in hazelcast serialization logics
-- Change WebSocket(ssl) ports to `9001`(`9002`)
-- Update Hazelcast version to 3.7.1
-- Update Netty version to 4.1.5
-- Add PMD / Findbugs / Jacoco / surefire reports
-- Start clustering TEST/FIX
-  * Fix subscription failing on existing topic in clustered state
-- Fix subscriptions remaining on disposing (clean) session
-- Fix reconnect failing persisted session  
-- Fix remaining no subscriber topic
-
-##### version 0.9.5.0 / May 21, 2016
-- **Add `$SYS` Required Topics**
-- Code Review, Test based on chapter 3.2 of Spec v3.1.1 Mandatory normative statements
-
-##### version 0.9.5-beta1 / May 16, 2016
-- **Add clustering**
-- **Add WebSocket (default port: `2883`)**
-- **Add SSL (default port: `8883`, default WebSocket SSL port: `9883`)**
-- **Add plugin's : Framework & Default / Example Plugins**
-- **Add admin HTTP REST APIs : listing topics, sessions**
-- Code Review, Test based on chapter 3.1 of Spec v3.1.1 Mandatory normative statements
-- Implement full features of Protocol Specification MQTT version 3.1.1
+For deeper understanding of Lannister, please visit http://anyflow.github.io/lannister. The site has complete information of Lannister includes all of the above links and development/production information.
 
 ## Author
 Park Hyunjeong / <anyflow@gmail.com>

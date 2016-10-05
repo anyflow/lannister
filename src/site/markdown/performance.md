@@ -33,7 +33,7 @@
 
 |no|session count(try)|session count(established)|cpu usage|memory usage|pub-sub rate (msg/sec)|
 |---|---|---|---|---|---|
-||||||||
+|0|0|0|0|0|0|
 
 #### server spec.
 <!-- r3.2xlarge : 8 core / 64G -->
