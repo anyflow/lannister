@@ -21,8 +21,8 @@
 	<artifactId>lannister</artifactId>
 	<version>0.9.8-SNAPSHOT</version>
 	<name>Lannister</name>
-	<url>https://github.com/anyflow/lannister</url>
-	<description>MQTT broker with full spec support and Clustering/WebSocket/SSL based on Java - Netty/Hazelcast</description>
+	<url>https://anyflow.github.io/lannister</url>
+	<description>MQTT broker with full spec support and Clustering/WebSocket/SSL written in Java with using Netty/Hazelcast</description>
 	<organization>
 		<name>anyflow.net</name>
 		<url>https://github.com/anyflow</url>

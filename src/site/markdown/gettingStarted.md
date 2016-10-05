@@ -13,20 +13,21 @@
   See the License for the specific language governing permissions and
   limitations under the License.
 -->
-## `[DRAFT]` Getting Started
+## Getting Started
 
-#### Prerequisite
+Before getting into Lannister installation, check the follows are installed in your machine.
+
 * Java 8 or later
 * Maven 3 (case for starting from source)
 
-#### Starting from package
+### Starting from package
 1. Go to https://goo.gl/GJ1piF
 2. Download a compressed file preferred (`zip` / `tar.gz` / `tar.bz2`)
 3. Unpack downloaded file and move into the directory
 4. Execute `./bin/startup.sh`
 5. For shutdown, execute `./bin/shutdown.sh`
 
-#### Starting from source
+### Starting from source
 
 ```
 # Download lannister source

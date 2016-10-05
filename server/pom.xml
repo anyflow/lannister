@@ -19,6 +19,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<artifactId>lannister-server</artifactId>
 	<name>Lannister server</name>
+	<description>Lannister server project itself</description>
 	<parent>
 		<groupId>net.anyflow</groupId>
 		<artifactId>lannister</artifactId>
@@ -46,14 +47,14 @@
 			<artifactId>guava</artifactId>
 			<version>17.0</version>
 		</dependency>
-		<!-- the core, which includes Streaming API, shared low-level abstractions 
+		<!-- the core, which includes Streaming API, shared low-level abstractions
 			(but NOT data-binding) -->
 		<dependency>
 			<groupId>com.fasterxml.jackson.core</groupId>
 			<artifactId>jackson-core</artifactId>
 			<version>2.7.4</version>
 		</dependency>
-		<!-- Just the annotations; use this dependency if you want to attach annotations 
+		<!-- Just the annotations; use this dependency if you want to attach annotations
 			to classes without connecting them to the code. -->
 		<dependency>
 			<groupId>com.fasterxml.jackson.core</groupId>
@@ -121,8 +122,8 @@
 				<targetPath>../conf/</targetPath>
 				<includes>
 					<include>lannister.cfg</include>
-					<include>hazelcast.config.xml</include>
-					<include>log4j.xml</include>
+					<include>lannister.cluster.xml</include>
+					<include>lannister.log4j.xml</include>
 				</includes>
 			</resource>
 			<resource>
@@ -149,8 +150,8 @@
 				<directory>src/test/resources</directory>
 				<includes>
 					<include>lannister.cfg</include>
-					<include>hazelcast.config.xml</include>
-					<include>log4j.xml</include>
+					<include>lannister.cluster.xml</include>
+					<include>lannister.log4j.xml</include>
 				</includes>
 			</testResource>
 		</testResources>
@@ -177,7 +178,7 @@
 					</archive>
 				</configuration>
 			</plugin>
-			<!-- skip test on mavening... To skip test, follow the command : mvn package 
+			<!-- skip test on mavening... To skip test, follow the command : mvn package
 				-Dmaven.test.skip=true -->
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>

@@ -14,5 +14,5 @@
   limitations under the License.
  -->
 ## `[DRAFT]` Configuration
-#### SSL settings<a name="ssl" />
-#### WebSocket settings<a name="websocket" />
+### SSL settings<a name="ssl" />
+### WebSocket settings<a name="websocket" />

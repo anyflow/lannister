@@ -1,12 +1,12 @@
 /*
  * Copyright 2016 The Lannister Project
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *     http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -35,7 +35,7 @@ public class Hazelcast {
 	private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(Hazelcast.class);
 
 	public static final Hazelcast INSTANCE = new Hazelcast();
-	private static final String CONFIG_NAME = "hazelcast.config.xml";
+	private static final String CONFIG_NAME = "lannister.cluster.xml";
 
 	private final HazelcastInstance substance;
 

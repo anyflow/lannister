@@ -13,7 +13,7 @@
   See the License for the specific language governing permissions and
   limitations under the License.
 -->
-## `[DRAFT]` [DRAFT] Performance Test
+## `[DRAFT]` Performance Test
 
 * linear performance drop due to the nature of distributed cache manner.
 
@@ -41,7 +41,7 @@
 #### server OS
 Ubuntu 14.0.3LTS
 
-#### OS kernel tuning History
+#### OS kernel tuning history
 * `net.core.somaxconn = 65535` : socket 연결 대기 최대 개수(default : 128)
 * `fs.nr_open = 1048576` : 단일 프로세스가 운용 가능한 최대 파일 개수
 * `fs.file-max = 1048576` : 시스템 전체에서 운용 가능한 최대 파일 개수

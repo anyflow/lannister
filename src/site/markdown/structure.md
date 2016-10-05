@@ -17,8 +17,7 @@
 
 Lannister package and project structure are described.
 
-#### Package structure
-
+### Package structure
 ```
 root              # package root
  |-- bin          # startup / shutdown script files
@@ -30,7 +29,7 @@ root              # package root
 
 ```
 
-#### Project structure
+### Project structure
 Lannister has 3 sub-projects - `interface`, `server`, `plugin-example`.
 
 * [`interface`](./lannister-interface/index.html) : Source codes common to `server` and `plugin-example`

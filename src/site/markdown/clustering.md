@@ -15,7 +15,7 @@ The diagram depicts characteristics described in the above section. 3 Lannister 
 
 Every nodes works in its own single process(JVM) and has no dependency on other process.
 
-(Dynamic Joining is not depicted in the diagram).
+(Dynamic Joining is omitted in the diagram).
 
 ### Configuration
 For more information, refer [Understanding Configuration](http://docs.hazelcast.org/docs/3.7/manual/html-single/index.html#understanding-configuration)
