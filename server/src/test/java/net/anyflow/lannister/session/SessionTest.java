@@ -24,11 +24,11 @@ public class SessionTest {
 		TopicSubscription ts1 = new TopicSubscription("testTopic/+", MqttQoS.AT_LEAST_ONCE);
 		TopicSubscription ts2 = new TopicSubscription(testTopic, MqttQoS.EXACTLY_ONCE);
 
-		session.topicSubscriptions().put(ts0.topicFilter(), ts0);
-		session.topicSubscriptions().put(ts1.topicFilter(), ts1);
-		session.topicSubscriptions().put(ts2.topicFilter(), ts2);
+		session.putTopicSubscription(ts0);
+		session.putTopicSubscription(ts1);
+		session.putTopicSubscription(ts2);
 
-		Assert.assertEquals(3, session.topicSubscriptions().size());
+		Assert.assertEquals(3, session.getTopicSubscriptions().size());
 
 		TopicSubscription target = session.matches(testTopic);
 

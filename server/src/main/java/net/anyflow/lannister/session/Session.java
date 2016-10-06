@@ -43,6 +43,7 @@ import net.anyflow.lannister.serialization.ChannelIdSerializer;
 import net.anyflow.lannister.serialization.SerializableFactory;
 import net.anyflow.lannister.topic.Topic;
 import net.anyflow.lannister.topic.TopicMatcher;
+import net.anyflow.lannister.topic.TopicSubscriber;
 import net.anyflow.lannister.topic.TopicSubscription;
 
 public class Session implements com.hazelcast.nio.serialization.IdentifiedDataSerializable {
@@ -94,7 +95,6 @@ public class Session implements com.hazelcast.nio.serialization.IdentifiedDataSe
 		this.cleanSession = cleanSession;
 		this.will = will; // [MQTT-3.1.2-9]
 		this.topicSubscriptions = Hazelcast.INSTANCE.getMap(topicSubscriptionsName());
-		this.topicSubscriptions.addInterceptor(new TopicSubscriptionInterceptor(clientId));
 
 		this.messageSender = new MessageSender(this);
 	}
@@ -158,8 +158,27 @@ public class Session implements com.hazelcast.nio.serialization.IdentifiedDataSe
 		Session.NEXUS.persist(this);
 	}
 
-	public IMap<String, TopicSubscription> topicSubscriptions() {
+	public IMap<String, TopicSubscription> getTopicSubscriptions() {
 		return topicSubscriptions;
+	}
+
+	public void putTopicSubscription(TopicSubscription topicSubscription) {
+		assert topicSubscription != null;
+
+		topicSubscriptions.set(topicSubscription.topicFilter(), topicSubscription);
+
+		Topic.NEXUS.map().values().stream().filter(t -> TopicMatcher.match(topicSubscription.topicFilter(), t.name()))
+				.forEach(t -> t.putSubscriber(clientId, new TopicSubscriber(clientId, t.name())));
+	}
+
+	public TopicSubscription removeTopicSubscription(String topicFilter) {
+		TopicSubscription ret = topicSubscriptions.remove(topicFilter);
+		if (ret == null) { return null; }
+
+		Topic.NEXUS.map().values().stream().filter(t -> TopicMatcher.match(ret.topicFilter(), t.name()))
+				.forEach(t -> t.getSubscribers().remove(clientId));
+
+		return ret;
 	}
 
 	public TopicSubscription matches(String topicName) {
@@ -214,7 +233,7 @@ public class Session implements com.hazelcast.nio.serialization.IdentifiedDataSe
 
 		if (cleanSession) {
 			this.topicSubscriptions.values().stream().forEach(ts -> {
-				Topic.NEXUS.matches(ts.topicFilter()).forEach(t -> t.subscribers().remove(clientId));
+				Topic.NEXUS.matches(ts.topicFilter()).forEach(t -> t.removeSubscriber(clientId));
 			});
 
 			this.topicSubscriptions.destroy();

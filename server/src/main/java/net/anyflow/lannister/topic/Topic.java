@@ -63,7 +63,6 @@ public class Topic implements com.hazelcast.nio.serialization.IdentifiedDataSeri
 		this.name = name;
 		this.retainedMessage = null;
 		this.subscribers = Hazelcast.INSTANCE.getMap(subscribersName());
-		this.subscribers.addInterceptor(new TopicSubscriberInterceptor(name));
 
 		this.messages = Hazelcast.INSTANCE.getMap(messagesName());
 		this.inboundMessageStatuses = Hazelcast.INSTANCE.getMap(inboundMessageStatusesName());
@@ -111,8 +110,27 @@ public class Topic implements com.hazelcast.nio.serialization.IdentifiedDataSeri
 		NEXUS.persist(this);
 	}
 
-	public IMap<String, TopicSubscriber> subscribers() {
+	public IMap<String, TopicSubscriber> getSubscribers() {
 		return subscribers;
+	}
+
+	public void putSubscriber(String clientId, TopicSubscriber subscriber) {
+		assert clientId != null;
+		assert subscriber != null;
+
+		subscribers.set(clientId, subscriber);
+	}
+
+	public TopicSubscriber removeSubscriber(String clientId) {
+		assert clientId != null;
+
+		TopicSubscriber ret = subscribers.remove(clientId);
+
+		if (name.startsWith("$SYS") || subscribers.size() > 0) { return ret; }
+
+		Topic.NEXUS.remove(this);
+
+		return ret;
 	}
 
 	public IMap<String, Message> messages() {
@@ -192,7 +210,7 @@ public class Topic implements com.hazelcast.nio.serialization.IdentifiedDataSeri
 
 		toSend.setQos(adjustQoS(subscription.qos(), toSend.qos()));
 
-		TopicSubscriber ts = subscribers().get(session.clientId());
+		TopicSubscriber ts = subscribers.get(session.clientId());
 		assert ts != null;
 
 		if (!ts.outboundMessageStatuses().containsKey(toSend.id())) {
@@ -215,14 +233,14 @@ public class Topic implements com.hazelcast.nio.serialization.IdentifiedDataSeri
 
 		Message message = messages.get(messageKey);
 		assert message != null;
-		assert subscribers().get(session.clientId()).outboundMessageStatuses().containsKey(message.id());
+		assert subscribers.get(session.clientId()).outboundMessageStatuses().containsKey(message.id());
 
 		NEXUS.notifier().publish(new Notification(session.clientId(), this, message));
 	}
 
 	public void updateSubscribers() {
 		Session.NEXUS.map().values().stream()
-				.filter(s -> s.topicSubscriptions().values().stream()
+				.filter(s -> s.getTopicSubscriptions().values().stream()
 						.anyMatch(ts -> TopicMatcher.match(ts.topicFilter(), name)))
 				.forEach(s -> subscribers.set(s.clientId(), new TopicSubscriber(s.clientId(), name)));
 	}

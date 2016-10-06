@@ -62,7 +62,7 @@ public class PubAckReceiver extends SimpleChannelInboundHandler<MqttPubAckMessag
 			return;
 		}
 
-		final TopicSubscriber topicSubscriber = topic.subscribers().get(clientId);
+		final TopicSubscriber topicSubscriber = topic.getSubscribers().get(clientId);
 
 		OutboundMessageStatus status = topicSubscriber.outboundMessageStatuses().get(messageId);
 

@@ -43,7 +43,7 @@ public class PubRecReceiver {
 			return;
 		}
 
-		final TopicSubscriber topicSubscriber = topic.subscribers().get(session.clientId());
+		final TopicSubscriber topicSubscriber = topic.getSubscribers().get(session.clientId());
 
 		OutboundMessageStatus status = topicSubscriber.outboundMessageStatuses().get(messageId);
 

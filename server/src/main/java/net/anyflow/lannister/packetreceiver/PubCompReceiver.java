@@ -38,7 +38,7 @@ public class PubCompReceiver {
 			return;
 		}
 
-		final TopicSubscriber topicSubscriber = topic.subscribers().get(session.clientId());
+		final TopicSubscriber topicSubscriber = topic.getSubscribers().get(session.clientId());
 
 		topicSubscriber.removeOutboundMessageStatus(messageId);
 		logger.debug("Outbound message status REMOVED [clientId={}, messageId={}]", session.clientId(), messageId);

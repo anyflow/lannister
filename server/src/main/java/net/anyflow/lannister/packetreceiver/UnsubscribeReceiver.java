@@ -57,7 +57,7 @@ public class UnsubscribeReceiver extends SimpleChannelInboundHandler<MqttUnsubsc
 			return;
 		}
 
-		topicFilters.stream().forEach(tf -> session.topicSubscriptions().remove(tf));
+		topicFilters.stream().forEach(tf -> session.removeTopicSubscription(tf));
 
 		Plugins.INSTANCE.get(UnsubscribeEventListener.class).unsubscribed(new UnsubscribeEventArgs() {
 			@Override

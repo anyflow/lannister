@@ -198,7 +198,7 @@ public class Statistics {
 		data.put("$SYS/broker/subscriptions/count", new SysValue() {
 			@Override
 			public String value() {
-				return Long.toString(Session.NEXUS.map().values().stream().map(s -> s.topicSubscriptions())
+				return Long.toString(Session.NEXUS.map().values().stream().map(s -> s.getTopicSubscriptions())
 						.flatMap(s -> s.values().stream()).count());
 			}
 		});

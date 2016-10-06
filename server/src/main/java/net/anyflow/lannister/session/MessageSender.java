@@ -72,7 +72,7 @@ public class MessageSender {
 
 			case AT_LEAST_ONCE:
 			case EXACTLY_ONCE:
-				topic.subscribers().get(session.clientId()).setOutboundMessageStatus(message.id(),
+				topic.getSubscribers().get(session.clientId()).setOutboundMessageStatus(message.id(),
 						OutboundMessageStatus.Status.PUBLISHED);
 				break;
 
@@ -142,8 +142,8 @@ public class MessageSender {
 			Date now = new Date();
 
 			Stream<OutboundMessageStatus> statuses = Topic.NEXUS.map().values().stream()
-					.filter(t -> t.subscribers().containsKey(session.clientId()))
-					.map(t -> t.subscribers().get(session.clientId())).map(s -> s.outboundMessageStatuses())
+					.filter(t -> t.getSubscribers().containsKey(session.clientId()))
+					.map(t -> t.getSubscribers().get(session.clientId())).map(s -> s.outboundMessageStatuses())
 					.flatMap(s -> s.values().stream());
 
 			statuses.forEach(s -> {
@@ -162,7 +162,7 @@ public class MessageSender {
 				case PUBLISHED:
 					send(MessageFactory.publish(message, s.status() == OutboundMessageStatus.Status.PUBLISHED)) // [MQTT-3.3.1-1]
 							.addListener(f -> {
-								topic.subscribers().get(session.clientId()).setOutboundMessageStatus(message.id(),
+								topic.getSubscribers().get(session.clientId()).setOutboundMessageStatus(message.id(),
 										OutboundMessageStatus.Status.PUBLISHED);
 								Statistics.INSTANCE.add(Statistics.Criterion.MESSAGES_PUBLISH_SENT, 1);
 							});

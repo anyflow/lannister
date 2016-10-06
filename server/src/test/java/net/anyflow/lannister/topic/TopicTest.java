@@ -71,7 +71,7 @@ public class TopicTest {
 		Topic topic = Topic.NEXUS.get(topicName);
 		Assert.assertNotNull(topic);
 
-		TopicSubscriber subscriber = topic.subscribers().get(clientId);
+		TopicSubscriber subscriber = topic.getSubscribers().get(clientId);
 		Assert.assertNotNull(subscriber);
 
 		OutboundMessageStatus status = subscriber.outboundMessageStatuses().values().stream().findFirst().orElse(null);

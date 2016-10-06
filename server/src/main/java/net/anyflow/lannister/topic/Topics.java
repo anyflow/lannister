@@ -79,7 +79,7 @@ public class Topics {
 
 	private Topic getFromSubscriber(String subscriberId, int messageId) {
 		return topics.values().stream().filter(t -> {
-			TopicSubscriber ts = t.subscribers().get(subscriberId);
+			TopicSubscriber ts = t.getSubscribers().get(subscriberId);
 
 			return ts != null && ts.outboundMessageStatuses().get(messageId) != null;
 		}).findAny().orElse(null);
