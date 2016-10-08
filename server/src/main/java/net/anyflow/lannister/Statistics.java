@@ -16,16 +16,15 @@
 
 package net.anyflow.lannister;
 
-import java.util.Collections;
 import java.util.Date;
-import java.util.List;
 import java.util.Map;
 
-import com.google.common.collect.Lists;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.google.common.collect.Maps;
 import com.hazelcast.core.ILock;
 import com.hazelcast.core.IMap;
 
+import net.anyflow.lannister.serialization.SysValueSerializer;
 import net.anyflow.lannister.session.Session;
 import net.anyflow.lannister.topic.Topic;
 
@@ -33,16 +32,10 @@ public class Statistics {
 
 	public static final Statistics INSTANCE = new Statistics();
 
-	public static final String $SYS_BROKER_VERSION = "$SYS/broker/version";
-	public static final String $SYS_BROKER_TIMESTAMP = "$SYS/broker/timestamp";
-	public static final String $SYS_BROKER_CHANGESET = "$SYS/broker/changeset";
-
-	public static final List<String> $SYS_STATIC_TOPICS = Collections
-			.unmodifiableList(Lists.newArrayList($SYS_BROKER_VERSION, $SYS_BROKER_TIMESTAMP, $SYS_BROKER_CHANGESET));
-
 	private Map<String, SysValue> data; // key : topic name
 	private IMap<Criterion, Long> criterions;
 
+	@JsonSerialize(using = SysValueSerializer.class)
 	public interface SysValue {
 		String value();
 	}
@@ -115,22 +108,6 @@ public class Statistics {
 		}
 	}
 
-	public String getStatic(String topicName) {
-		switch (topicName) {
-		case $SYS_BROKER_VERSION:
-			return Settings.INSTANCE.version();
-
-		case $SYS_BROKER_TIMESTAMP:
-			return Settings.INSTANCE.buildTime();
-
-		case $SYS_BROKER_CHANGESET:
-			return Settings.INSTANCE.commitIdDescribe() + " / " + Settings.INSTANCE.commitId();
-
-		default:
-			return null;
-		}
-	}
-
 	private void initializeCriterions() {
 		if (criterions.get(Criterion.BROKER_START_TIME) == null) {
 			criterions.set(Criterion.BROKER_START_TIME, new Date().getTime());
@@ -183,7 +160,7 @@ public class Statistics {
 		data.put("$SYS/broker/clients/total", new SysValue() {
 			@Override
 			public String value() {
-				return Long.toString(Session.NEXUS.map().entrySet().stream().count());
+				return Long.toString(Session.NEXUS.map().size());
 			}
 		});
 
@@ -215,6 +192,27 @@ public class Statistics {
 			public String value() {
 				return Double.toString(
 						(double) (new Date().getTime() - criterions.get(Criterion.BROKER_START_TIME)) / (double) 1000);
+			}
+		});
+
+		data.put("$SYS/broker/version", new SysValue() {
+			@Override
+			public String value() {
+				return Settings.INSTANCE.version();
+			}
+		});
+
+		data.put("$SYS/broker/timestamp", new SysValue() {
+			@Override
+			public String value() {
+				return Settings.INSTANCE.buildTime();
+			}
+		});
+
+		data.put("$SYS/broker/changeset", new SysValue() {
+			@Override
+			public String value() {
+				return Settings.INSTANCE.commitIdDescribe() + " / " + Settings.INSTANCE.commitId();
 			}
 		});
 	}

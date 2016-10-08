@@ -22,6 +22,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Strings;
 
+import io.netty.handler.codec.http.HttpResponseStatus;
 import net.anyflow.lannister.http.HttpRequestHandler;
 import net.anyflow.lannister.session.Session;
 
@@ -37,6 +38,8 @@ public class Sessions extends HttpRequestHandler {
 		}
 		catch (JsonProcessingException e) {
 			logger.error(e.getMessage(), e);
+
+			this.httpResponse().setStatus(HttpResponseStatus.INTERNAL_SERVER_ERROR);
 			return null;
 		}
 	}
@@ -47,6 +50,8 @@ public class Sessions extends HttpRequestHandler {
 		}
 		catch (JsonProcessingException e) {
 			logger.error(e.getMessage(), e);
+
+			this.httpResponse().setStatus(HttpResponseStatus.INTERNAL_SERVER_ERROR);
 			return null;
 		}
 	}

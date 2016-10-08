@@ -16,56 +16,26 @@
 
 package net.anyflow.lannister.httphandler.api;
 
-import java.util.stream.Collectors;
-
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.common.base.Strings;
 
 import io.netty.handler.codec.http.HttpResponseStatus;
 import net.anyflow.lannister.http.HttpRequestHandler;
-import net.anyflow.lannister.topic.Topic;
 
-@HttpRequestHandler.Handles(paths = { "api/topics" }, httpMethods = { "GET" })
-public class Topics extends HttpRequestHandler {
-
-	private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(Topics.class);
+@HttpRequestHandler.Handles(paths = { "api/statistics" }, httpMethods = { "GET" })
+public class Statistics extends HttpRequestHandler {
+	private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(Statistics.class);
 
 	@Override
 	public String service() {
-		String filter = Strings.nullToEmpty(httpRequest().parameter("filter"));
 
-		switch (filter) {
-		case "":
-		case "all":
-			return all();
-		case "nosys":
-			return nosys();
-
-		default:
-			return null;
-		}
-	}
-
-	private String all() {
 		try {
-			return new ObjectMapper().writeValueAsString(Topic.NEXUS.map().values());
+			return new ObjectMapper().writeValueAsString(net.anyflow.lannister.Statistics.INSTANCE.data());
 		}
 		catch (JsonProcessingException e) {
 			logger.error(e.getMessage(), e);
 
 			this.httpResponse().setStatus(HttpResponseStatus.INTERNAL_SERVER_ERROR);
-			return null;
-		}
-	}
-
-	private String nosys() {
-		try {
-			return new ObjectMapper().writeValueAsString(Topic.NEXUS.map().values().stream()
-					.filter(t -> !t.name().startsWith("$SYS")).collect(Collectors.toList()));
-		}
-		catch (JsonProcessingException e) {
-			logger.error(e.getMessage(), e);
 			return null;
 		}
 	}
