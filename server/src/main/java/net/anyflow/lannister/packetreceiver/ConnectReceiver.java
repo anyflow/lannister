@@ -94,8 +94,14 @@ public class ConnectReceiver extends SimpleChannelInboundHandler<MqttConnectMess
 		final Session sessionFinal = session;
 		final MqttConnAckMessage acceptMsg = MessageFactory.connack(MqttConnectReturnCode.CONNECTION_ACCEPTED,
 				sessionPresent); // [MQTT-3.1.4-4]
+		final String log = acceptMsg.toString();
 
-		session.send(acceptMsg).addListener(f -> { // [MQTT-3.2.0-1]
+		session.send(acceptMsg, f -> { // [MQTT-3.2.0-1]
+			if (!f.isSuccess()) {
+				logger.error("packet outgoing failed [{}] {}", log, f.cause());
+				return;
+			}
+
 			Plugins.INSTANCE.get(ConnectEventListener.class).connectHandled(new ConnectEventArgs() {
 				@Override
 				public String clientId() {

@@ -68,6 +68,6 @@ public class PubRecReceiver {
 
 		topicSubscriber.setOutboundMessageStatus(messageId, OutboundMessageStatus.Status.PUBRECED);
 
-		session.send(MessageFactory.pubrel(messageId));
+		session.send(MessageFactory.pubrel(messageId), null);
 	}
 }

@@ -79,7 +79,7 @@ public class SubscribeReceiver extends SimpleChannelInboundHandler<MqttSubscribe
 
 		topicSubscriptions.values().forEach(ts -> session.putTopicSubscription(ts));
 
-		session.send(MessageFactory.suback(msg.variableHeader().messageId(), grantedQoss)); // [MQTT-2.3.1-7],[MQTT-2.3.1-7],[MQTT-3.8.4-1],[MQTT-3.8.4-2]
+		session.send(MessageFactory.suback(msg.variableHeader().messageId(), grantedQoss), null); // [MQTT-2.3.1-7],[MQTT-2.3.1-7],[MQTT-3.8.4-1],[MQTT-3.8.4-2]
 
 		sendRetainedMessage(session, topicSubscriptions.keySet());
 	}

@@ -27,11 +27,12 @@ import com.hazelcast.core.IMap;
 import com.hazelcast.nio.ObjectDataInput;
 import com.hazelcast.nio.ObjectDataOutput;
 
-import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelId;
 import io.netty.handler.codec.mqtt.MqttMessage;
+import io.netty.util.concurrent.Future;
+import io.netty.util.concurrent.GenericFutureListener;
 import net.anyflow.lannister.AbnormalDisconnectEventArgs;
 import net.anyflow.lannister.Hazelcast;
 import net.anyflow.lannister.Literals;
@@ -186,8 +187,8 @@ public class Session implements com.hazelcast.nio.serialization.IdentifiedDataSe
 				.max((p1, p2) -> p1.qos().compareTo(p2.qos())).orElse(null); // [MQTT-3.3.5-1]
 	}
 
-	public ChannelFuture send(MqttMessage message) {
-		return messageSender.send(message);
+	public void send(MqttMessage message, GenericFutureListener<? extends Future<? super Void>> completeListener) {
+		messageSender.send(message, completeListener);
 	}
 
 	protected void sendPublish(Topic topic, Message message) {

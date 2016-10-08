@@ -30,6 +30,6 @@ public class PingReqReceiver {
 	}
 
 	protected void handle(Session session) {
-		session.send(MessageFactory.pingresp()); // [MQTT-3.12.4-1]
+		session.send(MessageFactory.pingresp(), null); // [MQTT-3.12.4-1]
 	}
 }

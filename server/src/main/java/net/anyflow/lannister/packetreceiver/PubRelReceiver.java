@@ -16,6 +16,7 @@
 
 package net.anyflow.lannister.packetreceiver;
 
+import io.netty.handler.codec.mqtt.MqttMessage;
 import net.anyflow.lannister.message.MessageFactory;
 import net.anyflow.lannister.session.Session;
 import net.anyflow.lannister.topic.Topic;
@@ -41,7 +42,15 @@ public class PubRelReceiver {
 			return;
 		}
 
-		session.send(MessageFactory.pubcomp(messageId)).addListener(f -> {
+		MqttMessage toSend = MessageFactory.pubcomp(messageId);
+		final String log = toSend.toString();
+
+		session.send(toSend, f -> {
+			if (!f.isSuccess()) {
+				logger.error("packet outgoing failed [{}] {}", log, f.cause());
+				return;
+			}
+
 			topic.removeInboundMessageStatus(session.clientId(), messageId);
 			logger.debug("Inbound message status REMOVED [clientId={}, messageId={}]", session.clientId(), messageId);
 		});

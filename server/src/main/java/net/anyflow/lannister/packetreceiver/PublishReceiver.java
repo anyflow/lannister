@@ -21,6 +21,7 @@ import java.util.Date;
 import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
+import io.netty.handler.codec.mqtt.MqttMessage;
 import io.netty.handler.codec.mqtt.MqttPublishMessage;
 import net.anyflow.lannister.AbnormalDisconnectEventArgs;
 import net.anyflow.lannister.Statistics;
@@ -92,21 +93,42 @@ public class PublishReceiver extends SimpleChannelInboundHandler<MqttPublishMess
 
 		topic.publish(message);
 
+		MqttMessage toSend;
+		final String log;
+
 		switch (msg.fixedHeader().qosLevel()) {
 		case AT_MOST_ONCE:
 			return; // QoS 0 do not send any acknowledge packet [MQTT-3.3.4-1]
 
 		case AT_LEAST_ONCE:
-			session.send(MessageFactory.puback(msg.variableHeader().messageId())).addListener(
-					f -> topic.removeInboundMessageStatus(session.clientId(), msg.variableHeader().messageId())); // [MQTT-3.3.4-1],[MQTT-2.3.1-6]
+			toSend = MessageFactory.puback(msg.variableHeader().messageId());
+			log = toSend.toString();
+
+			session.send(toSend, f -> {
+				if (!f.isSuccess()) {
+					logger.error("packet outgoing failed [{}] {}", log, f.cause());
+					return;
+				}
+
+				topic.removeInboundMessageStatus(session.clientId(), msg.variableHeader().messageId());
+			}); // [MQTT-3.3.4-1],[MQTT-2.3.1-6]
 			logger.debug("Inbound message status REMOVED [clientId={}, messageId={}]", session.clientId(),
 					msg.variableHeader().messageId());
 			return;
 
 		case EXACTLY_ONCE:
-			session.send(MessageFactory.pubrec(msg.variableHeader().messageId()))
-					.addListener(f -> topic.setInboundMessageStatus(session.clientId(),
-							msg.variableHeader().messageId(), InboundMessageStatus.Status.PUBRECED)); // [MQTT-3.3.4-1],[MQTT-2.3.1-6]
+			toSend = MessageFactory.pubrec(msg.variableHeader().messageId());
+			log = toSend.toString();
+
+			session.send(MessageFactory.pubrec(msg.variableHeader().messageId()), f -> {
+				if (!f.isSuccess()) {
+					logger.error("packet outgoing failed [{}] {}", log, f.cause());
+					return;
+				}
+
+				topic.setInboundMessageStatus(session.clientId(), msg.variableHeader().messageId(),
+						InboundMessageStatus.Status.PUBRECED);
+			}); // [MQTT-3.3.4-1],[MQTT-2.3.1-6]
 			return;
 
 		default:

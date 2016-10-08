@@ -23,6 +23,8 @@ import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.mqtt.MqttMessage;
 import io.netty.handler.codec.mqtt.MqttQoS;
+import io.netty.util.concurrent.Future;
+import io.netty.util.concurrent.GenericFutureListener;
 import net.anyflow.lannister.Settings;
 import net.anyflow.lannister.Statistics;
 import net.anyflow.lannister.message.InboundMessageStatus;
@@ -44,18 +46,27 @@ public class MessageSender {
 		this.session = session;
 	}
 
-	protected ChannelFuture send(MqttMessage message) {
+	protected void send(MqttMessage message, GenericFutureListener<? extends Future<? super Void>> completeListener) {
 		if (!session.isConnected(true)) {
 			logger.error("Message is not sent - Channel is inactive or out of the node. [{}]", message);
-			return null;
+			return;
 		}
 
 		ChannelHandlerContext ctx = Session.NEXUS.channelHandlerContext(session.clientId());
 
 		String log = message.toString();
-		return ctx.writeAndFlush(message).addListener(f -> {
-			logger.debug("packet outgoing [{}]", log);
+		ChannelFuture cf = ctx.writeAndFlush(message).addListener(f -> {
+			if (f.isSuccess()) {
+				logger.debug("packet outgoing [{}]", log);
+			}
+			else {
+				logger.error("packet outgoing failed [{}] {}", log, f.cause());
+			}
 		});
+
+		if (completeListener != null) {
+			cf.addListener(completeListener);
+		}
 	}
 
 	protected void sendPublish(Topic topic, Message message) {
@@ -63,7 +74,9 @@ public class MessageSender {
 
 		if (!session.isConnected(true)) { return; }
 
-		send(MessageFactory.publish(message, false)).addListener(f -> { // [MQTT-3.3.1-2]
+		send(MessageFactory.publish(message, false), f -> { // [MQTT-3.3.1-2]
+			if (!f.isSuccess()) { return; }
+
 			Statistics.INSTANCE.add(Statistics.Criterion.MESSAGES_PUBLISH_SENT, 1);
 
 			switch (message.qos()) {
@@ -107,21 +120,40 @@ public class MessageSender {
 
 				Topic topic = Topic.NEXUS.get(s.clientId(), s.messageId(), Topics.ClientType.PUBLISHER);
 				Message message = topic.messages().get(s.messageId());
+				MqttMessage toSend;
+				String log;
 
 				switch (s.status()) {
 				case RECEIVED:
 				case PUBRECED:
 					if (message.qos() == MqttQoS.AT_LEAST_ONCE) {
-						session.send(MessageFactory.puback(message.id())).addListener(f -> { // [MQTT-2.3.1-6]
+						toSend = MessageFactory.puback(message.id());
+						log = toSend.toString();
+
+						send(toSend, f -> { // [MQTT-2.3.1-6]
+							if (!f.isSuccess()) {
+								logger.error("packet outgoing failed [{}] {}", log, f.cause());
+								return;
+							}
+
 							topic.removeInboundMessageStatus(session.clientId(), message.id());
 							logger.debug("Inbound message status REMOVED [clientId={}, messageId={}]",
 									session.clientId(), message.id());
 						});
 					}
 					else {
-						session.send(MessageFactory.pubrec(message.id())) // [MQTT-2.3.1-6]
-								.addListener(f -> topic.setInboundMessageStatus(session.clientId(), message.id(),
-										InboundMessageStatus.Status.PUBRECED));
+						toSend = MessageFactory.pubrec(message.id());
+						log = toSend.toString();
+
+						send(toSend, f -> {
+							if (!f.isSuccess()) {
+								logger.error("packet outgoing failed [{}] {}", log, f.cause());
+								return;
+							}
+
+							topic.setInboundMessageStatus(session.clientId(), message.id(),
+									InboundMessageStatus.Status.PUBRECED);
+						}); // [MQTT-2.3.1-6]
 					}
 					break;
 
@@ -152,6 +184,8 @@ public class MessageSender {
 
 				Topic topic = Topic.NEXUS.get(s.clientId(), s.messageId(), Topics.ClientType.SUBSCRIBER);
 				Message message = topic.messages().get(s.messageKey());
+				MqttMessage toSend;
+				String log;
 
 				message.setQos(s.qos());
 				message.setId(s.messageId()); // [MQTT-2.3.1-4]
@@ -160,16 +194,22 @@ public class MessageSender {
 				switch (s.status()) {
 				case TO_PUBLISH:
 				case PUBLISHED:
-					send(MessageFactory.publish(message, s.status() == OutboundMessageStatus.Status.PUBLISHED)) // [MQTT-3.3.1-1]
-							.addListener(f -> {
-								topic.getSubscribers().get(session.clientId()).setOutboundMessageStatus(message.id(),
-										OutboundMessageStatus.Status.PUBLISHED);
-								Statistics.INSTANCE.add(Statistics.Criterion.MESSAGES_PUBLISH_SENT, 1);
-							});
+					toSend = MessageFactory.publish(message, s.status() == OutboundMessageStatus.Status.PUBLISHED);
+					log = toSend.toString();
+					send(toSend, f -> { // [MQTT-3.3.1-1]
+						if (!f.isSuccess()) {
+							logger.error("packet outgoing failed [{}] {}", log, f.cause());
+							return;
+						}
+
+						topic.getSubscribers().get(session.clientId()).setOutboundMessageStatus(message.id(),
+								OutboundMessageStatus.Status.PUBLISHED);
+						Statistics.INSTANCE.add(Statistics.Criterion.MESSAGES_PUBLISH_SENT, 1);
+					});
 					break;
 
 				case PUBRECED:
-					send(MessageFactory.pubrel(message.id()));
+					send(MessageFactory.pubrel(message.id()), null);
 					break;
 
 				default:
