@@ -121,7 +121,7 @@
 				<directory>src/main/resources</directory>
 				<targetPath>../conf/</targetPath>
 				<includes>
-					<include>lannister.cfg</include>
+					<include>lannister.properties</include>
 					<include>lannister.cluster.xml</include>
 					<include>lannister.log4j.xml</include>
 				</includes>
@@ -149,7 +149,7 @@
 				<filtering>true</filtering>
 				<directory>src/test/resources</directory>
 				<includes>
-					<include>lannister.cfg</include>
+					<include>lannister.properties</include>
 					<include>lannister.cluster.xml</include>
 					<include>lannister.log4j.xml</include>
 				</includes>

@@ -20,8 +20,21 @@
 - Add Netty epoll mode(bump up performance on linux)
 - Optimize performance : Change serialization method(IdentifiedDataSerializable)
 - Change configuration file names
-    * hazencast.config.xml => lannister.cluster.xml
-    * log4j.xml => lannister.log4j.xml
+    * `lannister.cfg`        => `lannister.properties`
+    * `hazencast.config.xml` => `lannister.cluster.xml`
+    * `log4j.xml`            => `lannister.log4j.xml`
+- Add statistics REST API(same items with `$SYS`)
+    * `GET /api/statistics`
+- Add custom `$SYS` topics
+    * `$SYS/broker/messages/received/inSecond`
+    * `$SYS/broker/messages/sent/inSecond`
+    * `$SYS/broker/messages/publish/dropped/inSecond`
+    * `$SYS/broker/messages/publish/received/inSecond`
+    * `$SYS/broker/messages/publish/sent/inSecond`
+    * `$SYS/broker/load/bytes/received/inSecond`
+    * `$SYS/broker/load/bytes/sent/inSecond`
+- Fix null pointer exception on `session.send()`
+- Fix potential synchronization bug - remove MapInterceptors
 
 ### version 0.9.7.1 / Sep 28, 2016
 - Move deploy-repo to https://goo.gl/GJ1piF
@@ -37,8 +50,8 @@
 - Refine `lannister.cfg` property names
 - Optimize performance : Minimize serialization
 - Update REST API address(default port : `8090`)
-    * GET /topics => GET /api/topics
-    * GET /session => GET /api/sessions
+    * `GET /topics` => `GET /api/topics`
+    * `GET /session` => `GET /api/sessions`
 - Add Client ID generation REST API
     * POST /api/clients
 
