@@ -17,6 +17,7 @@
 package net.anyflow.lannister;
 
 import java.lang.management.ManagementFactory;
+import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.util.Date;
 import java.util.Map;
@@ -33,12 +34,13 @@ import net.anyflow.lannister.topic.Topic;
 public class Statistics {
 
 	public static final Statistics INSTANCE = new Statistics();
+	private static final int CENT = 100;
 
 	private Map<String, SysValue> data; // key : topic name
 	private Map<Criterion, Long> criterions;
 	private final Runtime runtime;
-	private static final int CENT = 100;
-
+	private final DecimalFormat decimalFormatter;
+	private final NumberFormat defaultFormatter;
 	private final com.sun.management.OperatingSystemMXBean osBean;
 
 	@JsonSerialize(using = SysValueSerializer.class)
@@ -55,7 +57,7 @@ public class Statistics {
 
 		@Override
 		public String value() {
-			return criterions.get(criterion).toString();
+			return NumberFormat.getNumberInstance().format(criterions.get(criterion));
 		}
 	}
 
@@ -76,6 +78,8 @@ public class Statistics {
 		this.criterions = Factory.INSTANCE.createMap("statistics");
 		this.runtime = Runtime.getRuntime();
 		this.osBean = (com.sun.management.OperatingSystemMXBean) ManagementFactory.getOperatingSystemMXBean();
+		this.decimalFormatter = new DecimalFormat("#,###.0");
+		this.defaultFormatter = NumberFormat.getNumberInstance();
 
 		initializeCriterions();
 
@@ -148,8 +152,8 @@ public class Statistics {
 		data.put("$SYS/broker/messages/retained/count", new SysValue() {
 			@Override
 			public String value() {
-				return Long
-						.toString(Topic.NEXUS.map().values().stream().filter(t -> t.retainedMessage() != null).count());
+				return defaultFormatter
+						.format(Topic.NEXUS.map().values().stream().filter(t -> t.retainedMessage() != null).count());
 			}
 		});
 
@@ -162,19 +166,20 @@ public class Statistics {
 
 				setMaxActiveClients(current);
 
-				return Long.toString(current);
+				return defaultFormatter.format(current);
 			}
 		});
 		data.put("$SYS/broker/clients/disconnected", new SysValue() {
 			@Override
 			public String value() {
-				return Long.toString(Session.NEXUS.map().values().stream().filter(s -> !s.isConnected(false)).count());
+				return defaultFormatter
+						.format(Session.NEXUS.map().values().stream().filter(s -> !s.isConnected(false)).count());
 			}
 		});
 		data.put("$SYS/broker/clients/total", new SysValue() {
 			@Override
 			public String value() {
-				return Long.toString(Session.NEXUS.map().size());
+				return defaultFormatter.format(Session.NEXUS.map().size());
 			}
 		});
 
@@ -204,7 +209,7 @@ public class Statistics {
 		data.put("$SYS/broker/subscriptions/count", new SysValue() {
 			@Override
 			public String value() {
-				return Long.toString(Session.NEXUS.map().values().stream().map(s -> s.getTopicSubscriptions())
+				return defaultFormatter.format(Session.NEXUS.map().values().stream().map(s -> s.getTopicSubscriptions())
 						.flatMap(s -> s.values().stream()).count());
 			}
 		});
@@ -217,7 +222,7 @@ public class Statistics {
 		data.put("$SYS/broker/uptime", new SysValue() {
 			@Override
 			public String value() {
-				return Double.toString(
+				return defaultFormatter.format(
 						(double) (new Date().getTime() - criterions.get(Criterion.BROKER_START_TIME)) / (double) 1000);
 			}
 		});
@@ -230,7 +235,7 @@ public class Statistics {
 				Double denominator = (double) (new Date().getTime() - criterions.get(Criterion.BROKER_START_TIME))
 						/ (double) 1000;
 
-				return String.format("%.1f", (double) numerator / denominator);
+				return decimalFormatter.format((double) numerator / denominator);
 			}
 		});
 		data.put("$SYS/broker/messages/sent/inSecond", new SysValue() {
@@ -240,7 +245,7 @@ public class Statistics {
 				Double denominator = (double) (new Date().getTime() - criterions.get(Criterion.BROKER_START_TIME))
 						/ (double) 1000;
 
-				return String.format("%.1f", (double) numerator / denominator);
+				return decimalFormatter.format((double) numerator / denominator);
 			}
 		});
 		data.put("$SYS/broker/load/bytes/received/inSecond", new SysValue() {
@@ -250,7 +255,7 @@ public class Statistics {
 				Double denominator = (double) (new Date().getTime() - criterions.get(Criterion.BROKER_START_TIME))
 						/ (double) 1000;
 
-				return String.format("%.1f", (double) numerator / denominator);
+				return decimalFormatter.format((double) numerator / denominator);
 			}
 		});
 		data.put("$SYS/broker/load/bytes/sent/inSecond", new SysValue() {
@@ -260,7 +265,7 @@ public class Statistics {
 				Double denominator = (double) (new Date().getTime() - criterions.get(Criterion.BROKER_START_TIME))
 						/ (double) 1000;
 
-				return String.format("%.1f", (double) numerator / denominator);
+				return decimalFormatter.format((double) numerator / denominator);
 			}
 		});
 		data.put("$SYS/broker/messages/publish/dropped/inSecond", new SysValue() {
@@ -270,7 +275,7 @@ public class Statistics {
 				Double denominator = (double) (new Date().getTime() - criterions.get(Criterion.BROKER_START_TIME))
 						/ (double) 1000;
 
-				return String.format("%.1f", (double) numerator / denominator);
+				return decimalFormatter.format((double) numerator / denominator);
 			}
 		});
 		data.put("$SYS/broker/messages/publish/received/inSecond", new SysValue() {
@@ -280,7 +285,7 @@ public class Statistics {
 				Double denominator = (double) (new Date().getTime() - criterions.get(Criterion.BROKER_START_TIME))
 						/ (double) 1000;
 
-				return String.format("%.1f", (double) numerator / denominator);
+				return decimalFormatter.format((double) numerator / denominator);
 			}
 		});
 		data.put("$SYS/broker/messages/publish/sent/inSecond", new SysValue() {
@@ -290,7 +295,7 @@ public class Statistics {
 				Double denominator = (double) (new Date().getTime() - criterions.get(Criterion.BROKER_START_TIME))
 						/ (double) 1000;
 
-				return String.format("%.1f", (double) numerator / denominator);
+				return decimalFormatter.format((double) numerator / denominator);
 			}
 		});
 
@@ -301,7 +306,7 @@ public class Statistics {
 				Double denominator = (double) (new Date().getTime() - criterions.get(Criterion.BROKER_START_TIME))
 						/ (double) 1000;
 
-				return String.format("%.1f", (double) numerator / denominator);
+				return decimalFormatter.format((double) numerator / denominator);
 			}
 		});
 
@@ -309,43 +314,43 @@ public class Statistics {
 		data.put("$SYS/broker/member/" + Factory.INSTANCE.currentId() + "/system/processor/count", new SysValue() {
 			@Override
 			public String value() {
-				return NumberFormat.getNumberInstance().format(Runtime.getRuntime().availableProcessors());
+				return defaultFormatter.format(Runtime.getRuntime().availableProcessors());
 			}
 		});
 		data.put("$SYS/broker/member/" + Factory.INSTANCE.currentId() + "/load/cpu/system/percent", new SysValue() {
 			@Override
 			public String value() {
-				return NumberFormat.getNumberInstance().format(osBean.getSystemCpuLoad() * CENT);
+				return decimalFormatter.format(osBean.getSystemCpuLoad() * CENT);
 			}
 		});
 		data.put("$SYS/broker/member/" + Factory.INSTANCE.currentId() + "/load/cpu/jvm/percent", new SysValue() {
 			@Override
 			public String value() {
-				return NumberFormat.getNumberInstance().format(osBean.getProcessCpuLoad() * CENT);
+				return decimalFormatter.format(osBean.getProcessCpuLoad() * CENT);
 			}
 		});
 		data.put("$SYS/broker/member/" + Factory.INSTANCE.currentId() + "/load/thread/active/count", new SysValue() {
 			@Override
 			public String value() {
-				return NumberFormat.getNumberInstance().format(java.lang.Thread.activeCount());
+				return defaultFormatter.format(java.lang.Thread.activeCount());
 			}
 		});
 		data.put("$SYS/broker/member/" + Factory.INSTANCE.currentId() + "/load/memory/max/byte", new SysValue() {
 			@Override
 			public String value() {
-				return NumberFormat.getNumberInstance().format(runtime.maxMemory());
+				return defaultFormatter.format(runtime.maxMemory());
 			}
 		});
 		data.put("$SYS/broker/member/" + Factory.INSTANCE.currentId() + "/load/memory/total/byte", new SysValue() {
 			@Override
 			public String value() {
-				return NumberFormat.getNumberInstance().format(runtime.totalMemory());
+				return defaultFormatter.format(runtime.totalMemory());
 			}
 		});
 		data.put("$SYS/broker/member/" + Factory.INSTANCE.currentId() + "/load/memory/free/byte", new SysValue() {
 			@Override
 			public String value() {
-				return NumberFormat.getNumberInstance().format(runtime.freeMemory());
+				return defaultFormatter.format(runtime.freeMemory());
 			}
 		});
 	}
