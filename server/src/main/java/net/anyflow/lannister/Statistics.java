@@ -16,6 +16,8 @@
 
 package net.anyflow.lannister;
 
+import java.lang.management.ManagementFactory;
+import java.text.NumberFormat;
 import java.util.Date;
 import java.util.Map;
 
@@ -32,8 +34,12 @@ public class Statistics {
 
 	public static final Statistics INSTANCE = new Statistics();
 
-	private Map<String, SysValue> data; // key : topic name
-	private IMap<Criterion, Long> criterions;
+	private final Map<String, SysValue> data; // key : topic name
+	private final IMap<Criterion, Long> criterions;
+	private final Runtime runtime;
+	private static final int CENT = 100;
+
+	private final com.sun.management.OperatingSystemMXBean osBean;
 
 	@JsonSerialize(using = SysValueSerializer.class)
 	public interface SysValue {
@@ -68,6 +74,8 @@ public class Statistics {
 	private Statistics() {
 		this.data = Maps.newHashMap();
 		this.criterions = Hazelcast.INSTANCE.getMap("statistics");
+		this.runtime = Runtime.getRuntime();
+		this.osBean = (com.sun.management.OperatingSystemMXBean) ManagementFactory.getOperatingSystemMXBean();
 
 		initializeCriterions();
 
@@ -283,6 +291,61 @@ public class Statistics {
 						/ (double) 1000;
 
 				return String.format("%.1f", (double) numerator / denominator);
+			}
+		});
+
+		data.put("$SYS/broker/messages/publish/sent/inSecond", new SysValue() {
+			@Override
+			public String value() {
+				Long numerator = criterions.get(Criterion.MESSAGES_PUBLISH_SENT);
+				Double denominator = (double) (new Date().getTime() - criterions.get(Criterion.BROKER_START_TIME))
+						/ (double) 1000;
+
+				return String.format("%.1f", (double) numerator / denominator);
+			}
+		});
+
+		// SYSTEM
+		data.put("$SYS/broker/" + Hazelcast.INSTANCE.currentId() + "/system/count/processor", new SysValue() {
+			@Override
+			public String value() {
+				return NumberFormat.getNumberInstance().format(Runtime.getRuntime().availableProcessors());
+			}
+		});
+		data.put("$SYS/broker/" + Hazelcast.INSTANCE.currentId() + "/system/load/percent/cpu/system", new SysValue() {
+			@Override
+			public String value() {
+				return NumberFormat.getNumberInstance().format(osBean.getSystemCpuLoad() * CENT);
+			}
+		});
+		data.put("$SYS/broker/" + Hazelcast.INSTANCE.currentId() + "/system/load/percent/cpu/jvm", new SysValue() {
+			@Override
+			public String value() {
+				return NumberFormat.getNumberInstance().format(osBean.getProcessCpuLoad() * CENT);
+			}
+		});
+		data.put("$SYS/broker/" + Hazelcast.INSTANCE.currentId() + "/system/load/count/threadActive", new SysValue() {
+			@Override
+			public String value() {
+				return NumberFormat.getNumberInstance().format(java.lang.Thread.activeCount());
+			}
+		});
+		data.put("$SYS/broker/" + Hazelcast.INSTANCE.currentId() + "/system/load/memory/byte/max", new SysValue() {
+			@Override
+			public String value() {
+				return NumberFormat.getNumberInstance().format(runtime.maxMemory());
+			}
+		});
+		data.put("$SYS/broker/" + Hazelcast.INSTANCE.currentId() + "/system/load/memory/byte/total", new SysValue() {
+			@Override
+			public String value() {
+				return NumberFormat.getNumberInstance().format(runtime.totalMemory());
+			}
+		});
+		data.put("$SYS/broker/" + Hazelcast.INSTANCE.currentId() + "/system/load/memory/byte/free", new SysValue() {
+			@Override
+			public String value() {
+				return NumberFormat.getNumberInstance().format(runtime.freeMemory());
 			}
 		});
 	}

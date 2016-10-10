@@ -18,6 +18,7 @@ package net.anyflow.lannister.httphandler.api;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
 
 import io.netty.handler.codec.http.HttpResponseStatus;
 import net.anyflow.lannister.http.HttpRequestHandler;
@@ -30,7 +31,8 @@ public class Statistics extends HttpRequestHandler {
 	public String service() {
 
 		try {
-			return new ObjectMapper().writeValueAsString(net.anyflow.lannister.Statistics.INSTANCE.data());
+			return new ObjectMapper().configure(SerializationFeature.ORDER_MAP_ENTRIES_BY_KEYS, true)
+					.writeValueAsString(net.anyflow.lannister.Statistics.INSTANCE.data());
 		}
 		catch (JsonProcessingException e) {
 			logger.error(e.getMessage(), e);
