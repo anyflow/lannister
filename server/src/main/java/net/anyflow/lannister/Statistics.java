@@ -16,6 +16,8 @@
 
 package net.anyflow.lannister;
 
+import java.lang.management.ManagementFactory;
+import java.text.NumberFormat;
 import java.util.Date;
 import java.util.Map;
 import java.util.concurrent.locks.Lock;
@@ -34,6 +36,10 @@ public class Statistics {
 
 	private Map<String, SysValue> data; // key : topic name
 	private Map<Criterion, Long> criterions;
+	private final Runtime runtime;
+	private static final int CENT = 100;
+
+	private final com.sun.management.OperatingSystemMXBean osBean;
 
 	@JsonSerialize(using = SysValueSerializer.class)
 	public interface SysValue {
@@ -68,6 +74,8 @@ public class Statistics {
 	private Statistics() {
 		this.data = Maps.newHashMap();
 		this.criterions = Factory.INSTANCE.createMap("statistics");
+		this.runtime = Runtime.getRuntime();
+		this.osBean = (com.sun.management.OperatingSystemMXBean) ManagementFactory.getOperatingSystemMXBean();
 
 		initializeCriterions();
 
@@ -283,6 +291,61 @@ public class Statistics {
 						/ (double) 1000;
 
 				return String.format("%.1f", (double) numerator / denominator);
+			}
+		});
+
+		data.put("$SYS/broker/messages/publish/sent/inSecond", new SysValue() {
+			@Override
+			public String value() {
+				Long numerator = criterions.get(Criterion.MESSAGES_PUBLISH_SENT);
+				Double denominator = (double) (new Date().getTime() - criterions.get(Criterion.BROKER_START_TIME))
+						/ (double) 1000;
+
+				return String.format("%.1f", (double) numerator / denominator);
+			}
+		});
+
+		// SYSTEM
+		data.put("$SYS/broker/member/" + Factory.INSTANCE.currentId() + "/system/processor/count", new SysValue() {
+			@Override
+			public String value() {
+				return NumberFormat.getNumberInstance().format(Runtime.getRuntime().availableProcessors());
+			}
+		});
+		data.put("$SYS/broker/member/" + Factory.INSTANCE.currentId() + "/load/cpu/system/percent", new SysValue() {
+			@Override
+			public String value() {
+				return NumberFormat.getNumberInstance().format(osBean.getSystemCpuLoad() * CENT);
+			}
+		});
+		data.put("$SYS/broker/member/" + Factory.INSTANCE.currentId() + "/load/cpu/jvm/percent", new SysValue() {
+			@Override
+			public String value() {
+				return NumberFormat.getNumberInstance().format(osBean.getProcessCpuLoad() * CENT);
+			}
+		});
+		data.put("$SYS/broker/member/" + Factory.INSTANCE.currentId() + "/load/thread/active/count", new SysValue() {
+			@Override
+			public String value() {
+				return NumberFormat.getNumberInstance().format(java.lang.Thread.activeCount());
+			}
+		});
+		data.put("$SYS/broker/member/" + Factory.INSTANCE.currentId() + "/load/memory/max/byte", new SysValue() {
+			@Override
+			public String value() {
+				return NumberFormat.getNumberInstance().format(runtime.maxMemory());
+			}
+		});
+		data.put("$SYS/broker/member/" + Factory.INSTANCE.currentId() + "/load/memory/total/byte", new SysValue() {
+			@Override
+			public String value() {
+				return NumberFormat.getNumberInstance().format(runtime.totalMemory());
+			}
+		});
+		data.put("$SYS/broker/member/" + Factory.INSTANCE.currentId() + "/load/memory/free/byte", new SysValue() {
+			@Override
+			public String value() {
+				return NumberFormat.getNumberInstance().format(runtime.freeMemory());
 			}
 		});
 	}
