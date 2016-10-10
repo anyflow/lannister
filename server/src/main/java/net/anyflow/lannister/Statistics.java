@@ -18,12 +18,12 @@ package net.anyflow.lannister;
 
 import java.util.Date;
 import java.util.Map;
+import java.util.concurrent.locks.Lock;
 
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.google.common.collect.Maps;
-import com.hazelcast.core.ILock;
-import com.hazelcast.core.IMap;
 
+import net.anyflow.lannister.cluster.Factory;
 import net.anyflow.lannister.serialization.SysValueSerializer;
 import net.anyflow.lannister.session.Session;
 import net.anyflow.lannister.topic.Topic;
@@ -33,7 +33,7 @@ public class Statistics {
 	public static final Statistics INSTANCE = new Statistics();
 
 	private Map<String, SysValue> data; // key : topic name
-	private IMap<Criterion, Long> criterions;
+	private Map<Criterion, Long> criterions;
 
 	@JsonSerialize(using = SysValueSerializer.class)
 	public interface SysValue {
@@ -67,7 +67,7 @@ public class Statistics {
 
 	private Statistics() {
 		this.data = Maps.newHashMap();
-		this.criterions = Hazelcast.INSTANCE.getMap("statistics");
+		this.criterions = Factory.INSTANCE.createMap("statistics");
 
 		initializeCriterions();
 
@@ -79,14 +79,14 @@ public class Statistics {
 	}
 
 	public void add(Criterion criterion, long size) {
-		ILock lock = Hazelcast.INSTANCE.getLock(criterion.toString());
+		Lock lock = Factory.INSTANCE.createLock(criterion.toString());
 
 		lock.lock();
 		try {
 			Long val = criterions.get(criterion);
 			val += size;
 
-			criterions.set(criterion, val);
+			criterions.put(criterion, val);
 		}
 		finally {
 			lock.unlock();
@@ -94,14 +94,14 @@ public class Statistics {
 	}
 
 	public void setMaxActiveClients(long current) {
-		ILock lock = Hazelcast.INSTANCE.getLock(Criterion.CLIENTS_MAXIMUM.toString());
+		Lock lock = Factory.INSTANCE.createLock(Criterion.CLIENTS_MAXIMUM.toString());
 
 		lock.lock();
 		try {
 			Long prev = criterions.get(Criterion.CLIENTS_MAXIMUM);
 
 			if (prev < current) {
-				criterions.set(Criterion.CLIENTS_MAXIMUM, current);
+				criterions.put(Criterion.CLIENTS_MAXIMUM, current);
 			}
 		}
 		finally {
@@ -111,7 +111,7 @@ public class Statistics {
 
 	private void initializeCriterions() {
 		if (criterions.get(Criterion.BROKER_START_TIME) == null) {
-			criterions.set(Criterion.BROKER_START_TIME, new Date().getTime());
+			criterions.put(Criterion.BROKER_START_TIME, new Date().getTime());
 		}
 
 		initialize(Criterion.BYTE_RECEIVED);
@@ -127,7 +127,7 @@ public class Statistics {
 	private void initialize(Criterion criterion) {
 		if (criterions.get(criterion) != null) { return; }
 
-		criterions.set(criterion, 0l);
+		criterions.put(criterion, 0l);
 	}
 
 	private void initializeTopics() {

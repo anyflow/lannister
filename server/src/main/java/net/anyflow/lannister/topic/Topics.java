@@ -22,10 +22,9 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 import com.google.common.collect.Maps;
-import com.hazelcast.core.IMap;
 import com.hazelcast.core.ITopic;
 
-import net.anyflow.lannister.Hazelcast;
+import net.anyflow.lannister.cluster.Factory;
 import net.anyflow.lannister.message.Message;
 import net.anyflow.lannister.session.Sessions;
 
@@ -33,16 +32,16 @@ public class Topics {
 	@SuppressWarnings("unused")
 	private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(Topics.class);
 
-	private final IMap<String, Topic> topics;
+	private final Map<String, Topic> topics;
 	private final ITopic<Notification> notifier;
 
 	protected Topics(Sessions sessions) {
-		this.topics = Hazelcast.INSTANCE.getMap("topics");
-		this.notifier = Hazelcast.INSTANCE.getTopic("publishNotifier");
+		this.topics = Factory.INSTANCE.createMap("topics");
+		this.notifier = Factory.INSTANCE.createTopic("publishNotifier");
 		this.notifier.addMessageListener(sessions);
 	}
 
-	public IMap<String, Topic> map() {
+	public Map<String, Topic> map() {
 		return topics;
 	}
 
@@ -88,7 +87,7 @@ public class Topics {
 	protected void persist(Topic topic) {
 		assert topic != null;
 
-		topics.set(topic.name(), topic);
+		topics.put(topic.name(), topic);
 	}
 
 	public void insert(Topic topic) {

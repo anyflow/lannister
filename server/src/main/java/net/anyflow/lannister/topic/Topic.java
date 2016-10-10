@@ -17,16 +17,17 @@
 package net.anyflow.lannister.topic;
 
 import java.io.IOException;
+import java.util.Map;
+import java.util.concurrent.locks.Lock;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.hazelcast.core.ILock;
-import com.hazelcast.core.IMap;
 import com.hazelcast.nio.ObjectDataInput;
 import com.hazelcast.nio.ObjectDataOutput;
 
 import io.netty.handler.codec.mqtt.MqttQoS;
-import net.anyflow.lannister.Hazelcast;
+import net.anyflow.lannister.cluster.Disposer;
+import net.anyflow.lannister.cluster.Factory;
 import net.anyflow.lannister.message.InboundMessageStatus;
 import net.anyflow.lannister.message.InboundMessageStatus.Status;
 import net.anyflow.lannister.message.Message;
@@ -45,16 +46,16 @@ public class Topic implements com.hazelcast.nio.serialization.IdentifiedDataSeri
 	@JsonProperty
 	private Message retainedMessage; // [MQTT-3.1.2.7]
 	@JsonProperty
-	private IMap<String, TopicSubscriber> subscribers; // KEY:clientId
+	private Map<String, TopicSubscriber> subscribers; // KEY:clientId
 	@JsonProperty
-	private IMap<String, Message> messages; // KEY:Message.key()
+	private Map<String, Message> messages; // KEY:Message.key()
 	@JsonProperty
-	private IMap<String, InboundMessageStatus> inboundMessageStatuses; // KEY:Message.key()
+	private Map<String, InboundMessageStatus> inboundMessageStatuses; // KEY:Message.key()
 	@JsonProperty
-	private IMap<String, Integer> messageReferenceCounts; // KEY:Message.key()
+	private Map<String, Integer> messageReferenceCounts; // KEY:Message.key()
 
 	@JsonIgnore
-	private ILock messageReferenceCountsLock;
+	private Lock messageReferenceCountsLock;
 
 	public Topic() { // just for Serialization
 	}
@@ -62,13 +63,13 @@ public class Topic implements com.hazelcast.nio.serialization.IdentifiedDataSeri
 	public Topic(String name) {
 		this.name = name;
 		this.retainedMessage = null;
-		this.subscribers = Hazelcast.INSTANCE.getMap(subscribersName());
+		this.subscribers = Factory.INSTANCE.createMap(subscribersName());
 
-		this.messages = Hazelcast.INSTANCE.getMap(messagesName());
-		this.inboundMessageStatuses = Hazelcast.INSTANCE.getMap(inboundMessageStatusesName());
-		this.messageReferenceCounts = Hazelcast.INSTANCE.getMap(inboundMessageReferenceCountsName());
+		this.messages = Factory.INSTANCE.createMap(messagesName());
+		this.inboundMessageStatuses = Factory.INSTANCE.createMap(inboundMessageStatusesName());
+		this.messageReferenceCounts = Factory.INSTANCE.createMap(inboundMessageReferenceCountsName());
 
-		this.messageReferenceCountsLock = Hazelcast.INSTANCE.getLock(messageReferenceCountsLockName());
+		this.messageReferenceCountsLock = Factory.INSTANCE.createLock(messageReferenceCountsLockName());
 	}
 
 	private String subscribersName() {
@@ -110,7 +111,7 @@ public class Topic implements com.hazelcast.nio.serialization.IdentifiedDataSeri
 		NEXUS.persist(this);
 	}
 
-	public IMap<String, TopicSubscriber> getSubscribers() {
+	public Map<String, TopicSubscriber> getSubscribers() {
 		return subscribers;
 	}
 
@@ -118,7 +119,7 @@ public class Topic implements com.hazelcast.nio.serialization.IdentifiedDataSeri
 		assert clientId != null;
 		assert subscriber != null;
 
-		subscribers.set(clientId, subscriber);
+		subscribers.put(clientId, subscriber);
 	}
 
 	public TopicSubscriber removeSubscriber(String clientId) {
@@ -133,11 +134,11 @@ public class Topic implements com.hazelcast.nio.serialization.IdentifiedDataSeri
 		return ret;
 	}
 
-	public IMap<String, Message> messages() {
+	public Map<String, Message> messages() {
 		return messages;
 	}
 
-	public IMap<String, InboundMessageStatus> inboundMessageStatuses() {
+	public Map<String, InboundMessageStatus> inboundMessageStatuses() {
 		return inboundMessageStatuses;
 	}
 
@@ -155,7 +156,7 @@ public class Topic implements com.hazelcast.nio.serialization.IdentifiedDataSeri
 		InboundMessageStatus messageStatus = new InboundMessageStatus(clientId, messageId, status);
 		retain(messageStatus.key());
 
-		inboundMessageStatuses.set(messageStatus.key(), messageStatus);
+		inboundMessageStatuses.put(messageStatus.key(), messageStatus);
 	}
 
 	public void setInboundMessageStatus(String clientId, int messageId, Status status) {
@@ -168,7 +169,7 @@ public class Topic implements com.hazelcast.nio.serialization.IdentifiedDataSeri
 
 		messageStatus.status(status);
 
-		inboundMessageStatuses.set(messageStatus.key(), messageStatus);
+		inboundMessageStatuses.put(messageStatus.key(), messageStatus);
 	}
 
 	private void putMessage(String requesterId, Message message) {
@@ -176,7 +177,7 @@ public class Topic implements com.hazelcast.nio.serialization.IdentifiedDataSeri
 
 		if (message.qos() == MqttQoS.AT_MOST_ONCE) { return; }
 
-		messages.set(message.key(), message);
+		messages.put(message.key(), message);
 
 		addInboundMessageStatus(requesterId, message.id(), Status.RECEIVED);
 	}
@@ -242,7 +243,7 @@ public class Topic implements com.hazelcast.nio.serialization.IdentifiedDataSeri
 		Session.NEXUS.map().values().stream()
 				.filter(s -> s.getTopicSubscriptions().values().stream()
 						.anyMatch(ts -> TopicMatcher.match(ts.topicFilter(), name)))
-				.forEach(s -> subscribers.set(s.clientId(), new TopicSubscriber(s.clientId(), name)));
+				.forEach(s -> subscribers.put(s.clientId(), new TopicSubscriber(s.clientId(), name)));
 	}
 
 	public void retain(String messageKey) {
@@ -254,7 +255,7 @@ public class Topic implements com.hazelcast.nio.serialization.IdentifiedDataSeri
 				count = 0;
 			}
 
-			messageReferenceCounts.set(messageKey, ++count);
+			messageReferenceCounts.put(messageKey, ++count);
 			logger.debug("message reference added [count={}, messageKey={}]", count, messageKey);
 		}
 		finally {
@@ -289,11 +290,12 @@ public class Topic implements com.hazelcast.nio.serialization.IdentifiedDataSeri
 	}
 
 	public void dispose() {
-		subscribers.destroy();
-		messages.destroy();
-		inboundMessageStatuses.destroy();
-		messageReferenceCounts.destroy();
-		messageReferenceCountsLock.destroy();
+		Disposer.INSTANCE.disposeMap(subscribers);
+		Disposer.INSTANCE.disposeMap(messages);
+		Disposer.INSTANCE.disposeMap(inboundMessageStatuses);
+		Disposer.INSTANCE.disposeMap(messageReferenceCounts);
+
+		Disposer.INSTANCE.disposeLock(messageReferenceCountsLock);
 	}
 
 	@JsonIgnore
@@ -325,10 +327,10 @@ public class Topic implements com.hazelcast.nio.serialization.IdentifiedDataSeri
 			retainedMessage = new Message(in);
 		}
 
-		subscribers = Hazelcast.INSTANCE.getMap(subscribersName());
-		messages = Hazelcast.INSTANCE.getMap(messagesName());
-		inboundMessageStatuses = Hazelcast.INSTANCE.getMap(inboundMessageStatusesName());
-		messageReferenceCounts = Hazelcast.INSTANCE.getMap(inboundMessageReferenceCountsName());
-		messageReferenceCountsLock = Hazelcast.INSTANCE.getLock(messageReferenceCountsLockName());
+		subscribers = Factory.INSTANCE.createMap(subscribersName());
+		messages = Factory.INSTANCE.createMap(messagesName());
+		inboundMessageStatuses = Factory.INSTANCE.createMap(inboundMessageStatusesName());
+		messageReferenceCounts = Factory.INSTANCE.createMap(inboundMessageReferenceCountsName());
+		messageReferenceCountsLock = Factory.INSTANCE.createLock(messageReferenceCountsLockName());
 	}
 }

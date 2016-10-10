@@ -25,9 +25,9 @@ import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
 import io.netty.handler.codec.mqtt.MqttQoS;
 import io.netty.util.CharsetUtil;
-import net.anyflow.lannister.Hazelcast;
 import net.anyflow.lannister.Settings;
 import net.anyflow.lannister.Statistics;
+import net.anyflow.lannister.cluster.Factory;
 import net.anyflow.lannister.message.Message;
 import net.anyflow.lannister.session.Session;
 import net.anyflow.lannister.topic.Topic;
@@ -51,7 +51,7 @@ public class ScheduledExecutor extends ChannelInboundHandlerAdapter {
 			Statistics.INSTANCE.data().entrySet().stream().forEach(e -> {
 				byte[] msg = e.getValue().value().getBytes(CharsetUtil.UTF_8);
 
-				Message message = new Message(-1, e.getKey(), Hazelcast.INSTANCE.currentId(), msg, MqttQoS.AT_MOST_ONCE,
+				Message message = new Message(-1, e.getKey(), Factory.INSTANCE.currentId(), msg, MqttQoS.AT_MOST_ONCE,
 						false);
 				Topic topic = Topic.NEXUS.prepare(message);
 

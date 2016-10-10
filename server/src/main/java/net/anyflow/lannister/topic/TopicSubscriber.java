@@ -17,95 +17,95 @@
 package net.anyflow.lannister.topic;
 
 import java.io.IOException;
+import java.util.Map;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.hazelcast.core.IMap;
 import com.hazelcast.nio.ObjectDataInput;
 import com.hazelcast.nio.ObjectDataOutput;
 
 import io.netty.handler.codec.mqtt.MqttQoS;
-import net.anyflow.lannister.Hazelcast;
+import net.anyflow.lannister.cluster.Factory;
 import net.anyflow.lannister.message.OutboundMessageStatus;
 import net.anyflow.lannister.serialization.SerializableFactory;
 
 public class TopicSubscriber implements com.hazelcast.nio.serialization.IdentifiedDataSerializable {
 
-    public final static int ID = 7;
+	public final static int ID = 7;
 
-    @JsonProperty
-    private String clientId;
-    @JsonProperty
-    private String topicName;
-    @JsonProperty
-    private IMap<Integer, OutboundMessageStatus> outboundMessageStatuses; // KEY:messageId
+	@JsonProperty
+	private String clientId;
+	@JsonProperty
+	private String topicName;
+	@JsonProperty
+	private Map<Integer, OutboundMessageStatus> outboundMessageStatuses; // KEY:messageId
 
-    public TopicSubscriber() { // just for Serialization
-    }
+	public TopicSubscriber() { // just for Serialization
+	}
 
-    public TopicSubscriber(String clientId, String topicName) {
-        this.clientId = clientId;
-        this.topicName = topicName;
-        this.outboundMessageStatuses = Hazelcast.INSTANCE.getMap(messageStatusesName());
-    }
+	public TopicSubscriber(String clientId, String topicName) {
+		this.clientId = clientId;
+		this.topicName = topicName;
+		this.outboundMessageStatuses = Factory.INSTANCE.createMap(messageStatusesName());
+	}
 
-    private String messageStatusesName() {
-        return "TOPIC(" + topicName + ")_CLIENT(" + clientId + ")_outboundMessageStatuses";
-    }
+	private String messageStatusesName() {
+		return "TOPIC(" + topicName + ")_CLIENT(" + clientId + ")_outboundMessageStatuses";
+	}
 
-    public IMap<Integer, OutboundMessageStatus> outboundMessageStatuses() {
-        return outboundMessageStatuses;
-    }
+	public Map<Integer, OutboundMessageStatus> outboundMessageStatuses() {
+		return outboundMessageStatuses;
+	}
 
-    protected void addOutboundMessageStatus(String messageKey, int messageId, OutboundMessageStatus.Status status,
-            MqttQoS qos) {
-        OutboundMessageStatus messageStatus = new OutboundMessageStatus(messageKey, clientId, messageId, status, qos);
+	protected void addOutboundMessageStatus(String messageKey, int messageId, OutboundMessageStatus.Status status,
+			MqttQoS qos) {
+		OutboundMessageStatus messageStatus = new OutboundMessageStatus(messageKey, clientId, messageId, status, qos);
 
-        outboundMessageStatuses.set(messageStatus.messageId(), messageStatus);
+		outboundMessageStatuses.put(messageStatus.messageId(), messageStatus);
 
-        Topic.NEXUS.get(topicName).retain(messageStatus.messageKey());
-    }
+		Topic.NEXUS.get(topicName).retain(messageStatus.messageKey());
+	}
 
-    public OutboundMessageStatus removeOutboundMessageStatus(int messageId) {
-        OutboundMessageStatus ret = outboundMessageStatuses.remove(messageId);
-        if (ret == null) { return null; }
+	public OutboundMessageStatus removeOutboundMessageStatus(int messageId) {
+		OutboundMessageStatus ret = outboundMessageStatuses.remove(messageId);
+		if (ret == null) { return null; }
 
-        Topic.NEXUS.get(topicName).release(ret.messageKey());
+		Topic.NEXUS.get(topicName).release(ret.messageKey());
 
-        return ret;
-    }
+		return ret;
+	}
 
-    public void setOutboundMessageStatus(int messageId, OutboundMessageStatus.Status targetStatus) {
-        OutboundMessageStatus status = outboundMessageStatuses.get(messageId);
-        if (status == null) { return; }
+	public void setOutboundMessageStatus(int messageId, OutboundMessageStatus.Status targetStatus) {
+		OutboundMessageStatus status = outboundMessageStatuses.get(messageId);
+		if (status == null) { return; }
 
-        status.status(targetStatus);
+		status.status(targetStatus);
 
-        outboundMessageStatuses.set(status.messageId(), status);
-    }
+		outboundMessageStatuses.put(status.messageId(), status);
+	}
 
-    @JsonIgnore
-    @Override
-    public int getFactoryId() {
-        return SerializableFactory.ID;
-    }
+	@JsonIgnore
+	@Override
+	public int getFactoryId() {
+		return SerializableFactory.ID;
+	}
 
-    @Override
-    public int getId() {
-        return ID;
-    }
+	@Override
+	public int getId() {
+		return ID;
+	}
 
-    @Override
-    public void writeData(ObjectDataOutput out) throws IOException {
-        out.writeUTF(topicName);
-        out.writeUTF(clientId);
-    }
+	@Override
+	public void writeData(ObjectDataOutput out) throws IOException {
+		out.writeUTF(topicName);
+		out.writeUTF(clientId);
+	}
 
-    @Override
-    public void readData(ObjectDataInput in) throws IOException {
-        topicName = in.readUTF();
-        clientId = in.readUTF();
+	@Override
+	public void readData(ObjectDataInput in) throws IOException {
+		topicName = in.readUTF();
+		clientId = in.readUTF();
 
-        outboundMessageStatuses = Hazelcast.INSTANCE.getMap(messageStatusesName());
-    }
+		outboundMessageStatuses = Factory.INSTANCE.createMap(messageStatusesName());
+	}
 }

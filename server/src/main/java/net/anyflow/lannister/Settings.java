@@ -27,6 +27,7 @@ import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
 
 import io.netty.handler.ssl.util.SelfSignedCertificate;
+import net.anyflow.lannister.cluster.Mode;
 
 public class Settings extends java.util.Properties {
 
@@ -164,6 +165,10 @@ public class Settings extends java.util.Properties {
 		if (!getBoolean("netty.nativeTransportMode", true)) { return Literals.NETTY_NIO; }
 
 		return System.getProperty("os.name").startsWith("Linux") ? Literals.NETTY_EPOLL : Literals.NETTY_NIO;
+	}
+
+	public Mode clusteringMode() {
+		return Mode.from(getProperty("clustering.mode", "hazelcast"));
 	}
 
 	public String version() {
