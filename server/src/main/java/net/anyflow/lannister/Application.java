@@ -16,6 +16,7 @@
 
 package net.anyflow.lannister;
 
+import net.anyflow.lannister.cluster.Hazelcast;
 import net.anyflow.lannister.http.WebServer;
 import net.anyflow.lannister.server.MqttServer;
 import net.anyflow.lannister.topic.Topic;

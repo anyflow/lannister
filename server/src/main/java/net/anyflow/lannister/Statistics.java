@@ -17,15 +17,16 @@
 package net.anyflow.lannister;
 
 import java.lang.management.ManagementFactory;
+import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.util.Date;
 import java.util.Map;
+import java.util.concurrent.locks.Lock;
 
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.google.common.collect.Maps;
-import com.hazelcast.core.ILock;
-import com.hazelcast.core.IMap;
 
+import net.anyflow.lannister.cluster.Factory;
 import net.anyflow.lannister.serialization.SysValueSerializer;
 import net.anyflow.lannister.session.Session;
 import net.anyflow.lannister.topic.Topic;
@@ -33,14 +34,16 @@ import net.anyflow.lannister.topic.Topic;
 public class Statistics {
 
 	public static final Statistics INSTANCE = new Statistics();
-
-	private final Map<String, SysValue> data; // key : topic name
-	private final IMap<Criterion, Long> criterions;
-	private final Runtime runtime;
 	private static final int CENT = 100;
 
+	private Map<String, SysValue> data; // key : topic name
+	private Map<Criterion, Long> criterions;
+	private final Runtime runtime;
+	private final DecimalFormat decimalFormatter;
+	private final NumberFormat defaultFormatter;
 	private final com.sun.management.OperatingSystemMXBean osBean;
 
+	@FunctionalInterface
 	@JsonSerialize(using = SysValueSerializer.class)
 	public interface SysValue {
 		String value();
@@ -55,7 +58,7 @@ public class Statistics {
 
 		@Override
 		public String value() {
-			return criterions.get(criterion).toString();
+			return NumberFormat.getNumberInstance().format(criterions.get(criterion));
 		}
 	}
 
@@ -73,9 +76,11 @@ public class Statistics {
 
 	private Statistics() {
 		this.data = Maps.newHashMap();
-		this.criterions = Hazelcast.INSTANCE.getMap("statistics");
+		this.criterions = Factory.INSTANCE.createMap("statistics");
 		this.runtime = Runtime.getRuntime();
 		this.osBean = (com.sun.management.OperatingSystemMXBean) ManagementFactory.getOperatingSystemMXBean();
+		this.decimalFormatter = new DecimalFormat("#,###.0");
+		this.defaultFormatter = NumberFormat.getNumberInstance();
 
 		initializeCriterions();
 
@@ -87,14 +92,14 @@ public class Statistics {
 	}
 
 	public void add(Criterion criterion, long size) {
-		ILock lock = Hazelcast.INSTANCE.getLock(criterion.toString());
+		Lock lock = Factory.INSTANCE.createLock(criterion.toString());
 
 		lock.lock();
 		try {
 			Long val = criterions.get(criterion);
 			val += size;
 
-			criterions.set(criterion, val);
+			criterions.put(criterion, val);
 		}
 		finally {
 			lock.unlock();
@@ -102,14 +107,14 @@ public class Statistics {
 	}
 
 	public void setMaxActiveClients(long current) {
-		ILock lock = Hazelcast.INSTANCE.getLock(Criterion.CLIENTS_MAXIMUM.toString());
+		Lock lock = Factory.INSTANCE.createLock(Criterion.CLIENTS_MAXIMUM.toString());
 
 		lock.lock();
 		try {
 			Long prev = criterions.get(Criterion.CLIENTS_MAXIMUM);
 
 			if (prev < current) {
-				criterions.set(Criterion.CLIENTS_MAXIMUM, current);
+				criterions.put(Criterion.CLIENTS_MAXIMUM, current);
 			}
 		}
 		finally {
@@ -119,7 +124,7 @@ public class Statistics {
 
 	private void initializeCriterions() {
 		if (criterions.get(Criterion.BROKER_START_TIME) == null) {
-			criterions.set(Criterion.BROKER_START_TIME, new Date().getTime());
+			criterions.put(Criterion.BROKER_START_TIME, new Date().getTime());
 		}
 
 		initialize(Criterion.BYTE_RECEIVED);
@@ -135,7 +140,7 @@ public class Statistics {
 	private void initialize(Criterion criterion) {
 		if (criterions.get(criterion) != null) { return; }
 
-		criterions.set(criterion, 0l);
+		criterions.put(criterion, 0l);
 	}
 
 	private void initializeTopics() {
@@ -145,208 +150,109 @@ public class Statistics {
 		data.put("$SYS/broker/messages/publish/dropped", new RawSysValue(Criterion.MESSAGES_PUBLISH_DROPPED));
 		data.put("$SYS/broker/messages/publish/received", new RawSysValue(Criterion.MESSAGES_PUBLISH_RECEIVED));
 		data.put("$SYS/broker/messages/publish/sent", new RawSysValue(Criterion.MESSAGES_PUBLISH_SENT));
-		data.put("$SYS/broker/messages/retained/count", new SysValue() {
-			@Override
-			public String value() {
-				return Long
-						.toString(Topic.NEXUS.map().values().stream().filter(t -> t.retainedMessage() != null).count());
-			}
-		});
+		data.put("$SYS/broker/messages/retained/count", () -> defaultFormatter
+				.format(Topic.NEXUS.map().values().stream().filter(t -> t.retainedMessage() != null).count()));
 
 		// CLIENT
 		data.put("$SYS/broker/clients/maximum", new RawSysValue(Criterion.CLIENTS_MAXIMUM));
-		data.put("$SYS/broker/clients/connected", new SysValue() {
-			@Override
-			public String value() {
-				long current = Session.NEXUS.map().values().stream().filter(s -> s.isConnected(false)).count();
+		data.put("$SYS/broker/clients/connected", () -> {
+			long current = Session.NEXUS.map().values().stream().filter(s -> s.isConnected(false)).count();
 
-				setMaxActiveClients(current);
+			setMaxActiveClients(current);
 
-				return Long.toString(current);
-			}
+			return defaultFormatter.format(current);
 		});
-		data.put("$SYS/broker/clients/disconnected", new SysValue() {
-			@Override
-			public String value() {
-				return Long.toString(Session.NEXUS.map().values().stream().filter(s -> !s.isConnected(false)).count());
-			}
-		});
-		data.put("$SYS/broker/clients/total", new SysValue() {
-			@Override
-			public String value() {
-				return Long.toString(Session.NEXUS.map().size());
-			}
-		});
+		data.put("$SYS/broker/clients/disconnected", () -> defaultFormatter
+				.format(Session.NEXUS.map().values().stream().filter(s -> !s.isConnected(false)).count()));
+		data.put("$SYS/broker/clients/total", () -> defaultFormatter.format(Session.NEXUS.map().size()));
 
 		// STATIC
-		data.put("$SYS/broker/version", new SysValue() {
-			@Override
-			public String value() {
-				return Settings.INSTANCE.version();
-			}
-		});
-		data.put("$SYS/broker/timestamp", new SysValue() {
-			@Override
-			public String value() {
-				return Settings.INSTANCE.buildTime();
-			}
-		});
-		data.put("$SYS/broker/changeset", new SysValue() {
-			@Override
-			public String value() {
-				return Settings.INSTANCE.commitId() + " | " + Settings.INSTANCE.commitIdDescribe();
-			}
-		});
+		data.put("$SYS/broker/version", () -> Settings.INSTANCE.version());
+		data.put("$SYS/broker/timestamp", () -> Settings.INSTANCE.buildTime());
+		data.put("$SYS/broker/changeset",
+				() -> Settings.INSTANCE.commitId() + " | " + Settings.INSTANCE.commitIdDescribe());
 
 		// ETC
 		data.put("$SYS/broker/load/bytes/received", new RawSysValue(Criterion.BYTE_RECEIVED));
 		data.put("$SYS/broker/load/bytes/sent", new RawSysValue(Criterion.BYTE_SENT));
-		data.put("$SYS/broker/subscriptions/count", new SysValue() {
-			@Override
-			public String value() {
-				return Long.toString(Session.NEXUS.map().values().stream().map(s -> s.getTopicSubscriptions())
-						.flatMap(s -> s.values().stream()).count());
-			}
-		});
-		data.put("$SYS/broker/time", new SysValue() {
-			@Override
-			public String value() {
-				return new Date().toString();
-			}
-		});
-		data.put("$SYS/broker/uptime", new SysValue() {
-			@Override
-			public String value() {
-				return Double.toString(
-						(double) (new Date().getTime() - criterions.get(Criterion.BROKER_START_TIME)) / (double) 1000);
-			}
-		});
+		data.put("$SYS/broker/subscriptions/count", () -> defaultFormatter.format(Session.NEXUS.map().values().stream()
+				.map(s -> s.getTopicSubscriptions()).flatMap(s -> s.values().stream()).count()));
+		data.put("$SYS/broker/time", () -> new Date().toString());
+		data.put("$SYS/broker/uptime", () -> defaultFormatter
+				.format((double) (new Date().getTime() - criterions.get(Criterion.BROKER_START_TIME)) / (double) 1000));
 
 		// RATE
-		data.put("$SYS/broker/messages/received/inSecond", new SysValue() {
-			@Override
-			public String value() {
-				Long numerator = criterions.get(Criterion.MESSAGES_RECEIVED);
-				Double denominator = (double) (new Date().getTime() - criterions.get(Criterion.BROKER_START_TIME))
-						/ (double) 1000;
+		data.put("$SYS/broker/messages/received/inSecond", () -> {
+			Long numerator = criterions.get(Criterion.MESSAGES_RECEIVED);
+			Double denominator = (double) (new Date().getTime() - criterions.get(Criterion.BROKER_START_TIME))
+					/ (double) 1000;
 
-				return String.format("%.1f", (double) numerator / denominator);
-			}
+			return decimalFormatter.format((double) numerator / denominator);
 		});
-		data.put("$SYS/broker/messages/sent/inSecond", new SysValue() {
-			@Override
-			public String value() {
-				Long numerator = criterions.get(Criterion.MESSAGES_SENT);
-				Double denominator = (double) (new Date().getTime() - criterions.get(Criterion.BROKER_START_TIME))
-						/ (double) 1000;
+		data.put("$SYS/broker/messages/sent/inSecond", () -> {
+			Long numerator = criterions.get(Criterion.MESSAGES_SENT);
+			Double denominator = (double) (new Date().getTime() - criterions.get(Criterion.BROKER_START_TIME))
+					/ (double) 1000;
 
-				return String.format("%.1f", (double) numerator / denominator);
-			}
+			return decimalFormatter.format((double) numerator / denominator);
 		});
-		data.put("$SYS/broker/load/bytes/received/inSecond", new SysValue() {
-			@Override
-			public String value() {
-				Long numerator = criterions.get(Criterion.BYTE_RECEIVED);
-				Double denominator = (double) (new Date().getTime() - criterions.get(Criterion.BROKER_START_TIME))
-						/ (double) 1000;
+		data.put("$SYS/broker/load/bytes/received/inSecond", () -> {
+			Long numerator = criterions.get(Criterion.BYTE_RECEIVED);
+			Double denominator = (double) (new Date().getTime() - criterions.get(Criterion.BROKER_START_TIME))
+					/ (double) 1000;
 
-				return String.format("%.1f", (double) numerator / denominator);
-			}
+			return decimalFormatter.format((double) numerator / denominator);
 		});
-		data.put("$SYS/broker/load/bytes/sent/inSecond", new SysValue() {
-			@Override
-			public String value() {
-				Long numerator = criterions.get(Criterion.BYTE_SENT);
-				Double denominator = (double) (new Date().getTime() - criterions.get(Criterion.BROKER_START_TIME))
-						/ (double) 1000;
+		data.put("$SYS/broker/load/bytes/sent/inSecond", () -> {
+			Long numerator = criterions.get(Criterion.BYTE_SENT);
+			Double denominator = (double) (new Date().getTime() - criterions.get(Criterion.BROKER_START_TIME))
+					/ (double) 1000;
 
-				return String.format("%.1f", (double) numerator / denominator);
-			}
+			return decimalFormatter.format((double) numerator / denominator);
 		});
-		data.put("$SYS/broker/messages/publish/dropped/inSecond", new SysValue() {
-			@Override
-			public String value() {
-				Long numerator = criterions.get(Criterion.MESSAGES_PUBLISH_DROPPED);
-				Double denominator = (double) (new Date().getTime() - criterions.get(Criterion.BROKER_START_TIME))
-						/ (double) 1000;
+		data.put("$SYS/broker/messages/publish/dropped/inSecond", () -> {
+			Long numerator = criterions.get(Criterion.MESSAGES_PUBLISH_DROPPED);
+			Double denominator = (double) (new Date().getTime() - criterions.get(Criterion.BROKER_START_TIME))
+					/ (double) 1000;
 
-				return String.format("%.1f", (double) numerator / denominator);
-			}
+			return decimalFormatter.format((double) numerator / denominator);
 		});
-		data.put("$SYS/broker/messages/publish/received/inSecond", new SysValue() {
-			@Override
-			public String value() {
-				Long numerator = criterions.get(Criterion.MESSAGES_PUBLISH_RECEIVED);
-				Double denominator = (double) (new Date().getTime() - criterions.get(Criterion.BROKER_START_TIME))
-						/ (double) 1000;
+		data.put("$SYS/broker/messages/publish/received/inSecond", () -> {
+			Long numerator = criterions.get(Criterion.MESSAGES_PUBLISH_RECEIVED);
+			Double denominator = (double) (new Date().getTime() - criterions.get(Criterion.BROKER_START_TIME))
+					/ (double) 1000;
 
-				return String.format("%.1f", (double) numerator / denominator);
-			}
+			return decimalFormatter.format((double) numerator / denominator);
 		});
-		data.put("$SYS/broker/messages/publish/sent/inSecond", new SysValue() {
-			@Override
-			public String value() {
-				Long numerator = criterions.get(Criterion.MESSAGES_PUBLISH_SENT);
-				Double denominator = (double) (new Date().getTime() - criterions.get(Criterion.BROKER_START_TIME))
-						/ (double) 1000;
+		data.put("$SYS/broker/messages/publish/sent/inSecond", () -> {
+			Long numerator = criterions.get(Criterion.MESSAGES_PUBLISH_SENT);
+			Double denominator = (double) (new Date().getTime() - criterions.get(Criterion.BROKER_START_TIME))
+					/ (double) 1000;
 
-				return String.format("%.1f", (double) numerator / denominator);
-			}
+			return decimalFormatter.format((double) numerator / denominator);
 		});
+		data.put("$SYS/broker/messages/publish/sent/inSecond", () -> {
+			Long numerator = criterions.get(Criterion.MESSAGES_PUBLISH_SENT);
+			Double denominator = (double) (new Date().getTime() - criterions.get(Criterion.BROKER_START_TIME))
+					/ (double) 1000;
 
-		data.put("$SYS/broker/messages/publish/sent/inSecond", new SysValue() {
-			@Override
-			public String value() {
-				Long numerator = criterions.get(Criterion.MESSAGES_PUBLISH_SENT);
-				Double denominator = (double) (new Date().getTime() - criterions.get(Criterion.BROKER_START_TIME))
-						/ (double) 1000;
-
-				return String.format("%.1f", (double) numerator / denominator);
-			}
+			return decimalFormatter.format((double) numerator / denominator);
 		});
-
+		
 		// SYSTEM
-		data.put("$SYS/broker/" + Hazelcast.INSTANCE.currentId() + "/system/count/processor", new SysValue() {
-			@Override
-			public String value() {
-				return NumberFormat.getNumberInstance().format(Runtime.getRuntime().availableProcessors());
-			}
-		});
-		data.put("$SYS/broker/" + Hazelcast.INSTANCE.currentId() + "/system/load/percent/cpu/system", new SysValue() {
-			@Override
-			public String value() {
-				return NumberFormat.getNumberInstance().format(osBean.getSystemCpuLoad() * CENT);
-			}
-		});
-		data.put("$SYS/broker/" + Hazelcast.INSTANCE.currentId() + "/system/load/percent/cpu/jvm", new SysValue() {
-			@Override
-			public String value() {
-				return NumberFormat.getNumberInstance().format(osBean.getProcessCpuLoad() * CENT);
-			}
-		});
-		data.put("$SYS/broker/" + Hazelcast.INSTANCE.currentId() + "/system/load/count/threadActive", new SysValue() {
-			@Override
-			public String value() {
-				return NumberFormat.getNumberInstance().format(java.lang.Thread.activeCount());
-			}
-		});
-		data.put("$SYS/broker/" + Hazelcast.INSTANCE.currentId() + "/system/load/memory/byte/max", new SysValue() {
-			@Override
-			public String value() {
-				return NumberFormat.getNumberInstance().format(runtime.maxMemory());
-			}
-		});
-		data.put("$SYS/broker/" + Hazelcast.INSTANCE.currentId() + "/system/load/memory/byte/total", new SysValue() {
-			@Override
-			public String value() {
-				return NumberFormat.getNumberInstance().format(runtime.totalMemory());
-			}
-		});
-		data.put("$SYS/broker/" + Hazelcast.INSTANCE.currentId() + "/system/load/memory/byte/free", new SysValue() {
-			@Override
-			public String value() {
-				return NumberFormat.getNumberInstance().format(runtime.freeMemory());
-			}
-		});
+		data.put("$SYS/broker/node/" + Factory.INSTANCE.currentId() + "/system/processor/count",
+				() -> defaultFormatter.format(Runtime.getRuntime().availableProcessors()));
+		data.put("$SYS/broker/node/" + Factory.INSTANCE.currentId() + "/load/cpu/system/percent",
+				() -> decimalFormatter.format(osBean.getSystemCpuLoad() * CENT));
+		data.put("$SYS/broker/node/" + Factory.INSTANCE.currentId() + "/load/cpu/jvm/percent",
+				() -> decimalFormatter.format(osBean.getProcessCpuLoad() * CENT));
+		data.put("$SYS/broker/node/" + Factory.INSTANCE.currentId() + "/load/thread/active/count",
+				() -> defaultFormatter.format(java.lang.Thread.activeCount()));
+		data.put("$SYS/broker/node/" + Factory.INSTANCE.currentId() + "/load/memory/max/byte",
+				() -> defaultFormatter.format(runtime.maxMemory()));
+		data.put("$SYS/broker/node/" + Factory.INSTANCE.currentId() + "/load/memory/total/byte",
+				() -> defaultFormatter.format(runtime.totalMemory()));
+		data.put("$SYS/broker/node/" + Factory.INSTANCE.currentId() + "/load/memory/free/byte",
+				() -> defaultFormatter.format(runtime.freeMemory()));
 	}
 }

@@ -20,13 +20,12 @@ import java.util.Map;
 
 import com.google.common.base.Strings;
 import com.google.common.collect.Maps;
-import com.hazelcast.core.IMap;
 import com.hazelcast.core.Message;
 import com.hazelcast.core.MessageListener;
 
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelId;
-import net.anyflow.lannister.Hazelcast;
+import net.anyflow.lannister.cluster.Factory;
 import net.anyflow.lannister.topic.Notification;
 
 public class Sessions implements MessageListener<Notification> {
@@ -34,12 +33,12 @@ public class Sessions implements MessageListener<Notification> {
 	@SuppressWarnings("unused")
 	private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(Sessions.class);
 
-	private final IMap<String, Session> sessions;
+	private final Map<String, Session> sessions;
 	private final Map<ChannelId, String> clientIds; // KEY:channelId
 	private final Map<String, ChannelHandlerContext> ctxs; // KEY:clientlId
 
 	protected Sessions() {
-		sessions = Hazelcast.INSTANCE.getMap("sessions");
+		sessions = Factory.INSTANCE.createMap("sessions");
 		clientIds = Maps.newHashMap();
 		ctxs = Maps.newHashMap();
 	}
@@ -47,14 +46,14 @@ public class Sessions implements MessageListener<Notification> {
 	public void put(Session session, ChannelHandlerContext ctx) {
 		synchronized (this) {
 			session.setConnected(true);
-			sessions.set(session.clientId(), session); // [MQTT-3.1.2-4]
+			sessions.put(session.clientId(), session); // [MQTT-3.1.2-4]
 			clientIds.put(ctx.channel().id(), session.clientId());
 			ctxs.put(session.clientId(), ctx);
 		}
 	}
 
 	public void persist(Session session) {
-		sessions.set(session.clientId(), session);
+		sessions.put(session.clientId(), session);
 	}
 
 	public ChannelHandlerContext channelHandlerContext(String clientId) {
@@ -93,7 +92,7 @@ public class Sessions implements MessageListener<Notification> {
 		}
 	}
 
-	public IMap<String, Session> map() {
+	public Map<String, Session> map() {
 		return sessions;
 	}
 

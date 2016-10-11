@@ -18,12 +18,12 @@ package net.anyflow.lannister.session;
 
 import java.io.IOException;
 import java.util.Date;
+import java.util.Map;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
-import com.hazelcast.core.IMap;
 import com.hazelcast.nio.ObjectDataInput;
 import com.hazelcast.nio.ObjectDataOutput;
 
@@ -34,8 +34,9 @@ import io.netty.handler.codec.mqtt.MqttMessage;
 import io.netty.util.concurrent.Future;
 import io.netty.util.concurrent.GenericFutureListener;
 import net.anyflow.lannister.AbnormalDisconnectEventArgs;
-import net.anyflow.lannister.Hazelcast;
 import net.anyflow.lannister.Literals;
+import net.anyflow.lannister.cluster.Disposer;
+import net.anyflow.lannister.cluster.Factory;
 import net.anyflow.lannister.message.Message;
 import net.anyflow.lannister.plugin.DisconnectEventArgs;
 import net.anyflow.lannister.plugin.DisconnectEventListener;
@@ -63,7 +64,7 @@ public class Session implements com.hazelcast.nio.serialization.IdentifiedDataSe
 	@JsonProperty
 	private boolean isConnected;
 	@JsonProperty
-	private IMap<String, TopicSubscription> topicSubscriptions;
+	private Map<String, TopicSubscription> topicSubscriptions;
 	@JsonProperty
 	private int currentMessageId;
 	@JsonProperty
@@ -95,7 +96,7 @@ public class Session implements com.hazelcast.nio.serialization.IdentifiedDataSe
 		this.lastIncomingTime = new Date();
 		this.cleanSession = cleanSession;
 		this.will = will; // [MQTT-3.1.2-9]
-		this.topicSubscriptions = Hazelcast.INSTANCE.getMap(topicSubscriptionsName());
+		this.topicSubscriptions = Factory.INSTANCE.createMap(topicSubscriptionsName());
 
 		this.messageSender = new MessageSender(this);
 	}
@@ -159,14 +160,14 @@ public class Session implements com.hazelcast.nio.serialization.IdentifiedDataSe
 		Session.NEXUS.persist(this);
 	}
 
-	public IMap<String, TopicSubscription> getTopicSubscriptions() {
+	public Map<String, TopicSubscription> getTopicSubscriptions() {
 		return topicSubscriptions;
 	}
 
 	public void putTopicSubscription(TopicSubscription topicSubscription) {
 		assert topicSubscription != null;
 
-		topicSubscriptions.set(topicSubscription.topicFilter(), topicSubscription);
+		topicSubscriptions.put(topicSubscription.topicFilter(), topicSubscription);
 
 		Topic.NEXUS.map().values().stream().filter(t -> TopicMatcher.match(topicSubscription.topicFilter(), t.name()))
 				.forEach(t -> t.putSubscriber(clientId, new TopicSubscriber(clientId, t.name())));
@@ -237,7 +238,7 @@ public class Session implements com.hazelcast.nio.serialization.IdentifiedDataSe
 				Topic.NEXUS.matches(ts.topicFilter()).forEach(t -> t.removeSubscriber(clientId));
 			});
 
-			this.topicSubscriptions.destroy();
+			Disposer.INSTANCE.disposeMap(this.topicSubscriptions);
 		}
 
 		NEXUS.remove(this);
@@ -311,7 +312,7 @@ public class Session implements com.hazelcast.nio.serialization.IdentifiedDataSe
 		rawLong = in.readLong();
 		lastIncomingTime = rawLong != Long.MIN_VALUE ? new Date(rawLong) : null;
 
-		topicSubscriptions = Hazelcast.INSTANCE.getMap(topicSubscriptionsName());
+		topicSubscriptions = Factory.INSTANCE.createMap(topicSubscriptionsName());
 		messageSender = new MessageSender(this);
 	}
 }

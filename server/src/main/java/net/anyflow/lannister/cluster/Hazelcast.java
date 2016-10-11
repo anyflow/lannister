@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package net.anyflow.lannister;
+package net.anyflow.lannister.cluster;
 
 import java.io.IOException;
 
@@ -28,6 +28,8 @@ import com.hazelcast.core.IMap;
 import com.hazelcast.core.ITopic;
 import com.hazelcast.core.IdGenerator;
 
+import net.anyflow.lannister.Application;
+import net.anyflow.lannister.Settings;
 import net.anyflow.lannister.serialization.JsonSerializer;
 import net.anyflow.lannister.serialization.SerializableFactory;
 
@@ -37,9 +39,11 @@ public class Hazelcast {
 	public static final Hazelcast INSTANCE = new Hazelcast();
 	private static final String CONFIG_NAME = "lannister.cluster.xml";
 
-	private final HazelcastInstance substance;
+	private HazelcastInstance substance;
 
 	private Hazelcast() {
+		if (Settings.INSTANCE.clusteringMode() != Mode.HAZELCAST) { return; }
+
 		substance = com.hazelcast.core.Hazelcast.newHazelcastInstance(createConfig());
 	}
 
@@ -62,26 +66,28 @@ public class Hazelcast {
 	}
 
 	public void shutdown() {
+		if (Settings.INSTANCE.clusteringMode() != Mode.HAZELCAST) { return; }
+
 		substance.shutdown();
 	}
 
-	public ILock getLock(String key) {
+	protected ILock getLock(String key) {
 		return substance.getLock(key);
 	}
 
-	public <E> ITopic<E> getTopic(String name) {
+	protected <E> ITopic<E> getTopic(String name) {
 		return substance.getTopic(name);
 	}
 
-	public IdGenerator getIdGenerator(String name) {
+	protected IdGenerator getIdGenerator(String name) {
 		return substance.getIdGenerator(name);
 	}
 
-	public <K, V> IMap<K, V> getMap(String name) {
+	protected <K, V> IMap<K, V> getMap(String name) {
 		return substance.getMap(name);
 	}
 
-	public String currentId() {
+	protected String currentId() {
 		return substance.getLocalEndpoint().getUuid();
 	}
 }
