@@ -43,6 +43,7 @@ public class Statistics {
 	private final NumberFormat defaultFormatter;
 	private final com.sun.management.OperatingSystemMXBean osBean;
 
+	@FunctionalInterface
 	@JsonSerialize(using = SysValueSerializer.class)
 	public interface SysValue {
 		String value();
@@ -149,209 +150,109 @@ public class Statistics {
 		data.put("$SYS/broker/messages/publish/dropped", new RawSysValue(Criterion.MESSAGES_PUBLISH_DROPPED));
 		data.put("$SYS/broker/messages/publish/received", new RawSysValue(Criterion.MESSAGES_PUBLISH_RECEIVED));
 		data.put("$SYS/broker/messages/publish/sent", new RawSysValue(Criterion.MESSAGES_PUBLISH_SENT));
-		data.put("$SYS/broker/messages/retained/count", new SysValue() {
-			@Override
-			public String value() {
-				return defaultFormatter
-						.format(Topic.NEXUS.map().values().stream().filter(t -> t.retainedMessage() != null).count());
-			}
-		});
+		data.put("$SYS/broker/messages/retained/count", () -> defaultFormatter
+				.format(Topic.NEXUS.map().values().stream().filter(t -> t.retainedMessage() != null).count()));
 
 		// CLIENT
 		data.put("$SYS/broker/clients/maximum", new RawSysValue(Criterion.CLIENTS_MAXIMUM));
-		data.put("$SYS/broker/clients/connected", new SysValue() {
-			@Override
-			public String value() {
-				long current = Session.NEXUS.map().values().stream().filter(s -> s.isConnected(false)).count();
+		data.put("$SYS/broker/clients/connected", () -> {
+			long current = Session.NEXUS.map().values().stream().filter(s -> s.isConnected(false)).count();
 
-				setMaxActiveClients(current);
+			setMaxActiveClients(current);
 
-				return defaultFormatter.format(current);
-			}
+			return defaultFormatter.format(current);
 		});
-		data.put("$SYS/broker/clients/disconnected", new SysValue() {
-			@Override
-			public String value() {
-				return defaultFormatter
-						.format(Session.NEXUS.map().values().stream().filter(s -> !s.isConnected(false)).count());
-			}
-		});
-		data.put("$SYS/broker/clients/total", new SysValue() {
-			@Override
-			public String value() {
-				return defaultFormatter.format(Session.NEXUS.map().size());
-			}
-		});
+		data.put("$SYS/broker/clients/disconnected", () -> defaultFormatter
+				.format(Session.NEXUS.map().values().stream().filter(s -> !s.isConnected(false)).count()));
+		data.put("$SYS/broker/clients/total", () -> defaultFormatter.format(Session.NEXUS.map().size()));
 
 		// STATIC
-		data.put("$SYS/broker/version", new SysValue() {
-			@Override
-			public String value() {
-				return Settings.INSTANCE.version();
-			}
-		});
-		data.put("$SYS/broker/timestamp", new SysValue() {
-			@Override
-			public String value() {
-				return Settings.INSTANCE.buildTime();
-			}
-		});
-		data.put("$SYS/broker/changeset", new SysValue() {
-			@Override
-			public String value() {
-				return Settings.INSTANCE.commitId() + " | " + Settings.INSTANCE.commitIdDescribe();
-			}
-		});
+		data.put("$SYS/broker/version", () -> Settings.INSTANCE.version());
+		data.put("$SYS/broker/timestamp", () -> Settings.INSTANCE.buildTime());
+		data.put("$SYS/broker/changeset",
+				() -> Settings.INSTANCE.commitId() + " | " + Settings.INSTANCE.commitIdDescribe());
 
 		// ETC
 		data.put("$SYS/broker/load/bytes/received", new RawSysValue(Criterion.BYTE_RECEIVED));
 		data.put("$SYS/broker/load/bytes/sent", new RawSysValue(Criterion.BYTE_SENT));
-		data.put("$SYS/broker/subscriptions/count", new SysValue() {
-			@Override
-			public String value() {
-				return defaultFormatter.format(Session.NEXUS.map().values().stream().map(s -> s.getTopicSubscriptions())
-						.flatMap(s -> s.values().stream()).count());
-			}
-		});
-		data.put("$SYS/broker/time", new SysValue() {
-			@Override
-			public String value() {
-				return new Date().toString();
-			}
-		});
-		data.put("$SYS/broker/uptime", new SysValue() {
-			@Override
-			public String value() {
-				return defaultFormatter.format(
-						(double) (new Date().getTime() - criterions.get(Criterion.BROKER_START_TIME)) / (double) 1000);
-			}
-		});
+		data.put("$SYS/broker/subscriptions/count", () -> defaultFormatter.format(Session.NEXUS.map().values().stream()
+				.map(s -> s.getTopicSubscriptions()).flatMap(s -> s.values().stream()).count()));
+		data.put("$SYS/broker/time", () -> new Date().toString());
+		data.put("$SYS/broker/uptime", () -> defaultFormatter
+				.format((double) (new Date().getTime() - criterions.get(Criterion.BROKER_START_TIME)) / (double) 1000));
 
 		// RATE
-		data.put("$SYS/broker/messages/received/inSecond", new SysValue() {
-			@Override
-			public String value() {
-				Long numerator = criterions.get(Criterion.MESSAGES_RECEIVED);
-				Double denominator = (double) (new Date().getTime() - criterions.get(Criterion.BROKER_START_TIME))
-						/ (double) 1000;
+		data.put("$SYS/broker/messages/received/inSecond", () -> {
+			Long numerator = criterions.get(Criterion.MESSAGES_RECEIVED);
+			Double denominator = (double) (new Date().getTime() - criterions.get(Criterion.BROKER_START_TIME))
+					/ (double) 1000;
 
-				return decimalFormatter.format((double) numerator / denominator);
-			}
+			return decimalFormatter.format((double) numerator / denominator);
 		});
-		data.put("$SYS/broker/messages/sent/inSecond", new SysValue() {
-			@Override
-			public String value() {
-				Long numerator = criterions.get(Criterion.MESSAGES_SENT);
-				Double denominator = (double) (new Date().getTime() - criterions.get(Criterion.BROKER_START_TIME))
-						/ (double) 1000;
+		data.put("$SYS/broker/messages/sent/inSecond", () -> {
+			Long numerator = criterions.get(Criterion.MESSAGES_SENT);
+			Double denominator = (double) (new Date().getTime() - criterions.get(Criterion.BROKER_START_TIME))
+					/ (double) 1000;
 
-				return decimalFormatter.format((double) numerator / denominator);
-			}
+			return decimalFormatter.format((double) numerator / denominator);
 		});
-		data.put("$SYS/broker/load/bytes/received/inSecond", new SysValue() {
-			@Override
-			public String value() {
-				Long numerator = criterions.get(Criterion.BYTE_RECEIVED);
-				Double denominator = (double) (new Date().getTime() - criterions.get(Criterion.BROKER_START_TIME))
-						/ (double) 1000;
+		data.put("$SYS/broker/load/bytes/received/inSecond", () -> {
+			Long numerator = criterions.get(Criterion.BYTE_RECEIVED);
+			Double denominator = (double) (new Date().getTime() - criterions.get(Criterion.BROKER_START_TIME))
+					/ (double) 1000;
 
-				return decimalFormatter.format((double) numerator / denominator);
-			}
+			return decimalFormatter.format((double) numerator / denominator);
 		});
-		data.put("$SYS/broker/load/bytes/sent/inSecond", new SysValue() {
-			@Override
-			public String value() {
-				Long numerator = criterions.get(Criterion.BYTE_SENT);
-				Double denominator = (double) (new Date().getTime() - criterions.get(Criterion.BROKER_START_TIME))
-						/ (double) 1000;
+		data.put("$SYS/broker/load/bytes/sent/inSecond", () -> {
+			Long numerator = criterions.get(Criterion.BYTE_SENT);
+			Double denominator = (double) (new Date().getTime() - criterions.get(Criterion.BROKER_START_TIME))
+					/ (double) 1000;
 
-				return decimalFormatter.format((double) numerator / denominator);
-			}
+			return decimalFormatter.format((double) numerator / denominator);
 		});
-		data.put("$SYS/broker/messages/publish/dropped/inSecond", new SysValue() {
-			@Override
-			public String value() {
-				Long numerator = criterions.get(Criterion.MESSAGES_PUBLISH_DROPPED);
-				Double denominator = (double) (new Date().getTime() - criterions.get(Criterion.BROKER_START_TIME))
-						/ (double) 1000;
+		data.put("$SYS/broker/messages/publish/dropped/inSecond", () -> {
+			Long numerator = criterions.get(Criterion.MESSAGES_PUBLISH_DROPPED);
+			Double denominator = (double) (new Date().getTime() - criterions.get(Criterion.BROKER_START_TIME))
+					/ (double) 1000;
 
-				return decimalFormatter.format((double) numerator / denominator);
-			}
+			return decimalFormatter.format((double) numerator / denominator);
 		});
-		data.put("$SYS/broker/messages/publish/received/inSecond", new SysValue() {
-			@Override
-			public String value() {
-				Long numerator = criterions.get(Criterion.MESSAGES_PUBLISH_RECEIVED);
-				Double denominator = (double) (new Date().getTime() - criterions.get(Criterion.BROKER_START_TIME))
-						/ (double) 1000;
+		data.put("$SYS/broker/messages/publish/received/inSecond", () -> {
+			Long numerator = criterions.get(Criterion.MESSAGES_PUBLISH_RECEIVED);
+			Double denominator = (double) (new Date().getTime() - criterions.get(Criterion.BROKER_START_TIME))
+					/ (double) 1000;
 
-				return decimalFormatter.format((double) numerator / denominator);
-			}
+			return decimalFormatter.format((double) numerator / denominator);
 		});
-		data.put("$SYS/broker/messages/publish/sent/inSecond", new SysValue() {
-			@Override
-			public String value() {
-				Long numerator = criterions.get(Criterion.MESSAGES_PUBLISH_SENT);
-				Double denominator = (double) (new Date().getTime() - criterions.get(Criterion.BROKER_START_TIME))
-						/ (double) 1000;
+		data.put("$SYS/broker/messages/publish/sent/inSecond", () -> {
+			Long numerator = criterions.get(Criterion.MESSAGES_PUBLISH_SENT);
+			Double denominator = (double) (new Date().getTime() - criterions.get(Criterion.BROKER_START_TIME))
+					/ (double) 1000;
 
-				return decimalFormatter.format((double) numerator / denominator);
-			}
+			return decimalFormatter.format((double) numerator / denominator);
 		});
+		data.put("$SYS/broker/messages/publish/sent/inSecond", () -> {
+			Long numerator = criterions.get(Criterion.MESSAGES_PUBLISH_SENT);
+			Double denominator = (double) (new Date().getTime() - criterions.get(Criterion.BROKER_START_TIME))
+					/ (double) 1000;
 
-		data.put("$SYS/broker/messages/publish/sent/inSecond", new SysValue() {
-			@Override
-			public String value() {
-				Long numerator = criterions.get(Criterion.MESSAGES_PUBLISH_SENT);
-				Double denominator = (double) (new Date().getTime() - criterions.get(Criterion.BROKER_START_TIME))
-						/ (double) 1000;
-
-				return decimalFormatter.format((double) numerator / denominator);
-			}
+			return decimalFormatter.format((double) numerator / denominator);
 		});
-
+		
 		// SYSTEM
-		data.put("$SYS/broker/member/" + Factory.INSTANCE.currentId() + "/system/processor/count", new SysValue() {
-			@Override
-			public String value() {
-				return defaultFormatter.format(Runtime.getRuntime().availableProcessors());
-			}
-		});
-		data.put("$SYS/broker/member/" + Factory.INSTANCE.currentId() + "/load/cpu/system/percent", new SysValue() {
-			@Override
-			public String value() {
-				return decimalFormatter.format(osBean.getSystemCpuLoad() * CENT);
-			}
-		});
-		data.put("$SYS/broker/member/" + Factory.INSTANCE.currentId() + "/load/cpu/jvm/percent", new SysValue() {
-			@Override
-			public String value() {
-				return decimalFormatter.format(osBean.getProcessCpuLoad() * CENT);
-			}
-		});
-		data.put("$SYS/broker/member/" + Factory.INSTANCE.currentId() + "/load/thread/active/count", new SysValue() {
-			@Override
-			public String value() {
-				return defaultFormatter.format(java.lang.Thread.activeCount());
-			}
-		});
-		data.put("$SYS/broker/member/" + Factory.INSTANCE.currentId() + "/load/memory/max/byte", new SysValue() {
-			@Override
-			public String value() {
-				return defaultFormatter.format(runtime.maxMemory());
-			}
-		});
-		data.put("$SYS/broker/member/" + Factory.INSTANCE.currentId() + "/load/memory/total/byte", new SysValue() {
-			@Override
-			public String value() {
-				return defaultFormatter.format(runtime.totalMemory());
-			}
-		});
-		data.put("$SYS/broker/member/" + Factory.INSTANCE.currentId() + "/load/memory/free/byte", new SysValue() {
-			@Override
-			public String value() {
-				return defaultFormatter.format(runtime.freeMemory());
-			}
-		});
+		data.put("$SYS/broker/node/" + Factory.INSTANCE.currentId() + "/system/processor/count",
+				() -> defaultFormatter.format(Runtime.getRuntime().availableProcessors()));
+		data.put("$SYS/broker/node/" + Factory.INSTANCE.currentId() + "/load/cpu/system/percent",
+				() -> decimalFormatter.format(osBean.getSystemCpuLoad() * CENT));
+		data.put("$SYS/broker/node/" + Factory.INSTANCE.currentId() + "/load/cpu/jvm/percent",
+				() -> decimalFormatter.format(osBean.getProcessCpuLoad() * CENT));
+		data.put("$SYS/broker/node/" + Factory.INSTANCE.currentId() + "/load/thread/active/count",
+				() -> defaultFormatter.format(java.lang.Thread.activeCount()));
+		data.put("$SYS/broker/node/" + Factory.INSTANCE.currentId() + "/load/memory/max/byte",
+				() -> defaultFormatter.format(runtime.maxMemory()));
+		data.put("$SYS/broker/node/" + Factory.INSTANCE.currentId() + "/load/memory/total/byte",
+				() -> defaultFormatter.format(runtime.totalMemory()));
+		data.put("$SYS/broker/node/" + Factory.INSTANCE.currentId() + "/load/memory/free/byte",
+				() -> defaultFormatter.format(runtime.freeMemory()));
 	}
 }
