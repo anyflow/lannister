@@ -30,7 +30,7 @@ import io.netty.handler.codec.mqtt.MqttQoS;
 import io.netty.util.CharsetUtil;
 import net.anyflow.lannister.AbnormalDisconnectEventArgs;
 import net.anyflow.lannister.Settings;
-import net.anyflow.lannister.cluster.Factory;
+import net.anyflow.lannister.cluster.ClusterDataFactory;
 import net.anyflow.lannister.message.Message;
 import net.anyflow.lannister.message.MessageFactory;
 import net.anyflow.lannister.plugin.Authenticator;
@@ -146,7 +146,7 @@ public class ConnectReceiver extends SimpleChannelInboundHandler<MqttConnectMess
 	private String generateClientId(ChannelHandlerContext ctx, boolean cleanSession) {
 		if (cleanSession) {
 			if (Settings.INSTANCE.getBoolean("mqttserver.acceptEmptyClientId", true)) {
-				return "Lannister_" + Long.toString(Factory.INSTANCE.createIdGenerator("clientIdGenerator").newId()); // [MQTT-3.1.3-6],[MQTT-3.1.3-7]
+				return "Lannister_" + Long.toString(ClusterDataFactory.INSTANCE.createIdGenerator("clientIdGenerator").newId()); // [MQTT-3.1.3-6],[MQTT-3.1.3-7]
 			}
 			else {
 				sendNoneAcceptMessage(ctx, MqttConnectReturnCode.CONNECTION_REFUSED_IDENTIFIER_REJECTED);

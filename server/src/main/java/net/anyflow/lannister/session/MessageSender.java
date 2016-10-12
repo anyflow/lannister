@@ -119,7 +119,7 @@ public class MessageSender {
 				if (intervalSeconds < RESPONSE_TIMEOUT_SECONDS) { return; }
 
 				Topic topic = Topic.NEXUS.get(s.clientId(), s.messageId(), Topics.ClientType.PUBLISHER);
-				Message message = topic.messages().get(s.messageId());
+				Message message = topic.messages().get(s.key());
 				MqttMessage toSend;
 				String log;
 

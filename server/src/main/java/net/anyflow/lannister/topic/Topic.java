@@ -17,7 +17,6 @@
 package net.anyflow.lannister.topic;
 
 import java.io.IOException;
-import java.util.Map;
 import java.util.concurrent.locks.Lock;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -26,8 +25,9 @@ import com.hazelcast.nio.ObjectDataInput;
 import com.hazelcast.nio.ObjectDataOutput;
 
 import io.netty.handler.codec.mqtt.MqttQoS;
-import net.anyflow.lannister.cluster.Disposer;
-import net.anyflow.lannister.cluster.Factory;
+import net.anyflow.lannister.cluster.ClusterDataDisposer;
+import net.anyflow.lannister.cluster.ClusterDataFactory;
+import net.anyflow.lannister.cluster.Map;
 import net.anyflow.lannister.message.InboundMessageStatus;
 import net.anyflow.lannister.message.InboundMessageStatus.Status;
 import net.anyflow.lannister.message.Message;
@@ -63,13 +63,13 @@ public class Topic implements com.hazelcast.nio.serialization.IdentifiedDataSeri
 	public Topic(String name) {
 		this.name = name;
 		this.retainedMessage = null;
-		this.subscribers = Factory.INSTANCE.createMap(subscribersName());
+		this.subscribers = ClusterDataFactory.INSTANCE.createMap(subscribersName());
 
-		this.messages = Factory.INSTANCE.createMap(messagesName());
-		this.inboundMessageStatuses = Factory.INSTANCE.createMap(inboundMessageStatusesName());
-		this.messageReferenceCounts = Factory.INSTANCE.createMap(inboundMessageReferenceCountsName());
+		this.messages = ClusterDataFactory.INSTANCE.createMap(messagesName());
+		this.inboundMessageStatuses = ClusterDataFactory.INSTANCE.createMap(inboundMessageStatusesName());
+		this.messageReferenceCounts = ClusterDataFactory.INSTANCE.createMap(inboundMessageReferenceCountsName());
 
-		this.messageReferenceCountsLock = Factory.INSTANCE.createLock(messageReferenceCountsLockName());
+		this.messageReferenceCountsLock = ClusterDataFactory.INSTANCE.createLock(messageReferenceCountsLockName());
 	}
 
 	private String subscribersName() {
@@ -290,12 +290,12 @@ public class Topic implements com.hazelcast.nio.serialization.IdentifiedDataSeri
 	}
 
 	public void dispose() {
-		Disposer.INSTANCE.disposeMap(subscribers);
-		Disposer.INSTANCE.disposeMap(messages);
-		Disposer.INSTANCE.disposeMap(inboundMessageStatuses);
-		Disposer.INSTANCE.disposeMap(messageReferenceCounts);
+		subscribers.dispose();
+		messages.dispose();
+		inboundMessageStatuses.dispose();
+		messageReferenceCounts.dispose();
 
-		Disposer.INSTANCE.disposeLock(messageReferenceCountsLock);
+		ClusterDataDisposer.INSTANCE.disposeLock(messageReferenceCountsLock);
 	}
 
 	@JsonIgnore
@@ -327,10 +327,10 @@ public class Topic implements com.hazelcast.nio.serialization.IdentifiedDataSeri
 			retainedMessage = new Message(in);
 		}
 
-		subscribers = Factory.INSTANCE.createMap(subscribersName());
-		messages = Factory.INSTANCE.createMap(messagesName());
-		inboundMessageStatuses = Factory.INSTANCE.createMap(inboundMessageStatusesName());
-		messageReferenceCounts = Factory.INSTANCE.createMap(inboundMessageReferenceCountsName());
-		messageReferenceCountsLock = Factory.INSTANCE.createLock(messageReferenceCountsLockName());
+		subscribers = ClusterDataFactory.INSTANCE.createMap(subscribersName());
+		messages = ClusterDataFactory.INSTANCE.createMap(messagesName());
+		inboundMessageStatuses = ClusterDataFactory.INSTANCE.createMap(inboundMessageStatusesName());
+		messageReferenceCounts = ClusterDataFactory.INSTANCE.createMap(inboundMessageReferenceCountsName());
+		messageReferenceCountsLock = ClusterDataFactory.INSTANCE.createLock(messageReferenceCountsLockName());
 	}
 }

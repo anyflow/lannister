@@ -18,7 +18,6 @@ package net.anyflow.lannister.session;
 
 import java.io.IOException;
 import java.util.Date;
-import java.util.Map;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -35,8 +34,8 @@ import io.netty.util.concurrent.Future;
 import io.netty.util.concurrent.GenericFutureListener;
 import net.anyflow.lannister.AbnormalDisconnectEventArgs;
 import net.anyflow.lannister.Literals;
-import net.anyflow.lannister.cluster.Disposer;
-import net.anyflow.lannister.cluster.Factory;
+import net.anyflow.lannister.cluster.ClusterDataFactory;
+import net.anyflow.lannister.cluster.Map;
 import net.anyflow.lannister.message.Message;
 import net.anyflow.lannister.plugin.DisconnectEventArgs;
 import net.anyflow.lannister.plugin.DisconnectEventListener;
@@ -96,7 +95,7 @@ public class Session implements com.hazelcast.nio.serialization.IdentifiedDataSe
 		this.lastIncomingTime = new Date();
 		this.cleanSession = cleanSession;
 		this.will = will; // [MQTT-3.1.2-9]
-		this.topicSubscriptions = Factory.INSTANCE.createMap(topicSubscriptionsName());
+		this.topicSubscriptions = ClusterDataFactory.INSTANCE.createMap(topicSubscriptionsName());
 
 		this.messageSender = new MessageSender(this);
 	}
@@ -238,7 +237,7 @@ public class Session implements com.hazelcast.nio.serialization.IdentifiedDataSe
 				Topic.NEXUS.matches(ts.topicFilter()).forEach(t -> t.removeSubscriber(clientId));
 			});
 
-			Disposer.INSTANCE.disposeMap(this.topicSubscriptions);
+			this.topicSubscriptions.dispose();
 		}
 
 		NEXUS.remove(this);
@@ -312,7 +311,7 @@ public class Session implements com.hazelcast.nio.serialization.IdentifiedDataSe
 		rawLong = in.readLong();
 		lastIncomingTime = rawLong != Long.MIN_VALUE ? new Date(rawLong) : null;
 
-		topicSubscriptions = Factory.INSTANCE.createMap(topicSubscriptionsName());
+		topicSubscriptions = ClusterDataFactory.INSTANCE.createMap(topicSubscriptionsName());
 		messageSender = new MessageSender(this);
 	}
 }

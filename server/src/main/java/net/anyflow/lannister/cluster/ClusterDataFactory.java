@@ -1,22 +1,20 @@
 package net.anyflow.lannister.cluster;
 
-import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
-import com.google.common.collect.Maps;
 import com.hazelcast.core.ITopic;
 import com.hazelcast.core.IdGenerator;
 
 import net.anyflow.lannister.Settings;
 
-public class Factory {
+public class ClusterDataFactory {
 	private static final String ID = UUID.randomUUID().toString();
 
-	public static final Factory INSTANCE = new Factory();
+	public static final ClusterDataFactory INSTANCE = new ClusterDataFactory();
 
-	private Factory() {
+	private ClusterDataFactory() {
 	}
 
 	public String currentId() {
@@ -39,13 +37,13 @@ public class Factory {
 	public <K, V> Map<K, V> createMap(String name) {
 		switch (Settings.INSTANCE.clusteringMode()) {
 		case HAZELCAST:
-			return Hazelcast.INSTANCE.getMap(name);
+			return new HazelcastMap<K, V>(name);
 
 		case IGNITE:
 			return null;
 
 		case SINGLE:
-			return Maps.newConcurrentMap();
+			return new NativeMap<K, V>(name);
 
 		default:
 			return null;

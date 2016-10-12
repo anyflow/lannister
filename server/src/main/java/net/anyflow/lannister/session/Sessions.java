@@ -16,8 +16,6 @@
 
 package net.anyflow.lannister.session;
 
-import java.util.Map;
-
 import com.google.common.base.Strings;
 import com.google.common.collect.Maps;
 import com.hazelcast.core.Message;
@@ -25,7 +23,8 @@ import com.hazelcast.core.MessageListener;
 
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelId;
-import net.anyflow.lannister.cluster.Factory;
+import net.anyflow.lannister.cluster.ClusterDataFactory;
+import net.anyflow.lannister.cluster.Map;
 import net.anyflow.lannister.topic.Notification;
 
 public class Sessions implements MessageListener<Notification> {
@@ -34,11 +33,11 @@ public class Sessions implements MessageListener<Notification> {
 	private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(Sessions.class);
 
 	private final Map<String, Session> sessions;
-	private final Map<ChannelId, String> clientIds; // KEY:channelId
-	private final Map<String, ChannelHandlerContext> ctxs; // KEY:clientlId
+	private final java.util.Map<ChannelId, String> clientIds; // KEY:channelId
+	private final java.util.Map<String, ChannelHandlerContext> ctxs; // KEY:clientlId
 
 	protected Sessions() {
-		sessions = Factory.INSTANCE.createMap("sessions");
+		sessions = ClusterDataFactory.INSTANCE.createMap("sessions");
 		clientIds = Maps.newHashMap();
 		ctxs = Maps.newHashMap();
 	}
@@ -72,7 +71,7 @@ public class Sessions implements MessageListener<Notification> {
 		return sessions.get(clientId);
 	}
 
-	public Map<String, ChannelHandlerContext> ctxs() {
+	public java.util.Map<String, ChannelHandlerContext> ctxs() {
 		return ctxs;
 	}
 

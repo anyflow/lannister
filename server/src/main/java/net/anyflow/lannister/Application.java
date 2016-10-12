@@ -64,6 +64,7 @@ public class Application {
 			logger.info("commit ID desc : {}", Settings.INSTANCE.commitIdDescribe());
 			logger.info("commit message : {}", Settings.INSTANCE.commitMessage());
 			logger.info("Netty transport mode : {}", Settings.INSTANCE.nettyTransportMode());
+			logger.info("Clustering mode : {}", Settings.INSTANCE.clusteringMode());
 
 			return true;
 		}
@@ -97,6 +98,7 @@ public class Application {
 	}
 
 	public static void configureLog4j() {
-		org.apache.log4j.xml.DOMConfigurator.configure(Application.class.getClassLoader().getResource("lannister.log4j.xml"));
+		org.apache.log4j.xml.DOMConfigurator
+				.configure(Application.class.getClassLoader().getResource("lannister.log4j.xml"));
 	}
 }

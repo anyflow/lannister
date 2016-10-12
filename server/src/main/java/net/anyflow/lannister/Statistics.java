@@ -20,13 +20,13 @@ import java.lang.management.ManagementFactory;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.util.Date;
-import java.util.Map;
 import java.util.concurrent.locks.Lock;
 
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.google.common.collect.Maps;
 
-import net.anyflow.lannister.cluster.Factory;
+import net.anyflow.lannister.cluster.ClusterDataFactory;
+import net.anyflow.lannister.cluster.Map;
 import net.anyflow.lannister.serialization.SysValueSerializer;
 import net.anyflow.lannister.session.Session;
 import net.anyflow.lannister.topic.Topic;
@@ -36,7 +36,7 @@ public class Statistics {
 	public static final Statistics INSTANCE = new Statistics();
 	private static final int CENT = 100;
 
-	private Map<String, SysValue> data; // key : topic name
+	private java.util.Map<String, SysValue> data; // key : topic name
 	private Map<Criterion, Long> criterions;
 	private final Runtime runtime;
 	private final DecimalFormat decimalFormatter;
@@ -76,7 +76,7 @@ public class Statistics {
 
 	private Statistics() {
 		this.data = Maps.newHashMap();
-		this.criterions = Factory.INSTANCE.createMap("statistics");
+		this.criterions = ClusterDataFactory.INSTANCE.createMap("statistics");
 		this.runtime = Runtime.getRuntime();
 		this.osBean = (com.sun.management.OperatingSystemMXBean) ManagementFactory.getOperatingSystemMXBean();
 		this.decimalFormatter = new DecimalFormat("#,###.0");
@@ -87,12 +87,12 @@ public class Statistics {
 		initializeTopics();
 	}
 
-	public Map<String, SysValue> data() {
+	public java.util.Map<String, SysValue> data() {
 		return data;
 	}
 
 	public void add(Criterion criterion, long size) {
-		Lock lock = Factory.INSTANCE.createLock(criterion.toString());
+		Lock lock = ClusterDataFactory.INSTANCE.createLock(criterion.toString());
 
 		lock.lock();
 		try {
@@ -107,7 +107,7 @@ public class Statistics {
 	}
 
 	public void setMaxActiveClients(long current) {
-		Lock lock = Factory.INSTANCE.createLock(Criterion.CLIENTS_MAXIMUM.toString());
+		Lock lock = ClusterDataFactory.INSTANCE.createLock(Criterion.CLIENTS_MAXIMUM.toString());
 
 		lock.lock();
 		try {
@@ -238,21 +238,21 @@ public class Statistics {
 
 			return decimalFormatter.format((double) numerator / denominator);
 		});
-		
+
 		// SYSTEM
-		data.put("$SYS/broker/node/" + Factory.INSTANCE.currentId() + "/system/processor/count",
+		data.put("$SYS/broker/node/" + ClusterDataFactory.INSTANCE.currentId() + "/system/processor/count",
 				() -> defaultFormatter.format(Runtime.getRuntime().availableProcessors()));
-		data.put("$SYS/broker/node/" + Factory.INSTANCE.currentId() + "/load/cpu/system/percent",
+		data.put("$SYS/broker/node/" + ClusterDataFactory.INSTANCE.currentId() + "/load/cpu/system/percent",
 				() -> decimalFormatter.format(osBean.getSystemCpuLoad() * CENT));
-		data.put("$SYS/broker/node/" + Factory.INSTANCE.currentId() + "/load/cpu/jvm/percent",
+		data.put("$SYS/broker/node/" + ClusterDataFactory.INSTANCE.currentId() + "/load/cpu/jvm/percent",
 				() -> decimalFormatter.format(osBean.getProcessCpuLoad() * CENT));
-		data.put("$SYS/broker/node/" + Factory.INSTANCE.currentId() + "/load/thread/active/count",
+		data.put("$SYS/broker/node/" + ClusterDataFactory.INSTANCE.currentId() + "/load/thread/active/count",
 				() -> defaultFormatter.format(java.lang.Thread.activeCount()));
-		data.put("$SYS/broker/node/" + Factory.INSTANCE.currentId() + "/load/memory/max/byte",
+		data.put("$SYS/broker/node/" + ClusterDataFactory.INSTANCE.currentId() + "/load/memory/max/byte",
 				() -> defaultFormatter.format(runtime.maxMemory()));
-		data.put("$SYS/broker/node/" + Factory.INSTANCE.currentId() + "/load/memory/total/byte",
+		data.put("$SYS/broker/node/" + ClusterDataFactory.INSTANCE.currentId() + "/load/memory/total/byte",
 				() -> defaultFormatter.format(runtime.totalMemory()));
-		data.put("$SYS/broker/node/" + Factory.INSTANCE.currentId() + "/load/memory/free/byte",
+		data.put("$SYS/broker/node/" + ClusterDataFactory.INSTANCE.currentId() + "/load/memory/free/byte",
 				() -> defaultFormatter.format(runtime.freeMemory()));
 	}
 }

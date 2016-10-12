@@ -9,10 +9,10 @@ import com.hazelcast.core.ITopic;
 
 import net.anyflow.lannister.Settings;
 
-public class Disposer {
-	public static final Disposer INSTANCE = new Disposer();
+public class ClusterDataDisposer {
+	public static final ClusterDataDisposer INSTANCE = new ClusterDataDisposer();
 
-	private Disposer() {
+	private ClusterDataDisposer() {
 	}
 
 	public <K, V> void disposeMap(Map<K, V> map) {

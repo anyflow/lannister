@@ -18,7 +18,7 @@ package net.anyflow.lannister.httphandler.api;
 
 import com.hazelcast.core.IdGenerator;
 
-import net.anyflow.lannister.cluster.Factory;
+import net.anyflow.lannister.cluster.ClusterDataFactory;
 import net.anyflow.lannister.http.HttpRequestHandler;
 import net.anyflow.lannister.session.Session;
 
@@ -29,7 +29,7 @@ public class Clients extends HttpRequestHandler {
 
 	@Override
 	public String service() {
-		IdGenerator idgen = Factory.INSTANCE.createIdGenerator("CLIENT_ID_GENERATOR");
+		IdGenerator idgen = ClusterDataFactory.INSTANCE.createIdGenerator("CLIENT_ID_GENERATOR");
 
 		String clientId = null;
 		while (clientId == null) {

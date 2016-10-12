@@ -18,13 +18,13 @@ package net.anyflow.lannister.topic;
 
 import java.util.Collection;
 import java.util.List;
-import java.util.Map;
 import java.util.stream.Collectors;
 
 import com.google.common.collect.Maps;
 import com.hazelcast.core.ITopic;
 
-import net.anyflow.lannister.cluster.Factory;
+import net.anyflow.lannister.cluster.ClusterDataFactory;
+import net.anyflow.lannister.cluster.Map;
 import net.anyflow.lannister.message.Message;
 import net.anyflow.lannister.session.Sessions;
 
@@ -36,8 +36,8 @@ public class Topics {
 	private final ITopic<Notification> notifier;
 
 	protected Topics(Sessions sessions) {
-		this.topics = Factory.INSTANCE.createMap("topics");
-		this.notifier = Factory.INSTANCE.createTopic("publishNotifier");
+		this.topics = ClusterDataFactory.INSTANCE.createMap("topics");
+		this.notifier = ClusterDataFactory.INSTANCE.createTopic("publishNotifier");
 		this.notifier.addMessageListener(sessions);
 	}
 
@@ -122,7 +122,7 @@ public class Topics {
 	}
 
 	public Collection<Topic> matches(Collection<String> topicFilters) {
-		Map<String, Topic> ret = Maps.newHashMap();
+		java.util.Map<String, Topic> ret = Maps.newHashMap();
 
 		topics.values().stream().forEach(t -> {
 			if (topicFilters.stream().filter(tf -> TopicMatcher.match(tf, t.name())).count() <= 0) { return; }

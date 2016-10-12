@@ -17,7 +17,6 @@
 package net.anyflow.lannister.topic;
 
 import java.io.IOException;
-import java.util.Map;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -25,7 +24,8 @@ import com.hazelcast.nio.ObjectDataInput;
 import com.hazelcast.nio.ObjectDataOutput;
 
 import io.netty.handler.codec.mqtt.MqttQoS;
-import net.anyflow.lannister.cluster.Factory;
+import net.anyflow.lannister.cluster.ClusterDataFactory;
+import net.anyflow.lannister.cluster.Map;
 import net.anyflow.lannister.message.OutboundMessageStatus;
 import net.anyflow.lannister.serialization.SerializableFactory;
 
@@ -46,7 +46,7 @@ public class TopicSubscriber implements com.hazelcast.nio.serialization.Identifi
 	public TopicSubscriber(String clientId, String topicName) {
 		this.clientId = clientId;
 		this.topicName = topicName;
-		this.outboundMessageStatuses = Factory.INSTANCE.createMap(messageStatusesName());
+		this.outboundMessageStatuses = ClusterDataFactory.INSTANCE.createMap(messageStatusesName());
 	}
 
 	private String messageStatusesName() {
@@ -106,6 +106,6 @@ public class TopicSubscriber implements com.hazelcast.nio.serialization.Identifi
 		topicName = in.readUTF();
 		clientId = in.readUTF();
 
-		outboundMessageStatuses = Factory.INSTANCE.createMap(messageStatusesName());
+		outboundMessageStatuses = ClusterDataFactory.INSTANCE.createMap(messageStatusesName());
 	}
 }
