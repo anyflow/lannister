@@ -30,8 +30,8 @@ import net.anyflow.lannister.message.OutboundMessageStatus;
 import net.anyflow.lannister.serialization.SerializableFactory;
 
 public class TopicSubscriber implements com.hazelcast.nio.serialization.IdentifiedDataSerializable {
-
-	public final static int ID = 7;
+	public static final TopicSubscribers NEXUS = new TopicSubscribers();
+	public static final int ID = 7;
 
 	@JsonProperty
 	private String clientId;
@@ -47,6 +47,18 @@ public class TopicSubscriber implements com.hazelcast.nio.serialization.Identifi
 		this.clientId = clientId;
 		this.topicName = topicName;
 		this.outboundMessageStatuses = ClusterDataFactory.INSTANCE.createMap(messageStatusesName());
+	}
+
+	public String key() {
+		return TopicSubscribers.key(topicName, clientId);
+	}
+
+	public String clientId() {
+		return clientId;
+	}
+
+	public String topicName() {
+		return topicName;
 	}
 
 	private String messageStatusesName() {
