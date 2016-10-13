@@ -51,10 +51,10 @@ public class ScheduledExecutor extends ChannelInboundHandlerAdapter {
 			Statistics.INSTANCE.data().entrySet().stream().forEach(e -> {
 				byte[] msg = e.getValue().value().getBytes(CharsetUtil.UTF_8);
 
-				Message message = new Message(-1, e.getKey(), ClusterDataFactory.INSTANCE.currentId(), msg, MqttQoS.AT_MOST_ONCE,
-						false);
-				Topic topic = Topic.NEXUS.prepare(message);
+				Message message = new Message(-1, e.getKey(), ClusterDataFactory.INSTANCE.currentId(), msg,
+						MqttQoS.AT_MOST_ONCE, false);
 
+				Topic topic = Topic.NEXUS.prepare(message);
 				topic.publish(message);
 			});
 		}

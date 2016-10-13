@@ -17,7 +17,7 @@
 
 [![Build Status](https://travis-ci.org/anyflow/lannister.svg?branch=develop)](https://travis-ci.org/anyflow/lannister/branches) [![Codacy Badge](https://api.codacy.com/project/badge/Grade/8d72feca76504d89a9846beecbbbc34b)](https://www.codacy.com/app/anyflow/lannister?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=anyflow/lannister&amp;utm_campaign=Badge_Grade) [![Codacy Badge](https://api.codacy.com/project/badge/Coverage/8d72feca76504d89a9846beecbbbc34b)](https://www.codacy.com/app/anyflow/lannister?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=anyflow/lannister&amp;utm_campaign=Badge_Coverage)
 
-Lannister is high performance MQTT broker equipped with full specifications support, Clustering, WebSocket, SSL written in Java with using [Netty](http://netty.io/) & [Hazelcast](https://hazelcast.org/).
+Lannister is high performance MQTT broker equipped with full specifications support, Clustering, WebSocket, SSL written in Javas.
 
 > MQTT is a machine-to-machine (M2M)/"Internet of Things" connectivity protocol. It was designed as an extremely lightweight publish/subscribe messaging transport. It is useful for connections with remote locations where a small code footprint is required and/or network bandwidth is at a premium. For example, it has been used in sensors communicating to a broker via satellite link, over occasional dial-up connections with healthcare providers, and in a range of home automation and small device scenarios. It is also ideal for mobile applications because of its small size, low power usage, minimised data packets, and efficient distribution of information to one or many receivers - [http://mqtt.org](http://mqtt.org/)
 
@@ -32,7 +32,7 @@ Lannister is high performance MQTT broker equipped with full specifications supp
   * Easy, elastic Scaling out
   * For more information, refer [Clustering](http://anyflow.github.io/lannister/clustering.html).
 * **High performance**
-  * 1M connections per node, and etc.
+  * 1M connections per node (in non-clustering Mode), and etc.s
   * For more information, refer [Performance Test Report](http://anyflow.github.io/lannister/performance.html).
 * **Plug-In Support**
   * Adapter/Framework for customizing broker logics against MQTT events

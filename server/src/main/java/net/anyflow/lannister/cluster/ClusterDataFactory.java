@@ -23,15 +23,12 @@ public class ClusterDataFactory {
 			return Hazelcast.INSTANCE.currentId();
 
 		case IGNITE:
-			return null;
-
 		case SINGLE:
 			return ID;
 
 		default:
 			return null;
 		}
-
 	}
 
 	public <K, V> Map<K, V> createMap(String name) {
@@ -40,7 +37,7 @@ public class ClusterDataFactory {
 			return new HazelcastMap<K, V>(name);
 
 		case IGNITE:
-			return null;
+			return new IgniteMap<K, V>(name);
 
 		case SINGLE:
 			return new NativeMap<K, V>(name);
@@ -56,8 +53,6 @@ public class ClusterDataFactory {
 			return Hazelcast.INSTANCE.getLock(key);
 
 		case IGNITE:
-			return null;
-
 		case SINGLE:
 			return new ReentrantLock();
 
@@ -72,8 +67,6 @@ public class ClusterDataFactory {
 			return Hazelcast.INSTANCE.getTopic(name);
 
 		case IGNITE:
-			return null;
-
 		case SINGLE:
 			return new SingleTopic<E>(name);
 
@@ -88,8 +81,6 @@ public class ClusterDataFactory {
 			return Hazelcast.INSTANCE.getIdGenerator(name);
 
 		case IGNITE:
-			return null;
-
 		case SINGLE:
 			return new SingleIdGenerator(name);
 

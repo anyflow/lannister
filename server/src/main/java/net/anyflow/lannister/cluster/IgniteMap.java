@@ -2,8 +2,12 @@ package net.anyflow.lannister.cluster;
 
 import java.util.Collection;
 import java.util.Set;
+import java.util.stream.Collectors;
+
+import javax.cache.Cache;
 
 import org.apache.ignite.IgniteCache;
+import org.apache.ignite.cache.query.ScanQuery;
 
 public class IgniteMap<K, V> implements Map<K, V> {
 
@@ -30,12 +34,14 @@ public class IgniteMap<K, V> implements Map<K, V> {
 
 	@Override
 	public Set<K> keySet() {
-		throw new Error();
+		return engine.query(new ScanQuery<K, V>()).getAll().stream().map(Cache.Entry::getKey)
+				.collect(Collectors.toSet());
 	}
 
 	@Override
 	public Collection<V> values() {
-		throw new Error();
+		return engine.query(new ScanQuery<K, V>()).getAll().stream().map(Cache.Entry::getValue)
+				.collect(Collectors.toList());
 	}
 
 	@Override
