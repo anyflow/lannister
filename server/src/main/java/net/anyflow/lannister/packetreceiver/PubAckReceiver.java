@@ -62,7 +62,7 @@ public class PubAckReceiver extends SimpleChannelInboundHandler<MqttPubAckMessag
 			return;
 		}
 
-		final TopicSubscriber topicSubscriber = topic.getSubscribers().get(clientId);
+		final TopicSubscriber topicSubscriber = TopicSubscriber.NEXUS.getBy(topic.name(), clientId);
 
 		OutboundMessageStatus status = topicSubscriber.outboundMessageStatuses().get(messageId);
 

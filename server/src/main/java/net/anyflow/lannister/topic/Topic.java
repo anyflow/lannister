@@ -46,8 +46,6 @@ public class Topic implements com.hazelcast.nio.serialization.IdentifiedDataSeri
 	@JsonProperty
 	private Message retainedMessage; // [MQTT-3.1.2.7]
 	@JsonProperty
-	private Map<String, TopicSubscriber> subscribers; // KEY:clientId
-	@JsonProperty
 	private Map<String, Message> messages; // KEY:Message.key()
 	@JsonProperty
 	private Map<String, InboundMessageStatus> inboundMessageStatuses; // KEY:Message.key()
@@ -63,17 +61,12 @@ public class Topic implements com.hazelcast.nio.serialization.IdentifiedDataSeri
 	public Topic(String name) {
 		this.name = name;
 		this.retainedMessage = null;
-		this.subscribers = ClusterDataFactory.INSTANCE.createMap(subscribersName());
 
 		this.messages = ClusterDataFactory.INSTANCE.createMap(messagesName());
 		this.inboundMessageStatuses = ClusterDataFactory.INSTANCE.createMap(inboundMessageStatusesName());
 		this.messageReferenceCounts = ClusterDataFactory.INSTANCE.createMap(inboundMessageReferenceCountsName());
 
 		this.messageReferenceCountsLock = ClusterDataFactory.INSTANCE.createLock(messageReferenceCountsLockName());
-	}
-
-	private String subscribersName() {
-		return "TOPIC(" + name + ")_subscribers";
 	}
 
 	private String messagesName() {
@@ -109,29 +102,6 @@ public class Topic implements com.hazelcast.nio.serialization.IdentifiedDataSeri
 		}
 
 		NEXUS.persist(this);
-	}
-
-	public Map<String, TopicSubscriber> getSubscribers() {
-		return subscribers;
-	}
-
-	public void putSubscriber(String clientId, TopicSubscriber subscriber) {
-		assert clientId != null;
-		assert subscriber != null;
-
-		subscribers.put(clientId, subscriber);
-	}
-
-	public TopicSubscriber removeSubscriber(String clientId) {
-		assert clientId != null;
-
-		TopicSubscriber ret = subscribers.remove(clientId);
-
-		if (name.startsWith("$SYS") || subscribers.size() > 0) { return ret; }
-
-		Topic.NEXUS.remove(this);
-
-		return ret;
 	}
 
 	public Map<String, Message> messages() {
@@ -192,7 +162,7 @@ public class Topic implements com.hazelcast.nio.serialization.IdentifiedDataSeri
 
 		putMessage(message.publisherId(), message);
 
-		subscribers.keySet().stream().forEach(id -> {
+		TopicSubscriber.NEXUS.getSubscriberIdsOf(name()).forEach(id -> {
 			Session session = Session.NEXUS.get(id);
 			assert session != null;
 
@@ -211,7 +181,7 @@ public class Topic implements com.hazelcast.nio.serialization.IdentifiedDataSeri
 
 		toSend.setQos(adjustQoS(subscription.qos(), toSend.qos()));
 
-		TopicSubscriber ts = subscribers.get(session.clientId());
+		TopicSubscriber ts = TopicSubscriber.NEXUS.getBy(name(), session.clientId());
 		assert ts != null;
 
 		if (!ts.outboundMessageStatuses().containsKey(toSend.id())) {
@@ -234,7 +204,8 @@ public class Topic implements com.hazelcast.nio.serialization.IdentifiedDataSeri
 
 		Message message = messages.get(messageKey);
 		assert message != null;
-		assert subscribers.get(session.clientId()).outboundMessageStatuses().containsKey(message.id());
+		assert TopicSubscriber.NEXUS.getBy(name(), session.clientId()).outboundMessageStatuses()
+				.containsKey(message.id());
 
 		NEXUS.notifier().publish(new Notification(session.clientId(), this, message));
 	}
@@ -243,7 +214,7 @@ public class Topic implements com.hazelcast.nio.serialization.IdentifiedDataSeri
 		Session.NEXUS.map().values().stream()
 				.filter(s -> s.getTopicSubscriptions().values().stream()
 						.anyMatch(ts -> TopicMatcher.match(ts.topicFilter(), name)))
-				.forEach(s -> subscribers.put(s.clientId(), new TopicSubscriber(s.clientId(), name)));
+				.forEach(s -> TopicSubscriber.NEXUS.put(new TopicSubscriber(s.clientId(), name)));
 	}
 
 	public void retain(String messageKey) {
@@ -290,7 +261,6 @@ public class Topic implements com.hazelcast.nio.serialization.IdentifiedDataSeri
 	}
 
 	public void dispose() {
-		subscribers.dispose();
 		messages.dispose();
 		inboundMessageStatuses.dispose();
 		messageReferenceCounts.dispose();
@@ -327,7 +297,6 @@ public class Topic implements com.hazelcast.nio.serialization.IdentifiedDataSeri
 			retainedMessage = new Message(in);
 		}
 
-		subscribers = ClusterDataFactory.INSTANCE.createMap(subscribersName());
 		messages = ClusterDataFactory.INSTANCE.createMap(messagesName());
 		inboundMessageStatuses = ClusterDataFactory.INSTANCE.createMap(inboundMessageStatusesName());
 		messageReferenceCounts = ClusterDataFactory.INSTANCE.createMap(inboundMessageReferenceCountsName());

@@ -32,6 +32,7 @@ import net.anyflow.lannister.message.Message;
 import net.anyflow.lannister.message.MessageFactory;
 import net.anyflow.lannister.message.OutboundMessageStatus;
 import net.anyflow.lannister.topic.Topic;
+import net.anyflow.lannister.topic.TopicSubscriber;
 import net.anyflow.lannister.topic.Topics;
 
 public class MessageSender {
@@ -85,7 +86,7 @@ public class MessageSender {
 
 			case AT_LEAST_ONCE:
 			case EXACTLY_ONCE:
-				topic.getSubscribers().get(session.clientId()).setOutboundMessageStatus(message.id(),
+				TopicSubscriber.NEXUS.getBy(topic.name(), session.clientId()).setOutboundMessageStatus(message.id(),
 						OutboundMessageStatus.Status.PUBLISHED);
 				break;
 
@@ -173,10 +174,8 @@ public class MessageSender {
 		ctx.executor().submit(() -> {
 			Date now = new Date();
 
-			Stream<OutboundMessageStatus> statuses = Topic.NEXUS.map().values().stream()
-					.filter(t -> t.getSubscribers().containsKey(session.clientId()))
-					.map(t -> t.getSubscribers().get(session.clientId())).map(s -> s.outboundMessageStatuses())
-					.flatMap(s -> s.values().stream());
+			Stream<OutboundMessageStatus> statuses = TopicSubscriber.NEXUS.getByClientId(session.clientId()).stream()
+					.map(s -> s.outboundMessageStatuses()).flatMap(s -> s.values().stream());
 
 			statuses.forEach(s -> {
 				long intervalSeconds = (now.getTime() - s.updateTime().getTime()) * 1000;
@@ -202,8 +201,8 @@ public class MessageSender {
 							return;
 						}
 
-						topic.getSubscribers().get(session.clientId()).setOutboundMessageStatus(message.id(),
-								OutboundMessageStatus.Status.PUBLISHED);
+						TopicSubscriber.NEXUS.getBy(topic.name(), session.clientId())
+								.setOutboundMessageStatus(message.id(), OutboundMessageStatus.Status.PUBLISHED);
 						Statistics.INSTANCE.add(Statistics.Criterion.MESSAGES_PUBLISH_SENT, 1);
 					});
 					break;

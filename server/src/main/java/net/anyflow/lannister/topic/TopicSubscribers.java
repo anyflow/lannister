@@ -17,10 +17,16 @@ public class TopicSubscribers {
 	private final Map<String, SerializableStringList> topicnameIndex;
 	private final Map<String, SerializableStringList> clientidIndex;
 
+	private final Lock putLock;
+	private final Lock removeLock;
+
 	protected TopicSubscribers() {
 		this.data = ClusterDataFactory.INSTANCE.createMap("TopicSubscribers");
 		this.topicnameIndex = ClusterDataFactory.INSTANCE.createMap("TopicSubscribers_topicnameIndex");
 		this.clientidIndex = ClusterDataFactory.INSTANCE.createMap("TopicSubscribers_clientidIndex");
+
+		this.putLock = ClusterDataFactory.INSTANCE.createLock("TopicSubscribers_put");
+		this.removeLock = ClusterDataFactory.INSTANCE.createLock("TopicSubscribers_remove");
 	}
 
 	public static String key(String topicName, String clientId) {
@@ -30,28 +36,26 @@ public class TopicSubscribers {
 	public void put(TopicSubscriber topicSubscriber) {
 		if (topicSubscriber == null) { return; }
 
-		Lock lock = ClusterDataFactory.INSTANCE.createLock(topicSubscriber.key());
-
-		lock.lock();
+		putLock.lock();
 		try {
 			this.data.put(topicSubscriber.key(), topicSubscriber);
 
-			SerializableStringList keys = this.topicnameIndex.get(topicSubscriber.topicName());
-			if (keys == null) {
-				keys = new SerializableStringList();
-				this.topicnameIndex.put(topicSubscriber.topicName(), keys);
+			SerializableStringList clientIds = this.topicnameIndex.get(topicSubscriber.topicName());
+			if (clientIds == null) {
+				clientIds = new SerializableStringList();
+				this.topicnameIndex.put(topicSubscriber.topicName(), clientIds);
 			}
-			keys.add(topicSubscriber.key());
+			clientIds.add(topicSubscriber.clientId());
 
-			keys = this.clientidIndex.get(topicSubscriber.clientId());
-			if (keys == null) {
-				keys = new SerializableStringList();
-				this.clientidIndex.put(topicSubscriber.clientId(), keys);
+			SerializableStringList topicNames = this.clientidIndex.get(topicSubscriber.clientId());
+			if (topicNames == null) {
+				topicNames = new SerializableStringList();
+				this.clientidIndex.put(topicSubscriber.clientId(), topicNames);
 			}
-			keys.add(topicSubscriber.key());
+			topicNames.add(topicSubscriber.topicName());
 		}
 		finally {
-			lock.unlock();
+			putLock.unlock();
 		}
 	}
 
@@ -59,42 +63,73 @@ public class TopicSubscribers {
 		return data.get(key(topicName, clientId));
 	}
 
-	private List<TopicSubscriber> getFrom(String filter, Map<String, SerializableStringList> index) {
+	public List<TopicSubscriber> getByTopicName(String topicName) {
 		List<TopicSubscriber> ret = Lists.newArrayList();
 
-		List<String> keys = index.get(filter);
-		if (keys == null || keys.size() <= 0) { return ret; }
+		List<String> clientIds = topicnameIndex.get(topicName);
+		if (clientIds == null || clientIds.size() <= 0) { return ret; }
 
-		keys.forEach(key -> ret.add(data.get(key)));
+		clientIds.forEach(clientId -> ret.add(data.get(key(topicName, clientId))));
 
 		return ret;
 	}
 
-	public List<TopicSubscriber> getByTopicName(String topicName) {
-		return getFrom(topicName, topicnameIndex);
-	}
-
 	public List<TopicSubscriber> getByClientId(String clientId) {
-		return getFrom(clientId, clientidIndex);
+		List<TopicSubscriber> ret = Lists.newArrayList();
+
+		List<String> topicNames = clientidIndex.get(clientId);
+		if (topicNames == null || topicNames.size() <= 0) { return ret; }
+
+		topicNames.forEach(topicName -> ret.add(data.get(key(topicName, clientId))));
+
+		return ret;
 	}
 
-	public void removeByKey(String key) {
-		Lock lock = ClusterDataFactory.INSTANCE.createLock(key);
+	public List<String> getSubscriberIdsOf(String topicName) {
+		List<String> ret = topicnameIndex.get(topicName);
 
-		lock.lock();
+		return ret == null ? Lists.newArrayList() : ret;
+	}
+
+	public TopicSubscriber removeByKey(String topicName, String clientId) {
+		return removeByKey(key(topicName, clientId));
+	}
+
+	public TopicSubscriber removeByKey(String key) {
+		removeLock.lock();
+
 		try {
 			TopicSubscriber removed = this.data.remove(key);
-			if (removed == null) { return; }
+			if (removed == null) { return null; }
 
 			this.topicnameIndex.remove(removed.topicName());
 			this.clientidIndex.remove(removed.clientId());
+
+			return removed;
 		}
 		finally {
-			lock.unlock();
+			removeLock.unlock();
 		}
 	}
 
-	public void removeByKey(String topicName, String clientId) {
-		removeByKey(key(topicName, clientId));
+	public List<String> removeByClientId(String clientId) {
+		removeLock.lock();
+
+		try {
+			SerializableStringList topicNames = this.clientidIndex.remove(clientId);
+			if (topicNames == null) { return Lists.newArrayList(); }
+
+			topicNames.forEach(topicName -> this.topicnameIndex.get(topicName).remove(clientId));
+			topicNames.stream().map(topicName -> key(topicName, clientId)).forEach(key -> data.remove(key));
+
+			return topicNames;
+		}
+		finally {
+			removeLock.unlock();
+		}
+	}
+
+	public boolean containsClientId(String clientId) {
+		return this.clientidIndex.containsKey(clientId);
 	}
 }

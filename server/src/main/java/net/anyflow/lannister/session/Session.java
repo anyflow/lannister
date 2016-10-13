@@ -169,7 +169,7 @@ public class Session implements com.hazelcast.nio.serialization.IdentifiedDataSe
 		topicSubscriptions.put(topicSubscription.topicFilter(), topicSubscription);
 
 		Topic.NEXUS.map().values().stream().filter(t -> TopicMatcher.match(topicSubscription.topicFilter(), t.name()))
-				.forEach(t -> t.putSubscriber(clientId, new TopicSubscriber(clientId, t.name())));
+				.forEach(t -> TopicSubscriber.NEXUS.put(new TopicSubscriber(clientId, t.name())));
 	}
 
 	public TopicSubscription removeTopicSubscription(String topicFilter) {
@@ -177,7 +177,7 @@ public class Session implements com.hazelcast.nio.serialization.IdentifiedDataSe
 		if (ret == null) { return null; }
 
 		Topic.NEXUS.map().values().stream().filter(t -> TopicMatcher.match(ret.topicFilter(), t.name()))
-				.forEach(t -> t.getSubscribers().remove(clientId));
+				.forEach(t -> TopicSubscriber.NEXUS.removeByKey(t.name(), clientId));
 
 		return ret;
 	}
@@ -233,9 +233,7 @@ public class Session implements com.hazelcast.nio.serialization.IdentifiedDataSe
 		logger.debug("Session disposed [clientId={}/channelId={}]", clientId, ctx == null ? "null" : channelId);
 
 		if (cleanSession) {
-			this.topicSubscriptions.values().stream().forEach(ts -> {
-				Topic.NEXUS.matches(ts.topicFilter()).forEach(t -> t.removeSubscriber(clientId));
-			});
+			TopicSubscriber.NEXUS.removeByClientId(clientId);
 
 			this.topicSubscriptions.dispose();
 		}
