@@ -174,7 +174,8 @@ public class MessageSender {
 		ctx.executor().submit(() -> {
 			Date now = new Date();
 
-			Stream<OutboundMessageStatus> statuses = TopicSubscriber.NEXUS.getByClientId(session.clientId()).stream()
+			Stream<OutboundMessageStatus> statuses = TopicSubscriber.NEXUS.getTopicNamesOf(session.clientId()).stream()
+					.map(topicName -> TopicSubscriber.NEXUS.getBy(topicName, session.clientId()))
 					.map(s -> s.outboundMessageStatuses()).flatMap(s -> s.values().stream());
 
 			statuses.forEach(s -> {

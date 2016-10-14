@@ -34,8 +34,6 @@ import io.netty.util.concurrent.Future;
 import io.netty.util.concurrent.GenericFutureListener;
 import net.anyflow.lannister.AbnormalDisconnectEventArgs;
 import net.anyflow.lannister.Literals;
-import net.anyflow.lannister.cluster.ClusterDataFactory;
-import net.anyflow.lannister.cluster.Map;
 import net.anyflow.lannister.message.Message;
 import net.anyflow.lannister.plugin.DisconnectEventArgs;
 import net.anyflow.lannister.plugin.DisconnectEventListener;
@@ -62,8 +60,6 @@ public class Session implements com.hazelcast.nio.serialization.IdentifiedDataSe
 	private int port;
 	@JsonProperty
 	private boolean isConnected;
-	@JsonProperty
-	private Map<String, TopicSubscription> topicSubscriptions;
 	@JsonProperty
 	private int currentMessageId;
 	@JsonProperty
@@ -95,13 +91,8 @@ public class Session implements com.hazelcast.nio.serialization.IdentifiedDataSe
 		this.lastIncomingTime = new Date();
 		this.cleanSession = cleanSession;
 		this.will = will; // [MQTT-3.1.2-9]
-		this.topicSubscriptions = ClusterDataFactory.INSTANCE.createMap(topicSubscriptionsName());
 
 		this.messageSender = new MessageSender(this);
-	}
-
-	private String topicSubscriptionsName() {
-		return "CLIENTID(" + clientId + ")_topicSubscriptions";
 	}
 
 	@JsonSerialize(using = ChannelIdSerializer.class)
@@ -159,31 +150,10 @@ public class Session implements com.hazelcast.nio.serialization.IdentifiedDataSe
 		Session.NEXUS.persist(this);
 	}
 
-	public Map<String, TopicSubscription> getTopicSubscriptions() {
-		return topicSubscriptions;
-	}
-
-	public void putTopicSubscription(TopicSubscription topicSubscription) {
-		assert topicSubscription != null;
-
-		topicSubscriptions.put(topicSubscription.topicFilter(), topicSubscription);
-
-		Topic.NEXUS.map().values().stream().filter(t -> TopicMatcher.match(topicSubscription.topicFilter(), t.name()))
-				.forEach(t -> TopicSubscriber.NEXUS.put(new TopicSubscriber(clientId, t.name())));
-	}
-
-	public TopicSubscription removeTopicSubscription(String topicFilter) {
-		TopicSubscription ret = topicSubscriptions.remove(topicFilter);
-		if (ret == null) { return null; }
-
-		Topic.NEXUS.map().values().stream().filter(t -> TopicMatcher.match(ret.topicFilter(), t.name()))
-				.forEach(t -> TopicSubscriber.NEXUS.removeByKey(t.name(), clientId));
-
-		return ret;
-	}
-
 	public TopicSubscription matches(String topicName) {
-		return topicSubscriptions.values().stream().filter(t -> TopicMatcher.match(t.topicFilter(), topicName))
+		return TopicSubscription.NEXUS.getTopicFiltersOf(clientId).stream()
+				.filter(topicFilter -> TopicMatcher.match(topicFilter, topicName))
+				.map(topicFilter -> TopicSubscription.NEXUS.getBy(topicFilter, clientId))
 				.max((p1, p2) -> p1.qos().compareTo(p2.qos())).orElse(null); // [MQTT-3.3.5-1]
 	}
 
@@ -234,8 +204,7 @@ public class Session implements com.hazelcast.nio.serialization.IdentifiedDataSe
 
 		if (cleanSession) {
 			TopicSubscriber.NEXUS.removeByClientId(clientId);
-
-			this.topicSubscriptions.dispose();
+			TopicSubscription.NEXUS.removeByClientId(clientId);
 		}
 
 		NEXUS.remove(this);
@@ -309,7 +278,6 @@ public class Session implements com.hazelcast.nio.serialization.IdentifiedDataSe
 		rawLong = in.readLong();
 		lastIncomingTime = rawLong != Long.MIN_VALUE ? new Date(rawLong) : null;
 
-		topicSubscriptions = ClusterDataFactory.INSTANCE.createMap(topicSubscriptionsName());
 		messageSender = new MessageSender(this);
 	}
 }

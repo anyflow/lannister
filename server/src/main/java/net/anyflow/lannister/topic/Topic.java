@@ -162,7 +162,7 @@ public class Topic implements com.hazelcast.nio.serialization.IdentifiedDataSeri
 
 		putMessage(message.publisherId(), message);
 
-		TopicSubscriber.NEXUS.getSubscriberIdsOf(name()).forEach(id -> {
+		TopicSubscriber.NEXUS.getClientIdsOf(name()).forEach(id -> {
 			Session session = Session.NEXUS.get(id);
 			assert session != null;
 
@@ -208,13 +208,6 @@ public class Topic implements com.hazelcast.nio.serialization.IdentifiedDataSeri
 				.containsKey(message.id());
 
 		NEXUS.notifier().publish(new Notification(session.clientId(), this, message));
-	}
-
-	public void updateSubscribers() {
-		Session.NEXUS.map().values().stream()
-				.filter(s -> s.getTopicSubscriptions().values().stream()
-						.anyMatch(ts -> TopicMatcher.match(ts.topicFilter(), name)))
-				.forEach(s -> TopicSubscriber.NEXUS.put(new TopicSubscriber(s.clientId(), name)));
 	}
 
 	public void retain(String messageKey) {

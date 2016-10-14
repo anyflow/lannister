@@ -18,6 +18,7 @@ package net.anyflow.lannister.topic;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import com.google.common.collect.Maps;
@@ -43,6 +44,10 @@ public class Topics {
 
 	public Map<String, Topic> map() {
 		return topics;
+	}
+
+	public Set<String> keySet() {
+		return topics.keySet();
 	}
 
 	public ITopic<Notification> notifier() {
@@ -93,7 +98,7 @@ public class Topics {
 	public void insert(Topic topic) {
 		assert topic != null;
 
-		topic.updateSubscribers();
+		TopicSubscriber.NEXUS.updateByTopicName(topic.name());
 
 		// TODO should be added in case of no subscriber & no retained Message?
 		persist(topic);

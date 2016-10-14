@@ -63,30 +63,14 @@ public class TopicSubscribers {
 		return data.get(key(topicName, clientId));
 	}
 
-	public List<TopicSubscriber> getByTopicName(String topicName) {
-		List<TopicSubscriber> ret = Lists.newArrayList();
-
-		List<String> clientIds = topicnameIndex.get(topicName);
-		if (clientIds == null || clientIds.size() <= 0) { return ret; }
-
-		clientIds.forEach(clientId -> ret.add(data.get(key(topicName, clientId))));
-
-		return ret;
-	}
-
-	public List<TopicSubscriber> getByClientId(String clientId) {
-		List<TopicSubscriber> ret = Lists.newArrayList();
-
-		List<String> topicNames = clientidIndex.get(clientId);
-		if (topicNames == null || topicNames.size() <= 0) { return ret; }
-
-		topicNames.forEach(topicName -> ret.add(data.get(key(topicName, clientId))));
-
-		return ret;
-	}
-
-	public List<String> getSubscriberIdsOf(String topicName) {
+	public List<String> getClientIdsOf(String topicName) {
 		List<String> ret = topicnameIndex.get(topicName);
+
+		return ret == null ? Lists.newArrayList() : ret;
+	}
+
+	public List<String> getTopicNamesOf(String clientId) {
+		List<String> ret = clientidIndex.get(clientId);
 
 		return ret == null ? Lists.newArrayList() : ret;
 	}
@@ -95,7 +79,7 @@ public class TopicSubscribers {
 		return removeByKey(key(topicName, clientId));
 	}
 
-	public TopicSubscriber removeByKey(String key) {
+	private TopicSubscriber removeByKey(String key) {
 		removeLock.lock();
 
 		try {
@@ -131,5 +115,21 @@ public class TopicSubscribers {
 
 	public boolean containsClientId(String clientId) {
 		return this.clientidIndex.containsKey(clientId);
+	}
+
+	public void updateByTopicName(String topicName) {
+		TopicSubscription.NEXUS.topicFilters().stream()
+				.filter(topicFilter -> TopicMatcher.match(topicFilter, topicName))
+				.forEach(topicFilter -> TopicSubscription.NEXUS.getClientIdsOf(topicFilter)
+						.forEach(clientId -> TopicSubscriber.NEXUS.put(new TopicSubscriber(clientId, topicName))));
+	}
+
+	public void removeByTopicFilter(String clientId, String topicFilter) {
+		List<String> topicFilters = TopicSubscription.NEXUS.getTopicFiltersOf(clientId);
+		topicFilters.remove(topicFilter);
+
+		this.getTopicNamesOf(clientId).stream().filter(topicName -> TopicMatcher.match(topicFilter, topicName))
+				.filter(topicName -> !topicFilters.stream().anyMatch(item -> TopicMatcher.match(item, topicName)))
+				.forEach(topicName -> TopicSubscriber.NEXUS.removeByKey(topicName, clientId));
 	}
 }

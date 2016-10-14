@@ -71,13 +71,14 @@ public class SubscribeReceiver extends SimpleChannelInboundHandler<MqttSubscribe
 		}
 
 		// TODO multiple sub checking (granted QoS)
-		Map.Entry<List<Integer>, Map<String, TopicSubscription>> returns = generateReturns(topicSubs);
+		Map.Entry<List<Integer>, Map<String, TopicSubscription>> returns = generateReturns(session.clientId(),
+				topicSubs);
 		List<Integer> grantedQoss = returns.getKey();
 		Map<String, TopicSubscription> topicSubscriptions = returns.getValue();
 
 		if (!executePlugins(session, topicSubscriptions.values())) { return; }
 
-		topicSubscriptions.values().forEach(ts -> session.putTopicSubscription(ts));
+		topicSubscriptions.values().forEach(topicSubscription -> TopicSubscription.NEXUS.put(topicSubscription));
 
 		session.send(MessageFactory.suback(msg.variableHeader().messageId(), grantedQoss), null); // [MQTT-2.3.1-7],[MQTT-2.3.1-7],[MQTT-3.8.4-1],[MQTT-3.8.4-2]
 
@@ -94,14 +95,14 @@ public class SubscribeReceiver extends SimpleChannelInboundHandler<MqttSubscribe
 		});
 	}
 
-	private Map.Entry<List<Integer>, Map<String, TopicSubscription>> generateReturns(
+	private Map.Entry<List<Integer>, Map<String, TopicSubscription>> generateReturns(String clientId,
 			List<MqttTopicSubscription> topicSubs) {
 		List<Integer> grantedQoss = Lists.newArrayList();
 		Map<String, TopicSubscription> topicSubscriptions = Maps.newHashMap();
 
 		topicSubs.stream().forEach(topicSub -> {
 			if (TopicMatcher.isValid(topicSub.topicName(), true)) {
-				TopicSubscription topicSubscription = new TopicSubscription(topicSub.topicName(),
+				TopicSubscription topicSubscription = new TopicSubscription(clientId, topicSub.topicName(),
 						topicSub.qualityOfService());
 
 				grantedQoss.add(topicSubscription.qos().value());
