@@ -21,7 +21,6 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import com.google.common.collect.Maps;
 import com.hazelcast.core.ITopic;
 
 import net.anyflow.lannister.cluster.ClusterDataFactory;
@@ -40,10 +39,6 @@ public class Topics {
 		this.topics = ClusterDataFactory.INSTANCE.createMap("topics");
 		this.notifier = ClusterDataFactory.INSTANCE.createTopic("publishNotifier");
 		this.notifier.addMessageListener(sessions);
-	}
-
-	public Map<String, Topic> map() {
-		return topics;
 	}
 
 	public Set<String> keySet() {
@@ -77,16 +72,17 @@ public class Topics {
 	}
 
 	private Topic getFromPublisher(String publisherId, int messageId) {
-		return topics.values().parallelStream().filter(t -> t.getInboundMessageStatus(publisherId, messageId) != null)
-				.findAny().orElse(null);
+		return topics.keySet().stream()
+				.filter(t -> topics.get(t).getInboundMessageStatus(publisherId, messageId) != null)
+				.map(topicName -> topics.get(topicName)).findAny().orElse(null);
 	}
 
 	private Topic getFromSubscriber(String subscriberId, int messageId) {
-		return topics.values().stream().filter(t -> {
-			TopicSubscriber ts = TopicSubscriber.NEXUS.getBy(t.name(), subscriberId);
+		return topics.keySet().stream().filter(topicName -> {
+			TopicSubscriber ts = TopicSubscriber.NEXUS.getBy(topicName, subscriberId);
 
 			return ts != null && ts.outboundMessageStatuses().get(messageId) != null;
-		}).findAny().orElse(null);
+		}).map(topicName -> topics.get(topicName)).findAny().orElse(null);
 	}
 
 	protected void persist(Topic topic) {
@@ -122,20 +118,13 @@ public class Topics {
 	}
 
 	public List<Topic> matches(String topicFilter) {
-		return topics.values().stream().filter(topic -> TopicMatcher.match(topicFilter, topic.name()))
-				.collect(Collectors.toList());
+		return topics.keySet().stream().filter(topicName -> TopicMatcher.match(topicFilter, topicName))
+				.map(topicName -> topics.get(topicName)).collect(Collectors.toList());
 	}
 
-	public Collection<Topic> matches(Collection<String> topicFilters) {
-		java.util.Map<String, Topic> ret = Maps.newHashMap();
-
-		topics.values().stream().forEach(t -> {
-			if (topicFilters.stream().filter(tf -> TopicMatcher.match(tf, t.name())).count() <= 0) { return; }
-			if (ret.containsKey(t.name())) { return; }
-
-			ret.put(t.name(), t);
-		});
-
-		return ret.values();
+	public List<Topic> matches(Collection<String> topicFilters) {
+		return topics.keySet().stream()
+				.filter(topicName -> topicFilters.stream().filter(tf -> TopicMatcher.match(tf, topicName)).count() > 0)
+				.map(topicName -> topics.get(topicName)).collect(Collectors.toList());
 	}
 }

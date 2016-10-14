@@ -151,21 +151,22 @@ public class Statistics {
 		data.put("$SYS/broker/messages/publish/dropped", new RawSysValue(Criterion.MESSAGES_PUBLISH_DROPPED));
 		data.put("$SYS/broker/messages/publish/received", new RawSysValue(Criterion.MESSAGES_PUBLISH_RECEIVED));
 		data.put("$SYS/broker/messages/publish/sent", new RawSysValue(Criterion.MESSAGES_PUBLISH_SENT));
-		data.put("$SYS/broker/messages/retained/count", () -> defaultFormatter
-				.format(Topic.NEXUS.map().values().stream().filter(t -> t.retainedMessage() != null).count()));
+		data.put("$SYS/broker/messages/retained/count", () -> defaultFormatter.format(
+				Topic.NEXUS.keySet().stream().filter(t -> Topic.NEXUS.get(t).retainedMessage() != null).count()));
 
 		// CLIENT
 		data.put("$SYS/broker/clients/maximum", new RawSysValue(Criterion.CLIENTS_MAXIMUM));
 		data.put("$SYS/broker/clients/connected", () -> {
-			long current = Session.NEXUS.map().values().stream().filter(s -> s.isConnected(false)).count();
+			long current = Session.NEXUS.keySet().stream().filter(s -> Session.NEXUS.get(s).isConnected(false))
+					.count();
 
 			setMaxActiveClients(current);
 
 			return defaultFormatter.format(current);
 		});
-		data.put("$SYS/broker/clients/disconnected", () -> defaultFormatter
-				.format(Session.NEXUS.map().values().stream().filter(s -> !s.isConnected(false)).count()));
-		data.put("$SYS/broker/clients/total", () -> defaultFormatter.format(Session.NEXUS.map().size()));
+		data.put("$SYS/broker/clients/disconnected", () -> defaultFormatter.format(
+				Session.NEXUS.keySet().stream().filter(s -> !Session.NEXUS.get(s).isConnected(false)).count()));
+		data.put("$SYS/broker/clients/total", () -> defaultFormatter.format(Session.NEXUS.keySet().size()));
 
 		// STATIC
 		data.put("$SYS/broker/version", () -> Settings.INSTANCE.version());

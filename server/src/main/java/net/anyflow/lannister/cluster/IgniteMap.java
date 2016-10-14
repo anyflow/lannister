@@ -1,6 +1,5 @@
 package net.anyflow.lannister.cluster;
 
-import java.util.Collection;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -36,12 +35,6 @@ public class IgniteMap<K, V> implements Map<K, V> {
 	public Set<K> keySet() {
 		return engine.query(new ScanQuery<K, V>()).getAll().stream().map(Cache.Entry::getKey)
 				.collect(Collectors.toSet());
-	}
-
-	@Override
-	public Collection<V> values() {
-		return engine.query(new ScanQuery<K, V>()).getAll().stream().map(Cache.Entry::getValue)
-				.collect(Collectors.toList());
 	}
 
 	@Override

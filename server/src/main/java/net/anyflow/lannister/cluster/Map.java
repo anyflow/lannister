@@ -1,6 +1,5 @@
 package net.anyflow.lannister.cluster;
 
-import java.util.Collection;
 import java.util.Set;
 
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
@@ -16,8 +15,6 @@ public interface Map<K, V> {
 	V remove(K key);
 
 	Set<K> keySet();
-
-	Collection<V> values();
 
 	void dispose();
 

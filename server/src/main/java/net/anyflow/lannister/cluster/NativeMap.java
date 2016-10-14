@@ -1,6 +1,5 @@
 package net.anyflow.lannister.cluster;
 
-import java.util.Collection;
 import java.util.Set;
 
 import com.google.common.collect.Maps;
@@ -31,11 +30,6 @@ public class NativeMap<K, V> implements Map<K, V> {
 	@Override
 	public Set<K> keySet() {
 		return engine.keySet();
-	}
-
-	@Override
-	public Collection<V> values() {
-		return engine.values();
 	}
 
 	@Override

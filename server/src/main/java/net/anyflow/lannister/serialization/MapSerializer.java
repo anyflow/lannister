@@ -17,6 +17,7 @@
 package net.anyflow.lannister.serialization;
 
 import java.io.IOException;
+import java.util.stream.Collectors;
 
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -24,10 +25,10 @@ import com.fasterxml.jackson.databind.SerializerProvider;
 
 import net.anyflow.lannister.cluster.Map;
 
-public final class MapSerializer extends com.fasterxml.jackson.databind.JsonSerializer<Map<?, ?>> {
+public final class MapSerializer<K, V> extends com.fasterxml.jackson.databind.JsonSerializer<Map<K, V>> {
 	@Override
-	public void serialize(Map<?, ?> value, JsonGenerator gen, SerializerProvider serializers)
+	public void serialize(Map<K, V> value, JsonGenerator gen, SerializerProvider serializers)
 			throws IOException, JsonProcessingException {
-		gen.writeObject(value.values());
+		gen.writeObject(value.keySet().stream().map(key -> value.get(key)).collect(Collectors.toList()));
 	}
 }

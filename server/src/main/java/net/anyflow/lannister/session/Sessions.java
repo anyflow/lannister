@@ -16,6 +16,8 @@
 
 package net.anyflow.lannister.session;
 
+import java.util.Set;
+
 import com.google.common.base.Strings;
 import com.google.common.collect.Maps;
 import com.hazelcast.core.Message;
@@ -91,8 +93,8 @@ public class Sessions implements MessageListener<Notification> {
 		}
 	}
 
-	public Map<String, Session> map() {
-		return sessions;
+	public Set<String> keySet() {
+		return sessions.keySet();
 	}
 
 	@Override

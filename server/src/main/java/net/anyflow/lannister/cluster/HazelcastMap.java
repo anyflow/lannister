@@ -1,6 +1,5 @@
 package net.anyflow.lannister.cluster;
 
-import java.util.Collection;
 import java.util.Set;
 
 public class HazelcastMap<K, V> implements Map<K, V> {
@@ -24,11 +23,6 @@ public class HazelcastMap<K, V> implements Map<K, V> {
 	@Override
 	public V remove(K key) {
 		return engine.remove(key);
-	}
-
-	@Override
-	public Collection<V> values() {
-		return engine.values();
 	}
 
 	@Override
