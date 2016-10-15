@@ -21,20 +21,16 @@ public class TopicSubscribers {
 	private final Lock removeLock;
 
 	protected TopicSubscribers() {
-		this.data = ClusterDataFactory.INSTANCE.createMap("TopicSubscribers");
+		this.data = ClusterDataFactory.INSTANCE.createMap("TopicSubscribers_data");
 		this.topicnameIndex = ClusterDataFactory.INSTANCE.createMap("TopicSubscribers_topicnameIndex");
 		this.clientidIndex = ClusterDataFactory.INSTANCE.createMap("TopicSubscribers_clientidIndex");
 
-		this.putLock = ClusterDataFactory.INSTANCE.createLock("TopicSubscribers_put");
-		this.removeLock = ClusterDataFactory.INSTANCE.createLock("TopicSubscribers_remove");
+		this.putLock = ClusterDataFactory.INSTANCE.createLock("TopicSubscribers_putLock");
+		this.removeLock = ClusterDataFactory.INSTANCE.createLock("TopicSubscribers_removeLock");
 	}
 
 	public static String key(String topicName, String clientId) {
 		return topicName + "_" + clientId;
-	}
-
-	public boolean constainsKey(String topicName, String clientId) {
-		return data.containsKey(key(topicName, clientId));
 	}
 
 	public void put(TopicSubscriber topicSubscriber) {
@@ -63,17 +59,13 @@ public class TopicSubscribers {
 		}
 	}
 
-	public TopicSubscriber getBy(String topicName, String clientId) {
-		return data.get(key(topicName, clientId));
-	}
-
-	public List<String> getClientIdsOf(String topicName) {
+	public List<String> clientIdsOf(String topicName) {
 		List<String> ret = topicnameIndex.get(topicName);
 
 		return ret == null ? Lists.newArrayList() : ret;
 	}
 
-	public List<String> getTopicNamesOf(String clientId) {
+	public List<String> topicNamesOf(String clientId) {
 		List<String> ret = clientidIndex.get(clientId);
 
 		return ret == null ? Lists.newArrayList() : ret;
@@ -117,22 +109,18 @@ public class TopicSubscribers {
 		}
 	}
 
-	public boolean containsClientId(String clientId) {
-		return this.clientidIndex.containsKey(clientId);
-	}
-
 	public void updateByTopicName(String topicName) {
 		TopicSubscription.NEXUS.topicFilters().stream()
 				.filter(topicFilter -> TopicMatcher.match(topicFilter, topicName))
-				.forEach(topicFilter -> TopicSubscription.NEXUS.getClientIdsOf(topicFilter)
+				.forEach(topicFilter -> TopicSubscription.NEXUS.clientIdsOf(topicFilter)
 						.forEach(clientId -> TopicSubscriber.NEXUS.put(new TopicSubscriber(clientId, topicName))));
 	}
 
 	public void removeByTopicFilter(String clientId, String topicFilter) {
-		List<String> topicFilters = TopicSubscription.NEXUS.getTopicFiltersOf(clientId);
+		List<String> topicFilters = TopicSubscription.NEXUS.topicFiltersOf(clientId);
 		topicFilters.remove(topicFilter);
 
-		this.getTopicNamesOf(clientId).stream().filter(topicName -> TopicMatcher.match(topicFilter, topicName))
+		this.topicNamesOf(clientId).stream().filter(topicName -> TopicMatcher.match(topicFilter, topicName))
 				.filter(topicName -> !topicFilters.stream().anyMatch(item -> TopicMatcher.match(item, topicName)))
 				.forEach(topicName -> TopicSubscriber.NEXUS.removeByKey(topicName, clientId));
 	}

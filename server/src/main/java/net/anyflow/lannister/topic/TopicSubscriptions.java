@@ -77,13 +77,13 @@ public class TopicSubscriptions {
 		return data.get(key(topicFilter, clientId));
 	}
 
-	public List<String> getClientIdsOf(String topicFilter) {
+	public List<String> clientIdsOf(String topicFilter) {
 		List<String> ret = topicfilterIndex.get(topicFilter);
 
 		return ret == null ? Lists.newArrayList() : ret;
 	}
 
-	public List<String> getTopicFiltersOf(String clientId) {
+	public List<String> topicFiltersOf(String clientId) {
 		List<String> ret = clientidIndex.get(clientId);
 
 		return ret == null ? Lists.newArrayList() : ret;
@@ -125,9 +125,5 @@ public class TopicSubscriptions {
 		finally {
 			removeLock.unlock();
 		}
-	}
-
-	public boolean containsClientId(String clientId) {
-		return this.clientidIndex.containsKey(clientId);
 	}
 }

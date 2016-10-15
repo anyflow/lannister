@@ -91,7 +91,7 @@ public class Topic implements com.hazelcast.nio.serialization.IdentifiedDataSeri
 
 		putMessage(message.publisherId(), message);
 
-		TopicSubscriber.NEXUS.getClientIdsOf(name()).forEach(id -> {
+		TopicSubscriber.NEXUS.clientIdsOf(name).forEach(id -> {
 			Session session = Session.NEXUS.get(id);
 			assert session != null;
 
@@ -110,10 +110,7 @@ public class Topic implements com.hazelcast.nio.serialization.IdentifiedDataSeri
 
 		toSend.qos(adjustQoS(subscription.qos(), toSend.qos()));
 
-		TopicSubscriber ts = TopicSubscriber.NEXUS.getBy(name(), session.clientId());
-		assert ts != null;
-
-		if (!OutboundMessageStatus.NEXUS.containsKey(toSend.id(), ts.clientId())) {
+		if (!OutboundMessageStatus.NEXUS.containsKey(toSend.id(), session.clientId())) {
 			toSend.id(session.nextMessageId()); // [MQTT-2.3.1-2]
 
 			if (toSend.qos() != MqttQoS.AT_MOST_ONCE) {

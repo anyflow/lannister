@@ -28,6 +28,7 @@ import io.netty.handler.codec.mqtt.MqttConnectMessage;
 import io.netty.handler.codec.mqtt.MqttConnectReturnCode;
 import io.netty.handler.codec.mqtt.MqttQoS;
 import io.netty.util.CharsetUtil;
+import io.netty.util.concurrent.GlobalEventExecutor;
 import net.anyflow.lannister.AbnormalDisconnectEventArgs;
 import net.anyflow.lannister.Settings;
 import net.anyflow.lannister.cluster.ClusterDataFactory;
@@ -101,27 +102,28 @@ public class ConnectReceiver extends SimpleChannelInboundHandler<MqttConnectMess
 				return;
 			}
 
-			Plugins.INSTANCE.get(ConnectEventListener.class).connectHandled(new ConnectEventArgs() {
-				@Override
-				public String clientId() {
-					return sessionFinal.clientId();
-				}
+			GlobalEventExecutor.INSTANCE.execute(
+					() -> Plugins.INSTANCE.get(ConnectEventListener.class).connectHandled(new ConnectEventArgs() {
+						@Override
+						public String clientId() {
+							return sessionFinal.clientId();
+						}
 
-				@Override
-				public IMessage will() {
-					return sessionFinal.will();
-				}
+						@Override
+						public IMessage will() {
+							return sessionFinal.will();
+						}
 
-				@Override
-				public Boolean cleanSession() {
-					return sessionFinal.cleanSession();
-				}
+						@Override
+						public Boolean cleanSession() {
+							return sessionFinal.cleanSession();
+						}
 
-				@Override
-				public MqttConnectReturnCode returnCode() {
-					return MqttConnectReturnCode.CONNECTION_ACCEPTED;
-				}
-			});
+						@Override
+						public MqttConnectReturnCode returnCode() {
+							return MqttConnectReturnCode.CONNECTION_ACCEPTED;
+						}
+					}));
 
 			if (!sessionFinal.cleanSession()) {
 				sessionFinal.completeRemainedMessages(); // [MQTT-4.4.0-1]
@@ -145,7 +147,8 @@ public class ConnectReceiver extends SimpleChannelInboundHandler<MqttConnectMess
 	private String generateClientId(ChannelHandlerContext ctx, boolean cleanSession) {
 		if (cleanSession) {
 			if (Settings.INSTANCE.getBoolean("mqttserver.acceptEmptyClientId", true)) {
-				return "Lannister_" + Long.toString(ClusterDataFactory.INSTANCE.createIdGenerator("clientIdGenerator").newId()); // [MQTT-3.1.3-6],[MQTT-3.1.3-7]
+				return "Lannister_"
+						+ Long.toString(ClusterDataFactory.INSTANCE.createIdGenerator("clientIdGenerator").newId()); // [MQTT-3.1.3-6],[MQTT-3.1.3-7]
 			}
 			else {
 				sendNoneAcceptMessage(ctx, MqttConnectReturnCode.CONNECTION_REFUSED_IDENTIFIER_REJECTED);

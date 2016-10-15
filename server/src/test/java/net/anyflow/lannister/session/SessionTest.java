@@ -28,7 +28,7 @@ public class SessionTest {
 		TopicSubscription.NEXUS.put(ts1);
 		TopicSubscription.NEXUS.put(ts2);
 
-		Assert.assertEquals(3, TopicSubscription.NEXUS.getTopicFiltersOf(session.clientId()).size());
+		Assert.assertEquals(3, TopicSubscription.NEXUS.topicFiltersOf(session.clientId()).size());
 
 		TopicSubscription target = session.matches(testTopic);
 

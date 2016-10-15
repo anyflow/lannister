@@ -1,7 +1,6 @@
 package net.anyflow.lannister.message;
 
 import java.util.List;
-import java.util.Set;
 import java.util.concurrent.locks.Lock;
 
 import com.google.common.collect.Lists;
@@ -35,10 +34,6 @@ public class OutboundMessageStatuses {
 		return clientId + "_" + Integer.toString(messageId);
 	}
 
-	public int size() {
-		return data.size();
-	}
-
 	public void put(OutboundMessageStatus outboundMessageStatus) {
 		if (outboundMessageStatus == null) { return; }
 
@@ -67,21 +62,11 @@ public class OutboundMessageStatuses {
 		}
 	}
 
-	public Set<Integer> messageIds() {
-		return messageidIndex.keySet();
-	}
-
 	public OutboundMessageStatus getBy(Integer messageId, String clientId) {
 		return data.get(key(messageId, clientId));
 	}
 
-	public List<String> getClientIdsOf(Integer messageId) {
-		List<String> ret = messageidIndex.get(messageId);
-
-		return ret == null ? Lists.newArrayList() : ret;
-	}
-
-	public List<Integer> getMessageIdsOf(String clientId) {
+	public List<Integer> messageIdsOf(String clientId) {
 		List<Integer> ret = clientidIndex.get(clientId);
 
 		return ret == null ? Lists.newArrayList() : ret;
@@ -128,10 +113,6 @@ public class OutboundMessageStatuses {
 		finally {
 			removeLock.unlock();
 		}
-	}
-
-	public boolean containsClientId(String clientId) {
-		return this.clientidIndex.containsKey(clientId);
 	}
 
 	public boolean containsKey(Integer messageId, String clientId) {

@@ -169,7 +169,7 @@ public class MessageSender {
 		ctx.executor().submit(() -> {
 			Date now = new Date();
 
-			OutboundMessageStatus.NEXUS.getMessageIdsOf(session.clientId()).stream()
+			OutboundMessageStatus.NEXUS.messageIdsOf(session.clientId()).stream()
 					.map(messageId -> OutboundMessageStatus.NEXUS.getBy(messageId, session.clientId()))
 					.forEach(messageStatus -> {
 						long intervalSeconds = (now.getTime() - messageStatus.updateTime().getTime()) * 1000;

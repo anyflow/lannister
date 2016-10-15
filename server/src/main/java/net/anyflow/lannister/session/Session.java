@@ -32,6 +32,7 @@ import io.netty.channel.ChannelId;
 import io.netty.handler.codec.mqtt.MqttMessage;
 import io.netty.util.concurrent.Future;
 import io.netty.util.concurrent.GenericFutureListener;
+import io.netty.util.concurrent.GlobalEventExecutor;
 import net.anyflow.lannister.Literals;
 import net.anyflow.lannister.message.Message;
 import net.anyflow.lannister.message.OutboundMessageStatus;
@@ -151,7 +152,7 @@ public class Session implements com.hazelcast.nio.serialization.IdentifiedDataSe
 	}
 
 	public TopicSubscription matches(String topicName) {
-		return TopicSubscription.NEXUS.getTopicFiltersOf(clientId).stream()
+		return TopicSubscription.NEXUS.topicFiltersOf(clientId).stream()
 				.filter(topicFilter -> TopicMatcher.match(topicFilter, topicName))
 				.map(topicFilter -> TopicSubscription.NEXUS.getBy(topicFilter, clientId))
 				.max((p1, p2) -> p1.qos().compareTo(p2.qos())).orElse(null); // [MQTT-3.3.5-1]
@@ -208,23 +209,23 @@ public class Session implements com.hazelcast.nio.serialization.IdentifiedDataSe
 
 		NEXUS.remove(this);
 
-		// TODO Why Plugin.disconnectEvent is called twice?
-		Plugins.INSTANCE.get(DisconnectEventListener.class).disconnected(new DisconnectEventArgs() {
-			@Override
-			public String clientId() {
-				return clientId;
-			}
+		GlobalEventExecutor.INSTANCE.execute(
+				() -> Plugins.INSTANCE.get(DisconnectEventListener.class).disconnected(new DisconnectEventArgs() {
+					@Override
+					public String clientId() {
+						return clientId;
+					}
 
-			@Override
-			public Boolean cleanSession() {
-				return cleanSession;
-			}
+					@Override
+					public Boolean cleanSession() {
+						return cleanSession;
+					}
 
-			@Override
-			public Boolean byDisconnectMessage() {
-				return !sendWill;
-			}
-		});
+					@Override
+					public Boolean byDisconnectMessage() {
+						return !sendWill;
+					}
+				}));
 	}
 
 	@JsonIgnore
