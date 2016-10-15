@@ -32,7 +32,6 @@ import net.anyflow.lannister.AbnormalDisconnectEventArgs;
 import net.anyflow.lannister.Settings;
 import net.anyflow.lannister.cluster.ClusterDataFactory;
 import net.anyflow.lannister.message.Message;
-import net.anyflow.lannister.message.MessageFactory;
 import net.anyflow.lannister.plugin.Authenticator;
 import net.anyflow.lannister.plugin.Authorizer;
 import net.anyflow.lannister.plugin.ConnectEventArgs;
@@ -92,7 +91,7 @@ public class ConnectReceiver extends SimpleChannelInboundHandler<MqttConnectMess
 		processRetainedWill(session);
 
 		final Session sessionFinal = session;
-		final MqttConnAckMessage acceptMsg = MessageFactory.connack(MqttConnectReturnCode.CONNECTION_ACCEPTED,
+		final MqttConnAckMessage acceptMsg = MqttMessageFactory.connack(MqttConnectReturnCode.CONNECTION_ACCEPTED,
 				sessionPresent); // [MQTT-3.1.4-4]
 		final String log = acceptMsg.toString();
 
@@ -204,7 +203,7 @@ public class ConnectReceiver extends SimpleChannelInboundHandler<MqttConnectMess
 	private void sendNoneAcceptMessage(ChannelHandlerContext ctx, MqttConnectReturnCode returnCode) {
 		assert returnCode != MqttConnectReturnCode.CONNECTION_ACCEPTED;
 
-		MqttConnAckMessage msg = MessageFactory.connack(returnCode, false); // [MQTT-3.2.2-4]
+		MqttConnAckMessage msg = MqttMessageFactory.connack(returnCode, false); // [MQTT-3.2.2-4]
 
 		ctx.channel().writeAndFlush(msg).addListener(f -> {
 			Plugins.INSTANCE.get(ConnectEventListener.class).connectHandled(new ConnectEventArgs() {

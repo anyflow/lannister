@@ -33,6 +33,10 @@ public class TopicSubscribers {
 		return topicName + "_" + clientId;
 	}
 
+	public boolean constainsKey(String topicName, String clientId) {
+		return data.containsKey(key(topicName, clientId));
+	}
+
 	public void put(TopicSubscriber topicSubscriber) {
 		if (topicSubscriber == null) { return; }
 

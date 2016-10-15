@@ -27,7 +27,6 @@ import net.anyflow.lannister.AbnormalDisconnectEventArgs;
 import net.anyflow.lannister.Statistics;
 import net.anyflow.lannister.message.InboundMessageStatus;
 import net.anyflow.lannister.message.Message;
-import net.anyflow.lannister.message.MessageFactory;
 import net.anyflow.lannister.plugin.DisconnectEventListener;
 import net.anyflow.lannister.plugin.IMessage;
 import net.anyflow.lannister.plugin.Plugins;
@@ -101,7 +100,7 @@ public class PublishReceiver extends SimpleChannelInboundHandler<MqttPublishMess
 			return; // QoS 0 do not send any acknowledge packet [MQTT-3.3.4-1]
 
 		case AT_LEAST_ONCE:
-			toSend = MessageFactory.puback(msg.variableHeader().messageId());
+			toSend = MqttMessageFactory.puback(msg.variableHeader().messageId());
 			log = toSend.toString();
 
 			session.send(toSend, f -> {
@@ -110,23 +109,23 @@ public class PublishReceiver extends SimpleChannelInboundHandler<MqttPublishMess
 					return;
 				}
 
-				topic.removeInboundMessageStatus(session.clientId(), msg.variableHeader().messageId());
+				InboundMessageStatus.NEXUS.removeByKey(msg.variableHeader().messageId(), session.clientId());
 			}); // [MQTT-3.3.4-1],[MQTT-2.3.1-6]
 			logger.debug("Inbound message status REMOVED [clientId={}, messageId={}]", session.clientId(),
 					msg.variableHeader().messageId());
 			return;
 
 		case EXACTLY_ONCE:
-			toSend = MessageFactory.pubrec(msg.variableHeader().messageId());
+			toSend = MqttMessageFactory.pubrec(msg.variableHeader().messageId());
 			log = toSend.toString();
 
-			session.send(MessageFactory.pubrec(msg.variableHeader().messageId()), f -> {
+			session.send(MqttMessageFactory.pubrec(msg.variableHeader().messageId()), f -> {
 				if (!f.isSuccess()) {
 					logger.error("packet outgoing failed [{}] {}", log, f.cause());
 					return;
 				}
 
-				topic.setInboundMessageStatus(session.clientId(), msg.variableHeader().messageId(),
+				InboundMessageStatus.NEXUS.update(msg.variableHeader().messageId(), session.clientId(),
 						InboundMessageStatus.Status.PUBRECED);
 			}); // [MQTT-3.3.4-1],[MQTT-2.3.1-6]
 			return;

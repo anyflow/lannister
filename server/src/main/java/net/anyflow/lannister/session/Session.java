@@ -32,9 +32,9 @@ import io.netty.channel.ChannelId;
 import io.netty.handler.codec.mqtt.MqttMessage;
 import io.netty.util.concurrent.Future;
 import io.netty.util.concurrent.GenericFutureListener;
-import net.anyflow.lannister.AbnormalDisconnectEventArgs;
 import net.anyflow.lannister.Literals;
 import net.anyflow.lannister.message.Message;
+import net.anyflow.lannister.message.OutboundMessageStatus;
 import net.anyflow.lannister.plugin.DisconnectEventArgs;
 import net.anyflow.lannister.plugin.DisconnectEventListener;
 import net.anyflow.lannister.plugin.Plugins;
@@ -194,9 +194,7 @@ public class Session implements com.hazelcast.nio.serialization.IdentifiedDataSe
 		ChannelId channelId = null;
 		ChannelHandlerContext ctx = NEXUS.channelHandlerContext(clientId);
 		if (ctx != null) {
-			ctx.channel().disconnect().addListener(ChannelFutureListener.CLOSE).addListener(fs -> Plugins.INSTANCE
-					.get(DisconnectEventListener.class).disconnected(new AbnormalDisconnectEventArgs()));
-
+			ctx.channel().disconnect().addListener(ChannelFutureListener.CLOSE);
 			channelId = ctx.channel().id();
 		}
 
@@ -205,10 +203,12 @@ public class Session implements com.hazelcast.nio.serialization.IdentifiedDataSe
 		if (cleanSession) {
 			TopicSubscriber.NEXUS.removeByClientId(clientId);
 			TopicSubscription.NEXUS.removeByClientId(clientId);
+			OutboundMessageStatus.NEXUS.removeByClientId(clientId);
 		}
 
 		NEXUS.remove(this);
 
+		// TODO Why Plugin.disconnectEvent is called twice?
 		Plugins.INSTANCE.get(DisconnectEventListener.class).disconnected(new DisconnectEventArgs() {
 			@Override
 			public String clientId() {

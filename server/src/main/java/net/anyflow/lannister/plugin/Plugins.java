@@ -34,6 +34,7 @@ import com.google.common.collect.Maps;
 
 import net.anyflow.lannister.Application;
 
+//TODO execute plugins in a seperate thread
 public class Plugins {
 	private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(Plugins.class);
 

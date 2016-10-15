@@ -33,6 +33,7 @@ import net.anyflow.lannister.serialization.SerializableFactory;
 
 public class Message implements com.hazelcast.nio.serialization.IdentifiedDataSerializable, IMessage, Cloneable {
 	public final static int ID = 1;
+	public final static Messages NEXUS = new Messages();
 
 	public static final int MAX_MESSAGE_ID_NUM = 0xffff;
 	public static final int MIN_MESSAGE_ID_NUM = 1;
@@ -66,6 +67,10 @@ public class Message implements com.hazelcast.nio.serialization.IdentifiedDataSe
 		this.isRetain = isRetain;
 	}
 
+	public String key() {
+		return Messages.key(publisherId, id);
+	}
+
 	/*
 	 * (non-Javadoc)
 	 * 
@@ -76,7 +81,7 @@ public class Message implements com.hazelcast.nio.serialization.IdentifiedDataSe
 		return id;
 	}
 
-	public void setId(int id) {
+	public void id(int id) {
 		this.id = id;
 	}
 
@@ -123,7 +128,7 @@ public class Message implements com.hazelcast.nio.serialization.IdentifiedDataSe
 		return qos;
 	}
 
-	public void setQos(MqttQoS qos) {
+	public void qos(MqttQoS qos) {
 		this.qos = qos;
 	}
 
@@ -149,17 +154,9 @@ public class Message implements com.hazelcast.nio.serialization.IdentifiedDataSe
 				.append(isRetain).append(']').toString();
 	}
 
-	public String key() {
-		return key(publisherId, id);
-	}
-
 	@Override
 	public Message clone() {
 		return new Message(id, topicName, publisherId, message, qos, isRetain);
-	}
-
-	public static String key(String clientId, int messageId) {
-		return clientId + "_" + Integer.toString(messageId);
 	}
 
 	@JsonIgnore

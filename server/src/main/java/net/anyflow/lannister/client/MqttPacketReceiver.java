@@ -23,7 +23,7 @@ import io.netty.handler.codec.mqtt.MqttMessageIdVariableHeader;
 import io.netty.handler.codec.mqtt.MqttPublishMessage;
 import io.netty.handler.codec.mqtt.MqttQoS;
 import net.anyflow.lannister.message.Message;
-import net.anyflow.lannister.message.MessageFactory;
+import net.anyflow.lannister.packetreceiver.MqttMessageFactory;
 
 public class MqttPacketReceiver extends SimpleChannelInboundHandler<MqttMessage> {
 	@SuppressWarnings("unused")
@@ -49,10 +49,10 @@ public class MqttPacketReceiver extends SimpleChannelInboundHandler<MqttMessage>
 
 			int messageId = ((MqttPublishMessage) msg).variableHeader().messageId();
 			if (((MqttPublishMessage) msg).fixedHeader().qosLevel() == MqttQoS.AT_LEAST_ONCE) {
-				client.send(MessageFactory.puback(messageId));
+				client.send(MqttMessageFactory.puback(messageId));
 			}
 			else if (((MqttPublishMessage) msg).fixedHeader().qosLevel() == MqttQoS.EXACTLY_ONCE) {
-				client.send(MessageFactory.pubrec(messageId));
+				client.send(MqttMessageFactory.pubrec(messageId));
 			}
 			break;
 
@@ -65,7 +65,7 @@ public class MqttPacketReceiver extends SimpleChannelInboundHandler<MqttMessage>
 			break;
 
 		case PUBREC:
-			client.send(MessageFactory.pubrel(((MqttMessageIdVariableHeader) msg.variableHeader()).messageId()));
+			client.send(MqttMessageFactory.pubrel(((MqttMessageIdVariableHeader) msg.variableHeader()).messageId()));
 			break;
 
 		case SUBACK:

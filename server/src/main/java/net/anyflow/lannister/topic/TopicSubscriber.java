@@ -23,10 +23,6 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.hazelcast.nio.ObjectDataInput;
 import com.hazelcast.nio.ObjectDataOutput;
 
-import io.netty.handler.codec.mqtt.MqttQoS;
-import net.anyflow.lannister.cluster.ClusterDataFactory;
-import net.anyflow.lannister.cluster.Map;
-import net.anyflow.lannister.message.OutboundMessageStatus;
 import net.anyflow.lannister.serialization.SerializableFactory;
 
 public class TopicSubscriber implements com.hazelcast.nio.serialization.IdentifiedDataSerializable {
@@ -37,8 +33,6 @@ public class TopicSubscriber implements com.hazelcast.nio.serialization.Identifi
 	private String clientId;
 	@JsonProperty
 	private String topicName;
-	@JsonProperty
-	private Map<Integer, OutboundMessageStatus> outboundMessageStatuses; // KEY:messageId
 
 	public TopicSubscriber() { // just for Serialization
 	}
@@ -46,7 +40,6 @@ public class TopicSubscriber implements com.hazelcast.nio.serialization.Identifi
 	public TopicSubscriber(String clientId, String topicName) {
 		this.clientId = clientId;
 		this.topicName = topicName;
-		this.outboundMessageStatuses = ClusterDataFactory.INSTANCE.createMap(messageStatusesName());
 	}
 
 	public String key() {
@@ -59,41 +52,6 @@ public class TopicSubscriber implements com.hazelcast.nio.serialization.Identifi
 
 	public String topicName() {
 		return topicName;
-	}
-
-	private String messageStatusesName() {
-		return "TOPIC(" + topicName + ")_CLIENT(" + clientId + ")_outboundMessageStatuses";
-	}
-
-	public Map<Integer, OutboundMessageStatus> outboundMessageStatuses() {
-		return outboundMessageStatuses;
-	}
-
-	protected void addOutboundMessageStatus(String messageKey, int messageId, OutboundMessageStatus.Status status,
-			MqttQoS qos) {
-		OutboundMessageStatus messageStatus = new OutboundMessageStatus(messageKey, clientId, messageId, status, qos);
-
-		outboundMessageStatuses.put(messageStatus.messageId(), messageStatus);
-
-		Topic.NEXUS.get(topicName).retain(messageStatus.messageKey());
-	}
-
-	public OutboundMessageStatus removeOutboundMessageStatus(int messageId) {
-		OutboundMessageStatus ret = outboundMessageStatuses.remove(messageId);
-		if (ret == null) { return null; }
-
-		Topic.NEXUS.get(topicName).release(ret.messageKey());
-
-		return ret;
-	}
-
-	public void setOutboundMessageStatus(int messageId, OutboundMessageStatus.Status targetStatus) {
-		OutboundMessageStatus status = outboundMessageStatuses.get(messageId);
-		if (status == null) { return; }
-
-		status.status(targetStatus);
-
-		outboundMessageStatuses.put(status.messageId(), status);
 	}
 
 	@JsonIgnore
@@ -117,7 +75,5 @@ public class TopicSubscriber implements com.hazelcast.nio.serialization.Identifi
 	public void readData(ObjectDataInput in) throws IOException {
 		topicName = in.readUTF();
 		clientId = in.readUTF();
-
-		outboundMessageStatuses = ClusterDataFactory.INSTANCE.createMap(messageStatusesName());
 	}
 }

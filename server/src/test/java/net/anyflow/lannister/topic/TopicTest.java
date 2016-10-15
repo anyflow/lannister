@@ -13,6 +13,7 @@ import net.anyflow.lannister.TestUtil;
 import net.anyflow.lannister.client.MqttClient;
 import net.anyflow.lannister.message.ConnectOptions;
 import net.anyflow.lannister.message.Message;
+import net.anyflow.lannister.message.Messages;
 import net.anyflow.lannister.message.OutboundMessageStatus;
 import net.anyflow.lannister.server.MqttServerTest;
 import net.anyflow.lannister.session.Session;
@@ -74,9 +75,9 @@ public class TopicTest {
 		final TopicSubscriber subscriber = TopicSubscriber.NEXUS.getBy(topic.name(), clientId);
 		Assert.assertNotNull(subscriber);
 
-		OutboundMessageStatus status = subscriber.outboundMessageStatuses().values().stream().findFirst().orElse(null);
+		OutboundMessageStatus status = OutboundMessageStatus.NEXUS.getBy(messageId, clientId);
 
 		Assert.assertNotNull(status);
-		Assert.assertTrue(Message.key(publisherId, messageId).equals(status.messageKey()));
+		Assert.assertTrue(Messages.key(publisherId, messageId).equals(status.messageKey()));
 	}
 }

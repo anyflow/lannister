@@ -32,7 +32,6 @@ import io.netty.handler.codec.mqtt.MqttQoS;
 import io.netty.handler.codec.mqtt.MqttSubscribeMessage;
 import io.netty.handler.codec.mqtt.MqttTopicSubscription;
 import net.anyflow.lannister.AbnormalDisconnectEventArgs;
-import net.anyflow.lannister.message.MessageFactory;
 import net.anyflow.lannister.plugin.DefaultSubscribeEventListener;
 import net.anyflow.lannister.plugin.DisconnectEventListener;
 import net.anyflow.lannister.plugin.ITopicSubscription;
@@ -80,7 +79,7 @@ public class SubscribeReceiver extends SimpleChannelInboundHandler<MqttSubscribe
 
 		topicSubscriptions.values().forEach(topicSubscription -> TopicSubscription.NEXUS.put(topicSubscription));
 
-		session.send(MessageFactory.suback(msg.variableHeader().messageId(), grantedQoss), null); // [MQTT-2.3.1-7],[MQTT-2.3.1-7],[MQTT-3.8.4-1],[MQTT-3.8.4-2]
+		session.send(MqttMessageFactory.suback(msg.variableHeader().messageId(), grantedQoss), null); // [MQTT-2.3.1-7],[MQTT-2.3.1-7],[MQTT-3.8.4-1],[MQTT-3.8.4-2]
 
 		sendRetainedMessage(session, topicSubscriptions.keySet());
 	}

@@ -22,12 +22,12 @@ public class TopicSubscriptions {
 	private final Lock removeLock;
 
 	protected TopicSubscriptions() {
-		this.data = ClusterDataFactory.INSTANCE.createMap("TopicSubscriptions");
+		this.data = ClusterDataFactory.INSTANCE.createMap("TopicSubscriptions_data");
 		this.topicfilterIndex = ClusterDataFactory.INSTANCE.createMap("TopicSubscriptions_topicfilterIndex");
 		this.clientidIndex = ClusterDataFactory.INSTANCE.createMap("TopicSubscriptions_clientidIndex");
 
-		this.putLock = ClusterDataFactory.INSTANCE.createLock("TopicSubscriptions_put");
-		this.removeLock = ClusterDataFactory.INSTANCE.createLock("TopicSubscriptions_remove");
+		this.putLock = ClusterDataFactory.INSTANCE.createLock("TopicSubscriptions_putLock");
+		this.removeLock = ClusterDataFactory.INSTANCE.createLock("TopicSubscriptions_removeLock");
 	}
 
 	public static String key(String topicFilter, String clientId) {

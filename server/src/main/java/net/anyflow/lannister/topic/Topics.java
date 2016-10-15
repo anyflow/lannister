@@ -25,7 +25,9 @@ import com.hazelcast.core.ITopic;
 
 import net.anyflow.lannister.cluster.ClusterDataFactory;
 import net.anyflow.lannister.cluster.Map;
+import net.anyflow.lannister.message.InboundMessageStatus;
 import net.anyflow.lannister.message.Message;
+import net.anyflow.lannister.message.OutboundMessageStatus;
 import net.anyflow.lannister.session.Sessions;
 
 public class Topics {
@@ -72,17 +74,17 @@ public class Topics {
 	}
 
 	private Topic getFromPublisher(String publisherId, int messageId) {
-		return topics.keySet().stream()
-				.filter(t -> topics.get(t).getInboundMessageStatus(publisherId, messageId) != null)
-				.map(topicName -> topics.get(topicName)).findAny().orElse(null);
+		InboundMessageStatus status = InboundMessageStatus.NEXUS.getBy(messageId, publisherId);
+		if (status == null) { return null; }
+
+		return Topic.NEXUS.get(status.topicName());
 	}
 
 	private Topic getFromSubscriber(String subscriberId, int messageId) {
-		return topics.keySet().stream().filter(topicName -> {
-			TopicSubscriber ts = TopicSubscriber.NEXUS.getBy(topicName, subscriberId);
+		OutboundMessageStatus status = OutboundMessageStatus.NEXUS.getBy(messageId, subscriberId);
+		if (status == null) { return null; }
 
-			return ts != null && ts.outboundMessageStatuses().get(messageId) != null;
-		}).map(topicName -> topics.get(topicName)).findAny().orElse(null);
+		return Topic.NEXUS.get(status.topicName());
 	}
 
 	protected void persist(Topic topic) {
@@ -102,7 +104,6 @@ public class Topics {
 
 	public Topic remove(Topic topic) {
 		assert topic != null;
-		topic.dispose();
 
 		return topics.remove(topic.name());
 	}

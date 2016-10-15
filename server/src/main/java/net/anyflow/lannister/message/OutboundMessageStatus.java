@@ -29,9 +29,8 @@ import net.anyflow.lannister.serialization.SerializableFactory;
 
 public class OutboundMessageStatus extends MessageStatus {
 	public static final int ID = 3;
+	public static final OutboundMessageStatuses NEXUS = new OutboundMessageStatuses();
 
-	@JsonProperty
-	private String messageKey;
 	@JsonProperty
 	private Status status;
 	@JsonProperty
@@ -40,16 +39,17 @@ public class OutboundMessageStatus extends MessageStatus {
 	public OutboundMessageStatus() { // just for Serialization
 	}
 
-	public OutboundMessageStatus(String messageKey, String clientId, int messageId, Status status, MqttQoS qos) {
-		super(clientId, messageId);
+	public OutboundMessageStatus(String messageKey, String clientId, int messageId, String topicName, Status status,
+			MqttQoS qos) {
+		super(messageKey, clientId, messageId, topicName);
 
-		this.messageKey = messageKey;
 		this.status = status;
 		this.qos = qos;
 	}
 
-	public String messageKey() {
-		return messageKey;
+	@Override
+	public String key() {
+		return OutboundMessageStatuses.key(messageId(), clientId());
 	}
 
 	public Status status() {
@@ -80,7 +80,6 @@ public class OutboundMessageStatus extends MessageStatus {
 	public void writeData(ObjectDataOutput out) throws IOException {
 		super.writeData(out);
 
-		out.writeUTF(messageKey);
 		out.writeByte(status != null ? status.value() : Byte.MIN_VALUE);
 		out.writeInt(qos != null ? qos.value() : Byte.MIN_VALUE);
 	}
@@ -88,8 +87,6 @@ public class OutboundMessageStatus extends MessageStatus {
 	@Override
 	public void readData(ObjectDataInput in) throws IOException {
 		super.readData(in);
-
-		messageKey = in.readUTF();
 
 		Byte rawByte = in.readByte();
 		status = rawByte != Byte.MIN_VALUE ? Status.valueOf(rawByte) : null;
