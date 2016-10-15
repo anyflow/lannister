@@ -11,7 +11,6 @@ import net.anyflow.lannister.cluster.SerializableIntegerSet;
 import net.anyflow.lannister.cluster.SerializableStringSet;
 
 public class OutboundMessageStatuses {
-	@SuppressWarnings("unused")
 	private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(OutboundMessageStatuses.class);
 
 	private final Map<String, OutboundMessageStatus> data;
@@ -56,6 +55,9 @@ public class OutboundMessageStatuses {
 			this.clientidIndex.put(outboundMessageStatus.clientId(), messageIds);
 
 			MessageReferenceCounts.INSTANCE.retain(outboundMessageStatus.messageKey());
+
+			logger.debug("OutboundMessageStatus added [messageId={}, clientId={}]", outboundMessageStatus.messageId(),
+					outboundMessageStatus.clientId());
 		}
 		finally {
 			putLock.unlock();
@@ -83,10 +85,28 @@ public class OutboundMessageStatuses {
 			OutboundMessageStatus removed = this.data.remove(key);
 			if (removed == null) { return null; }
 
-			this.messageidIndex.remove(removed.messageId());
-			this.clientidIndex.remove(removed.clientId());
+			SerializableStringSet clientIds = messageidIndex.get(removed.messageId());
+			clientIds.remove(removed.clientId());
+			if (clientIds.size() <= 0) {
+				messageidIndex.remove(removed.messageId());
+			}
+			else {
+				messageidIndex.put(removed.messageId(), clientIds);
+			}
+
+			SerializableIntegerSet messageIds = clientidIndex.get(removed.clientId());
+			messageIds.remove(removed.messageId());
+			if (messageIds.size() <= 0) {
+				clientidIndex.remove(removed.clientId());
+			}
+			else {
+				clientidIndex.put(removed.clientId(), messageIds);
+			}
 
 			MessageReferenceCounts.INSTANCE.release(removed.messageKey());
+
+			logger.debug("OutboundMessageStatus removed [messageId={}, clientId={}]", removed.messageId(),
+					removed.clientId());
 
 			return removed;
 		}
@@ -102,10 +122,23 @@ public class OutboundMessageStatuses {
 			SerializableIntegerSet messageIds = this.clientidIndex.remove(clientId);
 			if (messageIds == null) { return Sets.newHashSet(); }
 
-			messageIds.forEach(messageId -> this.messageidIndex.get(messageId).remove(clientId));
+			messageIds.forEach(messageId -> {
+				SerializableStringSet clientIds = messageidIndex.get(messageId);
+				clientIds.remove(clientId);
+				if (clientIds.size() <= 0) {
+					messageidIndex.remove(messageId);
+				}
+				else {
+					messageidIndex.put(messageId, clientIds);
+				}
+			});
 			messageIds.stream().map(messageId -> key(messageId, clientId)).forEach(key -> {
 				OutboundMessageStatus removed = data.remove(key);
+
 				MessageReferenceCounts.INSTANCE.release(removed.messageKey());
+
+				logger.debug("OutboundMessageStatus removed [messageId={}, clientId={}]", removed.messageId(),
+						removed.clientId());
 			});
 
 			return messageIds;

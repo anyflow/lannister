@@ -2,6 +2,7 @@ package net.anyflow.lannister.message;
 
 import net.anyflow.lannister.cluster.ClusterDataFactory;
 import net.anyflow.lannister.cluster.Map;
+import net.anyflow.lannister.message.InboundMessageStatus.Status;
 
 public class Messages {
 	@SuppressWarnings("unused")
@@ -35,5 +36,8 @@ public class Messages {
 
 	public void put(String key, Message message) {
 		data.put(key, message);
+
+		InboundMessageStatus.NEXUS.put(new InboundMessageStatus(message.key(), message.publisherId(), message.id(),
+				message.topicName(), Status.RECEIVED));
 	}
 }

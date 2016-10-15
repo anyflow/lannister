@@ -24,15 +24,12 @@ import com.hazelcast.nio.ObjectDataInput;
 import com.hazelcast.nio.ObjectDataOutput;
 
 import io.netty.handler.codec.mqtt.MqttQoS;
-import net.anyflow.lannister.message.InboundMessageStatus;
-import net.anyflow.lannister.message.InboundMessageStatus.Status;
 import net.anyflow.lannister.message.Message;
 import net.anyflow.lannister.message.OutboundMessageStatus;
 import net.anyflow.lannister.serialization.SerializableFactory;
 import net.anyflow.lannister.session.Session;
 
 public class Topic implements com.hazelcast.nio.serialization.IdentifiedDataSerializable {
-	@SuppressWarnings("unused")
 	private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(Topic.class);
 
 	public static final Topics NEXUS = new Topics(Session.NEXUS);
@@ -70,17 +67,6 @@ public class Topic implements com.hazelcast.nio.serialization.IdentifiedDataSeri
 		NEXUS.persist(this);
 	}
 
-	private void putMessage(String requesterId, Message message) {
-		assert name.equals(message.topicName());
-
-		if (message.qos() == MqttQoS.AT_MOST_ONCE) { return; }
-
-		Message.NEXUS.put(message.key(), message);
-
-		InboundMessageStatus.NEXUS
-				.put(new InboundMessageStatus(message.key(), requesterId, message.id(), name, Status.RECEIVED));
-	}
-
 	private static MqttQoS adjustQoS(MqttQoS subscriptionQos, MqttQoS publishQos) {
 		return subscriptionQos.value() <= publishQos.value() ? subscriptionQos : publishQos;
 	}
@@ -89,10 +75,13 @@ public class Topic implements com.hazelcast.nio.serialization.IdentifiedDataSeri
 		assert message != null;
 		assert name.equals(message.topicName());
 
-		putMessage(message.publisherId(), message);
+		if (message.qos() != MqttQoS.AT_MOST_ONCE) {
+			Message.NEXUS.put(message.key(), message);
+		}
 
 		TopicSubscriber.NEXUS.clientIdsOf(name).forEach(id -> {
 			Session session = Session.NEXUS.get(id);
+			logger.debug("Before publish to [clientId={}, sessionsSize={}]", id, Session.NEXUS.keySet().size());
 			assert session != null;
 
 			publish(session, message);

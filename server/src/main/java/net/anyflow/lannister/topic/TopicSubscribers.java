@@ -10,7 +10,6 @@ import net.anyflow.lannister.cluster.Map;
 import net.anyflow.lannister.cluster.SerializableStringSet;
 
 public class TopicSubscribers {
-	@SuppressWarnings("unused")
 	private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(TopicSubscribers.class);
 
 	private final Map<String, TopicSubscriber> data;
@@ -53,6 +52,9 @@ public class TopicSubscribers {
 			}
 			topicNames.add(topicSubscriber.topicName());
 			this.clientidIndex.put(topicSubscriber.clientId(), topicNames);
+
+			logger.debug("TopicSubscriber added [topicName={}, clientId={}]", topicSubscriber.topicName(),
+					topicSubscriber.clientId());
 		}
 		finally {
 			putLock.unlock();
@@ -71,6 +73,13 @@ public class TopicSubscribers {
 		return ret == null ? Sets.newHashSet() : ret;
 	}
 
+	public void updateByTopicName(String topicName) {
+		TopicSubscription.NEXUS.topicFilters().stream()
+				.filter(topicFilter -> TopicMatcher.match(topicFilter, topicName))
+				.forEach(topicFilter -> TopicSubscription.NEXUS.clientIdsOf(topicFilter)
+						.forEach(clientId -> TopicSubscriber.NEXUS.put(new TopicSubscriber(clientId, topicName))));
+	}
+
 	public TopicSubscriber removeByKey(String topicName, String clientId) {
 		return removeByKey(key(topicName, clientId));
 	}
@@ -82,8 +91,26 @@ public class TopicSubscribers {
 			TopicSubscriber removed = this.data.remove(key);
 			if (removed == null) { return null; }
 
-			this.topicnameIndex.remove(removed.topicName());
-			this.clientidIndex.remove(removed.clientId());
+			SerializableStringSet clientIds = topicnameIndex.get(removed.topicName());
+			clientIds.remove(removed.clientId());
+			if (clientIds.size() <= 0) {
+				topicnameIndex.remove(removed.topicName());
+			}
+			else {
+				topicnameIndex.put(removed.topicName(), clientIds);
+			}
+
+			SerializableStringSet topicNames = clientidIndex.get(removed.clientId());
+			topicNames.remove(removed.topicName());
+			if (topicNames.size() <= 0) {
+				clientidIndex.remove(removed.clientId());
+			}
+			else {
+				clientidIndex.put(removed.clientId(), topicNames);
+			}
+
+			logger.debug("TopicSubscriber removed [topicName={}, clientId={}]", removed.topicName(),
+					removed.clientId());
 
 			return removed;
 		}
@@ -99,8 +126,23 @@ public class TopicSubscribers {
 			SerializableStringSet topicNames = this.clientidIndex.remove(clientId);
 			if (topicNames == null) { return Sets.newHashSet(); }
 
-			topicNames.forEach(topicName -> this.topicnameIndex.get(topicName).remove(clientId));
-			topicNames.stream().map(topicName -> key(topicName, clientId)).forEach(key -> data.remove(key));
+			topicNames.forEach(topicName -> {
+				SerializableStringSet clientIds = topicnameIndex.get(topicName);
+				clientIds.remove(clientId);
+				if (clientIds.size() <= 0) {
+					topicnameIndex.remove(topicName);
+				}
+				else {
+					topicnameIndex.put(topicName, clientIds);
+				}
+			});
+
+			topicNames.stream().map(topicName -> key(topicName, clientId)).forEach(key -> {
+				TopicSubscriber removed = data.remove(key);
+
+				logger.debug("TopicSubscriber removed [topicName={}, clientId={}]", removed.topicName(),
+						removed.clientId());
+			});
 
 			return topicNames;
 		}
@@ -109,19 +151,9 @@ public class TopicSubscribers {
 		}
 	}
 
-	public void updateByTopicName(String topicName) {
-		TopicSubscription.NEXUS.topicFilters().stream()
-				.filter(topicFilter -> TopicMatcher.match(topicFilter, topicName))
-				.forEach(topicFilter -> TopicSubscription.NEXUS.clientIdsOf(topicFilter)
-						.forEach(clientId -> TopicSubscriber.NEXUS.put(new TopicSubscriber(clientId, topicName))));
-	}
-
 	public void removeByTopicFilter(String clientId, String topicFilter) {
-		Set<String> topicFilters = TopicSubscription.NEXUS.topicFiltersOf(clientId);
-		topicFilters.remove(topicFilter);
-
+		// TODO optimization (use own logics of plural, not using removeByKey)
 		this.topicNamesOf(clientId).stream().filter(topicName -> TopicMatcher.match(topicFilter, topicName))
-				.filter(topicName -> !topicFilters.stream().anyMatch(item -> TopicMatcher.match(item, topicName)))
-				.forEach(topicName -> TopicSubscriber.NEXUS.removeByKey(topicName, clientId));
+				.forEach(topicName -> removeByKey(topicName, clientId));
 	}
 }

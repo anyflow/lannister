@@ -83,8 +83,23 @@ public class InboundMessageStatuses {
 			InboundMessageStatus removed = this.data.remove(key);
 			if (removed == null) { return null; }
 
-			this.messageidIndex.remove(removed.messageId());
-			this.clientidIndex.remove(removed.clientId());
+			SerializableStringSet clientIds = messageidIndex.get(removed.messageId());
+			clientIds.remove(removed.clientId());
+			if (clientIds.size() <= 0) {
+				messageidIndex.remove(removed.messageId());
+			}
+			else {
+				messageidIndex.put(removed.messageId(), clientIds);
+			}
+
+			SerializableIntegerSet messageIds = clientidIndex.get(removed.clientId());
+			messageIds.remove(removed.messageId());
+			if (messageIds.size() <= 0) {
+				clientidIndex.remove(removed.clientId());
+			}
+			else {
+				clientidIndex.put(removed.clientId(), messageIds);
+			}
 
 			MessageReferenceCounts.INSTANCE.release(removed.messageKey());
 

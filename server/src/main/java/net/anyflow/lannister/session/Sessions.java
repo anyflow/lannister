@@ -30,8 +30,6 @@ import net.anyflow.lannister.cluster.Map;
 import net.anyflow.lannister.topic.Notification;
 
 public class Sessions implements MessageListener<Notification> {
-
-	@SuppressWarnings("unused")
 	private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(Sessions.class);
 
 	private final Map<String, Session> sessions;
@@ -51,6 +49,9 @@ public class Sessions implements MessageListener<Notification> {
 			clientIds.put(ctx.channel().id(), session.clientId());
 			ctxs.put(session.clientId(), ctx);
 		}
+
+		logger.debug("session added [clientId={}, sessionsSize={}, clientIdsSize={}, ctxsSize={}]", session.clientId(),
+				sessions.size(), clientIds.size(), ctxs.size());
 	}
 
 	public void persist(Session session) {
@@ -81,15 +82,21 @@ public class Sessions implements MessageListener<Notification> {
 		if (session == null) { return; }
 
 		synchronized (this) {
-			if (session.cleanSession()) { // [MQTT-3.1.2-5]
-				sessions.remove(session.clientId());
+			try {
+				if (session.cleanSession()) { // [MQTT-3.1.2-5]
+					sessions.remove(session.clientId());
+				}
+
+				ChannelId channelId = session.channelId();
+				if (channelId == null) { return; }
+
+				clientIds.remove(channelId);
+				ctxs.remove(session.clientId());
 			}
-
-			ChannelId channelId = session.channelId();
-			if (channelId == null) { return; }
-
-			clientIds.remove(channelId);
-			ctxs.remove(session.clientId());
+			finally {
+				logger.debug("session removed [clientId={}, sessionsSize={}, clientIdsSize={}, ctxsSize={}]",
+						session.clientId(), sessions.size(), clientIds.size(), ctxs.size());
+			}
 		}
 	}
 

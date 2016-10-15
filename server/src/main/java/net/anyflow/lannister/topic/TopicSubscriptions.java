@@ -10,7 +10,6 @@ import net.anyflow.lannister.cluster.Map;
 import net.anyflow.lannister.cluster.SerializableStringSet;
 
 public class TopicSubscriptions {
-	@SuppressWarnings("unused")
 	private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(TopicSubscriptions.class);
 
 	private final Map<String, TopicSubscription> data;
@@ -51,17 +50,20 @@ public class TopicSubscriptions {
 			clientIds.add(topicSubscription.clientId());
 			this.topicfilterIndex.put(topicSubscription.topicFilter(), clientIds);
 
-			SerializableStringSet topicNames = this.clientidIndex.get(topicSubscription.clientId());
-			if (topicNames == null) {
-				topicNames = new SerializableStringSet();
+			SerializableStringSet topicFilters = this.clientidIndex.get(topicSubscription.clientId());
+			if (topicFilters == null) {
+				topicFilters = new SerializableStringSet();
 			}
-			topicNames.add(topicSubscription.topicFilter());
-			this.clientidIndex.put(topicSubscription.clientId(), topicNames);
+			topicFilters.add(topicSubscription.topicFilter());
+			this.clientidIndex.put(topicSubscription.clientId(), topicFilters);
 
 			Topic.NEXUS.keySet().stream()
 					.filter(topicName -> TopicMatcher.match(topicSubscription.topicFilter(), topicName))
 					.forEach(topicName -> TopicSubscriber.NEXUS
 							.put(new TopicSubscriber(topicSubscription.clientId(), topicName)));
+
+			logger.debug("TopicSubscription added [topicFilter={}, clientId={}]", topicSubscription.topicFilter(),
+					topicSubscription.clientId());
 		}
 		finally {
 			putLock.unlock();
@@ -99,8 +101,28 @@ public class TopicSubscriptions {
 			TopicSubscription removed = this.data.remove(key);
 			if (removed == null) { return null; }
 
-			this.topicfilterIndex.remove(removed.topicFilter());
-			this.clientidIndex.remove(removed.clientId());
+			SerializableStringSet clientIds = topicfilterIndex.get(removed.topicFilter());
+			clientIds.remove(removed.clientId());
+
+			if (clientIds.size() <= 0) {
+				topicfilterIndex.remove(removed.topicFilter());
+			}
+			else {
+				topicfilterIndex.put(removed.topicFilter(), clientIds);
+			}
+
+			SerializableStringSet topicFilters = clientidIndex.get(removed.clientId());
+			topicFilters.remove(removed.topicFilter());
+
+			if (topicFilters.size() <= 0) {
+				clientidIndex.remove(removed.clientId());
+			}
+			else {
+				clientidIndex.put(removed.clientId(), topicFilters);
+			}
+
+			logger.debug("TopicSubscription removed [topicFilter={}, clientId={}]", removed.topicFilter(),
+					removed.clientId());
 
 			return removed;
 		}
@@ -116,8 +138,24 @@ public class TopicSubscriptions {
 			SerializableStringSet topicFilters = this.clientidIndex.remove(clientId);
 			if (topicFilters == null) { return Sets.newHashSet(); }
 
-			topicFilters.forEach(topicFilter -> this.topicfilterIndex.get(topicFilter).remove(clientId));
-			topicFilters.stream().map(topicFilter -> key(topicFilter, clientId)).forEach(key -> data.remove(key));
+			topicFilters.forEach(topicFilter -> {
+				SerializableStringSet target = topicfilterIndex.get(topicFilter);
+				target.remove(clientId);
+
+				if (target.size() <= 0) {
+					topicfilterIndex.remove(topicFilter);
+				}
+				else {
+					topicfilterIndex.put(topicFilter, target);
+				}
+			});
+
+			topicFilters.stream().map(topicFilter -> key(topicFilter, clientId)).forEach(key -> {
+				TopicSubscription removed = data.remove(key);
+
+				logger.debug("TopicSubscription removed [topicFilter={}, clientId={}]", removed.topicFilter(),
+						removed.clientId());
+			});
 
 			return topicFilters;
 		}

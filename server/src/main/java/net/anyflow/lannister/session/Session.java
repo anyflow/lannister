@@ -18,6 +18,7 @@ package net.anyflow.lannister.session;
 
 import java.io.IOException;
 import java.util.Date;
+import java.util.concurrent.locks.Lock;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -34,6 +35,8 @@ import io.netty.util.concurrent.Future;
 import io.netty.util.concurrent.GenericFutureListener;
 import io.netty.util.concurrent.GlobalEventExecutor;
 import net.anyflow.lannister.Literals;
+import net.anyflow.lannister.cluster.ClusterDataDisposer;
+import net.anyflow.lannister.cluster.ClusterDataFactory;
 import net.anyflow.lannister.message.Message;
 import net.anyflow.lannister.message.OutboundMessageStatus;
 import net.anyflow.lannister.plugin.DisconnectEventArgs;
@@ -78,6 +81,8 @@ public class Session implements com.hazelcast.nio.serialization.IdentifiedDataSe
 
 	private MessageSender messageSender;
 
+	private Lock disposeLock;
+
 	public Session() { // just for serialization
 	}
 
@@ -92,6 +97,7 @@ public class Session implements com.hazelcast.nio.serialization.IdentifiedDataSe
 		this.lastIncomingTime = new Date();
 		this.cleanSession = cleanSession;
 		this.will = will; // [MQTT-3.1.2-9]
+		this.disposeLock = ClusterDataFactory.INSTANCE.createLock("Session_disposeLock_" + clientId);
 
 		this.messageSender = new MessageSender(this);
 	}
@@ -199,8 +205,11 @@ public class Session implements com.hazelcast.nio.serialization.IdentifiedDataSe
 			channelId = ctx.channel().id();
 		}
 
-		logger.debug("Session disposed [clientId={}/channelId={}]", clientId, ctx == null ? "null" : channelId);
+		logger.debug("Session disposed [clientId={}, channelId={}]", clientId, ctx == null ? "null" : channelId);
 
+		// TODO WHY => Current thread is not owner of the lock! -> <not-locked>
+		// disposeLock.lock();
+		// try {
 		if (cleanSession) {
 			TopicSubscriber.NEXUS.removeByClientId(clientId);
 			TopicSubscription.NEXUS.removeByClientId(clientId);
@@ -208,6 +217,12 @@ public class Session implements com.hazelcast.nio.serialization.IdentifiedDataSe
 		}
 
 		NEXUS.remove(this);
+		// }
+		// finally {
+		// disposeLock.unlock();
+		// }
+
+		ClusterDataDisposer.INSTANCE.disposeLock(disposeLock);
 
 		GlobalEventExecutor.INSTANCE.execute(
 				() -> Plugins.INSTANCE.get(DisconnectEventListener.class).disconnected(new DisconnectEventArgs() {
@@ -279,6 +294,7 @@ public class Session implements com.hazelcast.nio.serialization.IdentifiedDataSe
 		rawLong = in.readLong();
 		lastIncomingTime = rawLong != Long.MIN_VALUE ? new Date(rawLong) : null;
 
+		disposeLock = ClusterDataFactory.INSTANCE.createLock("Session_disposeLock_" + clientId);
 		messageSender = new MessageSender(this);
 	}
 }
