@@ -19,8 +19,8 @@ package net.anyflow.lannister.serialization;
 import com.hazelcast.nio.serialization.DataSerializableFactory;
 import com.hazelcast.nio.serialization.IdentifiedDataSerializable;
 
-import net.anyflow.lannister.cluster.SerializableIntegerList;
-import net.anyflow.lannister.cluster.SerializableStringList;
+import net.anyflow.lannister.cluster.SerializableIntegerSet;
+import net.anyflow.lannister.cluster.SerializableStringSet;
 import net.anyflow.lannister.message.InboundMessageStatus;
 import net.anyflow.lannister.message.Message;
 import net.anyflow.lannister.message.OutboundMessageStatus;
@@ -60,11 +60,11 @@ public class SerializableFactory implements DataSerializableFactory {
 		case TopicSubscription.ID:
 			return new TopicSubscription();
 
-		case SerializableStringList.ID:
-			return new SerializableStringList();
+		case SerializableStringSet.ID:
+			return new SerializableStringSet();
 
-		case SerializableIntegerList.ID:
-			return new SerializableIntegerList();
+		case SerializableIntegerSet.ID:
+			return new SerializableIntegerSet();
 
 		default:
 			throw new Error("Invalid class ID of Hazelcast Serialization [ID=" + classId + "]");

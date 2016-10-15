@@ -1,23 +1,20 @@
 package net.anyflow.lannister.message;
 
-import java.util.List;
 import java.util.Set;
 import java.util.concurrent.locks.Lock;
 
-import com.google.common.collect.Lists;
-
 import net.anyflow.lannister.cluster.ClusterDataFactory;
 import net.anyflow.lannister.cluster.Map;
-import net.anyflow.lannister.cluster.SerializableIntegerList;
-import net.anyflow.lannister.cluster.SerializableStringList;
+import net.anyflow.lannister.cluster.SerializableIntegerSet;
+import net.anyflow.lannister.cluster.SerializableStringSet;
 
 public class InboundMessageStatuses {
 	@SuppressWarnings("unused")
 	private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(InboundMessageStatuses.class);
 
 	private final Map<String, InboundMessageStatus> data;
-	private final Map<Integer, SerializableStringList> messageidIndex;
-	private final Map<String, SerializableIntegerList> clientidIndex;
+	private final Map<Integer, SerializableStringSet> messageidIndex;
+	private final Map<String, SerializableIntegerSet> clientidIndex;
 
 	private final Lock putLock;
 	private final Lock removeLock;
@@ -39,10 +36,6 @@ public class InboundMessageStatuses {
 		return data.keySet();
 	}
 
-	public int size() {
-		return data.size();
-	}
-
 	public void put(InboundMessageStatus inboundMessageStatus) {
 		if (inboundMessageStatus == null) { return; }
 
@@ -50,16 +43,16 @@ public class InboundMessageStatuses {
 		try {
 			this.data.put(inboundMessageStatus.key(), inboundMessageStatus);
 
-			SerializableStringList clientIds = this.messageidIndex.get(inboundMessageStatus.messageId());
+			SerializableStringSet clientIds = this.messageidIndex.get(inboundMessageStatus.messageId());
 			if (clientIds == null) {
-				clientIds = new SerializableStringList();
+				clientIds = new SerializableStringSet();
 				this.messageidIndex.put(inboundMessageStatus.messageId(), clientIds);
 			}
 			clientIds.add(inboundMessageStatus.clientId());
 
-			SerializableIntegerList messageIds = this.clientidIndex.get(inboundMessageStatus.clientId());
+			SerializableIntegerSet messageIds = this.clientidIndex.get(inboundMessageStatus.clientId());
 			if (messageIds == null) {
-				messageIds = new SerializableIntegerList();
+				messageIds = new SerializableIntegerSet();
 				this.clientidIndex.put(inboundMessageStatus.clientId(), messageIds);
 			}
 			messageIds.add(inboundMessageStatus.messageId());
@@ -71,28 +64,12 @@ public class InboundMessageStatuses {
 		}
 	}
 
-	public Set<Integer> messageIds() {
-		return messageidIndex.keySet();
-	}
-
 	public InboundMessageStatus getBy(Integer messageId, String clientId) {
 		return data.get(key(messageId, clientId));
 	}
 
 	public InboundMessageStatus getByKey(String key) {
 		return data.get(key);
-	}
-
-	public List<String> getClientIdsOf(Integer messageId) {
-		List<String> ret = messageidIndex.get(messageId);
-
-		return ret == null ? Lists.newArrayList() : ret;
-	}
-
-	public List<Integer> getMessageIdsOf(String clientId) {
-		List<Integer> ret = clientidIndex.get(clientId);
-
-		return ret == null ? Lists.newArrayList() : ret;
 	}
 
 	public InboundMessageStatus removeByKey(Integer messageId, String clientId) {
@@ -116,34 +93,6 @@ public class InboundMessageStatuses {
 		finally {
 			removeLock.unlock();
 		}
-	}
-
-	public List<Integer> removeByClientId(String clientId) {
-		removeLock.lock();
-
-		try {
-			SerializableIntegerList messageIds = this.clientidIndex.remove(clientId);
-			if (messageIds == null) { return Lists.newArrayList(); }
-
-			messageIds.forEach(messageId -> this.messageidIndex.get(messageId).remove(clientId));
-			messageIds.stream().map(messageId -> key(messageId, clientId)).forEach(key -> {
-				InboundMessageStatus removed = data.remove(key);
-				MessageReferenceCounts.INSTANCE.release(removed.messageKey());
-			});
-
-			return messageIds;
-		}
-		finally {
-			removeLock.unlock();
-		}
-	}
-
-	public boolean containsClientId(String clientId) {
-		return this.clientidIndex.containsKey(clientId);
-	}
-
-	public boolean containsKey(Integer messageId, String clientId) {
-		return data.containsKey(key(messageId, clientId));
 	}
 
 	public void update(Integer messageId, String clientId, InboundMessageStatus.Status targetStatus) {

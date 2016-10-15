@@ -1,22 +1,22 @@
 package net.anyflow.lannister.message;
 
-import java.util.List;
+import java.util.Set;
 import java.util.concurrent.locks.Lock;
 
-import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 
 import net.anyflow.lannister.cluster.ClusterDataFactory;
 import net.anyflow.lannister.cluster.Map;
-import net.anyflow.lannister.cluster.SerializableIntegerList;
-import net.anyflow.lannister.cluster.SerializableStringList;
+import net.anyflow.lannister.cluster.SerializableIntegerSet;
+import net.anyflow.lannister.cluster.SerializableStringSet;
 
 public class OutboundMessageStatuses {
 	@SuppressWarnings("unused")
 	private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(OutboundMessageStatuses.class);
 
 	private final Map<String, OutboundMessageStatus> data;
-	private final Map<Integer, SerializableStringList> messageidIndex;
-	private final Map<String, SerializableIntegerList> clientidIndex;
+	private final Map<Integer, SerializableStringSet> messageidIndex;
+	private final Map<String, SerializableIntegerSet> clientidIndex;
 
 	private final Lock putLock;
 	private final Lock removeLock;
@@ -41,16 +41,16 @@ public class OutboundMessageStatuses {
 		try {
 			this.data.put(outboundMessageStatus.key(), outboundMessageStatus);
 
-			SerializableStringList clientIds = this.messageidIndex.get(outboundMessageStatus.messageId());
+			SerializableStringSet clientIds = this.messageidIndex.get(outboundMessageStatus.messageId());
 			if (clientIds == null) {
-				clientIds = new SerializableStringList();
+				clientIds = new SerializableStringSet();
 				this.messageidIndex.put(outboundMessageStatus.messageId(), clientIds);
 			}
 			clientIds.add(outboundMessageStatus.clientId());
 
-			SerializableIntegerList messageIds = this.clientidIndex.get(outboundMessageStatus.clientId());
+			SerializableIntegerSet messageIds = this.clientidIndex.get(outboundMessageStatus.clientId());
 			if (messageIds == null) {
-				messageIds = new SerializableIntegerList();
+				messageIds = new SerializableIntegerSet();
 				this.clientidIndex.put(outboundMessageStatus.clientId(), messageIds);
 			}
 			messageIds.add(outboundMessageStatus.messageId());
@@ -66,10 +66,10 @@ public class OutboundMessageStatuses {
 		return data.get(key(messageId, clientId));
 	}
 
-	public List<Integer> messageIdsOf(String clientId) {
-		List<Integer> ret = clientidIndex.get(clientId);
+	public Set<Integer> messageIdsOf(String clientId) {
+		Set<Integer> ret = clientidIndex.get(clientId);
 
-		return ret == null ? Lists.newArrayList() : ret;
+		return ret == null ? Sets.newHashSet() : ret;
 	}
 
 	public OutboundMessageStatus removeByKey(Integer messageId, String clientId) {
@@ -95,12 +95,12 @@ public class OutboundMessageStatuses {
 		}
 	}
 
-	public List<Integer> removeByClientId(String clientId) {
+	public Set<Integer> removeByClientId(String clientId) {
 		removeLock.lock();
 
 		try {
-			SerializableIntegerList messageIds = this.clientidIndex.remove(clientId);
-			if (messageIds == null) { return Lists.newArrayList(); }
+			SerializableIntegerSet messageIds = this.clientidIndex.remove(clientId);
+			if (messageIds == null) { return Sets.newHashSet(); }
 
 			messageIds.forEach(messageId -> this.messageidIndex.get(messageId).remove(clientId));
 			messageIds.stream().map(messageId -> key(messageId, clientId)).forEach(key -> {

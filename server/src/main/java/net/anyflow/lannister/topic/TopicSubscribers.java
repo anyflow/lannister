@@ -1,21 +1,21 @@
 package net.anyflow.lannister.topic;
 
-import java.util.List;
+import java.util.Set;
 import java.util.concurrent.locks.Lock;
 
-import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 
 import net.anyflow.lannister.cluster.ClusterDataFactory;
 import net.anyflow.lannister.cluster.Map;
-import net.anyflow.lannister.cluster.SerializableStringList;
+import net.anyflow.lannister.cluster.SerializableStringSet;
 
 public class TopicSubscribers {
 	@SuppressWarnings("unused")
 	private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(TopicSubscribers.class);
 
 	private final Map<String, TopicSubscriber> data;
-	private final Map<String, SerializableStringList> topicnameIndex;
-	private final Map<String, SerializableStringList> clientidIndex;
+	private final Map<String, SerializableStringSet> topicnameIndex;
+	private final Map<String, SerializableStringSet> clientidIndex;
 
 	private final Lock putLock;
 	private final Lock removeLock;
@@ -40,16 +40,16 @@ public class TopicSubscribers {
 		try {
 			this.data.put(topicSubscriber.key(), topicSubscriber);
 
-			SerializableStringList clientIds = this.topicnameIndex.get(topicSubscriber.topicName());
+			SerializableStringSet clientIds = this.topicnameIndex.get(topicSubscriber.topicName());
 			if (clientIds == null) {
-				clientIds = new SerializableStringList();
+				clientIds = new SerializableStringSet();
 				this.topicnameIndex.put(topicSubscriber.topicName(), clientIds);
 			}
 			clientIds.add(topicSubscriber.clientId());
 
-			SerializableStringList topicNames = this.clientidIndex.get(topicSubscriber.clientId());
+			SerializableStringSet topicNames = this.clientidIndex.get(topicSubscriber.clientId());
 			if (topicNames == null) {
-				topicNames = new SerializableStringList();
+				topicNames = new SerializableStringSet();
 				this.clientidIndex.put(topicSubscriber.clientId(), topicNames);
 			}
 			topicNames.add(topicSubscriber.topicName());
@@ -59,16 +59,16 @@ public class TopicSubscribers {
 		}
 	}
 
-	public List<String> clientIdsOf(String topicName) {
-		List<String> ret = topicnameIndex.get(topicName);
+	public Set<String> clientIdsOf(String topicName) {
+		Set<String> ret = topicnameIndex.get(topicName);
 
-		return ret == null ? Lists.newArrayList() : ret;
+		return ret == null ? Sets.newHashSet() : ret;
 	}
 
-	public List<String> topicNamesOf(String clientId) {
-		List<String> ret = clientidIndex.get(clientId);
+	public Set<String> topicNamesOf(String clientId) {
+		Set<String> ret = clientidIndex.get(clientId);
 
-		return ret == null ? Lists.newArrayList() : ret;
+		return ret == null ? Sets.newHashSet() : ret;
 	}
 
 	public TopicSubscriber removeByKey(String topicName, String clientId) {
@@ -92,12 +92,12 @@ public class TopicSubscribers {
 		}
 	}
 
-	public List<String> removeByClientId(String clientId) {
+	public Set<String> removeByClientId(String clientId) {
 		removeLock.lock();
 
 		try {
-			SerializableStringList topicNames = this.clientidIndex.remove(clientId);
-			if (topicNames == null) { return Lists.newArrayList(); }
+			SerializableStringSet topicNames = this.clientidIndex.remove(clientId);
+			if (topicNames == null) { return Sets.newHashSet(); }
 
 			topicNames.forEach(topicName -> this.topicnameIndex.get(topicName).remove(clientId));
 			topicNames.stream().map(topicName -> key(topicName, clientId)).forEach(key -> data.remove(key));
@@ -117,7 +117,7 @@ public class TopicSubscribers {
 	}
 
 	public void removeByTopicFilter(String clientId, String topicFilter) {
-		List<String> topicFilters = TopicSubscription.NEXUS.topicFiltersOf(clientId);
+		Set<String> topicFilters = TopicSubscription.NEXUS.topicFiltersOf(clientId);
 		topicFilters.remove(topicFilter);
 
 		this.topicNamesOf(clientId).stream().filter(topicName -> TopicMatcher.match(topicFilter, topicName))
