@@ -44,16 +44,16 @@ public class OutboundMessageStatuses {
 			SerializableStringSet clientIds = this.messageidIndex.get(outboundMessageStatus.messageId());
 			if (clientIds == null) {
 				clientIds = new SerializableStringSet();
-				this.messageidIndex.put(outboundMessageStatus.messageId(), clientIds);
 			}
 			clientIds.add(outboundMessageStatus.clientId());
+			this.messageidIndex.put(outboundMessageStatus.messageId(), clientIds);
 
 			SerializableIntegerSet messageIds = this.clientidIndex.get(outboundMessageStatus.clientId());
 			if (messageIds == null) {
 				messageIds = new SerializableIntegerSet();
-				this.clientidIndex.put(outboundMessageStatus.clientId(), messageIds);
 			}
 			messageIds.add(outboundMessageStatus.messageId());
+			this.clientidIndex.put(outboundMessageStatus.clientId(), messageIds);
 
 			MessageReferenceCounts.INSTANCE.retain(outboundMessageStatus.messageKey());
 		}

@@ -43,16 +43,16 @@ public class TopicSubscribers {
 			SerializableStringSet clientIds = this.topicnameIndex.get(topicSubscriber.topicName());
 			if (clientIds == null) {
 				clientIds = new SerializableStringSet();
-				this.topicnameIndex.put(topicSubscriber.topicName(), clientIds);
 			}
 			clientIds.add(topicSubscriber.clientId());
+			this.topicnameIndex.put(topicSubscriber.topicName(), clientIds);
 
 			SerializableStringSet topicNames = this.clientidIndex.get(topicSubscriber.clientId());
 			if (topicNames == null) {
 				topicNames = new SerializableStringSet();
-				this.clientidIndex.put(topicSubscriber.clientId(), topicNames);
 			}
 			topicNames.add(topicSubscriber.topicName());
+			this.clientidIndex.put(topicSubscriber.clientId(), topicNames);
 		}
 		finally {
 			putLock.unlock();

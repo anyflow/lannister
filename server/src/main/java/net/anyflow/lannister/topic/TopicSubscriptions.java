@@ -47,16 +47,16 @@ public class TopicSubscriptions {
 			SerializableStringSet clientIds = this.topicfilterIndex.get(topicSubscription.topicFilter());
 			if (clientIds == null) {
 				clientIds = new SerializableStringSet();
-				this.topicfilterIndex.put(topicSubscription.topicFilter(), clientIds);
 			}
 			clientIds.add(topicSubscription.clientId());
+			this.topicfilterIndex.put(topicSubscription.topicFilter(), clientIds);
 
 			SerializableStringSet topicNames = this.clientidIndex.get(topicSubscription.clientId());
 			if (topicNames == null) {
 				topicNames = new SerializableStringSet();
-				this.clientidIndex.put(topicSubscription.clientId(), topicNames);
 			}
 			topicNames.add(topicSubscription.topicFilter());
+			this.clientidIndex.put(topicSubscription.clientId(), topicNames);
 
 			Topic.NEXUS.keySet().stream()
 					.filter(topicName -> TopicMatcher.match(topicSubscription.topicFilter(), topicName))
