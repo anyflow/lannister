@@ -103,7 +103,7 @@ public class Topic implements com.hazelcast.nio.serialization.IdentifiedDataSeri
 			toSend.id(session.nextMessageId()); // [MQTT-2.3.1-2]
 
 			if (toSend.qos() != MqttQoS.AT_MOST_ONCE) {
-				OutboundMessageStatus outboundMessageStatus = new OutboundMessageStatus(toSend.key(),
+				OutboundMessageStatus outboundMessageStatus = new OutboundMessageStatus(message.key(),
 						session.clientId(), toSend.id(), toSend.topicName(), OutboundMessageStatus.Status.TO_PUBLISH,
 						toSend.qos()); // [MQTT-3.1.2-5]
 

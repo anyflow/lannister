@@ -62,8 +62,8 @@ public class TopicSubscriptions {
 					.forEach(topicName -> TopicSubscriber.NEXUS
 							.put(new TopicSubscriber(topicSubscription.clientId(), topicName)));
 
-			logger.debug("TopicSubscription added [topicFilter={}, clientId={}]", topicSubscription.topicFilter(),
-					topicSubscription.clientId());
+			logger.debug("TopicSubscription added [topicFilter={}, clientId={}, qos={}]",
+					topicSubscription.topicFilter(), topicSubscription.clientId(), topicSubscription.qos());
 		}
 		finally {
 			putLock.unlock();
@@ -121,8 +121,8 @@ public class TopicSubscriptions {
 				clientidIndex.put(removed.clientId(), topicFilters);
 			}
 
-			logger.debug("TopicSubscription removed [topicFilter={}, clientId={}]", removed.topicFilter(),
-					removed.clientId());
+			logger.debug("TopicSubscription removed [topicFilter={}, clientId={}, qos={}]", removed.topicFilter(),
+					removed.clientId(), removed.qos());
 
 			return removed;
 		}
@@ -153,8 +153,8 @@ public class TopicSubscriptions {
 			topicFilters.stream().map(topicFilter -> key(topicFilter, clientId)).forEach(key -> {
 				TopicSubscription removed = data.remove(key);
 
-				logger.debug("TopicSubscription removed [topicFilter={}, clientId={}]", removed.topicFilter(),
-						removed.clientId());
+				logger.debug("TopicSubscription removed [topicFilter={}, clientId={}, qos={}]", removed.topicFilter(),
+						removed.clientId(), removed.qos());
 			});
 
 			return topicFilters;
