@@ -47,6 +47,34 @@ public class ClusterDataFactory {
 		}
 	}
 
+	public <K, V> Map<K, Set<V>> createSetValueMap(String name) {
+		switch (Settings.INSTANCE.clusteringMode()) {
+		case HAZELCAST:
+			return new HazelcastSetValueMap<K, V>(name);
+
+		case IGNITE:
+		case SINGLE:
+			return new NativeSetValueMap<K, V>(name);
+
+		default:
+			return null;
+		}
+	}
+
+	public <V> Set<V> createSet(String name) {
+		switch (Settings.INSTANCE.clusteringMode()) {
+		case HAZELCAST:
+			return new HazelcastSet<V>(name);
+
+		case IGNITE:
+		case SINGLE:
+			return new NativeSet<V>();
+
+		default:
+			return null;
+		}
+	}
+
 	public Lock createLock(String key) {
 		switch (Settings.INSTANCE.clusteringMode()) {
 		case HAZELCAST:

@@ -25,6 +25,7 @@ import com.hazelcast.config.XmlConfigBuilder;
 import com.hazelcast.core.HazelcastInstance;
 import com.hazelcast.core.ILock;
 import com.hazelcast.core.IMap;
+import com.hazelcast.core.ISet;
 import com.hazelcast.core.ITopic;
 import com.hazelcast.core.IdGenerator;
 
@@ -89,5 +90,9 @@ public class Hazelcast {
 
 	protected String currentId() {
 		return substance.getLocalEndpoint().getUuid();
+	}
+
+	public <V> ISet<V> getSet(String name) {
+		return substance.getSet(name);
 	}
 }
