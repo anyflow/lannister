@@ -76,4 +76,10 @@ public class TopicSubscriber implements com.hazelcast.nio.serialization.Identifi
 		topicName = in.readUTF();
 		clientId = in.readUTF();
 	}
+
+	@Override
+	public String toString() {
+		return new StringBuilder().append("clientId=").append(clientId).append(", topicName=").append(topicName)
+				.toString();
+	}
 }

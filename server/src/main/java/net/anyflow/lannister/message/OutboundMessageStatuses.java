@@ -1,3 +1,18 @@
+/*
+ * Copyright 2016 The Lannister Project
+ * 
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ * 
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package net.anyflow.lannister.message;
 
 import java.util.Set;
@@ -17,16 +32,14 @@ public class OutboundMessageStatuses {
 	private final Map<Integer, SerializableStringSet> messageidIndex;
 	private final Map<String, SerializableIntegerSet> clientidIndex;
 
-	private final Lock putLock;
-	private final Lock removeLock;
+	private final Lock modifyLock;
 
 	protected OutboundMessageStatuses() {
 		this.data = ClusterDataFactory.INSTANCE.createMap("OutboundMessageStatuses_data");
 		this.messageidIndex = ClusterDataFactory.INSTANCE.createMap("OutboundMessageStatuses_messageidIndex");
 		this.clientidIndex = ClusterDataFactory.INSTANCE.createMap("OutboundMessageStatuses_clientidIndex");
 
-		this.putLock = ClusterDataFactory.INSTANCE.createLock("OutboundMessageStatuses_putLock");
-		this.removeLock = ClusterDataFactory.INSTANCE.createLock("OutboundMessageStatuses_removeLock");
+		this.modifyLock = ClusterDataFactory.INSTANCE.createLock("OutboundMessageStatuses_modifyLock");
 	}
 
 	public static String key(Integer messageId, String clientId) {
@@ -36,7 +49,7 @@ public class OutboundMessageStatuses {
 	public void put(OutboundMessageStatus outboundMessageStatus) {
 		if (outboundMessageStatus == null) { return; }
 
-		putLock.lock();
+		modifyLock.lock();
 		try {
 			this.data.put(outboundMessageStatus.key(), outboundMessageStatus);
 
@@ -56,11 +69,14 @@ public class OutboundMessageStatuses {
 
 			MessageReferenceCounts.INSTANCE.retain(outboundMessageStatus.messageKey());
 
-			logger.debug("OutboundMessageStatus added [messageId={}, clientId={}]", outboundMessageStatus.messageId(),
-					outboundMessageStatus.clientId());
+			logger.debug("OutboundMessageStatus added [messageId={}, clientId={}, status=]",
+					outboundMessageStatus.messageId(), outboundMessageStatus.clientId(),
+					outboundMessageStatus.status());
+			logger.debug("OutboundMessageStatuses Size [data={}, messageidIndex={}, clientidIndex={}]", data.size(),
+					messageidIndex.size(), clientidIndex.size());
 		}
 		finally {
-			putLock.unlock();
+			modifyLock.unlock();
 		}
 	}
 
@@ -79,7 +95,7 @@ public class OutboundMessageStatuses {
 	}
 
 	private OutboundMessageStatus removeByKey(String key) {
-		removeLock.lock();
+		modifyLock.lock();
 
 		try {
 			OutboundMessageStatus removed = this.data.remove(key);
@@ -105,18 +121,20 @@ public class OutboundMessageStatuses {
 
 			MessageReferenceCounts.INSTANCE.release(removed.messageKey());
 
-			logger.debug("OutboundMessageStatus removed [messageId={}, clientId={}]", removed.messageId(),
-					removed.clientId());
+			logger.debug("OutboundMessageStatus removed [messageId={}, clientId={}, status=]", removed.messageId(),
+					removed.clientId(), removed.status());
+			logger.debug("OutboundMessageStatuses Size [data={}, messageidIndex={}, clientidIndex={}]", data.size(),
+					messageidIndex.size(), clientidIndex.size());
 
 			return removed;
 		}
 		finally {
-			removeLock.unlock();
+			modifyLock.unlock();
 		}
 	}
 
 	public Set<Integer> removeByClientId(String clientId) {
-		removeLock.lock();
+		modifyLock.lock();
 
 		try {
 			SerializableIntegerSet messageIds = this.clientidIndex.remove(clientId);
@@ -137,14 +155,16 @@ public class OutboundMessageStatuses {
 
 				MessageReferenceCounts.INSTANCE.release(removed.messageKey());
 
-				logger.debug("OutboundMessageStatus removed [messageId={}, clientId={}]", removed.messageId(),
-						removed.clientId());
+				logger.debug("OutboundMessageStatus removed [messageId={}, clientId={}, status=]", removed.messageId(),
+						removed.clientId(), removed.status());
+				logger.debug("OutboundMessageStatuses Size [data={}, messageidIndex={}, clientidIndex={}]", data.size(),
+						messageidIndex.size(), clientidIndex.size());
 			});
 
 			return messageIds;
 		}
 		finally {
-			removeLock.unlock();
+			modifyLock.unlock();
 		}
 	}
 
@@ -161,5 +181,8 @@ public class OutboundMessageStatuses {
 		status.status(targetStatus);
 
 		data.put(key, status);
+
+		logger.debug("OutboundMessageStatus updated [messageId={}, clientId={}, status=]", status.messageId(),
+				status.clientId(), status.status());
 	}
 }

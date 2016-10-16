@@ -1,3 +1,18 @@
+/*
+ * Copyright 2016 The Lannister Project
+ * 
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ * 
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package net.anyflow.lannister.message;
 
 import java.util.Set;
@@ -9,23 +24,20 @@ import net.anyflow.lannister.cluster.SerializableIntegerSet;
 import net.anyflow.lannister.cluster.SerializableStringSet;
 
 public class InboundMessageStatuses {
-	@SuppressWarnings("unused")
 	private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(InboundMessageStatuses.class);
 
 	private final Map<String, InboundMessageStatus> data;
 	private final Map<Integer, SerializableStringSet> messageidIndex;
 	private final Map<String, SerializableIntegerSet> clientidIndex;
 
-	private final Lock putLock;
-	private final Lock removeLock;
+	private final Lock modifyLock;
 
 	protected InboundMessageStatuses() {
 		this.data = ClusterDataFactory.INSTANCE.createMap("InboundMessageStatuses_data");
 		this.messageidIndex = ClusterDataFactory.INSTANCE.createMap("InboundMessageStatuses_messageidIndex");
 		this.clientidIndex = ClusterDataFactory.INSTANCE.createMap("InboundMessageStatuses_clientidIndex");
 
-		this.putLock = ClusterDataFactory.INSTANCE.createLock("InboundMessageStatuses_putLock");
-		this.removeLock = ClusterDataFactory.INSTANCE.createLock("InboundMessageStatuses_removeLock");
+		this.modifyLock = ClusterDataFactory.INSTANCE.createLock("InboundMessageStatuses_modifyLock");
 	}
 
 	public static String key(Integer messageId, String clientId) {
@@ -39,7 +51,7 @@ public class InboundMessageStatuses {
 	public void put(InboundMessageStatus inboundMessageStatus) {
 		if (inboundMessageStatus == null) { return; }
 
-		putLock.lock();
+		modifyLock.lock();
 		try {
 			this.data.put(inboundMessageStatus.key(), inboundMessageStatus);
 
@@ -58,9 +70,14 @@ public class InboundMessageStatuses {
 			this.clientidIndex.put(inboundMessageStatus.clientId(), messageIds);
 
 			MessageReferenceCounts.INSTANCE.retain(inboundMessageStatus.messageKey());
+
+			logger.debug("InboundMessageStatus removed [messageId={}, clientId={}, status=]",
+					inboundMessageStatus.messageId(), inboundMessageStatus.clientId(), inboundMessageStatus.status());
+			logger.debug("InboundMessageStatuses Size [data={}, messageidIndex={}, clientidIndex={}]", data.size(),
+					messageidIndex.size(), clientidIndex.size());
 		}
 		finally {
-			putLock.unlock();
+			modifyLock.unlock();
 		}
 	}
 
@@ -77,7 +94,7 @@ public class InboundMessageStatuses {
 	}
 
 	private InboundMessageStatus removeByKey(String key) {
-		removeLock.lock();
+		modifyLock.lock();
 
 		try {
 			InboundMessageStatus removed = this.data.remove(key);
@@ -103,10 +120,14 @@ public class InboundMessageStatuses {
 
 			MessageReferenceCounts.INSTANCE.release(removed.messageKey());
 
+			logger.debug("InboundMessageStatus removed [messageId={}, clientId={}, status=]", removed.messageId(),
+					removed.clientId(), removed.status());
+			logger.debug("InboundMessageStatuses Size [data={}, messageidIndex={}, clientidIndex={}]", data.size(),
+					messageidIndex.size(), clientidIndex.size());
 			return removed;
 		}
 		finally {
-			removeLock.unlock();
+			modifyLock.unlock();
 		}
 	}
 
@@ -119,5 +140,8 @@ public class InboundMessageStatuses {
 		status.status(targetStatus);
 
 		data.put(key, status);
+
+		logger.debug("InboundMessageStatus removed [messageId={}, clientId={}, status=]", status.messageId(),
+				status.clientId(), status.status());
 	}
 }

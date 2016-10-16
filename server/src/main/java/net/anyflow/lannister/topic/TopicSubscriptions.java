@@ -1,3 +1,18 @@
+/*
+ * Copyright 2016 The Lannister Project
+ * 
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ * 
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package net.anyflow.lannister.topic;
 
 import java.util.Set;
@@ -16,16 +31,14 @@ public class TopicSubscriptions {
 	private final Map<String, SerializableStringSet> topicfilterIndex;
 	private final Map<String, SerializableStringSet> clientidIndex;
 
-	private final Lock putLock;
-	private final Lock removeLock;
+	private final Lock modifyLock;
 
 	protected TopicSubscriptions() {
 		this.data = ClusterDataFactory.INSTANCE.createMap("TopicSubscriptions_data");
 		this.topicfilterIndex = ClusterDataFactory.INSTANCE.createMap("TopicSubscriptions_topicfilterIndex");
 		this.clientidIndex = ClusterDataFactory.INSTANCE.createMap("TopicSubscriptions_clientidIndex");
 
-		this.putLock = ClusterDataFactory.INSTANCE.createLock("TopicSubscriptions_putLock");
-		this.removeLock = ClusterDataFactory.INSTANCE.createLock("TopicSubscriptions_removeLock");
+		this.modifyLock = ClusterDataFactory.INSTANCE.createLock("TopicSubscriptions_modifyLock");
 	}
 
 	public static String key(String topicFilter, String clientId) {
@@ -39,7 +52,7 @@ public class TopicSubscriptions {
 	public void put(TopicSubscription topicSubscription) {
 		if (topicSubscription == null) { return; }
 
-		putLock.lock();
+		modifyLock.lock();
 		try {
 			this.data.put(topicSubscription.key(), topicSubscription);
 
@@ -64,9 +77,11 @@ public class TopicSubscriptions {
 
 			logger.debug("TopicSubscription added [topicFilter={}, clientId={}, qos={}]",
 					topicSubscription.topicFilter(), topicSubscription.clientId(), topicSubscription.qos());
+			logger.debug("TopicSubscriptions Size [data={}, topicfilterIndex={}, clientidIndex={}]", data.size(),
+					topicfilterIndex.size(), clientidIndex.size());
 		}
 		finally {
-			putLock.unlock();
+			modifyLock.unlock();
 		}
 	}
 
@@ -95,7 +110,7 @@ public class TopicSubscriptions {
 	}
 
 	private TopicSubscription removeByKey(String key) {
-		removeLock.lock();
+		modifyLock.lock();
 
 		try {
 			TopicSubscription removed = this.data.remove(key);
@@ -123,16 +138,18 @@ public class TopicSubscriptions {
 
 			logger.debug("TopicSubscription removed [topicFilter={}, clientId={}, qos={}]", removed.topicFilter(),
 					removed.clientId(), removed.qos());
+			logger.debug("TopicSubscriptions Size [data={}, topicfilterIndex={}, clientidIndex={}]", data.size(),
+					topicfilterIndex.size(), clientidIndex.size());
 
 			return removed;
 		}
 		finally {
-			removeLock.unlock();
+			modifyLock.unlock();
 		}
 	}
 
 	public Set<String> removeByClientId(String clientId) {
-		removeLock.lock();
+		modifyLock.lock();
 
 		try {
 			SerializableStringSet topicFilters = this.clientidIndex.remove(clientId);
@@ -155,12 +172,14 @@ public class TopicSubscriptions {
 
 				logger.debug("TopicSubscription removed [topicFilter={}, clientId={}, qos={}]", removed.topicFilter(),
 						removed.clientId(), removed.qos());
+				logger.debug("TopicSubscriptions Size [data={}, topicfilterIndex={}, clientidIndex={}]", data.size(),
+						topicfilterIndex.size(), clientidIndex.size());
 			});
 
 			return topicFilters;
 		}
 		finally {
-			removeLock.unlock();
+			modifyLock.unlock();
 		}
 	}
 }

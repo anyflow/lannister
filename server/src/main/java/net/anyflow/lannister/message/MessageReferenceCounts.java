@@ -1,3 +1,18 @@
+/*
+ * Copyright 2016 The Lannister Project
+ * 
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ * 
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package net.anyflow.lannister.message;
 
 import java.util.concurrent.locks.Lock;
@@ -20,7 +35,6 @@ public class MessageReferenceCounts {
 	private MessageReferenceCounts() {
 		this.data = ClusterDataFactory.INSTANCE.createMap("MessagesReferenceCounts_data");
 		this.lock = ClusterDataFactory.INSTANCE.createLock("MessagesReferenceCounts_lock");
-
 	}
 
 	public void retain(String messageKey) {
@@ -33,7 +47,7 @@ public class MessageReferenceCounts {
 			}
 
 			data.put(messageKey, ++count);
-			logger.debug("message reference added [count={}, messageKey={}]", count, messageKey);
+			logger.debug("RETAINed message reference [count={}, messageKey={}]", count, messageKey);
 		}
 		finally {
 			lock.unlock();
@@ -48,17 +62,18 @@ public class MessageReferenceCounts {
 
 		try {
 			if (count <= 0) {
-				logger.error("Message reference count error [key={}, count={}]", messageKey, count);
+				logger.error("Invalid Message reference Found![key={}, count={}]", messageKey, count);
 				return;
 			}
 			else if (count == 1) {
 				data.remove(messageKey);
+				logger.error("REMOVEed Message reference [key={}]", messageKey);
+
 				Message.NEXUS.remove(messageKey);
-				logger.debug("message removed [messageKey={}]", messageKey);
 			}
 			else {
 				data.put(messageKey, --count);
-				logger.debug("message reference released [count={}, messageKey={}]", count, messageKey);
+				logger.error("RELEASEed Message reference [key={}, count={}]", messageKey, count);
 			}
 		}
 		finally {

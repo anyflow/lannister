@@ -104,4 +104,10 @@ public class TopicSubscription
 		int rawInt = in.readInt();
 		qos = rawInt != Integer.MIN_VALUE ? MqttQoS.valueOf(rawInt) : null;
 	}
+
+	@Override
+	public String toString() {
+		return new StringBuilder().append("clientId=").append(clientId).append(", topicFilter=").append(topicFilter)
+				.append(", qos=").append(topicFilter).toString();
+	}
 }

@@ -1,7 +1,24 @@
+/*
+ * Copyright 2016 The Lannister Project
+ * 
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ * 
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package net.anyflow.lannister.topic;
 
+import java.util.List;
 import java.util.Set;
 import java.util.concurrent.locks.Lock;
+import java.util.stream.Collectors;
 
 import com.google.common.collect.Sets;
 
@@ -16,16 +33,14 @@ public class TopicSubscribers {
 	private final Map<String, SerializableStringSet> topicnameIndex;
 	private final Map<String, SerializableStringSet> clientidIndex;
 
-	private final Lock putLock;
-	private final Lock removeLock;
+	private final Lock modifyLock;
 
 	protected TopicSubscribers() {
 		this.data = ClusterDataFactory.INSTANCE.createMap("TopicSubscribers_data");
 		this.topicnameIndex = ClusterDataFactory.INSTANCE.createMap("TopicSubscribers_topicnameIndex");
 		this.clientidIndex = ClusterDataFactory.INSTANCE.createMap("TopicSubscribers_clientidIndex");
 
-		this.putLock = ClusterDataFactory.INSTANCE.createLock("TopicSubscribers_putLock");
-		this.removeLock = ClusterDataFactory.INSTANCE.createLock("TopicSubscribers_removeLock");
+		this.modifyLock = ClusterDataFactory.INSTANCE.createLock("TopicSubscribers_modifyLock");
 	}
 
 	public static String key(String topicName, String clientId) {
@@ -35,7 +50,7 @@ public class TopicSubscribers {
 	public void put(TopicSubscriber topicSubscriber) {
 		if (topicSubscriber == null) { return; }
 
-		putLock.lock();
+		modifyLock.lock();
 		try {
 			this.data.put(topicSubscriber.key(), topicSubscriber);
 
@@ -55,9 +70,11 @@ public class TopicSubscribers {
 
 			logger.debug("TopicSubscriber added [topicName={}, clientId={}]", topicSubscriber.topicName(),
 					topicSubscriber.clientId());
+			logger.debug("TopicSubscribers Size [data={}, topicnameIndex={}, clientidIndex={}]", data.size(),
+					topicnameIndex.size(), clientidIndex.size());
 		}
 		finally {
-			putLock.unlock();
+			modifyLock.unlock();
 		}
 	}
 
@@ -85,8 +102,7 @@ public class TopicSubscribers {
 	}
 
 	private TopicSubscriber removeByKey(String key) {
-		removeLock.lock();
-
+		modifyLock.lock();
 		try {
 			TopicSubscriber removed = this.data.remove(key);
 			if (removed == null) { return null; }
@@ -111,17 +127,18 @@ public class TopicSubscribers {
 
 			logger.debug("TopicSubscriber removed [topicName={}, clientId={}]", removed.topicName(),
 					removed.clientId());
+			logger.debug("TopicSubscribers Size [data={}, topicnameIndex={}, clientidIndex={}]", data.size(),
+					topicnameIndex.size(), clientidIndex.size());
 
 			return removed;
 		}
 		finally {
-			removeLock.unlock();
+			modifyLock.unlock();
 		}
 	}
 
 	public Set<String> removeByClientId(String clientId) {
-		removeLock.lock();
-
+		modifyLock.lock();
 		try {
 			SerializableStringSet topicNames = this.clientidIndex.remove(clientId);
 			if (topicNames == null) { return Sets.newHashSet(); }
@@ -142,18 +159,57 @@ public class TopicSubscribers {
 
 				logger.debug("TopicSubscriber removed [topicName={}, clientId={}]", removed.topicName(),
 						removed.clientId());
+				logger.debug("TopicSubscribers Size [data={}, topicnameIndex={}, clientidIndex={}]", data.size(),
+						topicnameIndex.size(), clientidIndex.size());
 			});
 
 			return topicNames;
 		}
 		finally {
-			removeLock.unlock();
+			modifyLock.unlock();
 		}
 	}
 
 	public void removeByTopicFilter(String clientId, String topicFilter) {
-		// TODO optimization (use own logics of plural, not using removeByKey)
-		this.topicNamesOf(clientId).stream().filter(topicName -> TopicMatcher.match(topicFilter, topicName))
-				.forEach(topicName -> removeByKey(topicName, clientId));
+		modifyLock.lock();
+		try {
+			List<String> topicNames = this.topicNamesOf(clientId).stream()
+					.filter(topicName -> TopicMatcher.match(topicFilter, topicName)).collect(Collectors.toList());
+
+			topicNames.stream().map(topicName -> key(topicName, clientId)).forEach(key -> data.remove(key));
+
+			SerializableStringSet topicValues = clientidIndex.get(clientId);
+			if (topicValues != null) {
+				topicValues.removeAll(topicNames);
+
+				if (topicValues.size() <= 0) {
+					clientidIndex.remove(clientId);
+				}
+				else {
+					clientidIndex.put(clientId, topicValues);
+				}
+			}
+
+			topicNames.forEach(topicName -> {
+				SerializableStringSet clientIds = topicnameIndex.get(topicName);
+				if (clientIds == null) { return; }
+
+				clientIds.remove(clientId);
+				if (clientIds.size() <= 0) {
+					topicnameIndex.remove(topicName);
+				}
+				else {
+					topicnameIndex.put(topicName, clientIds);
+				}
+			});
+
+			logger.debug("TopicSubscribers removed [topicFilter={}, clientId={}, topicNameCount={}]", topicFilter,
+					clientId, topicNames.size());
+			logger.debug("TopicSubscribers Size [data={}, topicnameIndex={}, clientidIndex={}]", data.size(),
+					topicnameIndex.size(), clientidIndex.size());
+		}
+		finally {
+			modifyLock.unlock();
+		}
 	}
 }
