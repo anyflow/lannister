@@ -49,7 +49,8 @@ public class Topics extends HttpRequestHandler {
 
 	private String all() {
 		try {
-			return new ObjectMapper().writeValueAsString(Topic.NEXUS.map().values());
+			return new ObjectMapper().writeValueAsString(
+					Topic.NEXUS.keySet().stream().map(key -> Topic.NEXUS.get(key)).collect(Collectors.toList()));
 		}
 		catch (JsonProcessingException e) {
 			logger.error(e.getMessage(), e);
@@ -61,8 +62,9 @@ public class Topics extends HttpRequestHandler {
 
 	private String nosys() {
 		try {
-			return new ObjectMapper().writeValueAsString(Topic.NEXUS.map().values().stream()
-					.filter(t -> !t.name().startsWith("$SYS")).collect(Collectors.toList()));
+			return new ObjectMapper()
+					.writeValueAsString(Topic.NEXUS.keySet().stream().filter(topicName -> !topicName.startsWith("$SYS"))
+							.map(key -> Topic.NEXUS.get(key)).collect(Collectors.toList()));
 		}
 		catch (JsonProcessingException e) {
 			logger.error(e.getMessage(), e);

@@ -32,7 +32,6 @@ import io.netty.handler.codec.mqtt.MqttQoS;
 import io.netty.handler.codec.mqtt.MqttSubscribeMessage;
 import io.netty.handler.codec.mqtt.MqttTopicSubscription;
 import net.anyflow.lannister.AbnormalDisconnectEventArgs;
-import net.anyflow.lannister.message.MessageFactory;
 import net.anyflow.lannister.plugin.DefaultSubscribeEventListener;
 import net.anyflow.lannister.plugin.DisconnectEventListener;
 import net.anyflow.lannister.plugin.ITopicSubscription;
@@ -71,15 +70,16 @@ public class SubscribeReceiver extends SimpleChannelInboundHandler<MqttSubscribe
 		}
 
 		// TODO multiple sub checking (granted QoS)
-		Map.Entry<List<Integer>, Map<String, TopicSubscription>> returns = generateReturns(topicSubs);
+		Map.Entry<List<Integer>, Map<String, TopicSubscription>> returns = generateReturns(session.clientId(),
+				topicSubs);
 		List<Integer> grantedQoss = returns.getKey();
 		Map<String, TopicSubscription> topicSubscriptions = returns.getValue();
 
 		if (!executePlugins(session, topicSubscriptions.values())) { return; }
 
-		topicSubscriptions.values().forEach(ts -> session.putTopicSubscription(ts));
+		topicSubscriptions.values().forEach(topicSubscription -> TopicSubscription.NEXUS.put(topicSubscription));
 
-		session.send(MessageFactory.suback(msg.variableHeader().messageId(), grantedQoss), null); // [MQTT-2.3.1-7],[MQTT-2.3.1-7],[MQTT-3.8.4-1],[MQTT-3.8.4-2]
+		session.send(MqttMessageFactory.suback(msg.variableHeader().messageId(), grantedQoss), null); // [MQTT-2.3.1-7],[MQTT-2.3.1-7],[MQTT-3.8.4-1],[MQTT-3.8.4-2]
 
 		sendRetainedMessage(session, topicSubscriptions.keySet());
 	}
@@ -94,14 +94,14 @@ public class SubscribeReceiver extends SimpleChannelInboundHandler<MqttSubscribe
 		});
 	}
 
-	private Map.Entry<List<Integer>, Map<String, TopicSubscription>> generateReturns(
+	private Map.Entry<List<Integer>, Map<String, TopicSubscription>> generateReturns(String clientId,
 			List<MqttTopicSubscription> topicSubs) {
 		List<Integer> grantedQoss = Lists.newArrayList();
 		Map<String, TopicSubscription> topicSubscriptions = Maps.newHashMap();
 
 		topicSubs.stream().forEach(topicSub -> {
 			if (TopicMatcher.isValid(topicSub.topicName(), true)) {
-				TopicSubscription topicSubscription = new TopicSubscription(topicSub.topicName(),
+				TopicSubscription topicSubscription = new TopicSubscription(clientId, topicSub.topicName(),
 						topicSub.qualityOfService());
 
 				grantedQoss.add(topicSubscription.qos().value());

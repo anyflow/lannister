@@ -16,7 +16,6 @@
 
 package net.anyflow.lannister.packetreceiver;
 
-import net.anyflow.lannister.message.MessageFactory;
 import net.anyflow.lannister.session.Session;
 
 public class PingReqReceiver {
@@ -30,6 +29,6 @@ public class PingReqReceiver {
 	}
 
 	protected void handle(Session session) {
-		session.send(MessageFactory.pingresp(), null); // [MQTT-3.12.4-1]
+		session.send(MqttMessageFactory.pingresp(), null); // [MQTT-3.12.4-1]
 	}
 }

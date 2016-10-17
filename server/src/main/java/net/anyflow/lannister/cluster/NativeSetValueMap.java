@@ -15,28 +15,31 @@
  */
 package net.anyflow.lannister.cluster;
 
-import java.util.Set;
+import com.google.common.collect.Maps;
 
-public class HazelcastMap<K, V> implements Map<K, V> {
+public class NativeSetValueMap<K, V> implements Map<K, Set<V>> {
 
-	private com.hazelcast.core.IMap<K, V> engine;
+	private final java.util.Map<K, Set<V>> engine;
 
-	public HazelcastMap(String name) {
-		engine = Hazelcast.INSTANCE.getMap(name);
+	public NativeSetValueMap(String name) {
+		engine = Maps.newHashMap();
 	}
 
 	@Override
-	public void put(K key, V value) {
-		engine.set(key, value);
+	public void put(K key, Set<V> value) {
+		Set<V> prev = engine.put(key, value);
+		if (prev != null) {
+			prev.dispose();
+		}
 	}
 
 	@Override
-	public V get(K key) {
+	public Set<V> get(K key) {
 		return engine.get(key);
 	}
 
 	@Override
-	public V remove(K key) {
+	public Set<V> remove(K key) {
 		return engine.remove(key);
 	}
 
@@ -47,7 +50,7 @@ public class HazelcastMap<K, V> implements Map<K, V> {
 
 	@Override
 	public void dispose() {
-		engine.destroy();
+		// DO NOTHING
 	}
 
 	@Override
@@ -56,7 +59,7 @@ public class HazelcastMap<K, V> implements Map<K, V> {
 	}
 
 	@Override
-	public Set<K> keySet() {
+	public java.util.Set<K> keySet() {
 		return engine.keySet();
 	}
 }

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package net.anyflow.lannister.message;
+package net.anyflow.lannister.packetreceiver;
 
 import java.util.List;
 
@@ -43,9 +43,10 @@ import io.netty.handler.codec.mqtt.MqttSubscribePayload;
 import io.netty.handler.codec.mqtt.MqttTopicSubscription;
 import io.netty.handler.codec.mqtt.MqttUnsubAckMessage;
 import io.netty.util.CharsetUtil;
+import net.anyflow.lannister.message.ConnectOptions;
 import net.anyflow.lannister.plugin.IMessage;
 
-public class MessageFactory {
+public class MqttMessageFactory {
 	public static MqttConnectMessage connect(ConnectOptions options) {
 		MqttFixedHeader fixedHeader = new MqttFixedHeader(MqttMessageType.CONNECT, false, MqttQoS.AT_MOST_ONCE, false,
 				10);

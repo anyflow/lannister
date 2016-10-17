@@ -15,48 +15,34 @@
  */
 package net.anyflow.lannister.cluster;
 
-import java.util.Set;
+import java.util.stream.Stream;
 
-public class HazelcastMap<K, V> implements Map<K, V> {
+import com.google.common.collect.Sets;
 
-	private com.hazelcast.core.IMap<K, V> engine;
+public class NativeSet<V> implements Set<V> {
+	private final java.util.Set<V> engine;
 
-	public HazelcastMap(String name) {
-		engine = Hazelcast.INSTANCE.getMap(name);
+	protected NativeSet() {
+		engine = Sets.newHashSet();
 	}
 
 	@Override
-	public void put(K key, V value) {
-		engine.set(key, value);
+	public Stream<V> stream() {
+		return engine.stream();
 	}
 
 	@Override
-	public V get(K key) {
-		return engine.get(key);
+	public boolean remove(V value) {
+		return engine.remove(value);
 	}
 
 	@Override
-	public V remove(K key) {
-		return engine.remove(key);
-	}
-
-	@Override
-	public int size() {
-		return engine.size();
+	public boolean add(V value) {
+		return engine.add(value);
 	}
 
 	@Override
 	public void dispose() {
-		engine.destroy();
-	}
-
-	@Override
-	public boolean containsKey(K key) {
-		return engine.containsKey(key);
-	}
-
-	@Override
-	public Set<K> keySet() {
-		return engine.keySet();
+		// DO NOTHING
 	}
 }

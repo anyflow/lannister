@@ -29,9 +29,13 @@ import net.anyflow.lannister.Literals;
 public abstract class MessageStatus implements com.hazelcast.nio.serialization.IdentifiedDataSerializable {
 
 	@JsonProperty
+	private String messageKey;
+	@JsonProperty
 	private String clientId;
 	@JsonProperty
 	private int messageId;
+	@JsonProperty
+	private String topicName;
 	@JsonFormat(shape = JsonFormat.Shape.STRING, pattern = Literals.DATE_DEFAULT_FORMAT, timezone = Literals.DATE_DEFAULT_TIMEZONE)
 	@JsonProperty
 	private Date createTime;
@@ -42,19 +46,27 @@ public abstract class MessageStatus implements com.hazelcast.nio.serialization.I
 	public MessageStatus() { // just for Serialization
 	}
 
-	protected MessageStatus(String clientId, int messageId) {
+	protected MessageStatus(String messageKey, String clientId, int messageId, String topicName) {
+		this.messageKey = messageKey;
 		this.clientId = clientId;
 		this.messageId = messageId;
+		this.topicName = topicName;
 		this.createTime = new Date();
 		this.updateTime = createTime;
 	}
 
-	public String key() {
-		return Message.key(clientId, messageId);
+	public abstract String key();
+
+	public String messageKey() {
+		return messageKey;
 	}
 
 	public String clientId() {
 		return clientId;
+	}
+
+	public String topicName() {
+		return topicName;
 	}
 
 	public int messageId() {
@@ -71,16 +83,20 @@ public abstract class MessageStatus implements com.hazelcast.nio.serialization.I
 
 	@Override
 	public void writeData(ObjectDataOutput out) throws IOException {
+		out.writeUTF(messageKey);
 		out.writeUTF(clientId);
 		out.writeInt(messageId);
+		out.writeUTF(topicName);
 		out.writeLong(createTime != null ? createTime.getTime() : Long.MIN_VALUE);
 		out.writeLong(updateTime != null ? updateTime.getTime() : Long.MIN_VALUE);
 	}
 
 	@Override
 	public void readData(ObjectDataInput in) throws IOException {
+		messageKey = in.readUTF();
 		clientId = in.readUTF();
 		messageId = in.readInt();
+		topicName = in.readUTF();
 
 		long rawLong = in.readLong();
 		createTime = rawLong != Long.MIN_VALUE ? new Date(rawLong) : null;

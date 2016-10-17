@@ -46,7 +46,7 @@ import net.anyflow.lannister.Literals;
 import net.anyflow.lannister.Settings;
 import net.anyflow.lannister.message.ConnectOptions;
 import net.anyflow.lannister.message.Message;
-import net.anyflow.lannister.message.MessageFactory;
+import net.anyflow.lannister.packetreceiver.MqttMessageFactory;
 
 public class MqttClient {
 	private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(MqttClient.class);
@@ -109,7 +109,7 @@ public class MqttClient {
 		channel = bootstrap.connect(uri.getHost(), uri.getPort()).sync().channel();
 
 		normalizeMessage(options.will());
-		send(MessageFactory.connect(options));
+		send(MqttMessageFactory.connect(options));
 
 		synchronized (sharedObject.locker()) {
 			int timeout = Settings.INSTANCE.getInt("mqttclient.responseTimeoutSeconds", 15);
@@ -129,7 +129,7 @@ public class MqttClient {
 		if (!isConnected()) { return; }
 
 		if (sendDisconnect) {
-			send(MessageFactory.disconnect());
+			send(MqttMessageFactory.disconnect());
 		}
 
 		channel.disconnect().addListener(ChannelFutureListener.CLOSE);
@@ -162,11 +162,11 @@ public class MqttClient {
 
 	public void publish(Message message) {
 		normalizeMessage(message);
-		send(MessageFactory.publish(message, false));
+		send(MqttMessageFactory.publish(message, false));
 	}
 
 	public void subscribe(MqttTopicSubscription... topicSubscriptions) throws InterruptedException {
-		send(MessageFactory.subscribe(nextMessageId(), topicSubscriptions));
+		send(MqttMessageFactory.subscribe(nextMessageId(), topicSubscriptions));
 
 		// TODO error handling,store subscription
 	}
@@ -184,7 +184,7 @@ public class MqttClient {
 	private void normalizeMessage(Message message) {
 		if (message == null) { return; }
 
-		message.setId(nextMessageId());
+		message.id(nextMessageId());
 		message.publisherId(this.options.clientId());
 	}
 

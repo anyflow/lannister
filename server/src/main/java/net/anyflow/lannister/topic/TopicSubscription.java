@@ -31,7 +31,10 @@ public class TopicSubscription
 		implements com.hazelcast.nio.serialization.IdentifiedDataSerializable, ITopicSubscription {
 
 	public final static int ID = 8;
+	public static final TopicSubscriptions NEXUS = new TopicSubscriptions();
 
+	@JsonProperty
+	private String clientId;
 	@JsonProperty
 	private String topicFilter;
 	@JsonProperty
@@ -40,9 +43,19 @@ public class TopicSubscription
 	public TopicSubscription() { // just for Serialization
 	}
 
-	public TopicSubscription(String topicFilter, MqttQoS qos) {
+	public TopicSubscription(String clientId, String topicFilter, MqttQoS qos) {
+		this.clientId = clientId;
 		this.topicFilter = topicFilter;
 		this.qos = qos;
+	}
+
+	public String key() {
+		return TopicSubscriptions.key(topicFilter, clientId);
+	}
+
+	@Override
+	public String clientId() {
+		return clientId;
 	}
 
 	/*
@@ -78,15 +91,23 @@ public class TopicSubscription
 
 	@Override
 	public void writeData(ObjectDataOutput out) throws IOException {
+		out.writeUTF(clientId);
 		out.writeUTF(topicFilter);
 		out.writeInt(qos != null ? qos.value() : Integer.MIN_VALUE);
 	}
 
 	@Override
 	public void readData(ObjectDataInput in) throws IOException {
+		clientId = in.readUTF();
 		topicFilter = in.readUTF();
 
 		int rawInt = in.readInt();
 		qos = rawInt != Integer.MIN_VALUE ? MqttQoS.valueOf(rawInt) : null;
+	}
+
+	@Override
+	public String toString() {
+		return new StringBuilder().append("clientId=").append(clientId).append(", topicFilter=").append(topicFilter)
+				.append(", qos=").append(topicFilter).toString();
 	}
 }

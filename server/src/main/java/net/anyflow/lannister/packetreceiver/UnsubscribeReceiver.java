@@ -24,12 +24,13 @@ import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
 import io.netty.handler.codec.mqtt.MqttUnsubscribeMessage;
 import net.anyflow.lannister.AbnormalDisconnectEventArgs;
-import net.anyflow.lannister.message.MessageFactory;
 import net.anyflow.lannister.plugin.DisconnectEventListener;
 import net.anyflow.lannister.plugin.Plugins;
 import net.anyflow.lannister.plugin.UnsubscribeEventArgs;
 import net.anyflow.lannister.plugin.UnsubscribeEventListener;
 import net.anyflow.lannister.session.Session;
+import net.anyflow.lannister.topic.TopicSubscriber;
+import net.anyflow.lannister.topic.TopicSubscription;
 
 public class UnsubscribeReceiver extends SimpleChannelInboundHandler<MqttUnsubscribeMessage> {
 
@@ -57,7 +58,10 @@ public class UnsubscribeReceiver extends SimpleChannelInboundHandler<MqttUnsubsc
 			return;
 		}
 
-		topicFilters.stream().forEach(tf -> session.removeTopicSubscription(tf));
+		topicFilters.stream().forEach(tf -> {
+			TopicSubscription.NEXUS.removeByKey(tf, session.clientId());
+			TopicSubscriber.NEXUS.removeByTopicFilter(session.clientId(), tf);
+		});
 
 		Plugins.INSTANCE.get(UnsubscribeEventListener.class).unsubscribed(new UnsubscribeEventArgs() {
 			@Override
@@ -71,6 +75,6 @@ public class UnsubscribeReceiver extends SimpleChannelInboundHandler<MqttUnsubsc
 			}
 		});
 
-		session.send(MessageFactory.unsuback(msg.variableHeader().messageId()), null); // [MQTT-2.3.1-7],[MQTT-3.10.4-4],[MQTT-3.10.4-5]
+		session.send(MqttMessageFactory.unsuback(msg.variableHeader().messageId()), null); // [MQTT-2.3.1-7],[MQTT-3.10.4-4],[MQTT-3.10.4-5]
 	}
 }

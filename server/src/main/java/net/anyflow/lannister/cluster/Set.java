@@ -15,25 +15,14 @@
  */
 package net.anyflow.lannister.cluster;
 
-import org.apache.ignite.IgniteCache;
-import org.apache.ignite.Ignition;
+import java.util.stream.Stream;
 
-public class Ignite {
-	@SuppressWarnings("unused")
-	private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(Hazelcast.class);
+public interface Set<V> {
+	Stream<V> stream();
 
-	@SuppressWarnings("unused")
-	private static final String CONFIG_NAME = "lannister.ignite.xml";
+	boolean remove(V value);
 
-	public static final Ignite INSTANCE = new Ignite();
+	boolean add(V value);
 
-	private org.apache.ignite.Ignite substance;
-
-	private Ignite() {
-		substance = Ignition.start();
-	}
-
-	public <K, V> IgniteCache<K, V> getCache(String name) {
-		return substance.getOrCreateCache(name);
-	}
+	void dispose();
 }

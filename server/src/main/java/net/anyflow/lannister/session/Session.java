@@ -18,6 +18,7 @@ package net.anyflow.lannister.session;
 
 import java.io.IOException;
 import java.util.Date;
+import java.util.concurrent.locks.Lock;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -32,11 +33,12 @@ import io.netty.channel.ChannelId;
 import io.netty.handler.codec.mqtt.MqttMessage;
 import io.netty.util.concurrent.Future;
 import io.netty.util.concurrent.GenericFutureListener;
-import net.anyflow.lannister.AbnormalDisconnectEventArgs;
+import io.netty.util.concurrent.GlobalEventExecutor;
 import net.anyflow.lannister.Literals;
+import net.anyflow.lannister.cluster.ClusterDataDisposer;
 import net.anyflow.lannister.cluster.ClusterDataFactory;
-import net.anyflow.lannister.cluster.Map;
 import net.anyflow.lannister.message.Message;
+import net.anyflow.lannister.message.OutboundMessageStatus;
 import net.anyflow.lannister.plugin.DisconnectEventArgs;
 import net.anyflow.lannister.plugin.DisconnectEventListener;
 import net.anyflow.lannister.plugin.Plugins;
@@ -63,8 +65,6 @@ public class Session implements com.hazelcast.nio.serialization.IdentifiedDataSe
 	@JsonProperty
 	private boolean isConnected;
 	@JsonProperty
-	private Map<String, TopicSubscription> topicSubscriptions;
-	@JsonProperty
 	private int currentMessageId;
 	@JsonProperty
 	private Message will;
@@ -81,6 +81,8 @@ public class Session implements com.hazelcast.nio.serialization.IdentifiedDataSe
 
 	private MessageSender messageSender;
 
+	private Lock disposeLock;
+
 	public Session() { // just for serialization
 	}
 
@@ -95,13 +97,9 @@ public class Session implements com.hazelcast.nio.serialization.IdentifiedDataSe
 		this.lastIncomingTime = new Date();
 		this.cleanSession = cleanSession;
 		this.will = will; // [MQTT-3.1.2-9]
-		this.topicSubscriptions = ClusterDataFactory.INSTANCE.createMap(topicSubscriptionsName());
+		this.disposeLock = ClusterDataFactory.INSTANCE.createLock("Session_disposeLock_" + clientId);
 
 		this.messageSender = new MessageSender(this);
-	}
-
-	private String topicSubscriptionsName() {
-		return "CLIENTID(" + clientId + ")_topicSubscriptions";
 	}
 
 	@JsonSerialize(using = ChannelIdSerializer.class)
@@ -159,31 +157,10 @@ public class Session implements com.hazelcast.nio.serialization.IdentifiedDataSe
 		Session.NEXUS.persist(this);
 	}
 
-	public Map<String, TopicSubscription> getTopicSubscriptions() {
-		return topicSubscriptions;
-	}
-
-	public void putTopicSubscription(TopicSubscription topicSubscription) {
-		assert topicSubscription != null;
-
-		topicSubscriptions.put(topicSubscription.topicFilter(), topicSubscription);
-
-		Topic.NEXUS.map().values().stream().filter(t -> TopicMatcher.match(topicSubscription.topicFilter(), t.name()))
-				.forEach(t -> t.putSubscriber(clientId, new TopicSubscriber(clientId, t.name())));
-	}
-
-	public TopicSubscription removeTopicSubscription(String topicFilter) {
-		TopicSubscription ret = topicSubscriptions.remove(topicFilter);
-		if (ret == null) { return null; }
-
-		Topic.NEXUS.map().values().stream().filter(t -> TopicMatcher.match(ret.topicFilter(), t.name()))
-				.forEach(t -> t.getSubscribers().remove(clientId));
-
-		return ret;
-	}
-
 	public TopicSubscription matches(String topicName) {
-		return topicSubscriptions.values().stream().filter(t -> TopicMatcher.match(t.topicFilter(), topicName))
+		return TopicSubscription.NEXUS.topicFiltersOf(clientId).stream()
+				.filter(topicFilter -> TopicMatcher.match(topicFilter, topicName))
+				.map(topicFilter -> TopicSubscription.NEXUS.getBy(topicFilter, clientId))
 				.max((p1, p2) -> p1.qos().compareTo(p2.qos())).orElse(null); // [MQTT-3.3.5-1]
 	}
 
@@ -224,40 +201,46 @@ public class Session implements com.hazelcast.nio.serialization.IdentifiedDataSe
 		ChannelId channelId = null;
 		ChannelHandlerContext ctx = NEXUS.channelHandlerContext(clientId);
 		if (ctx != null) {
-			ctx.channel().disconnect().addListener(ChannelFutureListener.CLOSE).addListener(fs -> Plugins.INSTANCE
-					.get(DisconnectEventListener.class).disconnected(new AbnormalDisconnectEventArgs()));
-
+			ctx.channel().disconnect().addListener(ChannelFutureListener.CLOSE);
 			channelId = ctx.channel().id();
 		}
 
-		logger.debug("Session disposed [clientId={}/channelId={}]", clientId, ctx == null ? "null" : channelId);
+		logger.debug("Session disposed [clientId={}, channelId={}]", clientId, ctx == null ? "null" : channelId);
 
+		// TODO WHY => Current thread is not owner of the lock! -> <not-locked>
+		// disposeLock.lock();
+		// try {
 		if (cleanSession) {
-			this.topicSubscriptions.values().stream().forEach(ts -> {
-				Topic.NEXUS.matches(ts.topicFilter()).forEach(t -> t.removeSubscriber(clientId));
-			});
-
-			this.topicSubscriptions.dispose();
+			TopicSubscriber.NEXUS.removeByClientId(clientId);
+			TopicSubscription.NEXUS.removeByClientId(clientId);
+			OutboundMessageStatus.NEXUS.removeByClientId(clientId);
 		}
 
 		NEXUS.remove(this);
+		// }
+		// finally {
+		// disposeLock.unlock();
+		// }
 
-		Plugins.INSTANCE.get(DisconnectEventListener.class).disconnected(new DisconnectEventArgs() {
-			@Override
-			public String clientId() {
-				return clientId;
-			}
+		ClusterDataDisposer.INSTANCE.disposeLock(disposeLock);
 
-			@Override
-			public Boolean cleanSession() {
-				return cleanSession;
-			}
+		GlobalEventExecutor.INSTANCE.execute(
+				() -> Plugins.INSTANCE.get(DisconnectEventListener.class).disconnected(new DisconnectEventArgs() {
+					@Override
+					public String clientId() {
+						return clientId;
+					}
 
-			@Override
-			public Boolean byDisconnectMessage() {
-				return !sendWill;
-			}
-		});
+					@Override
+					public Boolean cleanSession() {
+						return cleanSession;
+					}
+
+					@Override
+					public Boolean byDisconnectMessage() {
+						return !sendWill;
+					}
+				}));
 	}
 
 	@JsonIgnore
@@ -311,7 +294,7 @@ public class Session implements com.hazelcast.nio.serialization.IdentifiedDataSe
 		rawLong = in.readLong();
 		lastIncomingTime = rawLong != Long.MIN_VALUE ? new Date(rawLong) : null;
 
-		topicSubscriptions = ClusterDataFactory.INSTANCE.createMap(topicSubscriptionsName());
+		disposeLock = ClusterDataFactory.INSTANCE.createLock("Session_disposeLock_" + clientId);
 		messageSender = new MessageSender(this);
 	}
 }

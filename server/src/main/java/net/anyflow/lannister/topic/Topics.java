@@ -18,14 +18,16 @@ package net.anyflow.lannister.topic;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
-import com.google.common.collect.Maps;
 import com.hazelcast.core.ITopic;
 
 import net.anyflow.lannister.cluster.ClusterDataFactory;
 import net.anyflow.lannister.cluster.Map;
+import net.anyflow.lannister.message.InboundMessageStatus;
 import net.anyflow.lannister.message.Message;
+import net.anyflow.lannister.message.OutboundMessageStatus;
 import net.anyflow.lannister.session.Sessions;
 
 public class Topics {
@@ -41,8 +43,8 @@ public class Topics {
 		this.notifier.addMessageListener(sessions);
 	}
 
-	public Map<String, Topic> map() {
-		return topics;
+	public Set<String> keySet() {
+		return topics.keySet();
 	}
 
 	public ITopic<Notification> notifier() {
@@ -72,16 +74,17 @@ public class Topics {
 	}
 
 	private Topic getFromPublisher(String publisherId, int messageId) {
-		return topics.values().parallelStream().filter(t -> t.getInboundMessageStatus(publisherId, messageId) != null)
-				.findAny().orElse(null);
+		InboundMessageStatus status = InboundMessageStatus.NEXUS.getBy(messageId, publisherId);
+		if (status == null) { return null; }
+
+		return Topic.NEXUS.get(status.topicName());
 	}
 
 	private Topic getFromSubscriber(String subscriberId, int messageId) {
-		return topics.values().stream().filter(t -> {
-			TopicSubscriber ts = t.getSubscribers().get(subscriberId);
+		OutboundMessageStatus status = OutboundMessageStatus.NEXUS.getBy(messageId, subscriberId);
+		if (status == null) { return null; }
 
-			return ts != null && ts.outboundMessageStatuses().get(messageId) != null;
-		}).findAny().orElse(null);
+		return Topic.NEXUS.get(status.topicName());
 	}
 
 	protected void persist(Topic topic) {
@@ -93,7 +96,7 @@ public class Topics {
 	public void insert(Topic topic) {
 		assert topic != null;
 
-		topic.updateSubscribers();
+		TopicSubscriber.NEXUS.updateByTopicName(topic.name());
 
 		// TODO should be added in case of no subscriber & no retained Message?
 		persist(topic);
@@ -101,7 +104,6 @@ public class Topics {
 
 	public Topic remove(Topic topic) {
 		assert topic != null;
-		topic.dispose();
 
 		return topics.remove(topic.name());
 	}
@@ -117,20 +119,13 @@ public class Topics {
 	}
 
 	public List<Topic> matches(String topicFilter) {
-		return topics.values().stream().filter(topic -> TopicMatcher.match(topicFilter, topic.name()))
-				.collect(Collectors.toList());
+		return topics.keySet().stream().filter(topicName -> TopicMatcher.match(topicFilter, topicName))
+				.map(topicName -> topics.get(topicName)).collect(Collectors.toList());
 	}
 
-	public Collection<Topic> matches(Collection<String> topicFilters) {
-		java.util.Map<String, Topic> ret = Maps.newHashMap();
-
-		topics.values().stream().forEach(t -> {
-			if (topicFilters.stream().filter(tf -> TopicMatcher.match(tf, t.name())).count() <= 0) { return; }
-			if (ret.containsKey(t.name())) { return; }
-
-			ret.put(t.name(), t);
-		});
-
-		return ret.values();
+	public List<Topic> matches(Collection<String> topicFilters) {
+		return topics.keySet().stream()
+				.filter(topicName -> topicFilters.stream().filter(tf -> TopicMatcher.match(tf, topicName)).count() > 0)
+				.map(topicName -> topics.get(topicName)).collect(Collectors.toList());
 	}
 }

@@ -30,6 +30,7 @@ import net.anyflow.lannister.cluster.Map;
 import net.anyflow.lannister.serialization.SysValueSerializer;
 import net.anyflow.lannister.session.Session;
 import net.anyflow.lannister.topic.Topic;
+import net.anyflow.lannister.topic.TopicSubscription;
 
 public class Statistics {
 
@@ -150,21 +151,22 @@ public class Statistics {
 		data.put("$SYS/broker/messages/publish/dropped", new RawSysValue(Criterion.MESSAGES_PUBLISH_DROPPED));
 		data.put("$SYS/broker/messages/publish/received", new RawSysValue(Criterion.MESSAGES_PUBLISH_RECEIVED));
 		data.put("$SYS/broker/messages/publish/sent", new RawSysValue(Criterion.MESSAGES_PUBLISH_SENT));
-		data.put("$SYS/broker/messages/retained/count", () -> defaultFormatter
-				.format(Topic.NEXUS.map().values().stream().filter(t -> t.retainedMessage() != null).count()));
+		data.put("$SYS/broker/messages/retained/count", () -> defaultFormatter.format(
+				Topic.NEXUS.keySet().stream().filter(t -> Topic.NEXUS.get(t).retainedMessage() != null).count()));
 
 		// CLIENT
 		data.put("$SYS/broker/clients/maximum", new RawSysValue(Criterion.CLIENTS_MAXIMUM));
 		data.put("$SYS/broker/clients/connected", () -> {
-			long current = Session.NEXUS.map().values().stream().filter(s -> s.isConnected(false)).count();
+			long current = Session.NEXUS.keySet().stream().filter(s -> Session.NEXUS.get(s).isConnected(false))
+					.count();
 
 			setMaxActiveClients(current);
 
 			return defaultFormatter.format(current);
 		});
-		data.put("$SYS/broker/clients/disconnected", () -> defaultFormatter
-				.format(Session.NEXUS.map().values().stream().filter(s -> !s.isConnected(false)).count()));
-		data.put("$SYS/broker/clients/total", () -> defaultFormatter.format(Session.NEXUS.map().size()));
+		data.put("$SYS/broker/clients/disconnected", () -> defaultFormatter.format(
+				Session.NEXUS.keySet().stream().filter(s -> !Session.NEXUS.get(s).isConnected(false)).count()));
+		data.put("$SYS/broker/clients/total", () -> defaultFormatter.format(Session.NEXUS.keySet().size()));
 
 		// STATIC
 		data.put("$SYS/broker/version", () -> Settings.INSTANCE.version());
@@ -175,8 +177,7 @@ public class Statistics {
 		// ETC
 		data.put("$SYS/broker/load/bytes/received", new RawSysValue(Criterion.BYTE_RECEIVED));
 		data.put("$SYS/broker/load/bytes/sent", new RawSysValue(Criterion.BYTE_SENT));
-		data.put("$SYS/broker/subscriptions/count", () -> defaultFormatter.format(Session.NEXUS.map().values().stream()
-				.map(s -> s.getTopicSubscriptions()).flatMap(s -> s.values().stream()).count()));
+		data.put("$SYS/broker/subscriptions/count", () -> defaultFormatter.format(TopicSubscription.NEXUS.size()));
 		data.put("$SYS/broker/time", () -> new Date().toString());
 		data.put("$SYS/broker/uptime", () -> defaultFormatter
 				.format((double) (new Date().getTime() - criterions.get(Criterion.BROKER_START_TIME)) / (double) 1000));

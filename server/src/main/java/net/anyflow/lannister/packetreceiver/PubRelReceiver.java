@@ -17,7 +17,7 @@
 package net.anyflow.lannister.packetreceiver;
 
 import io.netty.handler.codec.mqtt.MqttMessage;
-import net.anyflow.lannister.message.MessageFactory;
+import net.anyflow.lannister.message.InboundMessageStatus;
 import net.anyflow.lannister.session.Session;
 import net.anyflow.lannister.topic.Topic;
 import net.anyflow.lannister.topic.Topics.ClientType;
@@ -37,12 +37,12 @@ public class PubRelReceiver {
 
 		Topic topic = Topic.NEXUS.get(session.clientId(), messageId, ClientType.PUBLISHER);
 		if (topic == null) {
-			logger.error("Topic does not exist [clientId={}, messageId={}]", session.clientId(), messageId);
+			logger.error("PUBREL target does not exist [clientId={}, messageId={}]", session.clientId(), messageId);
 			session.dispose(true); // [MQTT-3.3.5-2]
 			return;
 		}
 
-		MqttMessage toSend = MessageFactory.pubcomp(messageId);
+		MqttMessage toSend = MqttMessageFactory.pubcomp(messageId);
 		final String log = toSend.toString();
 
 		session.send(toSend, f -> {
@@ -51,7 +51,7 @@ public class PubRelReceiver {
 				return;
 			}
 
-			topic.removeInboundMessageStatus(session.clientId(), messageId);
+			InboundMessageStatus.NEXUS.removeByKey(messageId, session.clientId());
 			logger.debug("Inbound message status REMOVED [clientId={}, messageId={}]", session.clientId(), messageId);
 		});
 	}
