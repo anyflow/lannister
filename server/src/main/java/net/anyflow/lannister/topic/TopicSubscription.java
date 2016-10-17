@@ -29,10 +29,9 @@ import net.anyflow.lannister.serialization.SerializableFactory;
 
 public class TopicSubscription
 		implements com.hazelcast.nio.serialization.IdentifiedDataSerializable, ITopicSubscription {
-
-	public final static int ID = 8;
 	public static final TopicSubscriptions NEXUS = new TopicSubscriptions();
-
+	@JsonIgnore
+	public final static int ID = 8;
 	@JsonProperty
 	private String clientId;
 	@JsonProperty

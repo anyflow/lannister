@@ -49,6 +49,10 @@ public class TopicSubscriptions {
 		return data.size();
 	}
 
+	public Set<String> keySet() {
+		return Sets.newHashSet(data.keySet());
+	}
+
 	public void put(TopicSubscription topicSubscription) {
 		if (topicSubscription == null) { return; }
 
@@ -89,8 +93,12 @@ public class TopicSubscriptions {
 		return Sets.newHashSet(topicfilterIndex.keySet());
 	}
 
+	public TopicSubscription get(String key) {
+		return data.get(key);
+	}
+
 	public TopicSubscription getBy(String topicFilter, String clientId) {
-		return data.get(key(topicFilter, clientId));
+		return get(key(topicFilter, clientId));
 	}
 
 	public Set<String> clientIdsOf(String topicFilter) {

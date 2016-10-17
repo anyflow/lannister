@@ -48,6 +48,10 @@ public class TopicSubscribers {
 		return topicName + "_" + clientId;
 	}
 
+	public Set<String> keySet() {
+		return Sets.newHashSet(data.keySet());
+	}
+
 	public void put(TopicSubscriber topicSubscriber) {
 		if (topicSubscriber == null) { return; }
 
@@ -77,6 +81,10 @@ public class TopicSubscribers {
 		finally {
 			modifyLock.unlock();
 		}
+	}
+
+	public TopicSubscriber get(String key) {
+		return data.get(key);
 	}
 
 	public Set<String> clientIdsOf(String topicName) {
