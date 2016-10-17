@@ -87,7 +87,7 @@ public class OutboundMessageStatuses {
 	public Set<Integer> messageIdsOf(String clientId) {
 		Set<Integer> ret = clientidIndex.get(clientId);
 
-		return ret == null ? Sets.newHashSet() : ret;
+		return ret == null ? Sets.newHashSet() : Sets.newHashSet(ret);
 	}
 
 	public OutboundMessageStatus removeByKey(Integer messageId, String clientId) {

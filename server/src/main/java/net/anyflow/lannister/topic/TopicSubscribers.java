@@ -20,6 +20,7 @@ import java.util.Set;
 import java.util.concurrent.locks.Lock;
 import java.util.stream.Collectors;
 
+import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 
 import net.anyflow.lannister.cluster.ClusterDataFactory;
@@ -81,13 +82,13 @@ public class TopicSubscribers {
 	public Set<String> clientIdsOf(String topicName) {
 		Set<String> ret = topicnameIndex.get(topicName);
 
-		return ret == null ? Sets.newHashSet() : ret;
+		return ret == null ? Sets.newHashSet() : Sets.newHashSet(ret);
 	}
 
 	public Set<String> topicNamesOf(String clientId) {
 		Set<String> ret = clientidIndex.get(clientId);
 
-		return ret == null ? Sets.newHashSet() : ret;
+		return ret == null ? Sets.newHashSet() : Sets.newHashSet(ret);
 	}
 
 	public void updateByTopicName(String topicName) {
@@ -173,14 +174,28 @@ public class TopicSubscribers {
 	public void removeByTopicFilter(String clientId, String topicFilter) {
 		modifyLock.lock();
 		try {
-			List<String> topicNames = this.topicNamesOf(clientId).stream()
+			List<String> topicNamesToRemove = this.topicNamesOf(clientId).stream()
 					.filter(topicName -> TopicMatcher.match(topicFilter, topicName)).collect(Collectors.toList());
 
-			topicNames.stream().map(topicName -> key(topicName, clientId)).forEach(key -> data.remove(key));
+			Set<String> otherTopicFilters = TopicSubscription.NEXUS.topicFiltersOf(clientId);
+			otherTopicFilters.remove(topicFilter);
+
+			// Remove topicNames from topicNmaesToRemove which matches with
+			// other topic filters
+			List<String> tempTopicNames = Lists.newArrayList(topicNamesToRemove);
+			otherTopicFilters.stream().forEach(filter -> {
+				tempTopicNames.stream().forEach(name -> {
+					if (TopicMatcher.match(filter, name)) {
+						topicNamesToRemove.remove(name);
+					}
+				});
+			});
+
+			topicNamesToRemove.stream().map(topicName -> key(topicName, clientId)).forEach(key -> data.remove(key));
 
 			SerializableStringSet topicValues = clientidIndex.get(clientId);
 			if (topicValues != null) {
-				topicValues.removeAll(topicNames);
+				topicValues.removeAll(topicNamesToRemove);
 
 				if (topicValues.size() <= 0) {
 					clientidIndex.remove(clientId);
@@ -190,7 +205,7 @@ public class TopicSubscribers {
 				}
 			}
 
-			topicNames.forEach(topicName -> {
+			topicNamesToRemove.forEach(topicName -> {
 				SerializableStringSet clientIds = topicnameIndex.get(topicName);
 				if (clientIds == null) { return; }
 
@@ -204,7 +219,7 @@ public class TopicSubscribers {
 			});
 
 			logger.debug("TopicSubscribers removed [topicFilter={}, clientId={}, topicNameCount={}]", topicFilter,
-					clientId, topicNames.size());
+					clientId, topicNamesToRemove.size());
 			logger.debug("TopicSubscribers Size [data={}, topicnameIndex={}, clientidIndex={}]", data.size(),
 					topicnameIndex.size(), clientidIndex.size());
 		}

@@ -86,7 +86,7 @@ public class TopicSubscriptions {
 	}
 
 	public Set<String> topicFilters() {
-		return topicfilterIndex.keySet();
+		return Sets.newHashSet(topicfilterIndex.keySet());
 	}
 
 	public TopicSubscription getBy(String topicFilter, String clientId) {
@@ -96,13 +96,13 @@ public class TopicSubscriptions {
 	public Set<String> clientIdsOf(String topicFilter) {
 		Set<String> ret = topicfilterIndex.get(topicFilter);
 
-		return ret == null ? Sets.newHashSet() : ret;
+		return ret == null ? Sets.newHashSet() : Sets.newHashSet(ret);
 	}
 
 	public Set<String> topicFiltersOf(String clientId) {
 		Set<String> ret = clientidIndex.get(clientId);
 
-		return ret == null ? Sets.newHashSet() : ret;
+		return ret == null ? Sets.newHashSet() : Sets.newHashSet(ret);
 	}
 
 	public TopicSubscription removeByKey(String topicFilter, String clientId) {

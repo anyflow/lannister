@@ -18,6 +18,8 @@ package net.anyflow.lannister.message;
 import java.util.Set;
 import java.util.concurrent.locks.Lock;
 
+import com.google.common.collect.Sets;
+
 import net.anyflow.lannister.cluster.ClusterDataFactory;
 import net.anyflow.lannister.cluster.Map;
 import net.anyflow.lannister.cluster.SerializableIntegerSet;
@@ -45,7 +47,7 @@ public class InboundMessageStatuses {
 	}
 
 	public Set<String> keySet() {
-		return data.keySet();
+		return Sets.newHashSet(data.keySet());
 	}
 
 	public void put(InboundMessageStatus inboundMessageStatus) {
