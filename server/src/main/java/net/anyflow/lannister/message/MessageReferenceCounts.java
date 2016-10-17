@@ -67,13 +67,13 @@ public class MessageReferenceCounts {
 			}
 			else if (count == 1) {
 				data.remove(messageKey);
-				logger.error("REMOVEed Message reference [key={}]", messageKey);
+				logger.debug("REMOVEed Message reference [key={}]", messageKey);
 
 				Message.NEXUS.remove(messageKey);
 			}
 			else {
 				data.put(messageKey, --count);
-				logger.error("RELEASEed Message reference [key={}, count={}]", messageKey, count);
+				logger.debug("RELEASEed Message reference [key={}, count={}]", messageKey, count);
 			}
 		}
 		finally {
