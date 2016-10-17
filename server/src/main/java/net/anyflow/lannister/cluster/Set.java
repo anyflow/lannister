@@ -18,11 +18,13 @@ package net.anyflow.lannister.cluster;
 import java.util.stream.Stream;
 
 public interface Set<V> {
-	Stream<V> stream();
+    Stream<V> stream();
 
-	boolean remove(V value);
+    boolean remove(V value);
 
-	boolean add(V value);
+    boolean add(V value);
 
-	void dispose();
+    void dispose();
+
+    int size();
 }

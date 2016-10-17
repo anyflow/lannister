@@ -17,32 +17,54 @@ package net.anyflow.lannister.cluster;
 
 import java.util.stream.Stream;
 
+import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 
 public class NativeSet<V> implements Set<V> {
-	private final java.util.Set<V> engine;
+    private static java.util.Map<String, Object> SETS = Maps.newHashMap();
 
-	protected NativeSet() {
-		engine = Sets.newHashSet();
-	}
+    private final java.util.Set<V> engine;
+    private String name;
+    
+    public static <V> NativeSet<V> getOrCreate(String name) {
+        @SuppressWarnings("unchecked")
+        NativeSet<V> ret = (NativeSet<V>) SETS.get(name);
+        
+        if(ret == null) {
+            ret = new NativeSet<V>(name);
+            SETS.put(name, ret);
+        }
+        
+        return ret;
+    }
+    
+    private NativeSet(String name) {
+        this.engine = Sets.newHashSet();
+        this.name = name;
+    }
 
-	@Override
-	public Stream<V> stream() {
-		return engine.stream();
-	}
+    @Override
+    public Stream<V> stream() {
+        return engine.stream();
+    }
 
-	@Override
-	public boolean remove(V value) {
-		return engine.remove(value);
-	}
+    @Override
+    public boolean remove(V value) {
+        return engine.remove(value);
+    }
 
-	@Override
-	public boolean add(V value) {
-		return engine.add(value);
-	}
+    @Override
+    public boolean add(V value) {
+        return engine.add(value);
+    }
 
-	@Override
-	public void dispose() {
-		// DO NOTHING
-	}
+    @Override
+    public void dispose() {
+        SETS.remove(name);
+    }
+
+    @Override
+    public int size() {
+        return engine.size();
+    }
 }

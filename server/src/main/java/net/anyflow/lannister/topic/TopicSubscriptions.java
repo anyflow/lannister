@@ -15,171 +15,164 @@
  */
 package net.anyflow.lannister.topic;
 
-import java.util.Set;
 import java.util.concurrent.locks.Lock;
-
-import com.google.common.collect.Sets;
 
 import net.anyflow.lannister.cluster.ClusterDataFactory;
 import net.anyflow.lannister.cluster.Map;
-import net.anyflow.lannister.cluster.SerializableStringSet;
+import net.anyflow.lannister.cluster.Set;
 
 public class TopicSubscriptions {
-	private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(TopicSubscriptions.class);
+    private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(TopicSubscriptions.class);
 
-	private final Map<String, TopicSubscription> data;
-	private final Map<String, SerializableStringSet> topicfilterIndex;
-	private final Map<String, SerializableStringSet> clientidIndex;
+    private final Map<String, TopicSubscription> data;
+    private final Set<String> topicFilters;
+    private final Set<String> clientIds;
 
-	private final Lock modifyLock;
+    private final Lock modifyLock;
 
-	protected TopicSubscriptions() {
-		this.data = ClusterDataFactory.INSTANCE.createMap("TopicSubscriptions_data");
-		this.topicfilterIndex = ClusterDataFactory.INSTANCE.createMap("TopicSubscriptions_topicfilterIndex");
-		this.clientidIndex = ClusterDataFactory.INSTANCE.createMap("TopicSubscriptions_clientidIndex");
+    protected TopicSubscriptions() {
+        this.data = ClusterDataFactory.INSTANCE.createMap("TopicSubscriptions_data");
+        this.topicFilters = ClusterDataFactory.INSTANCE.getSet("TopicSubscriptions_topicFilters");
+        this.clientIds = ClusterDataFactory.INSTANCE.getSet("TopicSubscriptions_clientIds");
+        this.modifyLock = ClusterDataFactory.INSTANCE.createLock("TopicSubscriptions_modifyLock");
+    }
 
-		this.modifyLock = ClusterDataFactory.INSTANCE.createLock("TopicSubscriptions_modifyLock");
-	}
+    public static String key(String topicFilter, String clientId) {
+        return topicFilter + "_" + clientId;
+    }
 
-	public static String key(String topicFilter, String clientId) {
-		return topicFilter + "_" + clientId;
-	}
+    public int size() {
+        return data.size();
+    }
 
-	public int size() {
-		return data.size();
-	}
+    private Set<String> topicFilterIndexOf(String clientId) {
+        return ClusterDataFactory.INSTANCE.getSet("TopicSubscriptions_topicfiltersOf_" + clientId);
+    }
 
-	public void put(TopicSubscription topicSubscription) {
-		if (topicSubscription == null) { return; }
+    private Set<String> clientIdIndexOf(String topicFilter) {
+        return ClusterDataFactory.INSTANCE.getSet("TopicSubscriptions_clientIdsOf_" + topicFilter);
+    }
 
-		modifyLock.lock();
-		try {
-			this.data.put(topicSubscription.key(), topicSubscription);
+    public void put(TopicSubscription topicSubscription) {
+        if (topicSubscription == null) { return; }
 
-			SerializableStringSet clientIds = this.topicfilterIndex.get(topicSubscription.topicFilter());
-			if (clientIds == null) {
-				clientIds = new SerializableStringSet();
-			}
-			clientIds.add(topicSubscription.clientId());
-			this.topicfilterIndex.put(topicSubscription.topicFilter(), clientIds);
+        modifyLock.lock();
+        try {
+            this.data.put(topicSubscription.key(), topicSubscription);
+            this.topicFilters.add(topicSubscription.topicFilter());
+            this.clientIds.add(topicSubscription.clientId());
 
-			SerializableStringSet topicFilters = this.clientidIndex.get(topicSubscription.clientId());
-			if (topicFilters == null) {
-				topicFilters = new SerializableStringSet();
-			}
-			topicFilters.add(topicSubscription.topicFilter());
-			this.clientidIndex.put(topicSubscription.clientId(), topicFilters);
+            Set<String> clientidIndex = clientIdIndexOf(topicSubscription.topicFilter());
+            clientidIndex.add(topicSubscription.clientId());
 
-			Topic.NEXUS.keySet().stream()
-					.filter(topicName -> TopicMatcher.match(topicSubscription.topicFilter(), topicName))
-					.forEach(topicName -> TopicSubscriber.NEXUS
-							.put(new TopicSubscriber(topicSubscription.clientId(), topicName)));
+            Set<String> topicfilterIndex = topicFilterIndexOf(topicSubscription.clientId());
+            topicfilterIndex.add(topicSubscription.topicFilter());
 
-			logger.debug("TopicSubscription added [topicFilter={}, clientId={}, qos={}]",
-					topicSubscription.topicFilter(), topicSubscription.clientId(), topicSubscription.qos());
-			logger.debug("TopicSubscriptions Size [data={}, topicfilterIndex={}, clientidIndex={}]", data.size(),
-					topicfilterIndex.size(), clientidIndex.size());
-		}
-		finally {
-			modifyLock.unlock();
-		}
-	}
+            Topic.NEXUS.keySet().stream()
+                    .filter(topicName -> TopicMatcher.match(topicSubscription.topicFilter(), topicName))
+                    .forEach(topicName -> TopicSubscriber.NEXUS
+                            .put(new TopicSubscriber(topicSubscription.clientId(), topicName)));
 
-	public Set<String> topicFilters() {
-		return topicfilterIndex.keySet();
-	}
+            logger.debug("TopicSubscription added [topicFilter={}, clientId={}, qos={}]",
+                    topicSubscription.topicFilter(), topicSubscription.clientId(), topicSubscription.qos());
+            logger.debug("TopicSubscriptions Size [data={}, topicfilterIndex={}, clientidIndex={}]", data.size(),
+                    topicFilters.size(), clientIds.size());
+        }
+        finally {
+            modifyLock.unlock();
+        }
+    }
 
-	public TopicSubscription getBy(String topicFilter, String clientId) {
-		return data.get(key(topicFilter, clientId));
-	}
+    public Set<String> topicFilters() {
+        return topicFilters;
+    }
 
-	public Set<String> clientIdsOf(String topicFilter) {
-		Set<String> ret = topicfilterIndex.get(topicFilter);
+    public TopicSubscription getBy(String topicFilter, String clientId) {
+        return data.get(key(topicFilter, clientId));
+    }
 
-		return ret == null ? Sets.newHashSet() : ret;
-	}
+    public Set<String> clientIdsOf(String topicFilter) {
+        Set<String> ret = clientIdIndexOf(topicFilter);
 
-	public Set<String> topicFiltersOf(String clientId) {
-		Set<String> ret = clientidIndex.get(clientId);
+        return ret == null ? ClusterDataFactory.INSTANCE.getSet("empty") : ret;
+    }
 
-		return ret == null ? Sets.newHashSet() : ret;
-	}
+    public Set<String> topicFiltersOf(String clientId) {
+        Set<String> ret = topicFilterIndexOf(clientId);
 
-	public TopicSubscription removeByKey(String topicFilter, String clientId) {
-		return removeByKey(key(topicFilter, clientId));
-	}
+        return ret == null ? ClusterDataFactory.INSTANCE.getSet("empty") : ret;
+    }
 
-	private TopicSubscription removeByKey(String key) {
-		modifyLock.lock();
+    public TopicSubscription removeByKey(String topicFilter, String clientId) {
+        return removeByKey(key(topicFilter, clientId));
+    }
 
-		try {
-			TopicSubscription removed = this.data.remove(key);
-			if (removed == null) { return null; }
+    private TopicSubscription removeByKey(String key) {
+        modifyLock.lock();
 
-			SerializableStringSet clientIds = topicfilterIndex.get(removed.topicFilter());
-			clientIds.remove(removed.clientId());
+        try {
+            TopicSubscription removed = this.data.remove(key);
+            if (removed == null) { return null; }
 
-			if (clientIds.size() <= 0) {
-				topicfilterIndex.remove(removed.topicFilter());
-			}
-			else {
-				topicfilterIndex.put(removed.topicFilter(), clientIds);
-			}
+            Set<String> clientIdIndex = clientIdIndexOf(removed.topicFilter());
+            clientIdIndex.remove(removed.clientId());
 
-			SerializableStringSet topicFilters = clientidIndex.get(removed.clientId());
-			topicFilters.remove(removed.topicFilter());
+            if (clientIdIndex.size() <= 0) {
+                clientIdIndex.dispose();
+                topicFilters.remove(removed.topicFilter());
+            }
 
-			if (topicFilters.size() <= 0) {
-				clientidIndex.remove(removed.clientId());
-			}
-			else {
-				clientidIndex.put(removed.clientId(), topicFilters);
-			}
+            Set<String> topicFilterIndex = topicFilterIndexOf(removed.clientId());
+            topicFilterIndex.remove(removed.topicFilter());
 
-			logger.debug("TopicSubscription removed [topicFilter={}, clientId={}, qos={}]", removed.topicFilter(),
-					removed.clientId(), removed.qos());
-			logger.debug("TopicSubscriptions Size [data={}, topicfilterIndex={}, clientidIndex={}]", data.size(),
-					topicfilterIndex.size(), clientidIndex.size());
+            if (topicFilterIndex.size() <= 0) {
+                topicFilterIndex.dispose();
+                clientIds.remove(removed.clientId());
+            }
 
-			return removed;
-		}
-		finally {
-			modifyLock.unlock();
-		}
-	}
+            logger.debug("TopicSubscription removed [topicFilter={}, clientId={}, qos={}]", removed.topicFilter(),
+                    removed.clientId(), removed.qos());
+            logger.debug("TopicSubscriptions Size [data={}, topicfilterIndex={}, clientidIndex={}]", data.size(),
+                    topicFilters.size(), clientIds.size());
 
-	public Set<String> removeByClientId(String clientId) {
-		modifyLock.lock();
+            return removed;
+        }
+        finally {
+            modifyLock.unlock();
+        }
+    }
 
-		try {
-			SerializableStringSet topicFilters = this.clientidIndex.remove(clientId);
-			if (topicFilters == null) { return Sets.newHashSet(); }
+    public void removeByClientId(String clientId) {
+        modifyLock.lock();
 
-			topicFilters.forEach(topicFilter -> {
-				SerializableStringSet target = topicfilterIndex.get(topicFilter);
-				target.remove(clientId);
+        try {
+            if (!clientIds.remove(clientId)) { return; }
 
-				if (target.size() <= 0) {
-					topicfilterIndex.remove(topicFilter);
-				}
-				else {
-					topicfilterIndex.put(topicFilter, target);
-				}
-			});
+            Set<String> topicFilterIndex = topicFilterIndexOf(clientId);
 
-			topicFilters.stream().map(topicFilter -> key(topicFilter, clientId)).forEach(key -> {
-				TopicSubscription removed = data.remove(key);
+            topicFilterIndex.stream().forEach(topicFilter -> {
+                Set<String> clientIdIndex = clientIdIndexOf(topicFilter);
+                clientIdIndex.remove(clientId);
 
-				logger.debug("TopicSubscription removed [topicFilter={}, clientId={}, qos={}]", removed.topicFilter(),
-						removed.clientId(), removed.qos());
-				logger.debug("TopicSubscriptions Size [data={}, topicfilterIndex={}, clientidIndex={}]", data.size(),
-						topicfilterIndex.size(), clientidIndex.size());
-			});
+                if (clientIdIndex.size() <= 0) {
+                    clientIdIndex.dispose();
+                    topicFilters.remove(topicFilter);
+                }
+            });
 
-			return topicFilters;
-		}
-		finally {
-			modifyLock.unlock();
-		}
-	}
+            topicFilterIndex.stream().map(topicFilter -> key(topicFilter, clientId)).forEach(key -> {
+                TopicSubscription removed = data.remove(key);
+
+                logger.debug("TopicSubscription removed [topicFilter={}, clientId={}, qos={}]", removed.topicFilter(),
+                        removed.clientId(), removed.qos());
+                logger.debug("TopicSubscriptions Size [data={}, topicfilterIndex={}, clientidIndex={}]", data.size(),
+                        topicFilters.size(), clientIds.size());
+            });
+            
+            topicFilterIndex.dispose();
+        }
+        finally {
+            modifyLock.unlock();
+        }
+    }
 }

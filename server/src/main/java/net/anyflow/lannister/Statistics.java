@@ -42,7 +42,8 @@ public class Statistics {
 	private final Runtime runtime;
 	private final DecimalFormat decimalFormatter;
 	private final NumberFormat defaultFormatter;
-	private final com.sun.management.OperatingSystemMXBean osBean;
+	@SuppressWarnings("restriction")
+    private final com.sun.management.OperatingSystemMXBean osBean;
 
 	@FunctionalInterface
 	@JsonSerialize(using = SysValueSerializer.class)
@@ -75,7 +76,8 @@ public class Statistics {
 		MESSAGES_PUBLISH_SENT;
 	}
 
-	private Statistics() {
+	@SuppressWarnings("restriction")
+    private Statistics() {
 		this.data = Maps.newHashMap();
 		this.criterions = ClusterDataFactory.INSTANCE.createMap("statistics");
 		this.runtime = Runtime.getRuntime();
@@ -144,7 +146,8 @@ public class Statistics {
 		criterions.put(criterion, 0l);
 	}
 
-	private void initializeTopics() {
+	@SuppressWarnings("restriction")
+    private void initializeTopics() {
 		// MESSAGE
 		data.put("$SYS/broker/messages/received", new RawSysValue(Criterion.MESSAGES_RECEIVED));
 		data.put("$SYS/broker/messages/sent", new RawSysValue(Criterion.MESSAGES_SENT));

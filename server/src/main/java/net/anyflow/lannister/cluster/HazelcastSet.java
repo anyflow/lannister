@@ -20,29 +20,34 @@ import java.util.stream.Stream;
 import com.hazelcast.core.ISet;
 
 public class HazelcastSet<V> implements Set<V> {
-	private final ISet<V> engine;
+    private final ISet<V> engine;
 
-	protected HazelcastSet(String name) {
-		engine = Hazelcast.INSTANCE.getSet(name);
-	}
+    protected HazelcastSet(String name) {
+        engine = Hazelcast.INSTANCE.getSet(name);
+    }
 
-	@Override
-	public Stream<V> stream() {
-		return engine.stream();
-	}
+    @Override
+    public Stream<V> stream() {
+        return engine.stream();
+    }
 
-	@Override
-	public boolean remove(V value) {
-		return engine.remove(value);
-	}
+    @Override
+    public boolean remove(V value) {
+        return engine.remove(value);
+    }
 
-	@Override
-	public boolean add(V value) {
-		return engine.add(value);
-	}
+    @Override
+    public boolean add(V value) {
+        return engine.add(value);
+    }
 
-	@Override
-	public void dispose() {
-		engine.destroy();
-	}
+    @Override
+    public void dispose() {
+        engine.destroy();
+    }
+
+    @Override
+    public int size() {
+        return engine.size();
+    }
 }
