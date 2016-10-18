@@ -67,4 +67,8 @@ public class MessageReferenceCounts {
 			logger.debug("RELEASEed Message reference [key={}, count={}]", messageKey, count);
 		}
 	}
+
+	public int size() {
+		return data.size();
+	}
 }

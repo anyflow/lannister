@@ -27,9 +27,14 @@ import com.google.common.collect.Maps;
 
 import net.anyflow.lannister.cluster.ClusterDataFactory;
 import net.anyflow.lannister.cluster.Map;
+import net.anyflow.lannister.message.InboundMessageStatus;
+import net.anyflow.lannister.message.Message;
+import net.anyflow.lannister.message.MessageReferenceCounts;
+import net.anyflow.lannister.message.OutboundMessageStatus;
 import net.anyflow.lannister.serialization.SysValueSerializer;
 import net.anyflow.lannister.session.Session;
 import net.anyflow.lannister.topic.Topic;
+import net.anyflow.lannister.topic.TopicSubscriber;
 import net.anyflow.lannister.topic.TopicSubscription;
 
 public class Statistics {
@@ -157,15 +162,14 @@ public class Statistics {
 		// CLIENT
 		data.put("$SYS/broker/clients/maximum", new RawSysValue(Criterion.CLIENTS_MAXIMUM));
 		data.put("$SYS/broker/clients/connected", () -> {
-			long current = Session.NEXUS.keySet().stream().filter(s -> Session.NEXUS.get(s).isConnected(false))
-					.count();
+			long current = Session.NEXUS.keySet().stream().filter(s -> Session.NEXUS.get(s).isConnected(false)).count();
 
 			setMaxActiveClients(current);
 
 			return defaultFormatter.format(current);
 		});
-		data.put("$SYS/broker/clients/disconnected", () -> defaultFormatter.format(
-				Session.NEXUS.keySet().stream().filter(s -> !Session.NEXUS.get(s).isConnected(false)).count()));
+		data.put("$SYS/broker/clients/disconnected", () -> defaultFormatter
+				.format(Session.NEXUS.keySet().stream().filter(s -> !Session.NEXUS.get(s).isConnected(false)).count()));
 		data.put("$SYS/broker/clients/total", () -> defaultFormatter.format(Session.NEXUS.keySet().size()));
 
 		// STATIC
@@ -240,7 +244,7 @@ public class Statistics {
 			return decimalFormatter.format((double) numerator / denominator);
 		});
 
-		// SYSTEM
+		// CUSTOM : SYSTEM
 		data.put("$SYS/broker/node/" + ClusterDataFactory.INSTANCE.currentId() + "/system/processor/count",
 				() -> defaultFormatter.format(Runtime.getRuntime().availableProcessors()));
 		data.put("$SYS/broker/node/" + ClusterDataFactory.INSTANCE.currentId() + "/load/cpu/system/percent",
@@ -255,5 +259,19 @@ public class Statistics {
 				() -> defaultFormatter.format(runtime.totalMemory()));
 		data.put("$SYS/broker/node/" + ClusterDataFactory.INSTANCE.currentId() + "/load/memory/free/byte",
 				() -> defaultFormatter.format(runtime.freeMemory()));
+
+		// CUSTOM : DATA STRUCTURE STATISTICS
+		data.put("$SYS/broker/topic/count", () -> defaultFormatter.format(Topic.NEXUS.keySet().size()));
+		data.put("$SYS/broker/topic/subscriber/count", () -> defaultFormatter.format(TopicSubscriber.NEXUS.size()));
+		data.put("$SYS/broker/topic/subscription/count", () -> defaultFormatter.format(TopicSubscription.NEXUS.size()));
+		data.put("$SYS/broker/topic/filter/count",
+				() -> defaultFormatter.format(TopicSubscription.NEXUS.topicFilters().size()));
+		data.put("$SYS/broker/messages/persisted/count", () -> defaultFormatter.format(Message.NEXUS.size()));
+		data.put("$SYS/broker/messages/persisted/inboundStatus/count",
+				() -> defaultFormatter.format(InboundMessageStatus.NEXUS.size()));
+		data.put("$SYS/broker/messages/persisted/outboundStatus/count",
+				() -> defaultFormatter.format(OutboundMessageStatus.NEXUS.size()));
+		data.put("$SYS/broker/messages/persisted/referenceCounter/count",
+				() -> defaultFormatter.format(MessageReferenceCounts.INSTANCE.size()));
 	}
 }

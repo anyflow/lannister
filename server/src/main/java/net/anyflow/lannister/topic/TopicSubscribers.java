@@ -48,6 +48,10 @@ public class TopicSubscribers {
 		return topicName + "_" + clientId;
 	}
 
+	public int size() {
+		return data.size();
+	}
+
 	public Set<String> keySet() {
 		return Sets.newHashSet(data.keySet());
 	}

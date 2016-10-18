@@ -21,6 +21,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import com.google.common.collect.Sets;
 import com.hazelcast.core.ITopic;
 
 import net.anyflow.lannister.cluster.ClusterDataFactory;
@@ -44,7 +45,7 @@ public class Topics {
 	}
 
 	public Set<String> keySet() {
-		return topics.keySet();
+		return Sets.newHashSet(topics.keySet());
 	}
 
 	public ITopic<Notification> notifier() {

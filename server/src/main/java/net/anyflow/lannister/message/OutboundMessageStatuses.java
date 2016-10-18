@@ -46,6 +46,10 @@ public class OutboundMessageStatuses {
 		return clientId + "_" + Integer.toString(messageId);
 	}
 
+	public int size() {
+		return data.size();
+	}
+
 	public Set<String> keySet() {
 		return Sets.newHashSet(data.keySet());
 	}
