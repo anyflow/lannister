@@ -32,8 +32,8 @@ import net.anyflow.lannister.plugin.IMessage;
 import net.anyflow.lannister.serialization.SerializableFactory;
 
 public class Message implements com.hazelcast.nio.serialization.IdentifiedDataSerializable, IMessage, Cloneable {
-	public final static int ID = 1;
 	public final static Messages NEXUS = new Messages();
+	public final static int ID = 1;
 
 	public static final int MAX_MESSAGE_ID_NUM = 0xffff;
 	public static final int MIN_MESSAGE_ID_NUM = 1;
@@ -165,6 +165,7 @@ public class Message implements com.hazelcast.nio.serialization.IdentifiedDataSe
 		return SerializableFactory.ID;
 	}
 
+	@JsonIgnore
 	@Override
 	public int getId() {
 		return ID;

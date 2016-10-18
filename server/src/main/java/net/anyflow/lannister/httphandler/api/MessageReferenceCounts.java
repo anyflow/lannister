@@ -16,19 +16,16 @@
 
 package net.anyflow.lannister.httphandler.api;
 
-import java.util.stream.Collectors;
-
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Strings;
 
 import io.netty.handler.codec.http.HttpResponseStatus;
 import net.anyflow.lannister.http.HttpRequestHandler;
-import net.anyflow.lannister.message.OutboundMessageStatus;
 
-@HttpRequestHandler.Handles(paths = { "api/outboundMessageStatuses" }, httpMethods = { "GET" })
-public class OutboundMessageStatuses extends HttpRequestHandler {
-	private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(OutboundMessageStatuses.class);
+@HttpRequestHandler.Handles(paths = { "api/messageReferenceCounts" }, httpMethods = { "GET" })
+public class MessageReferenceCounts extends HttpRequestHandler {
+	private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(MessageReferenceCounts.class);
 
 	@Override
 	public String service() {
@@ -46,8 +43,8 @@ public class OutboundMessageStatuses extends HttpRequestHandler {
 
 	private String all() {
 		try {
-			return new ObjectMapper().writeValueAsString(OutboundMessageStatus.NEXUS.keySet().stream()
-					.map(key -> OutboundMessageStatus.NEXUS.get(key)).collect(Collectors.toList()));
+			return new ObjectMapper()
+					.writeValueAsString(net.anyflow.lannister.message.MessageReferenceCounts.INSTANCE.data());
 		}
 		catch (JsonProcessingException e) {
 			logger.error(e.getMessage(), e);

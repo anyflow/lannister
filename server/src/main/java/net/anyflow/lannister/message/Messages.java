@@ -15,6 +15,10 @@
  */
 package net.anyflow.lannister.message;
 
+import java.util.Set;
+
+import com.google.common.collect.Sets;
+
 import net.anyflow.lannister.cluster.ClusterDataFactory;
 import net.anyflow.lannister.cluster.Map;
 import net.anyflow.lannister.message.InboundMessageStatus.Status;
@@ -48,6 +52,10 @@ public class Messages {
 				ret.topicName());
 		logger.debug("Messages size={}", data.size());
 		return ret;
+	}
+
+	public Set<String> keySet() {
+		return Sets.newHashSet(data.keySet());
 	}
 
 	public Message get(String key) {

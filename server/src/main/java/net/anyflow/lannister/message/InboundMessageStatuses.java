@@ -84,10 +84,10 @@ public class InboundMessageStatuses {
 	}
 
 	public InboundMessageStatus getBy(Integer messageId, String clientId) {
-		return data.get(key(messageId, clientId));
+		return get(key(messageId, clientId));
 	}
 
-	public InboundMessageStatus getByKey(String key) {
+	public InboundMessageStatus get(String key) {
 		return data.get(key);
 	}
 

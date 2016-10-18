@@ -131,6 +131,7 @@ public class Topic implements com.hazelcast.nio.serialization.IdentifiedDataSeri
 		return SerializableFactory.ID;
 	}
 
+	@JsonIgnore
 	@Override
 	public int getId() {
 		return ID;

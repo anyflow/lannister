@@ -109,7 +109,7 @@ public class MessageSender {
 		ctx.executor().submit(() -> {
 			Date now = new Date();
 
-			InboundMessageStatus.NEXUS.keySet().stream().map(key -> InboundMessageStatus.NEXUS.getByKey(key))
+			InboundMessageStatus.NEXUS.keySet().stream().map(key -> InboundMessageStatus.NEXUS.get(key))
 					.forEach(messageStatus -> {
 						long intervalSeconds = (now.getTime() - messageStatus.updateTime().getTime()) * 1000;
 						if (intervalSeconds < RESPONSE_TIMEOUT_SECONDS) { return; }

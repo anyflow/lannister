@@ -28,8 +28,8 @@ import io.netty.handler.codec.mqtt.MqttQoS;
 import net.anyflow.lannister.serialization.SerializableFactory;
 
 public class OutboundMessageStatus extends MessageStatus {
-	public static final int ID = 3;
 	public static final OutboundMessageStatuses NEXUS = new OutboundMessageStatuses();
+	public static final int ID = 3;
 
 	@JsonProperty
 	private Status status;
@@ -71,6 +71,7 @@ public class OutboundMessageStatus extends MessageStatus {
 		return SerializableFactory.ID;
 	}
 
+	@JsonIgnore
 	@Override
 	public int getId() {
 		return ID;

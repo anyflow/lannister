@@ -15,9 +15,7 @@
  */
 package net.anyflow.lannister.message;
 
-import java.util.concurrent.locks.Lock;
-
-import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.google.common.collect.Maps;
 
 import net.anyflow.lannister.cluster.ClusterDataFactory;
 import net.anyflow.lannister.cluster.Map;
@@ -29,55 +27,44 @@ public class MessageReferenceCounts {
 
 	private final Map<String, Integer> data; // key : message.key()
 
-	@JsonIgnore
-	private Lock lock;
-
 	private MessageReferenceCounts() {
 		this.data = ClusterDataFactory.INSTANCE.createMap("MessagesReferenceCounts_data");
-		this.lock = ClusterDataFactory.INSTANCE.createLock("MessagesReferenceCounts_lock");
+	}
+
+	public java.util.Map<String, Integer> data() {
+		java.util.Map<String, Integer> ret = Maps.newHashMap();
+		data.keySet().stream().forEach(k -> ret.put(k, data.get(k)));
+
+		return ret;
 	}
 
 	public void retain(String messageKey) {
-		lock.lock();
-
-		try {
-			Integer count = data.get(messageKey);
-			if (count == null) {
-				count = 0;
-			}
-
-			data.put(messageKey, ++count);
-			logger.debug("RETAINed message reference [count={}, messageKey={}]", count, messageKey);
+		Integer count = data.get(messageKey);
+		if (count == null) {
+			count = 0;
 		}
-		finally {
-			lock.unlock();
-		}
+
+		data.put(messageKey, ++count);
+		logger.debug("RETAINed message reference [count={}, messageKey={}]", count, messageKey);
 	}
 
 	public void release(String messageKey) {
 		Integer count = data.get(messageKey);
 		if (count == null) { return; }
 
-		lock.lock();
-
-		try {
-			if (count <= 0) {
-				logger.error("Invalid Message reference Found![key={}, count={}]", messageKey, count);
-				return;
-			}
-			else if (count == 1) {
-				data.remove(messageKey);
-				logger.debug("REMOVEed Message reference [key={}]", messageKey);
-
-				Message.NEXUS.remove(messageKey);
-			}
-			else {
-				data.put(messageKey, --count);
-				logger.debug("RELEASEed Message reference [key={}, count={}]", messageKey, count);
-			}
+		if (count <= 0) {
+			logger.error("Invalid Message reference Found![key={}, count={}]", messageKey, count);
+			return;
 		}
-		finally {
-			lock.unlock();
+		else if (count == 1) {
+			data.remove(messageKey);
+			logger.debug("REMOVEed Message reference [key={}]", messageKey);
+
+			Message.NEXUS.remove(messageKey);
+		}
+		else {
+			data.put(messageKey, --count);
+			logger.debug("RELEASEed Message reference [key={}, count={}]", messageKey, count);
 		}
 	}
 }

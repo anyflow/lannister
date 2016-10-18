@@ -24,11 +24,11 @@ import com.google.common.base.Strings;
 
 import io.netty.handler.codec.http.HttpResponseStatus;
 import net.anyflow.lannister.http.HttpRequestHandler;
-import net.anyflow.lannister.message.OutboundMessageStatus;
+import net.anyflow.lannister.message.InboundMessageStatus;
 
-@HttpRequestHandler.Handles(paths = { "api/outboundMessageStatuses" }, httpMethods = { "GET" })
-public class OutboundMessageStatuses extends HttpRequestHandler {
-	private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(OutboundMessageStatuses.class);
+@HttpRequestHandler.Handles(paths = { "api/inboundMessageStatuses" }, httpMethods = { "GET" })
+public class InboundMessageStatuses extends HttpRequestHandler {
+	private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(InboundMessageStatuses.class);
 
 	@Override
 	public String service() {
@@ -46,8 +46,8 @@ public class OutboundMessageStatuses extends HttpRequestHandler {
 
 	private String all() {
 		try {
-			return new ObjectMapper().writeValueAsString(OutboundMessageStatus.NEXUS.keySet().stream()
-					.map(key -> OutboundMessageStatus.NEXUS.get(key)).collect(Collectors.toList()));
+			return new ObjectMapper().writeValueAsString(InboundMessageStatus.NEXUS.keySet().stream()
+					.map(key -> InboundMessageStatus.NEXUS.get(key)).collect(Collectors.toList()));
 		}
 		catch (JsonProcessingException e) {
 			logger.error(e.getMessage(), e);

@@ -249,6 +249,7 @@ public class Session implements com.hazelcast.nio.serialization.IdentifiedDataSe
 		return SerializableFactory.ID;
 	}
 
+	@JsonIgnore
 	@Override
 	public int getId() {
 		return ID;

@@ -30,7 +30,6 @@ import net.anyflow.lannister.serialization.SerializableFactory;
 public class TopicSubscription
 		implements com.hazelcast.nio.serialization.IdentifiedDataSerializable, ITopicSubscription {
 	public static final TopicSubscriptions NEXUS = new TopicSubscriptions();
-	@JsonIgnore
 	public final static int ID = 8;
 	@JsonProperty
 	private String clientId;
@@ -83,6 +82,7 @@ public class TopicSubscription
 		return SerializableFactory.ID;
 	}
 
+	@JsonIgnore
 	@Override
 	public int getId() {
 		return ID;

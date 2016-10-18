@@ -46,6 +46,10 @@ public class OutboundMessageStatuses {
 		return clientId + "_" + Integer.toString(messageId);
 	}
 
+	public Set<String> keySet() {
+		return Sets.newHashSet(data.keySet());
+	}
+
 	public void put(OutboundMessageStatus outboundMessageStatus) {
 		if (outboundMessageStatus == null) { return; }
 
@@ -78,6 +82,10 @@ public class OutboundMessageStatuses {
 		finally {
 			modifyLock.unlock();
 		}
+	}
+
+	public OutboundMessageStatus get(String key) {
+		return data.get(key);
 	}
 
 	public OutboundMessageStatus getBy(Integer messageId, String clientId) {

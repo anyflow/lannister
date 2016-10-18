@@ -27,8 +27,8 @@ import com.hazelcast.nio.ObjectDataOutput;
 import net.anyflow.lannister.serialization.SerializableFactory;
 
 public class InboundMessageStatus extends MessageStatus {
-	public static final int ID = 2;
 	public static final InboundMessageStatuses NEXUS = new InboundMessageStatuses();
+	public static final int ID = 2;
 
 	@JsonProperty
 	private Status status;
@@ -62,6 +62,7 @@ public class InboundMessageStatus extends MessageStatus {
 		return SerializableFactory.ID;
 	}
 
+	@JsonIgnore
 	@Override
 	public int getId() {
 		return ID;
