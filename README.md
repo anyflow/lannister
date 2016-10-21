@@ -32,7 +32,7 @@ Lannister is high performance MQTT broker equipped with full specifications supp
   * Easy, elastic Scaling out
   * For more information, refer [Clustering](http://anyflow.github.io/lannister/clustering.html).
 * **High performance**
-  * 1M connections per node (in non-clustering Mode), and etc.s
+  * 1M connections per node (in non-clustering Mode)
   * For more information, refer [Performance Test Report](http://anyflow.github.io/lannister/performance.html).
 * **Plug-In Support**
   * Adapter/Framework for customizing broker logics against MQTT events

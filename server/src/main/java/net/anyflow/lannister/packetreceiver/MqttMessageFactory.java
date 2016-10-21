@@ -21,7 +21,8 @@ import java.util.List;
 import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
 
-import io.netty.buffer.Unpooled;
+import io.netty.buffer.ByteBuf;
+import io.netty.buffer.PooledByteBufAllocator;
 import io.netty.handler.codec.mqtt.MqttConnAckMessage;
 import io.netty.handler.codec.mqtt.MqttConnAckVariableHeader;
 import io.netty.handler.codec.mqtt.MqttConnectMessage;
@@ -78,7 +79,9 @@ public class MqttMessageFactory {
 
 		MqttPublishVariableHeader variableHeader = new MqttPublishVariableHeader(message.topicName(), message.id());
 
-		return new MqttPublishMessage(fixedHeader, variableHeader, Unpooled.wrappedBuffer(message.message()));
+		ByteBuf buf = PooledByteBufAllocator.DEFAULT.buffer(message.message().length);
+
+		return new MqttPublishMessage(fixedHeader, variableHeader, buf.writeBytes(message.message()));
 	}
 
 	public static MqttPubAckMessage puback(int messageId) {
