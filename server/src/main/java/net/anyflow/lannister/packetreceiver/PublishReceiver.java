@@ -19,6 +19,7 @@ package net.anyflow.lannister.packetreceiver;
 import java.util.Date;
 
 import io.netty.channel.ChannelFutureListener;
+import io.netty.channel.ChannelHandler.Sharable;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
 import io.netty.handler.codec.mqtt.MqttMessage;
@@ -36,9 +37,10 @@ import net.anyflow.lannister.session.Session;
 import net.anyflow.lannister.topic.Topic;
 import net.anyflow.lannister.topic.TopicMatcher;
 
+@Sharable
 public class PublishReceiver extends SimpleChannelInboundHandler<MqttPublishMessage> {
-
 	private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(PublishReceiver.class);
+	public static final PublishReceiver INSTANCE = new PublishReceiver();
 
 	@Override
 	protected void channelRead0(ChannelHandlerContext ctx, MqttPublishMessage msg) throws Exception {

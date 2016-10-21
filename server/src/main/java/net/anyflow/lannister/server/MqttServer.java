@@ -19,6 +19,7 @@ package net.anyflow.lannister.server;
 import java.util.concurrent.ThreadFactory;
 
 import io.netty.bootstrap.ServerBootstrap;
+import io.netty.buffer.PooledByteBufAllocator;
 import io.netty.channel.ChannelOption;
 import io.netty.channel.EventLoopGroup;
 import io.netty.channel.ServerChannel;
@@ -117,14 +118,14 @@ public class MqttServer {
 		}
 
 		bootstrap.childHandler(new MqttChannelInitializer(useWebSocket, useSsl));
-		bootstrap.childOption(ChannelOption.TCP_NODELAY, true);
-		// setting buffer size can improve I/O
-		bootstrap.childOption(ChannelOption.SO_SNDBUF, 1048576);
-		bootstrap.childOption(ChannelOption.SO_RCVBUF, 1048576);
 
-		// recommended in
-		// http://normanmaurer.me/presentations/2014-facebook-eng-netty/slides.html#11.0
-		bootstrap.childOption(ChannelOption.WRITE_BUFFER_WATER_MARK, new WriteBufferWaterMark(8 * 1024, 32 * 1024));
+		bootstrap.childOption(ChannelOption.TCP_NODELAY, true)
+				// setting buffer size can improve I/O
+				.childOption(ChannelOption.SO_SNDBUF, 1048576).childOption(ChannelOption.SO_RCVBUF, 1048576)
+				// recommended in
+				// http://normanmaurer.me/presentations/2014-facebook-eng-netty/slides.html#11.0
+				.childOption(ChannelOption.WRITE_BUFFER_WATER_MARK, new WriteBufferWaterMark(8 * 1024, 32 * 1024))
+				.childOption(ChannelOption.ALLOCATOR, PooledByteBufAllocator.DEFAULT);
 
 		bootstrap.bind(port).sync();
 	}

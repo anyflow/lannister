@@ -16,7 +16,7 @@
 
 package net.anyflow.lannister.packetreceiver;
 
-import io.netty.util.concurrent.GlobalEventExecutor;
+import io.netty.channel.ChannelHandlerContext;
 import net.anyflow.lannister.message.OutboundMessageStatus;
 import net.anyflow.lannister.plugin.DeliveredEventArgs;
 import net.anyflow.lannister.plugin.DeliveredEventListener;
@@ -24,7 +24,6 @@ import net.anyflow.lannister.plugin.Plugins;
 import net.anyflow.lannister.session.Session;
 
 public class PubRecReceiver {
-
 	private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(PubRecReceiver.class);
 
 	public static final PubRecReceiver SHARED = new PubRecReceiver();
@@ -32,7 +31,7 @@ public class PubRecReceiver {
 	private PubRecReceiver() {
 	}
 
-	protected void handle(Session session, int messageId) {
+	protected void handle(ChannelHandlerContext ctx, Session session, int messageId) {
 		OutboundMessageStatus status = OutboundMessageStatus.NEXUS.getBy(messageId, session.clientId());
 		if (status == null || status.status() == OutboundMessageStatus.Status.TO_PUBLISH) {
 			logger.error("PUBREC target does not exist or Invalid status [clientId={}, messageId={}]",
@@ -42,7 +41,7 @@ public class PubRecReceiver {
 		}
 
 		if (status.status() == OutboundMessageStatus.Status.PUBLISHED) {
-			GlobalEventExecutor.INSTANCE.execute(() -> {
+			ctx.channel().eventLoop().execute(() -> {
 				Plugins.INSTANCE.get(DeliveredEventListener.class).delivered(new DeliveredEventArgs() {
 					@Override
 					public String clientId() {

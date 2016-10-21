@@ -19,6 +19,7 @@ package net.anyflow.lannister.packetreceiver;
 import java.util.Date;
 
 import io.netty.channel.ChannelFutureListener;
+import io.netty.channel.ChannelHandler.Sharable;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
 import io.netty.handler.codec.mqtt.MqttMessage;
@@ -28,8 +29,10 @@ import net.anyflow.lannister.plugin.DisconnectEventListener;
 import net.anyflow.lannister.plugin.Plugins;
 import net.anyflow.lannister.session.Session;
 
+@Sharable
 public class GenericReceiver extends SimpleChannelInboundHandler<MqttMessage> {
 	private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(GenericReceiver.class);
+	public static final GenericReceiver INSTANCE = new GenericReceiver();
 
 	@Override
 	protected void channelRead0(ChannelHandlerContext ctx, MqttMessage msg) throws Exception {
@@ -45,7 +48,8 @@ public class GenericReceiver extends SimpleChannelInboundHandler<MqttMessage> {
 					logger.debug("packet outgoing [{}]", msg);
 
 					ctx.channel().disconnect().addListener(ChannelFutureListener.CLOSE).addListener(fs -> // [MQTT-3.2.2-5]
-					Plugins.INSTANCE.get(DisconnectEventListener.class).disconnected(new AbnormalDisconnectEventArgs()));
+					Plugins.INSTANCE.get(DisconnectEventListener.class)
+							.disconnected(new AbnormalDisconnectEventArgs()));
 				});
 			}
 			return;
@@ -66,23 +70,25 @@ public class GenericReceiver extends SimpleChannelInboundHandler<MqttMessage> {
 
 			switch (msg.fixedHeader().messageType()) {
 			case DISCONNECT:
-				DisconnectReceiver.SHARED.handle(session);
+				DisconnectReceiver.SHARED.handle(ctx, session);
 				return;
 
 			case PINGREQ:
-				PingReqReceiver.SHARED.handle(session);
+				PingReqReceiver.SHARED.handle(ctx, session);
 				return;
 
 			case PUBREC:
-				PubRecReceiver.SHARED.handle(session, ((MqttMessageIdVariableHeader) msg.variableHeader()).messageId());
+				PubRecReceiver.SHARED.handle(ctx, session,
+						((MqttMessageIdVariableHeader) msg.variableHeader()).messageId());
 				return;
 
 			case PUBREL:
-				PubRelReceiver.SHARED.handle(session, ((MqttMessageIdVariableHeader) msg.variableHeader()).messageId());
+				PubRelReceiver.SHARED.handle(ctx, session,
+						((MqttMessageIdVariableHeader) msg.variableHeader()).messageId());
 				return;
 
 			case PUBCOMP:
-				PubCompReceiver.SHARED.handle(session,
+				PubCompReceiver.SHARED.handle(ctx, session,
 						((MqttMessageIdVariableHeader) msg.variableHeader()).messageId());
 				return;
 

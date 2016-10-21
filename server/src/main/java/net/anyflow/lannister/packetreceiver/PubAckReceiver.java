@@ -19,10 +19,10 @@ package net.anyflow.lannister.packetreceiver;
 import java.util.Date;
 
 import io.netty.channel.ChannelFutureListener;
+import io.netty.channel.ChannelHandler.Sharable;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
 import io.netty.handler.codec.mqtt.MqttPubAckMessage;
-import io.netty.util.concurrent.GlobalEventExecutor;
 import net.anyflow.lannister.AbnormalDisconnectEventArgs;
 import net.anyflow.lannister.message.OutboundMessageStatus;
 import net.anyflow.lannister.plugin.DeliveredEventArgs;
@@ -31,9 +31,10 @@ import net.anyflow.lannister.plugin.DisconnectEventListener;
 import net.anyflow.lannister.plugin.Plugins;
 import net.anyflow.lannister.session.Session;
 
+@Sharable
 public class PubAckReceiver extends SimpleChannelInboundHandler<MqttPubAckMessage> {
-
 	private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(PubAckReceiver.class);
+	public static final PubAckReceiver INSTANCE = new PubAckReceiver();
 
 	@Override
 	protected void channelRead0(ChannelHandlerContext ctx, MqttPubAckMessage msg) throws Exception {
@@ -60,7 +61,7 @@ public class PubAckReceiver extends SimpleChannelInboundHandler<MqttPubAckMessag
 			return;
 		}
 
-		GlobalEventExecutor.INSTANCE
+		ctx.channel().eventLoop()
 				.execute(() -> Plugins.INSTANCE.get(DeliveredEventListener.class).delivered(new DeliveredEventArgs() {
 					@Override
 					public String clientId() {

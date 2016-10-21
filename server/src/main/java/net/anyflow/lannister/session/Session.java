@@ -31,6 +31,7 @@ import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelId;
 import io.netty.handler.codec.mqtt.MqttMessage;
+import io.netty.util.concurrent.EventExecutor;
 import io.netty.util.concurrent.Future;
 import io.netty.util.concurrent.GenericFutureListener;
 import io.netty.util.concurrent.GlobalEventExecutor;
@@ -207,6 +208,25 @@ public class Session implements com.hazelcast.nio.serialization.IdentifiedDataSe
 
 		logger.debug("Session disposed [clientId={}, channelId={}]", clientId, ctx == null ? "null" : channelId);
 
+		EventExecutor executor = ctx != null ? ctx.channel().eventLoop() : GlobalEventExecutor.INSTANCE;
+		executor.execute(
+				() -> Plugins.INSTANCE.get(DisconnectEventListener.class).disconnected(new DisconnectEventArgs() {
+					@Override
+					public String clientId() {
+						return clientId;
+					}
+
+					@Override
+					public Boolean cleanSession() {
+						return cleanSession;
+					}
+
+					@Override
+					public Boolean byDisconnectMessage() {
+						return !sendWill;
+					}
+				}));
+
 		// TODO WHY => Current thread is not owner of the lock! -> <not-locked>
 		// disposeLock.lock();
 		// try {
@@ -224,23 +244,6 @@ public class Session implements com.hazelcast.nio.serialization.IdentifiedDataSe
 
 		ClusterDataDisposer.INSTANCE.disposeLock(disposeLock);
 
-		GlobalEventExecutor.INSTANCE.execute(
-				() -> Plugins.INSTANCE.get(DisconnectEventListener.class).disconnected(new DisconnectEventArgs() {
-					@Override
-					public String clientId() {
-						return clientId;
-					}
-
-					@Override
-					public Boolean cleanSession() {
-						return cleanSession;
-					}
-
-					@Override
-					public Boolean byDisconnectMessage() {
-						return !sendWill;
-					}
-				}));
 	}
 
 	@JsonIgnore

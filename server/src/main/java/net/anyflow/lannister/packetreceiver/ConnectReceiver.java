@@ -21,6 +21,7 @@ import java.net.InetSocketAddress;
 import com.google.common.base.Strings;
 
 import io.netty.channel.ChannelFutureListener;
+import io.netty.channel.ChannelHandler.Sharable;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
 import io.netty.handler.codec.mqtt.MqttConnAckMessage;
@@ -28,7 +29,6 @@ import io.netty.handler.codec.mqtt.MqttConnectMessage;
 import io.netty.handler.codec.mqtt.MqttConnectReturnCode;
 import io.netty.handler.codec.mqtt.MqttQoS;
 import io.netty.util.CharsetUtil;
-import io.netty.util.concurrent.GlobalEventExecutor;
 import net.anyflow.lannister.AbnormalDisconnectEventArgs;
 import net.anyflow.lannister.Settings;
 import net.anyflow.lannister.cluster.ClusterDataFactory;
@@ -44,9 +44,10 @@ import net.anyflow.lannister.plugin.ServiceChecker;
 import net.anyflow.lannister.session.Session;
 import net.anyflow.lannister.topic.Topic;
 
+@Sharable
 public class ConnectReceiver extends SimpleChannelInboundHandler<MqttConnectMessage> {
-
 	private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(ConnectReceiver.class);
+	public static final ConnectReceiver INSTANCE = new ConnectReceiver();
 
 	@Override
 	protected void channelRead0(ChannelHandlerContext ctx, MqttConnectMessage msg) throws Exception {
@@ -102,7 +103,7 @@ public class ConnectReceiver extends SimpleChannelInboundHandler<MqttConnectMess
 				return;
 			}
 
-			GlobalEventExecutor.INSTANCE.execute(
+			ctx.channel().eventLoop().execute(
 					() -> Plugins.INSTANCE.get(ConnectEventListener.class).connectHandled(new ConnectEventArgs() {
 						@Override
 						public String clientId() {

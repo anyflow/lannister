@@ -20,6 +20,7 @@ import java.util.Date;
 import java.util.List;
 
 import io.netty.channel.ChannelFutureListener;
+import io.netty.channel.ChannelHandler.Sharable;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
 import io.netty.handler.codec.mqtt.MqttUnsubscribeMessage;
@@ -32,9 +33,10 @@ import net.anyflow.lannister.session.Session;
 import net.anyflow.lannister.topic.TopicSubscriber;
 import net.anyflow.lannister.topic.TopicSubscription;
 
+@Sharable
 public class UnsubscribeReceiver extends SimpleChannelInboundHandler<MqttUnsubscribeMessage> {
-
 	private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(UnsubscribeReceiver.class);
+	public static final UnsubscribeReceiver INSTANCE = new UnsubscribeReceiver();
 
 	@Override
 	protected void channelRead0(ChannelHandlerContext ctx, MqttUnsubscribeMessage msg) throws Exception {

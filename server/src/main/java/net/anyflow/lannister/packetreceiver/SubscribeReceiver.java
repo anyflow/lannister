@@ -26,6 +26,7 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 
 import io.netty.channel.ChannelFutureListener;
+import io.netty.channel.ChannelHandler.Sharable;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
 import io.netty.handler.codec.mqtt.MqttQoS;
@@ -43,9 +44,10 @@ import net.anyflow.lannister.topic.Topic;
 import net.anyflow.lannister.topic.TopicMatcher;
 import net.anyflow.lannister.topic.TopicSubscription;
 
+@Sharable
 public class SubscribeReceiver extends SimpleChannelInboundHandler<MqttSubscribeMessage> {
-
 	private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(SubscribeReceiver.class);
+	public static final SubscribeReceiver INSTANCE = new SubscribeReceiver();
 
 	@Override
 	protected void channelRead0(ChannelHandlerContext ctx, MqttSubscribeMessage msg) throws Exception {

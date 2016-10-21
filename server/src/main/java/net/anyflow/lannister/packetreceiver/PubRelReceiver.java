@@ -16,6 +16,7 @@
 
 package net.anyflow.lannister.packetreceiver;
 
+import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.mqtt.MqttMessage;
 import net.anyflow.lannister.message.InboundMessageStatus;
 import net.anyflow.lannister.session.Session;
@@ -23,7 +24,6 @@ import net.anyflow.lannister.topic.Topic;
 import net.anyflow.lannister.topic.Topics.ClientType;
 
 public class PubRelReceiver {
-
 	private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(PubRelReceiver.class);
 
 	public static final PubRelReceiver SHARED = new PubRelReceiver();
@@ -31,7 +31,7 @@ public class PubRelReceiver {
 	private PubRelReceiver() {
 	}
 
-	protected void handle(Session session, int messageId) {
+	protected void handle(ChannelHandlerContext ctx, Session session, int messageId) {
 
 		// TODO what if the PUBREL is resented one?
 

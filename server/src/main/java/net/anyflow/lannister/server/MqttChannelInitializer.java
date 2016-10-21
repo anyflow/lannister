@@ -19,8 +19,6 @@ import net.anyflow.lannister.packetreceiver.PubAckReceiver;
 import net.anyflow.lannister.packetreceiver.PublishReceiver;
 import net.anyflow.lannister.packetreceiver.SubscribeReceiver;
 import net.anyflow.lannister.packetreceiver.UnsubscribeReceiver;
-import net.anyflow.lannister.server.ByteCounterCodec;
-import net.anyflow.lannister.server.MqttWebSocketCodec;
 
 public class MqttChannelInitializer extends ChannelInitializer<SocketChannel> {
 
@@ -69,11 +67,11 @@ public class MqttChannelInitializer extends ChannelInitializer<SocketChannel> {
 		ch.pipeline().addLast(MqttDecoder.class.getName(), new MqttDecoder(maxBytesInMessage));
 		ch.pipeline().addLast(MqttEncoder.class.getName(), MqttEncoder.INSTANCE);
 
-		ch.pipeline().addLast(ConnectReceiver.class.getName(), new ConnectReceiver());
-		ch.pipeline().addLast(PubAckReceiver.class.getName(), new PubAckReceiver());
-		ch.pipeline().addLast(PublishReceiver.class.getName(), new PublishReceiver());
-		ch.pipeline().addLast(SubscribeReceiver.class.getName(), new SubscribeReceiver());
-		ch.pipeline().addLast(UnsubscribeReceiver.class.getName(), new UnsubscribeReceiver());
-		ch.pipeline().addLast(GenericReceiver.class.getName(), new GenericReceiver());
+		ch.pipeline().addLast(ConnectReceiver.class.getName(), ConnectReceiver.INSTANCE);
+		ch.pipeline().addLast(PubAckReceiver.class.getName(), PubAckReceiver.INSTANCE);
+		ch.pipeline().addLast(PublishReceiver.class.getName(), PublishReceiver.INSTANCE);
+		ch.pipeline().addLast(SubscribeReceiver.class.getName(), SubscribeReceiver.INSTANCE);
+		ch.pipeline().addLast(UnsubscribeReceiver.class.getName(), UnsubscribeReceiver.INSTANCE);
+		ch.pipeline().addLast(GenericReceiver.class.getName(), GenericReceiver.INSTANCE);
 	}
 }

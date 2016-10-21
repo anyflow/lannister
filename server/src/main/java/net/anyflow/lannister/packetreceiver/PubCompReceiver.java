@@ -16,11 +16,11 @@
 
 package net.anyflow.lannister.packetreceiver;
 
+import io.netty.channel.ChannelHandlerContext;
 import net.anyflow.lannister.message.OutboundMessageStatus;
 import net.anyflow.lannister.session.Session;
 
 public class PubCompReceiver {
-
 	private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(PubCompReceiver.class);
 
 	public static final PubCompReceiver SHARED = new PubCompReceiver();
@@ -28,7 +28,7 @@ public class PubCompReceiver {
 	private PubCompReceiver() {
 	}
 
-	protected void handle(Session session, int messageId) {
+	protected void handle(ChannelHandlerContext ctx, Session session, int messageId) {
 		OutboundMessageStatus status = OutboundMessageStatus.NEXUS.removeByKey(messageId, session.clientId());
 		if (status == null) {
 			logger.error("PUBCOMP target does not exist [clientId={}, messageId={}]", session.clientId(), messageId);

@@ -16,19 +16,22 @@
 
 package net.anyflow.lannister.packetreceiver;
 
+import io.netty.channel.ChannelHandler.Sharable;
+import io.netty.channel.ChannelHandlerContext;
 import net.anyflow.lannister.session.Session;
 
+@Sharable
 public class DisconnectReceiver {
-
 	@SuppressWarnings("unused")
 	private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(DisconnectReceiver.class);
+	public static final DisconnectReceiver INSTANCE = new DisconnectReceiver();
 
 	public static final DisconnectReceiver SHARED = new DisconnectReceiver();
 
 	private DisconnectReceiver() {
 	}
 
-	protected void handle(Session session) {
+	protected void handle(ChannelHandlerContext ctx, Session session) {
 		session.will(null); // [MQTT-3.1.2-8],[MQTT-3.1.2-10]
 		session.dispose(false); // [MQTT-3.14.4-1],[MQTT-3.14.4-2],[MQTT-3.14.4-3]
 	}
