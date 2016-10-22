@@ -26,14 +26,19 @@ public class DefaultAuthenticator implements Authenticator {
 
 	@Override
 	public boolean isValid(String clientId) {
-		logger.debug("DefaultAuthenticator.isValid() called [clientId={}]", clientId);
+		if (logger.isDebugEnabled()) {
+			logger.debug("DefaultAuthenticator.isValid() called [clientId={}]", clientId);
+		}
+
 		return true;
 	}
 
 	@Override
 	public boolean isValid(String clientId, String userName, String password) {
-		logger.debug("DefaultAuthenticator.isValid() called [clientId={}, userName={}, password={}]", clientId,
-				userName, password);
+		if (logger.isDebugEnabled()) {
+			logger.debug("DefaultAuthenticator.isValid() called [clientId={}, userName={}, password={}]", clientId,
+					userName, password);
+		}
 		return true;
 	}
 }

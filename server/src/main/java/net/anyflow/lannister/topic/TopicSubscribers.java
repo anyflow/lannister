@@ -77,10 +77,12 @@ public class TopicSubscribers {
 			topicNames.add(topicSubscriber.topicName());
 			this.clientidIndex.put(topicSubscriber.clientId(), topicNames);
 
-			logger.debug("TopicSubscriber added [topicName={}, clientId={}]", topicSubscriber.topicName(),
-					topicSubscriber.clientId());
-			logger.debug("TopicSubscribers Size [data={}, topicnameIndex={}, clientidIndex={}]", data.size(),
-					topicnameIndex.size(), clientidIndex.size());
+			if (logger.isDebugEnabled()) {
+				logger.debug("TopicSubscriber added [topicName={}, clientId={}]", topicSubscriber.topicName(),
+						topicSubscriber.clientId());
+				logger.debug("TopicSubscribers Size [data={}, topicnameIndex={}, clientidIndex={}]", data.size(),
+						topicnameIndex.size(), clientidIndex.size());
+			}
 		}
 		finally {
 			modifyLock.unlock();
@@ -138,10 +140,12 @@ public class TopicSubscribers {
 				clientidIndex.put(removed.clientId(), topicNames);
 			}
 
-			logger.debug("TopicSubscriber removed [topicName={}, clientId={}]", removed.topicName(),
-					removed.clientId());
-			logger.debug("TopicSubscribers Size [data={}, topicnameIndex={}, clientidIndex={}]", data.size(),
-					topicnameIndex.size(), clientidIndex.size());
+			if (logger.isDebugEnabled()) {
+				logger.debug("TopicSubscriber removed [topicName={}, clientId={}]", removed.topicName(),
+						removed.clientId());
+				logger.debug("TopicSubscribers Size [data={}, topicnameIndex={}, clientidIndex={}]", data.size(),
+						topicnameIndex.size(), clientidIndex.size());
+			}
 
 			return removed;
 		}
@@ -170,10 +174,12 @@ public class TopicSubscribers {
 			topicNames.stream().map(topicName -> key(topicName, clientId)).forEach(key -> {
 				TopicSubscriber removed = data.remove(key);
 
-				logger.debug("TopicSubscriber removed [topicName={}, clientId={}]", removed.topicName(),
-						removed.clientId());
-				logger.debug("TopicSubscribers Size [data={}, topicnameIndex={}, clientidIndex={}]", data.size(),
-						topicnameIndex.size(), clientidIndex.size());
+				if (logger.isDebugEnabled()) {
+					logger.debug("TopicSubscriber removed [topicName={}, clientId={}]", removed.topicName(),
+							removed.clientId());
+					logger.debug("TopicSubscribers Size [data={}, topicnameIndex={}, clientidIndex={}]", data.size(),
+							topicnameIndex.size(), clientidIndex.size());
+				}
 			});
 
 			return topicNames;
@@ -230,10 +236,12 @@ public class TopicSubscribers {
 				}
 			});
 
-			logger.debug("TopicSubscribers removed [topicFilter={}, clientId={}, topicNameCount={}]", topicFilter,
-					clientId, topicNamesToRemove.size());
-			logger.debug("TopicSubscribers Size [data={}, topicnameIndex={}, clientidIndex={}]", data.size(),
-					topicnameIndex.size(), clientidIndex.size());
+			if (logger.isDebugEnabled()) {
+				logger.debug("TopicSubscribers removed [topicFilter={}, clientId={}, topicNameCount={}]", topicFilter,
+						clientId, topicNamesToRemove.size());
+				logger.debug("TopicSubscribers Size [data={}, topicnameIndex={}, clientidIndex={}]", data.size(),
+						topicnameIndex.size(), clientidIndex.size());
+			}
 		}
 		finally {
 			modifyLock.unlock();

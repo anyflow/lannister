@@ -48,9 +48,12 @@ public class Messages {
 		Message ret = data.remove(key);
 		if (ret == null) { return null; }
 
-		logger.debug("REMOVEed Message [messageId={}, publisherId={}, topicName=]", ret.id(), ret.publisherId(),
-				ret.topicName());
-		logger.debug("Messages size={}", data.size());
+		if (logger.isDebugEnabled()) {
+			logger.debug("REMOVEed Message [messageId={}, publisherId={}, topicName=]", ret.id(), ret.publisherId(),
+					ret.topicName());
+			logger.debug("Messages size={}", data.size());
+		}
+
 		return ret;
 	}
 
@@ -68,8 +71,10 @@ public class Messages {
 		InboundMessageStatus.NEXUS.put(new InboundMessageStatus(message.key(), message.publisherId(), message.id(),
 				message.topicName(), Status.RECEIVED));
 
-		logger.debug("ADDed Message [messageId={}, publisherId={}, topicName=]", message.id(), message.publisherId(),
-				message.topicName());
-		logger.debug("Messages size={}", data.size());
+		if (logger.isDebugEnabled()) {
+			logger.debug("ADDed Message [messageId={}, publisherId={}, topicName=]", message.id(),
+					message.publisherId(), message.topicName());
+			logger.debug("Messages size={}", data.size());
+		}
 	}
 }

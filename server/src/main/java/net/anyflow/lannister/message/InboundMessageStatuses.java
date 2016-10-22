@@ -77,10 +77,13 @@ public class InboundMessageStatuses {
 
 			MessageReferenceCounts.INSTANCE.retain(inboundMessageStatus.messageKey());
 
-			logger.debug("InboundMessageStatus removed [messageId={}, clientId={}, status=]",
-					inboundMessageStatus.messageId(), inboundMessageStatus.clientId(), inboundMessageStatus.status());
-			logger.debug("InboundMessageStatuses Size [data={}, messageidIndex={}, clientidIndex={}]", data.size(),
-					messageidIndex.size(), clientidIndex.size());
+			if (logger.isDebugEnabled()) {
+				logger.debug("InboundMessageStatus removed [messageId={}, clientId={}, status=]",
+						inboundMessageStatus.messageId(), inboundMessageStatus.clientId(),
+						inboundMessageStatus.status());
+				logger.debug("InboundMessageStatuses Size [data={}, messageidIndex={}, clientidIndex={}]", data.size(),
+						messageidIndex.size(), clientidIndex.size());
+			}
 		}
 		finally {
 			modifyLock.unlock();
@@ -126,10 +129,13 @@ public class InboundMessageStatuses {
 
 			MessageReferenceCounts.INSTANCE.release(removed.messageKey());
 
-			logger.debug("InboundMessageStatus removed [messageId={}, clientId={}, status=]", removed.messageId(),
-					removed.clientId(), removed.status());
-			logger.debug("InboundMessageStatuses Size [data={}, messageidIndex={}, clientidIndex={}]", data.size(),
-					messageidIndex.size(), clientidIndex.size());
+			if (logger.isDebugEnabled()) {
+				logger.debug("InboundMessageStatus removed [messageId={}, clientId={}, status=]", removed.messageId(),
+						removed.clientId(), removed.status());
+				logger.debug("InboundMessageStatuses Size [data={}, messageidIndex={}, clientidIndex={}]", data.size(),
+						messageidIndex.size(), clientidIndex.size());
+			}
+
 			return removed;
 		}
 		finally {
@@ -147,7 +153,9 @@ public class InboundMessageStatuses {
 
 		data.put(key, status);
 
-		logger.debug("InboundMessageStatus removed [messageId={}, clientId={}, status=]", status.messageId(),
-				status.clientId(), status.status());
+		if (logger.isDebugEnabled()) {
+			logger.debug("InboundMessageStatus removed [messageId={}, clientId={}, status=]", status.messageId(),
+					status.clientId(), status.status());
+		}
 	}
 }

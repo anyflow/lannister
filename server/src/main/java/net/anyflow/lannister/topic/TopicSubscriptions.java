@@ -79,10 +79,12 @@ public class TopicSubscriptions {
 					.forEach(topicName -> TopicSubscriber.NEXUS
 							.put(new TopicSubscriber(topicSubscription.clientId(), topicName)));
 
-			logger.debug("TopicSubscription added [topicFilter={}, clientId={}, qos={}]",
-					topicSubscription.topicFilter(), topicSubscription.clientId(), topicSubscription.qos());
-			logger.debug("TopicSubscriptions Size [data={}, topicfilterIndex={}, clientidIndex={}]", data.size(),
-					topicfilterIndex.size(), clientidIndex.size());
+			if (logger.isDebugEnabled()) {
+				logger.debug("TopicSubscription added [topicFilter={}, clientId={}, qos={}]",
+						topicSubscription.topicFilter(), topicSubscription.clientId(), topicSubscription.qos());
+				logger.debug("TopicSubscriptions Size [data={}, topicfilterIndex={}, clientidIndex={}]", data.size(),
+						topicfilterIndex.size(), clientidIndex.size());
+			}
 		}
 		finally {
 			modifyLock.unlock();
@@ -144,11 +146,12 @@ public class TopicSubscriptions {
 				clientidIndex.put(removed.clientId(), topicFilters);
 			}
 
-			logger.debug("TopicSubscription removed [topicFilter={}, clientId={}, qos={}]", removed.topicFilter(),
-					removed.clientId(), removed.qos());
-			logger.debug("TopicSubscriptions Size [data={}, topicfilterIndex={}, clientidIndex={}]", data.size(),
-					topicfilterIndex.size(), clientidIndex.size());
-
+			if (logger.isDebugEnabled()) {
+				logger.debug("TopicSubscription removed [topicFilter={}, clientId={}, qos={}]", removed.topicFilter(),
+						removed.clientId(), removed.qos());
+				logger.debug("TopicSubscriptions Size [data={}, topicfilterIndex={}, clientidIndex={}]", data.size(),
+						topicfilterIndex.size(), clientidIndex.size());
+			}
 			return removed;
 		}
 		finally {
@@ -178,10 +181,12 @@ public class TopicSubscriptions {
 			topicFilters.stream().map(topicFilter -> key(topicFilter, clientId)).forEach(key -> {
 				TopicSubscription removed = data.remove(key);
 
-				logger.debug("TopicSubscription removed [topicFilter={}, clientId={}, qos={}]", removed.topicFilter(),
-						removed.clientId(), removed.qos());
-				logger.debug("TopicSubscriptions Size [data={}, topicfilterIndex={}, clientidIndex={}]", data.size(),
-						topicfilterIndex.size(), clientidIndex.size());
+				if (logger.isDebugEnabled()) {
+					logger.debug("TopicSubscription removed [topicFilter={}, clientId={}, qos={}]",
+							removed.topicFilter(), removed.clientId(), removed.qos());
+					logger.debug("TopicSubscriptions Size [data={}, topicfilterIndex={}, clientidIndex={}]",
+							data.size(), topicfilterIndex.size(), clientidIndex.size());
+				}
 			});
 
 			return topicFilters;

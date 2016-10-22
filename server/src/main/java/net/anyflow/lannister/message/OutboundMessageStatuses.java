@@ -77,11 +77,13 @@ public class OutboundMessageStatuses {
 
 			MessageReferenceCounts.INSTANCE.retain(outboundMessageStatus.messageKey());
 
-			logger.debug("OutboundMessageStatus added [messageId={}, clientId={}, status=]",
-					outboundMessageStatus.messageId(), outboundMessageStatus.clientId(),
-					outboundMessageStatus.status());
-			logger.debug("OutboundMessageStatuses Size [data={}, messageidIndex={}, clientidIndex={}]", data.size(),
-					messageidIndex.size(), clientidIndex.size());
+			if (logger.isDebugEnabled()) {
+				logger.debug("OutboundMessageStatus added [messageId={}, clientId={}, status=]",
+						outboundMessageStatus.messageId(), outboundMessageStatus.clientId(),
+						outboundMessageStatus.status());
+				logger.debug("OutboundMessageStatuses Size [data={}, messageidIndex={}, clientidIndex={}]", data.size(),
+						messageidIndex.size(), clientidIndex.size());
+			}
 		}
 		finally {
 			modifyLock.unlock();
@@ -133,10 +135,12 @@ public class OutboundMessageStatuses {
 
 			MessageReferenceCounts.INSTANCE.release(removed.messageKey());
 
-			logger.debug("OutboundMessageStatus removed [messageId={}, clientId={}, status=]", removed.messageId(),
-					removed.clientId(), removed.status());
-			logger.debug("OutboundMessageStatuses Size [data={}, messageidIndex={}, clientidIndex={}]", data.size(),
-					messageidIndex.size(), clientidIndex.size());
+			if (logger.isDebugEnabled()) {
+				logger.debug("OutboundMessageStatus removed [messageId={}, clientId={}, status=]", removed.messageId(),
+						removed.clientId(), removed.status());
+				logger.debug("OutboundMessageStatuses Size [data={}, messageidIndex={}, clientidIndex={}]", data.size(),
+						messageidIndex.size(), clientidIndex.size());
+			}
 
 			return removed;
 		}
@@ -167,10 +171,12 @@ public class OutboundMessageStatuses {
 
 				MessageReferenceCounts.INSTANCE.release(removed.messageKey());
 
-				logger.debug("OutboundMessageStatus removed [messageId={}, clientId={}, status=]", removed.messageId(),
-						removed.clientId(), removed.status());
-				logger.debug("OutboundMessageStatuses Size [data={}, messageidIndex={}, clientidIndex={}]", data.size(),
-						messageidIndex.size(), clientidIndex.size());
+				if (logger.isDebugEnabled()) {
+					logger.debug("OutboundMessageStatus removed [messageId={}, clientId={}, status=]",
+							removed.messageId(), removed.clientId(), removed.status());
+					logger.debug("OutboundMessageStatuses Size [data={}, messageidIndex={}, clientidIndex={}]",
+							data.size(), messageidIndex.size(), clientidIndex.size());
+				}
 			});
 
 			return messageIds;
@@ -194,7 +200,9 @@ public class OutboundMessageStatuses {
 
 		data.put(key, status);
 
-		logger.debug("OutboundMessageStatus updated [messageId={}, clientId={}, status=]", status.messageId(),
-				status.clientId(), status.status());
+		if (logger.isDebugEnabled()) {
+			logger.debug("OutboundMessageStatus updated [messageId={}, clientId={}, status=]", status.messageId(),
+					status.clientId(), status.status());
+		}
 	}
 }

@@ -50,8 +50,10 @@ public class Sessions implements MessageListener<Notification> {
 			ctxs.put(session.clientId(), ctx);
 		}
 
-		logger.debug("session added [clientId={}, sessionsSize={}, clientIdsSize={}, ctxsSize={}]", session.clientId(),
-				sessions.size(), clientIds.size(), ctxs.size());
+		if (logger.isDebugEnabled()) {
+			logger.debug("session added [clientId={}, sessionsSize={}, clientIdsSize={}, ctxsSize={}]",
+					session.clientId(), sessions.size(), clientIds.size(), ctxs.size());
+		}
 	}
 
 	public void persist(Session session) {
@@ -94,8 +96,10 @@ public class Sessions implements MessageListener<Notification> {
 				ctxs.remove(session.clientId());
 			}
 			finally {
-				logger.debug("session removed [clientId={}, sessionsSize={}, clientIdsSize={}, ctxsSize={}]",
-						session.clientId(), sessions.size(), clientIds.size(), ctxs.size());
+				if (logger.isDebugEnabled()) {
+					logger.debug("session removed [clientId={}, sessionsSize={}, clientIdsSize={}, ctxsSize={}]",
+							session.clientId(), sessions.size(), clientIds.size(), ctxs.size());
+				}
 			}
 		}
 	}
