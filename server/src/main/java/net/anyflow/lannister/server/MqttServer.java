@@ -16,19 +16,14 @@
 
 package net.anyflow.lannister.server;
 
-import java.util.concurrent.ThreadFactory;
-
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.buffer.PooledByteBufAllocator;
 import io.netty.channel.ChannelOption;
 import io.netty.channel.EventLoopGroup;
 import io.netty.channel.ServerChannel;
 import io.netty.channel.WriteBufferWaterMark;
-import io.netty.channel.epoll.EpollEventLoopGroup;
 import io.netty.channel.epoll.EpollServerSocketChannel;
-import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
-import io.netty.util.concurrent.DefaultThreadFactory;
 import net.anyflow.lannister.Literals;
 import net.anyflow.lannister.Settings;
 
@@ -38,63 +33,41 @@ public class MqttServer {
 	private final EventLoopGroup bossGroup;
 	private final EventLoopGroup workerGroup;
 
-	public MqttServer() {
-		int bossThreadCount = Settings.INSTANCE.getInt("mqttserver.system.bossThreadCount", 0);
-		int workerThreadCount = Settings.INSTANCE.getInt("mqttserver.system.workerThreadCount", 0);
-
-		ThreadFactory bossThreadFactory = new DefaultThreadFactory("lannister/boss");
-		ThreadFactory workerThreadFactory = new DefaultThreadFactory("lannister/worker");
-
-		if (Literals.NETTY_EPOLL.equals(Settings.INSTANCE.nettyTransportMode())) {
-			bossGroup = new EpollEventLoopGroup(bossThreadCount, bossThreadFactory);
-			workerGroup = new EpollEventLoopGroup(workerThreadCount, workerThreadFactory);
-		}
-		else {
-			bossGroup = new NioEventLoopGroup(bossThreadCount, bossThreadFactory);
-			workerGroup = new NioEventLoopGroup(workerThreadCount, workerThreadFactory);
-		}
+	public MqttServer(EventLoopGroup bossGroup, EventLoopGroup workerGroup) {
+		this.bossGroup = bossGroup;
+		this.workerGroup = workerGroup;
 	}
 
 	public void start() throws Exception {
 		if (Settings.INSTANCE.mqttPort() == null && Settings.INSTANCE.mqttsPort() == null
 				&& Settings.INSTANCE.websocketPort() == null && Settings.INSTANCE.websocketSslPort() == null) {
 			logger.info("No MQTT port(s) arranged");
-			shutdown();
-			return;
+			throw new Exception("No MQTT port(s) arranged");
 		}
 
-		try {
-			ScheduledExecutor scheduledExecutor = new ScheduledExecutor();
+		ScheduledExecutor scheduledExecutor = new ScheduledExecutor();
 
-			if (Settings.INSTANCE.mqttPort() != null) {
-				executeBootstrap(scheduledExecutor, Settings.INSTANCE.mqttPort(), false, false);
-				scheduledExecutor = null;
-			}
-			if (Settings.INSTANCE.mqttsPort() != null) {
-				executeBootstrap(scheduledExecutor, Settings.INSTANCE.mqttsPort(), false, true);
-				scheduledExecutor = null;
-			}
-			if (Settings.INSTANCE.websocketPort() != null) {
-				executeBootstrap(scheduledExecutor, Settings.INSTANCE.websocketPort(), true, false);
-				scheduledExecutor = null;
-			}
-			if (Settings.INSTANCE.websocketSslPort() != null) {
-				executeBootstrap(scheduledExecutor, Settings.INSTANCE.websocketSslPort(), true, true);
-				scheduledExecutor = null;
-			}
-
-			logger.info(
-					"Lannister MQTT server started [tcp.port={}, tcp.ssl.port={}, websocket.port={}, websocket.ssl.port={}]",
-					Settings.INSTANCE.mqttPort(), Settings.INSTANCE.mqttsPort(), Settings.INSTANCE.websocketPort(),
-					Settings.INSTANCE.websocketSslPort());
+		if (Settings.INSTANCE.mqttPort() != null) {
+			executeBootstrap(scheduledExecutor, Settings.INSTANCE.mqttPort(), false, false);
+			scheduledExecutor = null;
 		}
-		catch (Exception e) {
-			logger.error("Lannister MQTT server failed to start", e);
-
-			shutdown();
-
-			throw e;
+		if (Settings.INSTANCE.mqttsPort() != null) {
+			executeBootstrap(scheduledExecutor, Settings.INSTANCE.mqttsPort(), false, true);
+			scheduledExecutor = null;
 		}
+		if (Settings.INSTANCE.websocketPort() != null) {
+			executeBootstrap(scheduledExecutor, Settings.INSTANCE.websocketPort(), true, false);
+			scheduledExecutor = null;
+		}
+		if (Settings.INSTANCE.websocketSslPort() != null) {
+			executeBootstrap(scheduledExecutor, Settings.INSTANCE.websocketSslPort(), true, true);
+			scheduledExecutor = null;
+		}
+
+		logger.info(
+				"Lannister MQTT server started [tcp.port={}, tcp.ssl.port={}, websocket.port={}, websocket.ssl.port={}]",
+				Settings.INSTANCE.mqttPort(), Settings.INSTANCE.mqttsPort(), Settings.INSTANCE.websocketPort(),
+				Settings.INSTANCE.websocketSslPort());
 	}
 
 	private void executeBootstrap(ScheduledExecutor scheduledExecutor, int port, boolean useWebSocket, boolean useSsl)
@@ -128,19 +101,5 @@ public class MqttServer {
 				.childOption(ChannelOption.ALLOCATOR, PooledByteBufAllocator.DEFAULT);
 
 		bootstrap.bind(port).sync();
-	}
-
-	public void shutdown() {
-		if (bossGroup != null) {
-			bossGroup.shutdownGracefully().awaitUninterruptibly();
-			logger.info("Boss event loop group shutdowned");
-		}
-
-		if (workerGroup != null) {
-			workerGroup.shutdownGracefully().awaitUninterruptibly();
-			logger.info("Worker event loop group shutdowned");
-		}
-
-		logger.info("Lannister MQTT server stopped");
 	}
 }

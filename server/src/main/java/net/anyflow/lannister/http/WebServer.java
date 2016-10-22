@@ -16,43 +16,26 @@
 
 package net.anyflow.lannister.http;
 
-import java.util.concurrent.ThreadFactory;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.EventLoopGroup;
 import io.netty.channel.ServerChannel;
-import io.netty.channel.epoll.EpollEventLoopGroup;
 import io.netty.channel.epoll.EpollServerSocketChannel;
-import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
-import io.netty.util.concurrent.DefaultThreadFactory;
 import net.anyflow.lannister.Literals;
 import net.anyflow.lannister.Settings;
 
 public class WebServer {
-
 	private static final Logger logger = LoggerFactory.getLogger(WebServer.class);
+
 	private final EventLoopGroup bossGroup;
 	private final EventLoopGroup workerGroup;
 
-	public WebServer() {
-		int bossThreadCount = Settings.INSTANCE.getInt("webserver.system.bossThreadCount", 0);
-		int workerThreadCount = Settings.INSTANCE.getInt("webserver.system.workerThreadCount", 0);
-
-		ThreadFactory bossThreadFactory = new DefaultThreadFactory("lannister.web/boss");
-		ThreadFactory workerThreadFactory = new DefaultThreadFactory("lannister.web/worker");
-
-		if (Literals.NETTY_EPOLL.equals(Settings.INSTANCE.nettyTransportMode())) {
-			bossGroup = new EpollEventLoopGroup(bossThreadCount, bossThreadFactory);
-			workerGroup = new EpollEventLoopGroup(workerThreadCount, workerThreadFactory);
-		}
-		else {
-			bossGroup = new NioEventLoopGroup(bossThreadCount, bossThreadFactory);
-			workerGroup = new NioEventLoopGroup(workerThreadCount, workerThreadFactory);
-		}
+	public WebServer(EventLoopGroup bossGroup, EventLoopGroup workerGroup) {
+		this.bossGroup = bossGroup;
+		this.workerGroup = workerGroup;
 	}
 
 	public EventLoopGroup bossGroup() {
@@ -80,48 +63,25 @@ public class WebServer {
 			serverChannelClass = NioServerSocketChannel.class;
 		}
 
-		try {
-			if (Settings.INSTANCE.httpPort() != null) {
-				ServerBootstrap bootstrap = new ServerBootstrap();
+		if (Settings.INSTANCE.httpPort() != null) {
+			ServerBootstrap bootstrap = new ServerBootstrap();
 
-				bootstrap.group(bossGroup, workerGroup).channel(serverChannelClass)
-						.childHandler(new WebServerChannelInitializer(false, websocketFrameHandlerClass));
+			bootstrap.group(bossGroup, workerGroup).channel(serverChannelClass)
+					.childHandler(new WebServerChannelInitializer(false, websocketFrameHandlerClass));
 
-				bootstrap.bind(Settings.INSTANCE.httpPort()).sync();
-			}
-
-			if (Settings.INSTANCE.httpsPort() != null) {
-				ServerBootstrap bootstrap = new ServerBootstrap();
-
-				bootstrap.group(bossGroup, workerGroup).channel(serverChannelClass)
-						.childHandler(new WebServerChannelInitializer(true, websocketFrameHandlerClass));
-
-				bootstrap.bind(Settings.INSTANCE.httpsPort()).sync();
-			}
-
-			logger.info("Lannister HTTP server started [http.port={}, https.port={}]", Settings.INSTANCE.httpPort(),
-					Settings.INSTANCE.httpsPort());
-		}
-		catch (Exception e) {
-			logger.error("Lannister HTTP server failed to start...", e);
-
-			shutdown();
-
-			throw e;
-		}
-	}
-
-	public void shutdown() {
-		if (bossGroup != null) {
-			bossGroup.shutdownGracefully().awaitUninterruptibly();
-			logger.debug("Boss event loop group shutdowned");
+			bootstrap.bind(Settings.INSTANCE.httpPort()).sync();
 		}
 
-		if (workerGroup != null) {
-			workerGroup.shutdownGracefully().awaitUninterruptibly();
-			logger.debug("Worker event loop group shutdowned");
+		if (Settings.INSTANCE.httpsPort() != null) {
+			ServerBootstrap bootstrap = new ServerBootstrap();
+
+			bootstrap.group(bossGroup, workerGroup).channel(serverChannelClass)
+					.childHandler(new WebServerChannelInitializer(true, websocketFrameHandlerClass));
+
+			bootstrap.bind(Settings.INSTANCE.httpsPort()).sync();
 		}
 
-		logger.debug("Lannister HTTP server stopped");
+		logger.info("Lannister HTTP server started [http.port={}, https.port={}]", Settings.INSTANCE.httpPort(),
+				Settings.INSTANCE.httpsPort());
 	}
 }

@@ -16,6 +16,12 @@
 
 package net.anyflow.lannister;
 
+import java.util.concurrent.ThreadFactory;
+
+import io.netty.channel.EventLoopGroup;
+import io.netty.channel.epoll.EpollEventLoopGroup;
+import io.netty.channel.nio.NioEventLoopGroup;
+import io.netty.util.concurrent.DefaultThreadFactory;
 import net.anyflow.lannister.cluster.Hazelcast;
 import net.anyflow.lannister.http.WebServer;
 import net.anyflow.lannister.server.MqttServer;
@@ -26,6 +32,9 @@ public class Application {
 	private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(Application.class);
 
 	public static final Application INSTANCE = new Application();
+
+	private EventLoopGroup bossGroup;
+	private EventLoopGroup workerGroup;
 
 	private MqttServer mqttServer;
 	private WebServer webServer;
@@ -44,11 +53,7 @@ public class Application {
 									// absent, NoClassDefFound Error occur in
 									// Statistics.. I don't know why
 
-			mqttServer = new MqttServer();
-			mqttServer.start();
-
-			webServer = new WebServer();
-			webServer.start("net.anyflow");
+			startServers();
 
 			Runtime.getRuntime().addShutdownHook(new Thread() {
 				@Override
@@ -74,12 +79,43 @@ public class Application {
 		}
 	}
 
+	public void startServers() throws Exception {
+		int bossThreadCount = Settings.INSTANCE.getInt("netty.bossThreadCount", 0);
+		int workerThreadCount = Settings.INSTANCE.getInt("netty.workerThreadCount", 0);
+
+		ThreadFactory bossThreadFactory = new DefaultThreadFactory("lannister/boss");
+		ThreadFactory workerThreadFactory = new DefaultThreadFactory("lannister/worker");
+
+		if (Literals.NETTY_EPOLL.equals(Settings.INSTANCE.nettyTransportMode())) {
+			bossGroup = new EpollEventLoopGroup(bossThreadCount, bossThreadFactory);
+			workerGroup = new EpollEventLoopGroup(workerThreadCount, workerThreadFactory);
+		}
+		else {
+			bossGroup = new NioEventLoopGroup(bossThreadCount, bossThreadFactory);
+			workerGroup = new NioEventLoopGroup(workerThreadCount, workerThreadFactory);
+		}
+
+		mqttServer = new MqttServer(bossGroup, workerGroup);
+		mqttServer.start();
+
+		webServer = new WebServer(bossGroup, workerGroup);
+		webServer.start("net.anyflow");
+	}
+
 	public void shutdown() {
 		logger.info("Lannister shutting down...");
 
 		try {
-			webServer.shutdown();
-			mqttServer.shutdown();
+			if (bossGroup != null) {
+				bossGroup.shutdownGracefully().awaitUninterruptibly();
+				logger.debug("Boss event loop group shutdowned");
+			}
+
+			if (workerGroup != null) {
+				workerGroup.shutdownGracefully().awaitUninterruptibly();
+				logger.debug("Worker event loop group shutdowned");
+			}
+
 			Hazelcast.INSTANCE.shutdown();
 		}
 		catch (Exception e) {
