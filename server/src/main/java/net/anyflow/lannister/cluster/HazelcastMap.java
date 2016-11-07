@@ -22,7 +22,7 @@ public class HazelcastMap<K, V> implements Map<K, V> {
 	private com.hazelcast.core.IMap<K, V> engine;
 
 	public HazelcastMap(String name) {
-		engine = Hazelcast.INSTANCE.getMap(name);
+		engine = Hazelcast.INSTANCE.getMap("net.anyflow.map." + name);
 	}
 
 	@Override

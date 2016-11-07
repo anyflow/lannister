@@ -126,7 +126,7 @@ public class Application {
 	}
 
 	public static void main(String[] args) {
-		Thread.currentThread().setName("main thread");
+		Thread.currentThread().setName("main");
 
 		if (!INSTANCE.start()) {
 			System.exit(-1);

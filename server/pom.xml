@@ -23,6 +23,16 @@
 		<developerConnection>scm:git:git@github.com:anyflow/lannister.git</developerConnection>
 		<tag>HEAD</tag>
 	</scm>
+	<repositories>
+		<repository>
+			<id>Hazelcast Private Snapshot Repository</id>
+			<url>https://repository-hazelcast-l337.forge.cloudbees.com/snapshot/</url>
+		</repository>
+		<repository>
+			<id>Hazelcast Private Release Repository</id>
+			<url>https://repository-hazelcast-l337.forge.cloudbees.com/release/</url>
+		</repository>
+	</repositories>
 	<dependencies>
 		<dependency>
 			<groupId>net.anyflow</groupId>
@@ -31,7 +41,7 @@
 		</dependency>
 		<dependency>
 			<groupId>com.hazelcast</groupId>
-			<artifactId>hazelcast</artifactId>
+			<artifactId>hazelcast-enterprise</artifactId>
 			<version>3.7.2</version>
 		</dependency>
 		<dependency>
@@ -112,6 +122,11 @@
 			<artifactId>commons-io</artifactId>
 			<version>2.5</version>
 		</dependency>
+		<dependency>
+			<groupId>org.mapdb</groupId>
+			<artifactId>mapdb</artifactId>
+			<version>3.0.2</version>
+		</dependency>
 	</dependencies>
 	<build>
 		<filters>
@@ -169,6 +184,7 @@
 					<archive>
 						<manifestEntries>
 							<Class-Path>../conf/ ../webapp/</Class-Path>
+							<Premain-Class>com.hazelcast.map.impl.record.HazelcastOffheapAgent</Premain-Class>
 						</manifestEntries>
 						<manifest>
 							<addClasspath>true</addClasspath>

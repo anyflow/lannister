@@ -1,19 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!--
-  Copyright 2016 The Lannister Project
-
-  Licensed under the Apache License, Version 2.0 (the "License");
-  you may not use this file except in compliance with the License.
-  You may obtain a copy of the License at
-
-      http://www.apache.org/licenses/LICENSE-2.0
-
-  Unless required by applicable law or agreed to in writing, software
-  distributed under the License is distributed on an "AS IS" BASIS,
-  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-  See the License for the specific language governing permissions and
-  limitations under the License.
--->
+<!-- Copyright 2016 The Lannister Project Licensed under the Apache License, 
+	Version 2.0 (the "License"); you may not use this file except in compliance 
+	with the License. You may obtain a copy of the License at http://www.apache.org/licenses/LICENSE-2.0 
+	Unless required by applicable law or agreed to in writing, software distributed 
+	under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES 
+	OR CONDITIONS OF ANY KIND, either express or implied. See the License for 
+	the specific language governing permissions and limitations under the License. -->
 <hazelcast
 	xsi:schemaLocation="http://www.hazelcast.com/schema/config hazelcast-config-3.7.xsd"
 	xmlns="http://www.hazelcast.com/schema/config" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
@@ -21,7 +13,8 @@
 		<name>LANNISTER</name>
 		<password>LANNISTER_HAZELCAST_GROUP_PASSWORD</password>
 	</group>
-
+	<license-key>ENTERPRISE_HD#10Nodes#aN7lFV61UArJSwbkyuKmf5EOIH0Tj7111111902100119611109101300010
+	</license-key>
 	<properties>
 		<property name="hazelcast.logging.type">slf4j</property>
 		<property name="hazelcast.shutdownhook.enabled">false</property>
@@ -31,7 +24,6 @@
 		<property name="hazelcast.client.heartbeat.timeout">30000</property>
 		<property name="hazelcast.client.max.no.heartbeat.seconds">15</property>
 	</properties>
-
 	<network>
 		<port auto-increment="true" port-count="${hazelcast.port-count}">${hazelcast.port}</port>
 		<join>
@@ -45,4 +37,15 @@
 			</tcp-ip>
 		</join>
 	</network>
+	
+	<map name="net.anyflow.map.*">
+		<in-memory-format>NATIVE</in-memory-format>
+		<backup-count>1</backup-count>
+		<async-backup-count>0</async-backup-count>
+	</map>
+
+	<native-memory enabled="true" allocator-type="POOLED">
+		<size value="1024" unit="MEGABYTES" />
+	</native-memory>
 </hazelcast>
+

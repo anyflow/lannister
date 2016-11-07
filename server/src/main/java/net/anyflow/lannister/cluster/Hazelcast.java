@@ -62,6 +62,8 @@ public class Hazelcast {
 
 		config.getSerializationConfig().getSerializerConfigs().add(new SerializerConfig().setTypeClass(JsonNode.class)
 				.setImplementation(JsonSerializer.makePlain(JsonNode.class)));
+		config.getSerializationConfig().setUseNativeByteOrder(true);
+		config.getSerializationConfig().setAllowUnsafe(true);
 
 		return config;
 	}

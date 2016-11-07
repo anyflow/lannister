@@ -15,9 +15,9 @@
  -->
 # Lannister
 
-[![Build Status](https://travis-ci.org/anyflow/lannister.svg?branch=develop)](https://travis-ci.org/anyflow/lannister/branches) [![Codacy Badge](https://api.codacy.com/project/badge/Grade/8d72feca76504d89a9846beecbbbc34b)](https://www.codacy.com/app/anyflow/lannister?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=anyflow/lannister&amp;utm_campaign=Badge_Grade) [![Codacy Badge](https://api.codacy.com/project/badge/Coverage/8d72feca76504d89a9846beecbbbc34b)](https://www.codacy.com/app/anyflow/lannister?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=anyflow/lannister&amp;utm_campaign=Badge_Coverage)
+[![Build Status](https://travis-ci.org/anyflow/lannister.svg?branch=master)](https://travis-ci.org/anyflow/lannister/branches) [![Codacy Badge](https://api.codacy.com/project/badge/Grade/8d72feca76504d89a9846beecbbbc34b)](https://www.codacy.com/app/anyflow/lannister?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=anyflow/lannister&amp;utm_campaign=Badge_Grade) [![Codacy Badge](https://api.codacy.com/project/badge/Coverage/8d72feca76504d89a9846beecbbbc34b)](https://www.codacy.com/app/anyflow/lannister?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=anyflow/lannister&amp;utm_campaign=Badge_Coverage)
 
-**Lannister** is high performance MQTT broker equipped with full specifications support, Clustering, WebSocket, SSL written in Java with using [Netty](http://netty.io/) & [Hazelcast](https://hazelcast.org/).
+**Lannister** is a lightweight MQTT broker equipped with full specifications support, Clustering, WebSocket, SSL written in Java.
 
 > MQTT is a machine-to-machine (M2M)/"Internet of Things" connectivity protocol. It was designed as an extremely lightweight publish/subscribe messaging transport. It is useful for connections with remote locations where a small code footprint is required and/or network bandwidth is at a premium. For example, it has been used in sensors communicating to a broker via satellite link, over occasional dial-up connections with healthcare providers, and in a range of home automation and small device scenarios. It is also ideal for mobile applications because of its small size, low power usage, minimised data packets, and efficient distribution of information to one or many receivers - [http://mqtt.org](http://mqtt.org/)
 
@@ -32,10 +32,6 @@
 * Distribution Transparency / High Availability / Distributed Cache
 * Easy, elastic Scaling out
 * For more information, refer [Clustering](./clustering.html).
-
-#### High performance
-* 1M connections per node, and etc.
-* For more information, refer [Performance Test Report](./performance.html).
 
 #### Plug-In Support
 * Adapter/Framework for customizing broker logics against MQTT events
@@ -52,6 +48,10 @@
 #### $SYS topics
 * Static / Required Topics supported described in [SYS Topics](https://github.com/mqtt/mqtt.github.io/wiki/SYS-Topics)
 * For more information, refer [$SYS topics](./dollarSys.html).
+
+#### High performance
+* 100K connections (in non-clustering Mode)
+* For more information, refer [Performance Test Report](./performance.html).
 
 #### Features arranged for Lannister version 1.1 _(Under development)_
 * Web administration Site
