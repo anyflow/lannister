@@ -20,19 +20,19 @@ under the License.
 <rss version="0.91">
   <channel>
     <title>Lannister interface - Checkstyle report</title>
-    <link>https://github.com/anyflow/lannister/lannister-interface</link>
+    <link>https://anyflow.github.io/lannister/lannister-interface</link>
     <description>Lannister interface - Checkstyle report</description>
     <language>en-us</language>
     <copyright>&#169;2016 anyflow.net</copyright>
     <item>
       <title>File: 18,
-             Errors: 172,
+             Errors: 167,
              Warnings: 0,
              Infos: 0
       </title>
-            <link>https://github.com/anyflow/lannister/lannister-interface/checkstyle.html</link>
+            <link>https://anyflow.github.io/lannister/lannister-interface/checkstyle.html</link>
       <description>
-        <p>Click <a href="https://github.com/anyflow/lannister/lannister-interface/checkstyle.html">here</a> for the full Checkstyle report.</p>
+        <p>Click <a href="https://anyflow.github.io/lannister/lannister-interface/checkstyle.html">here</a> for the full Checkstyle report.</p>
 
         <table summary="Files" boder="1">
           <thead>
@@ -46,7 +46,7 @@ under the License.
           <tbody>
                           <tr>
                 <td>
-                  <a href="https://github.com/anyflow/lannister/lannister-interface/checkstyle.html#net.anyflow.lannister.plugin.PublishEventArgs.java">net/anyflow/lannister/plugin/PublishEventArgs.java</a>
+                  <a href="https://anyflow.github.io/lannister/lannister-interface/checkstyle.html#net.anyflow.lannister.plugin.PublishEventArgs.java">net/anyflow/lannister/plugin/PublishEventArgs.java</a>
                 </td>
                 <td>
                   0
@@ -60,7 +60,7 @@ under the License.
               </tr>
                           <tr>
                 <td>
-                  <a href="https://github.com/anyflow/lannister/lannister-interface/checkstyle.html#net.anyflow.lannister.plugin.DeliveredEventArgs.java">net/anyflow/lannister/plugin/DeliveredEventArgs.java</a>
+                  <a href="https://anyflow.github.io/lannister/lannister-interface/checkstyle.html#net.anyflow.lannister.plugin.DeliveredEventArgs.java">net/anyflow/lannister/plugin/DeliveredEventArgs.java</a>
                 </td>
                 <td>
                   0
@@ -74,7 +74,7 @@ under the License.
               </tr>
                           <tr>
                 <td>
-                  <a href="https://github.com/anyflow/lannister/lannister-interface/checkstyle.html#net.anyflow.lannister.plugin.PublishEventListener.java">net/anyflow/lannister/plugin/PublishEventListener.java</a>
+                  <a href="https://anyflow.github.io/lannister/lannister-interface/checkstyle.html#net.anyflow.lannister.plugin.PublishEventListener.java">net/anyflow/lannister/plugin/PublishEventListener.java</a>
                 </td>
                 <td>
                   0
@@ -88,7 +88,7 @@ under the License.
               </tr>
                           <tr>
                 <td>
-                  <a href="https://github.com/anyflow/lannister/lannister-interface/checkstyle.html#net.anyflow.lannister.plugin.ConnectEventListener.java">net/anyflow/lannister/plugin/ConnectEventListener.java</a>
+                  <a href="https://anyflow.github.io/lannister/lannister-interface/checkstyle.html#net.anyflow.lannister.plugin.ConnectEventListener.java">net/anyflow/lannister/plugin/ConnectEventListener.java</a>
                 </td>
                 <td>
                   0
@@ -102,7 +102,7 @@ under the License.
               </tr>
                           <tr>
                 <td>
-                  <a href="https://github.com/anyflow/lannister/lannister-interface/checkstyle.html#net.anyflow.lannister.plugin.IMessage.java">net/anyflow/lannister/plugin/IMessage.java</a>
+                  <a href="https://anyflow.github.io/lannister/lannister-interface/checkstyle.html#net.anyflow.lannister.plugin.IMessage.java">net/anyflow/lannister/plugin/IMessage.java</a>
                 </td>
                 <td>
                   0
@@ -111,12 +111,12 @@ under the License.
                   0
                 </td>
                 <td>
-                  16
+                  10
                 </td>
               </tr>
                           <tr>
                 <td>
-                  <a href="https://github.com/anyflow/lannister/lannister-interface/checkstyle.html#net.anyflow.lannister.plugin.Authenticator.java">net/anyflow/lannister/plugin/Authenticator.java</a>
+                  <a href="https://anyflow.github.io/lannister/lannister-interface/checkstyle.html#net.anyflow.lannister.plugin.Authenticator.java">net/anyflow/lannister/plugin/Authenticator.java</a>
                 </td>
                 <td>
                   0
@@ -130,7 +130,7 @@ under the License.
               </tr>
                           <tr>
                 <td>
-                  <a href="https://github.com/anyflow/lannister/lannister-interface/checkstyle.html#net.anyflow.lannister.plugin.ServiceChecker.java">net/anyflow/lannister/plugin/ServiceChecker.java</a>
+                  <a href="https://anyflow.github.io/lannister/lannister-interface/checkstyle.html#net.anyflow.lannister.plugin.ServiceChecker.java">net/anyflow/lannister/plugin/ServiceChecker.java</a>
                 </td>
                 <td>
                   0
@@ -144,7 +144,7 @@ under the License.
               </tr>
                           <tr>
                 <td>
-                  <a href="https://github.com/anyflow/lannister/lannister-interface/checkstyle.html#net.anyflow.lannister.plugin.DisconnectEventListener.java">net/anyflow/lannister/plugin/DisconnectEventListener.java</a>
+                  <a href="https://anyflow.github.io/lannister/lannister-interface/checkstyle.html#net.anyflow.lannister.plugin.DisconnectEventListener.java">net/anyflow/lannister/plugin/DisconnectEventListener.java</a>
                 </td>
                 <td>
                   0
@@ -158,7 +158,7 @@ under the License.
               </tr>
                           <tr>
                 <td>
-                  <a href="https://github.com/anyflow/lannister/lannister-interface/checkstyle.html#net.anyflow.lannister.plugin.ConnectEventArgs.java">net/anyflow/lannister/plugin/ConnectEventArgs.java</a>
+                  <a href="https://anyflow.github.io/lannister/lannister-interface/checkstyle.html#net.anyflow.lannister.plugin.ConnectEventArgs.java">net/anyflow/lannister/plugin/ConnectEventArgs.java</a>
                 </td>
                 <td>
                   0
@@ -172,7 +172,7 @@ under the License.
               </tr>
                           <tr>
                 <td>
-                  <a href="https://github.com/anyflow/lannister/lannister-interface/checkstyle.html#net.anyflow.lannister.plugin.UnsubscribeEventListener.java">net/anyflow/lannister/plugin/UnsubscribeEventListener.java</a>
+                  <a href="https://anyflow.github.io/lannister/lannister-interface/checkstyle.html#net.anyflow.lannister.plugin.UnsubscribeEventListener.java">net/anyflow/lannister/plugin/UnsubscribeEventListener.java</a>
                 </td>
                 <td>
                   0
@@ -186,7 +186,7 @@ under the License.
               </tr>
                           <tr>
                 <td>
-                  <a href="https://github.com/anyflow/lannister/lannister-interface/checkstyle.html#net.anyflow.lannister.plugin.SubscribeEventListener.java">net/anyflow/lannister/plugin/SubscribeEventListener.java</a>
+                  <a href="https://anyflow.github.io/lannister/lannister-interface/checkstyle.html#net.anyflow.lannister.plugin.SubscribeEventListener.java">net/anyflow/lannister/plugin/SubscribeEventListener.java</a>
                 </td>
                 <td>
                   0
@@ -200,63 +200,7 @@ under the License.
               </tr>
                           <tr>
                 <td>
-                  <a href="https://github.com/anyflow/lannister/lannister-interface/checkstyle.html#net.anyflow.lannister.plugin.ITopicSubscription.java">net/anyflow/lannister/plugin/ITopicSubscription.java</a>
-                </td>
-                <td>
-                  0
-                </td>
-                <td>
-                  0
-                </td>
-                <td>
-                  10
-                </td>
-              </tr>
-                          <tr>
-                <td>
-                  <a href="https://github.com/anyflow/lannister/lannister-interface/checkstyle.html#net.anyflow.lannister.plugin.Plugin.java">net/anyflow/lannister/plugin/Plugin.java</a>
-                </td>
-                <td>
-                  0
-                </td>
-                <td>
-                  0
-                </td>
-                <td>
-                  7
-                </td>
-              </tr>
-                          <tr>
-                <td>
-                  <a href="https://github.com/anyflow/lannister/lannister-interface/checkstyle.html#net.anyflow.lannister.plugin.Authorizer.java">net/anyflow/lannister/plugin/Authorizer.java</a>
-                </td>
-                <td>
-                  0
-                </td>
-                <td>
-                  0
-                </td>
-                <td>
-                  7
-                </td>
-              </tr>
-                          <tr>
-                <td>
-                  <a href="https://github.com/anyflow/lannister/lannister-interface/checkstyle.html#net.anyflow.lannister.plugin.DeliveredEventListener.java">net/anyflow/lannister/plugin/DeliveredEventListener.java</a>
-                </td>
-                <td>
-                  0
-                </td>
-                <td>
-                  0
-                </td>
-                <td>
-                  8
-                </td>
-              </tr>
-                          <tr>
-                <td>
-                  <a href="https://github.com/anyflow/lannister/lannister-interface/checkstyle.html#net.anyflow.lannister.plugin.SubscribeEventArgs.java">net/anyflow/lannister/plugin/SubscribeEventArgs.java</a>
+                  <a href="https://anyflow.github.io/lannister/lannister-interface/checkstyle.html#net.anyflow.lannister.plugin.ITopicSubscription.java">net/anyflow/lannister/plugin/ITopicSubscription.java</a>
                 </td>
                 <td>
                   0
@@ -270,7 +214,63 @@ under the License.
               </tr>
                           <tr>
                 <td>
-                  <a href="https://github.com/anyflow/lannister/lannister-interface/checkstyle.html#net.anyflow.lannister.plugin.UnsubscribeEventArgs.java">net/anyflow/lannister/plugin/UnsubscribeEventArgs.java</a>
+                  <a href="https://anyflow.github.io/lannister/lannister-interface/checkstyle.html#net.anyflow.lannister.plugin.Plugin.java">net/anyflow/lannister/plugin/Plugin.java</a>
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  7
+                </td>
+              </tr>
+                          <tr>
+                <td>
+                  <a href="https://anyflow.github.io/lannister/lannister-interface/checkstyle.html#net.anyflow.lannister.plugin.Authorizer.java">net/anyflow/lannister/plugin/Authorizer.java</a>
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  7
+                </td>
+              </tr>
+                          <tr>
+                <td>
+                  <a href="https://anyflow.github.io/lannister/lannister-interface/checkstyle.html#net.anyflow.lannister.plugin.DeliveredEventListener.java">net/anyflow/lannister/plugin/DeliveredEventListener.java</a>
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  8
+                </td>
+              </tr>
+                          <tr>
+                <td>
+                  <a href="https://anyflow.github.io/lannister/lannister-interface/checkstyle.html#net.anyflow.lannister.plugin.SubscribeEventArgs.java">net/anyflow/lannister/plugin/SubscribeEventArgs.java</a>
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  11
+                </td>
+              </tr>
+                          <tr>
+                <td>
+                  <a href="https://anyflow.github.io/lannister/lannister-interface/checkstyle.html#net.anyflow.lannister.plugin.UnsubscribeEventArgs.java">net/anyflow/lannister/plugin/UnsubscribeEventArgs.java</a>
                 </td>
                 <td>
                   0
@@ -284,7 +284,7 @@ under the License.
               </tr>
                           <tr>
                 <td>
-                  <a href="https://github.com/anyflow/lannister/lannister-interface/checkstyle.html#net.anyflow.lannister.plugin.DisconnectEventArgs.java">net/anyflow/lannister/plugin/DisconnectEventArgs.java</a>
+                  <a href="https://anyflow.github.io/lannister/lannister-interface/checkstyle.html#net.anyflow.lannister.plugin.DisconnectEventArgs.java">net/anyflow/lannister/plugin/DisconnectEventArgs.java</a>
                 </td>
                 <td>
                   0
