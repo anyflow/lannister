@@ -16,30 +16,28 @@
 
 package net.anyflow.lannister.session;
 
-import java.util.Map;
+import java.util.Set;
 
 import com.google.common.base.Strings;
 import com.google.common.collect.Maps;
-import com.hazelcast.core.IMap;
 import com.hazelcast.core.Message;
 import com.hazelcast.core.MessageListener;
 
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelId;
-import net.anyflow.lannister.Hazelcast;
+import net.anyflow.lannister.cluster.ClusterDataFactory;
+import net.anyflow.lannister.cluster.Map;
 import net.anyflow.lannister.topic.Notification;
 
 public class Sessions implements MessageListener<Notification> {
-
-	@SuppressWarnings("unused")
 	private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(Sessions.class);
 
-	private final IMap<String, Session> sessions;
-	private final Map<ChannelId, String> clientIds; // KEY:channelId
-	private final Map<String, ChannelHandlerContext> ctxs; // KEY:clientlId
+	private final Map<String, Session> sessions;
+	private final java.util.Map<ChannelId, String> clientIds; // KEY:channelId
+	private final java.util.Map<String, ChannelHandlerContext> ctxs; // KEY:clientlId
 
 	protected Sessions() {
-		sessions = Hazelcast.INSTANCE.getMap("sessions");
+		sessions = ClusterDataFactory.INSTANCE.createMap("sessions");
 		clientIds = Maps.newHashMap();
 		ctxs = Maps.newHashMap();
 	}
@@ -47,14 +45,19 @@ public class Sessions implements MessageListener<Notification> {
 	public void put(Session session, ChannelHandlerContext ctx) {
 		synchronized (this) {
 			session.setConnected(true);
-			sessions.set(session.clientId(), session); // [MQTT-3.1.2-4]
+			sessions.put(session.clientId(), session); // [MQTT-3.1.2-4]
 			clientIds.put(ctx.channel().id(), session.clientId());
 			ctxs.put(session.clientId(), ctx);
+		}
+
+		if (logger.isDebugEnabled()) {
+			logger.debug("session added [clientId={}, sessionsSize={}, clientIdsSize={}, ctxsSize={}]",
+					session.clientId(), sessions.size(), clientIds.size(), ctxs.size());
 		}
 	}
 
 	public void persist(Session session) {
-		sessions.set(session.clientId(), session);
+		sessions.put(session.clientId(), session);
 	}
 
 	public ChannelHandlerContext channelHandlerContext(String clientId) {
@@ -73,7 +76,7 @@ public class Sessions implements MessageListener<Notification> {
 		return sessions.get(clientId);
 	}
 
-	public Map<String, ChannelHandlerContext> ctxs() {
+	public java.util.Map<String, ChannelHandlerContext> ctxs() {
 		return ctxs;
 	}
 
@@ -81,20 +84,28 @@ public class Sessions implements MessageListener<Notification> {
 		if (session == null) { return; }
 
 		synchronized (this) {
-			if (session.cleanSession()) { // [MQTT-3.1.2-5]
-				sessions.remove(session.clientId());
+			try {
+				if (session.cleanSession()) { // [MQTT-3.1.2-5]
+					sessions.remove(session.clientId());
+				}
+
+				ChannelId channelId = session.channelId();
+				if (channelId == null) { return; }
+
+				clientIds.remove(channelId);
+				ctxs.remove(session.clientId());
 			}
-
-			ChannelId channelId = session.channelId();
-			if (channelId == null) { return; }
-
-			clientIds.remove(channelId);
-			ctxs.remove(session.clientId());
+			finally {
+				if (logger.isDebugEnabled()) {
+					logger.debug("session removed [clientId={}, sessionsSize={}, clientIdsSize={}, ctxsSize={}]",
+							session.clientId(), sessions.size(), clientIds.size(), ctxs.size());
+				}
+			}
 		}
 	}
 
-	public IMap<String, Session> map() {
-		return sessions;
+	public Set<String> keySet() {
+		return sessions.keySet();
 	}
 
 	@Override

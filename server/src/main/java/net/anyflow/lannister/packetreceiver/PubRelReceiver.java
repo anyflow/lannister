@@ -16,13 +16,14 @@
 
 package net.anyflow.lannister.packetreceiver;
 
-import net.anyflow.lannister.message.MessageFactory;
+import io.netty.channel.ChannelHandlerContext;
+import io.netty.handler.codec.mqtt.MqttMessage;
+import net.anyflow.lannister.message.InboundMessageStatus;
 import net.anyflow.lannister.session.Session;
 import net.anyflow.lannister.topic.Topic;
 import net.anyflow.lannister.topic.Topics.ClientType;
 
 public class PubRelReceiver {
-
 	private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(PubRelReceiver.class);
 
 	public static final PubRelReceiver SHARED = new PubRelReceiver();
@@ -30,19 +31,27 @@ public class PubRelReceiver {
 	private PubRelReceiver() {
 	}
 
-	protected void handle(Session session, int messageId) {
+	protected void handle(ChannelHandlerContext ctx, Session session, int messageId) {
 
 		// TODO what if the PUBREL is resented one?
 
 		Topic topic = Topic.NEXUS.get(session.clientId(), messageId, ClientType.PUBLISHER);
 		if (topic == null) {
-			logger.error("Topic does not exist [clientId={}, messageId={}]", session.clientId(), messageId);
+			logger.error("PUBREL target does not exist [clientId={}, messageId={}]", session.clientId(), messageId);
 			session.dispose(true); // [MQTT-3.3.5-2]
 			return;
 		}
 
-		session.send(MessageFactory.pubcomp(messageId)).addListener(f -> {
-			topic.removeInboundMessageStatus(session.clientId(), messageId);
+		MqttMessage toSend = MqttMessageFactory.pubcomp(messageId);
+		final String log = toSend.toString();
+
+		session.send(toSend, f -> {
+			if (!f.isSuccess()) {
+				logger.error("packet outgoing failed [{}] {}", log, f.cause());
+				return;
+			}
+
+			InboundMessageStatus.NEXUS.removeByKey(messageId, session.clientId());
 			logger.debug("Inbound message status REMOVED [clientId={}, messageId={}]", session.clientId(), messageId);
 		});
 	}

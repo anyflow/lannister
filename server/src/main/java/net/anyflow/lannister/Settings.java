@@ -1,12 +1,12 @@
 /*
  * Copyright 2016 The Lannister Project
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *     http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -27,6 +27,7 @@ import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
 
 import io.netty.handler.ssl.util.SelfSignedCertificate;
+import net.anyflow.lannister.cluster.Mode;
 
 public class Settings extends java.util.Properties {
 
@@ -34,7 +35,7 @@ public class Settings extends java.util.Properties {
 
 	protected static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(Settings.class);
 
-	private final static String CONFIG_NAME = "lannister.cfg";
+	private final static String CONFIG_NAME = "lannister.properties";
 
 	public final static Settings INSTANCE = new Settings();
 
@@ -60,8 +61,7 @@ public class Settings extends java.util.Properties {
 		}
 
 		try {
-			webResourceExtensionToMimes = new ObjectMapper().readValue(getProperty("webserver.MIME"),
-					Map.class);
+			webResourceExtensionToMimes = new ObjectMapper().readValue(getProperty("webserver.MIME"), Map.class);
 		}
 		catch (IOException e) {
 			logger.error(e.getMessage(), e);
@@ -159,6 +159,16 @@ public class Settings extends java.util.Properties {
 		}
 
 		return ret;
+	}
+
+	public String nettyTransportMode() {
+		if (!getBoolean("netty.nativeTransportMode", true)) { return Literals.NETTY_NIO; }
+
+		return System.getProperty("os.name").startsWith("Linux") ? Literals.NETTY_EPOLL : Literals.NETTY_NIO;
+	}
+
+	public Mode clusteringMode() {
+		return Mode.from(getProperty("clustering.mode", "hazelcast"));
 	}
 
 	public String version() {

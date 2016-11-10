@@ -18,20 +18,16 @@ package net.anyflow.lannister.message;
 
 import java.io.IOException;
 import java.util.Date;
-import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.google.common.collect.Lists;
-import com.hazelcast.nio.serialization.ClassDefinition;
-import com.hazelcast.nio.serialization.ClassDefinitionBuilder;
-import com.hazelcast.nio.serialization.PortableReader;
-import com.hazelcast.nio.serialization.PortableWriter;
+import com.hazelcast.nio.ObjectDataInput;
+import com.hazelcast.nio.ObjectDataOutput;
 
 import net.anyflow.lannister.serialization.SerializableFactory;
 
 public class InboundMessageStatus extends MessageStatus {
-
+	public static final InboundMessageStatuses NEXUS = new InboundMessageStatuses();
 	public static final int ID = 2;
 
 	@JsonProperty
@@ -40,10 +36,15 @@ public class InboundMessageStatus extends MessageStatus {
 	public InboundMessageStatus() { // just for Serialization
 	}
 
-	public InboundMessageStatus(String clientId, int messageId, Status status) {
-		super(clientId, messageId);
+	public InboundMessageStatus(String messageKey, String clientId, int messageId, String topicName, Status status) {
+		super(messageKey, clientId, messageId, topicName);
 
 		this.status = status;
+	}
+
+	@Override
+	public String key() {
+		return InboundMessageStatuses.key(messageId(), clientId());
 	}
 
 	public Status status() {
@@ -63,37 +64,23 @@ public class InboundMessageStatus extends MessageStatus {
 
 	@JsonIgnore
 	@Override
-	public int getClassId() {
+	public int getId() {
 		return ID;
 	}
 
 	@Override
-	public void writePortable(PortableWriter writer) throws IOException {
-		List<String> nullChecker = Lists.newArrayList();
+	public void writeData(ObjectDataOutput out) throws IOException {
+		super.writeData(out);
 
-		writePortable(nullChecker, writer);
-
-		if (status != null) {
-			writer.writeByte("targetStatus", status.value());
-			nullChecker.add("id");
-		}
-
-		writer.writeUTFArray("nullChecker", nullChecker.toArray(new String[0]));
+		out.writeByte(status != null ? status.value() : Byte.MIN_VALUE);
 	}
 
 	@Override
-	public void readPortable(PortableReader reader) throws IOException {
-		List<String> nullChecker = Lists.newArrayList(reader.readUTFArray("nullChecker"));
+	public void readData(ObjectDataInput in) throws IOException {
+		super.readData(in);
 
-		readPortable(nullChecker, reader);
-
-		if (nullChecker.contains("status")) status = Status.valueOf(reader.readByte("targetStatus"));
-	}
-
-	public static ClassDefinition classDefinition() {
-		return new ClassDefinitionBuilder(SerializableFactory.ID, ID).addUTFField("clientId").addIntField("messageId")
-				.addByteField("targetStatus").addLongField("createTime").addLongField("updateTime")
-				.addUTFArrayField("nullChecker").build();
+		byte rawByte = in.readByte();
+		status = rawByte != Byte.MIN_VALUE ? Status.valueOf(rawByte) : null;
 	}
 
 	public enum Status {

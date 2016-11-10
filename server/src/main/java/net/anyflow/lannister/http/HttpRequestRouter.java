@@ -116,11 +116,12 @@ public class HttpRequestRouter extends SimpleChannelInboundHandler<FullHttpReque
 	}
 
 	private void handleStaticResource(HttpResponse response, String webResourceRequestPath) throws IOException {
-		if (webResourceRequestPath.startsWith("/")) {
-			webResourceRequestPath = webResourceRequestPath.substring(1, webResourceRequestPath.length());
+		String requestPath = webResourceRequestPath;
+		if (requestPath.startsWith("/")) {
+			requestPath = requestPath.substring(1, requestPath.length());
 		}
 
-		InputStream is = Application.class.getClassLoader().getResourceAsStream(webResourceRequestPath);
+		InputStream is = Application.class.getClassLoader().getResourceAsStream(requestPath);
 
 		try {
 			if (is == null) {
@@ -129,7 +130,7 @@ public class HttpRequestRouter extends SimpleChannelInboundHandler<FullHttpReque
 			else {
 				response.content().writeBytes(IOUtils.toByteArray(is));
 
-				String ext = Files.getFileExtension(webResourceRequestPath);
+				String ext = Files.getFileExtension(requestPath);
 				response.headers().set(HttpHeaderNames.CONTENT_TYPE,
 						Settings.INSTANCE.webResourceExtensionToMimes().get(ext));
 			}

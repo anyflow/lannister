@@ -26,13 +26,13 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 
 import io.netty.channel.ChannelFutureListener;
+import io.netty.channel.ChannelHandler.Sharable;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
 import io.netty.handler.codec.mqtt.MqttQoS;
 import io.netty.handler.codec.mqtt.MqttSubscribeMessage;
 import io.netty.handler.codec.mqtt.MqttTopicSubscription;
 import net.anyflow.lannister.AbnormalDisconnectEventArgs;
-import net.anyflow.lannister.message.MessageFactory;
 import net.anyflow.lannister.plugin.DefaultSubscribeEventListener;
 import net.anyflow.lannister.plugin.DisconnectEventListener;
 import net.anyflow.lannister.plugin.ITopicSubscription;
@@ -44,9 +44,10 @@ import net.anyflow.lannister.topic.Topic;
 import net.anyflow.lannister.topic.TopicMatcher;
 import net.anyflow.lannister.topic.TopicSubscription;
 
+@Sharable
 public class SubscribeReceiver extends SimpleChannelInboundHandler<MqttSubscribeMessage> {
-
 	private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(SubscribeReceiver.class);
+	public static final SubscribeReceiver INSTANCE = new SubscribeReceiver();
 
 	@Override
 	protected void channelRead0(ChannelHandlerContext ctx, MqttSubscribeMessage msg) throws Exception {
@@ -71,15 +72,16 @@ public class SubscribeReceiver extends SimpleChannelInboundHandler<MqttSubscribe
 		}
 
 		// TODO multiple sub checking (granted QoS)
-		Map.Entry<List<Integer>, Map<String, TopicSubscription>> returns = generateReturns(topicSubs);
+		Map.Entry<List<Integer>, Map<String, TopicSubscription>> returns = generateReturns(session.clientId(),
+				topicSubs);
 		List<Integer> grantedQoss = returns.getKey();
 		Map<String, TopicSubscription> topicSubscriptions = returns.getValue();
 
 		if (!executePlugins(session, topicSubscriptions.values())) { return; }
 
-		session.topicSubscriptions().putAll(topicSubscriptions);
+		topicSubscriptions.values().forEach(topicSubscription -> TopicSubscription.NEXUS.put(topicSubscription));
 
-		session.send(MessageFactory.suback(msg.variableHeader().messageId(), grantedQoss)); // [MQTT-2.3.1-7],[MQTT-2.3.1-7],[MQTT-3.8.4-1],[MQTT-3.8.4-2]
+		session.send(MqttMessageFactory.suback(msg.variableHeader().messageId(), grantedQoss), null); // [MQTT-2.3.1-7],[MQTT-2.3.1-7],[MQTT-3.8.4-1],[MQTT-3.8.4-2]
 
 		sendRetainedMessage(session, topicSubscriptions.keySet());
 	}
@@ -94,14 +96,14 @@ public class SubscribeReceiver extends SimpleChannelInboundHandler<MqttSubscribe
 		});
 	}
 
-	private Map.Entry<List<Integer>, Map<String, TopicSubscription>> generateReturns(
+	private Map.Entry<List<Integer>, Map<String, TopicSubscription>> generateReturns(String clientId,
 			List<MqttTopicSubscription> topicSubs) {
 		List<Integer> grantedQoss = Lists.newArrayList();
 		Map<String, TopicSubscription> topicSubscriptions = Maps.newHashMap();
 
 		topicSubs.stream().forEach(topicSub -> {
 			if (TopicMatcher.isValid(topicSub.topicName(), true)) {
-				TopicSubscription topicSubscription = new TopicSubscription(topicSub.topicName(),
+				TopicSubscription topicSubscription = new TopicSubscription(clientId, topicSub.topicName(),
 						topicSub.qualityOfService());
 
 				grantedQoss.add(topicSubscription.qos().value());

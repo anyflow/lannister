@@ -20,20 +20,23 @@ import java.util.Date;
 import java.util.List;
 
 import io.netty.channel.ChannelFutureListener;
+import io.netty.channel.ChannelHandler.Sharable;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
 import io.netty.handler.codec.mqtt.MqttUnsubscribeMessage;
 import net.anyflow.lannister.AbnormalDisconnectEventArgs;
-import net.anyflow.lannister.message.MessageFactory;
 import net.anyflow.lannister.plugin.DisconnectEventListener;
 import net.anyflow.lannister.plugin.Plugins;
 import net.anyflow.lannister.plugin.UnsubscribeEventArgs;
 import net.anyflow.lannister.plugin.UnsubscribeEventListener;
 import net.anyflow.lannister.session.Session;
+import net.anyflow.lannister.topic.TopicSubscriber;
+import net.anyflow.lannister.topic.TopicSubscription;
 
+@Sharable
 public class UnsubscribeReceiver extends SimpleChannelInboundHandler<MqttUnsubscribeMessage> {
-
 	private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(UnsubscribeReceiver.class);
+	public static final UnsubscribeReceiver INSTANCE = new UnsubscribeReceiver();
 
 	@Override
 	protected void channelRead0(ChannelHandlerContext ctx, MqttUnsubscribeMessage msg) throws Exception {
@@ -57,7 +60,10 @@ public class UnsubscribeReceiver extends SimpleChannelInboundHandler<MqttUnsubsc
 			return;
 		}
 
-		topicFilters.stream().forEach(tf -> session.topicSubscriptions().remove(tf));
+		topicFilters.stream().forEach(tf -> {
+			TopicSubscription.NEXUS.removeByKey(tf, session.clientId());
+			TopicSubscriber.NEXUS.removeByTopicFilter(session.clientId(), tf);
+		});
 
 		Plugins.INSTANCE.get(UnsubscribeEventListener.class).unsubscribed(new UnsubscribeEventArgs() {
 			@Override
@@ -71,6 +77,6 @@ public class UnsubscribeReceiver extends SimpleChannelInboundHandler<MqttUnsubsc
 			}
 		});
 
-		session.send(MessageFactory.unsuback(msg.variableHeader().messageId())); // [MQTT-2.3.1-7],[MQTT-3.10.4-4],[MQTT-3.10.4-5]
+		session.send(MqttMessageFactory.unsuback(msg.variableHeader().messageId()), null); // [MQTT-2.3.1-7],[MQTT-3.10.4-4],[MQTT-3.10.4-5]
 	}
 }

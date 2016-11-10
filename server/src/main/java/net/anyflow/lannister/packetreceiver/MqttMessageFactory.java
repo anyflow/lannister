@@ -14,14 +14,15 @@
  * limitations under the License.
  */
 
-package net.anyflow.lannister.message;
+package net.anyflow.lannister.packetreceiver;
 
 import java.util.List;
 
 import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
 
-import io.netty.buffer.Unpooled;
+import io.netty.buffer.ByteBuf;
+import io.netty.buffer.PooledByteBufAllocator;
 import io.netty.handler.codec.mqtt.MqttConnAckMessage;
 import io.netty.handler.codec.mqtt.MqttConnAckVariableHeader;
 import io.netty.handler.codec.mqtt.MqttConnectMessage;
@@ -43,9 +44,10 @@ import io.netty.handler.codec.mqtt.MqttSubscribePayload;
 import io.netty.handler.codec.mqtt.MqttTopicSubscription;
 import io.netty.handler.codec.mqtt.MqttUnsubAckMessage;
 import io.netty.util.CharsetUtil;
+import net.anyflow.lannister.message.ConnectOptions;
 import net.anyflow.lannister.plugin.IMessage;
 
-public class MessageFactory {
+public class MqttMessageFactory {
 	public static MqttConnectMessage connect(ConnectOptions options) {
 		MqttFixedHeader fixedHeader = new MqttFixedHeader(MqttMessageType.CONNECT, false, MqttQoS.AT_MOST_ONCE, false,
 				10);
@@ -77,7 +79,9 @@ public class MessageFactory {
 
 		MqttPublishVariableHeader variableHeader = new MqttPublishVariableHeader(message.topicName(), message.id());
 
-		return new MqttPublishMessage(fixedHeader, variableHeader, Unpooled.wrappedBuffer(message.message()));
+		ByteBuf buf = PooledByteBufAllocator.DEFAULT.buffer(message.message().length);
+
+		return new MqttPublishMessage(fixedHeader, variableHeader, buf.writeBytes(message.message()));
 	}
 
 	public static MqttPubAckMessage puback(int messageId) {

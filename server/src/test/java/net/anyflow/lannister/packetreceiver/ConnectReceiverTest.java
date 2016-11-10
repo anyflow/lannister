@@ -52,7 +52,7 @@ public class ConnectReceiverTest {
 	}
 
 	@Test
-	public void testNonCleanSessionWithoutClientId() throws Exception {
+	public void testNonCleanSessionWithoutClientId() throws Exception { // [MQTT-3.1.3-3]
 		ConnectOptions options = new ConnectOptions();
 		options.cleanSession(false);
 

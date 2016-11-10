@@ -30,6 +30,8 @@ import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.ChannelOption;
 import io.netty.channel.EventLoopGroup;
+import io.netty.channel.epoll.EpollEventLoopGroup;
+import io.netty.channel.epoll.EpollSocketChannel;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioSocketChannel;
@@ -47,6 +49,7 @@ import io.netty.handler.ssl.SslContext;
 import io.netty.handler.ssl.SslContextBuilder;
 import io.netty.handler.ssl.util.InsecureTrustManagerFactory;
 import io.netty.util.concurrent.DefaultThreadFactory;
+import net.anyflow.lannister.Literals;
 import net.anyflow.lannister.Settings;
 
 public class HttpClient implements IHttpClient {
@@ -147,8 +150,19 @@ public class HttpClient implements IHttpClient {
 
 		final HttpClientHandler clientHandler = new HttpClientHandler(receiver, httpRequest);
 
-		final EventLoopGroup group = new NioEventLoopGroup(1, new DefaultThreadFactory("client"));
-		bootstrap.group(group).channel(NioSocketChannel.class).handler(new ChannelInitializer<SocketChannel>() {
+		EventLoopGroup group;
+		Class<? extends SocketChannel> socketChannelClass;
+
+		if (Literals.NETTY_EPOLL.equals(Settings.INSTANCE.nettyTransportMode())) {
+			group = new EpollEventLoopGroup(1, new DefaultThreadFactory("client"));
+			socketChannelClass = EpollSocketChannel.class;
+		}
+		else {
+			group = new NioEventLoopGroup(1, new DefaultThreadFactory("client"));
+			socketChannelClass = NioSocketChannel.class;
+		}
+
+		bootstrap.group(group).channel(socketChannelClass).handler(new ChannelInitializer<SocketChannel>() {
 			@Override
 			protected void initChannel(SocketChannel ch) throws Exception {
 

@@ -1,8 +1,6 @@
 package net.anyflow.lannister.httphandler.api;
 
-import org.junit.AfterClass;
 import org.junit.Assert;
-import org.junit.BeforeClass;
 import org.junit.Test;
 
 import com.google.common.base.Strings;
@@ -14,15 +12,6 @@ import net.anyflow.lannister.http.HttpClient;
 import net.anyflow.lannister.http.HttpResponse;
 
 public class ClientsTest {
-
-	@BeforeClass
-	public static void setUpBeforeClass() throws Exception {
-	}
-
-	@AfterClass
-	public static void tearDownAfterClass() throws Exception {
-	}
-
 	@Test
 	public void testClients() throws Exception {
 		HttpClient client = new HttpClient("http://localhost:8090/api/clients");

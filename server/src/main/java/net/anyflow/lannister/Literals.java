@@ -27,4 +27,7 @@ public class Literals {
 	public static final String DATE_DEFAULT_FORMAT = "yy.MM.dd HH:mm:ss.SSS z";
 	public static final String DATE_TIME_FORMAT = "HH:mm:ss.SSS";
 	public static final String DATE_DEFAULT_TIMEZONE = "Asia/Seoul";
+
+	public static final String NETTY_EPOLL = "epoll";
+	public static final String NETTY_NIO = "NIO";
 }

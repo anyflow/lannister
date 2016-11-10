@@ -17,6 +17,7 @@
 package net.anyflow.lannister;
 
 import io.netty.channel.ChannelId;
+import net.anyflow.lannister.cluster.ClusterDataFactory;
 
 public class TestUtil {
 
@@ -34,7 +35,7 @@ public class TestUtil {
 		return new ChannelId() {
 			private static final long serialVersionUID = 3931333967922160660L;
 
-			Long idPostfix = Hazelcast.INSTANCE.getIdGenerator("unittest_embeddedchannel").newId();
+			Long idPostfix = ClusterDataFactory.INSTANCE.createIdGenerator("unittest_embeddedchannel").newId();
 
 			@Override
 			public int compareTo(ChannelId o) {

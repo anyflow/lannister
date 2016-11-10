@@ -22,6 +22,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Strings;
 
+import io.netty.handler.codec.http.HttpResponseStatus;
 import net.anyflow.lannister.http.HttpRequestHandler;
 import net.anyflow.lannister.session.Session;
 
@@ -32,21 +33,26 @@ public class Sessions extends HttpRequestHandler {
 
 	private String liveString() {
 		try {
-			return new ObjectMapper().writeValueAsString(Session.NEXUS.map().values().stream()
-					.filter(s -> s.isConnected(false)).collect(Collectors.toList()));
+			return new ObjectMapper().writeValueAsString(Session.NEXUS.keySet().stream()
+					.map(c -> Session.NEXUS.get(c)).filter(s -> s.isConnected(false)).collect(Collectors.toList()));
 		}
 		catch (JsonProcessingException e) {
 			logger.error(e.getMessage(), e);
+
+			this.httpResponse().setStatus(HttpResponseStatus.INTERNAL_SERVER_ERROR);
 			return null;
 		}
 	}
 
 	private String allString() {
 		try {
-			return new ObjectMapper().writeValueAsString(Session.NEXUS.map().values());
+			return new ObjectMapper().writeValueAsString(
+					Session.NEXUS.keySet().stream().map(c -> Session.NEXUS.get(c)).collect(Collectors.toList()));
 		}
 		catch (JsonProcessingException e) {
 			logger.error(e.getMessage(), e);
+
+			this.httpResponse().setStatus(HttpResponseStatus.INTERNAL_SERVER_ERROR);
 			return null;
 		}
 	}

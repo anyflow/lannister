@@ -18,21 +18,24 @@ package net.anyflow.lannister.message;
 
 import java.io.IOException;
 import java.util.Date;
-import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.hazelcast.nio.serialization.PortableReader;
-import com.hazelcast.nio.serialization.PortableWriter;
+import com.hazelcast.nio.ObjectDataInput;
+import com.hazelcast.nio.ObjectDataOutput;
 
 import net.anyflow.lannister.Literals;
 
-public abstract class MessageStatus implements com.hazelcast.nio.serialization.Portable {
+public abstract class MessageStatus implements com.hazelcast.nio.serialization.IdentifiedDataSerializable {
 
+	@JsonProperty
+	private String messageKey;
 	@JsonProperty
 	private String clientId;
 	@JsonProperty
-	private Integer messageId;
+	private int messageId;
+	@JsonProperty
+	private String topicName;
 	@JsonFormat(shape = JsonFormat.Shape.STRING, pattern = Literals.DATE_DEFAULT_FORMAT, timezone = Literals.DATE_DEFAULT_TIMEZONE)
 	@JsonProperty
 	private Date createTime;
@@ -43,19 +46,27 @@ public abstract class MessageStatus implements com.hazelcast.nio.serialization.P
 	public MessageStatus() { // just for Serialization
 	}
 
-	protected MessageStatus(String clientId, int messageId) {
+	protected MessageStatus(String messageKey, String clientId, int messageId, String topicName) {
+		this.messageKey = messageKey;
 		this.clientId = clientId;
 		this.messageId = messageId;
+		this.topicName = topicName;
 		this.createTime = new Date();
 		this.updateTime = createTime;
 	}
 
-	public String key() {
-		return Message.key(clientId, messageId);
+	public abstract String key();
+
+	public String messageKey() {
+		return messageKey;
 	}
 
 	public String clientId() {
 		return clientId;
+	}
+
+	public String topicName() {
+		return topicName;
 	}
 
 	public int messageId() {
@@ -70,32 +81,27 @@ public abstract class MessageStatus implements com.hazelcast.nio.serialization.P
 		return updateTime;
 	}
 
-	protected void writePortable(List<String> nullChecker, PortableWriter writer) throws IOException {
-		if (clientId != null) {
-			writer.writeUTF("clientId", clientId);
-			nullChecker.add("clientId");
-		}
-
-		if (messageId != null) {
-			writer.writeInt("messageId", messageId);
-			nullChecker.add("messageId");
-		}
-
-		if (createTime != null) {
-			writer.writeLong("createTime", createTime.getTime());
-			nullChecker.add("createTime");
-		}
-
-		if (updateTime != null) {
-			writer.writeLong("updateTime", updateTime.getTime());
-			nullChecker.add("updateTime");
-		}
+	@Override
+	public void writeData(ObjectDataOutput out) throws IOException {
+		out.writeUTF(messageKey);
+		out.writeUTF(clientId);
+		out.writeInt(messageId);
+		out.writeUTF(topicName);
+		out.writeLong(createTime != null ? createTime.getTime() : Long.MIN_VALUE);
+		out.writeLong(updateTime != null ? updateTime.getTime() : Long.MIN_VALUE);
 	}
 
-	public void readPortable(List<String> nullChecker, PortableReader reader) throws IOException {
-		if (nullChecker.contains("clientId")) clientId = reader.readUTF("clientId");
-		if (nullChecker.contains("messageId")) messageId = reader.readInt("messageId");
-		if (nullChecker.contains("createTime")) createTime = new Date(reader.readLong("createTime"));
-		if (nullChecker.contains("updateTime")) updateTime = new Date(reader.readLong("updateTime"));
+	@Override
+	public void readData(ObjectDataInput in) throws IOException {
+		messageKey = in.readUTF();
+		clientId = in.readUTF();
+		messageId = in.readInt();
+		topicName = in.readUTF();
+
+		long rawLong = in.readLong();
+		createTime = rawLong != Long.MIN_VALUE ? new Date(rawLong) : null;
+
+		rawLong = in.readLong();
+		updateTime = rawLong != Long.MIN_VALUE ? new Date(rawLong) : null;
 	}
 }

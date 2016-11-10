@@ -22,6 +22,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Strings;
 
+import io.netty.handler.codec.http.HttpResponseStatus;
 import net.anyflow.lannister.http.HttpRequestHandler;
 import net.anyflow.lannister.topic.Topic;
 
@@ -48,18 +49,22 @@ public class Topics extends HttpRequestHandler {
 
 	private String all() {
 		try {
-			return new ObjectMapper().writeValueAsString(Topic.NEXUS.map().values());
+			return new ObjectMapper().writeValueAsString(
+					Topic.NEXUS.keySet().stream().map(key -> Topic.NEXUS.get(key)).collect(Collectors.toList()));
 		}
 		catch (JsonProcessingException e) {
 			logger.error(e.getMessage(), e);
+
+			this.httpResponse().setStatus(HttpResponseStatus.INTERNAL_SERVER_ERROR);
 			return null;
 		}
 	}
 
 	private String nosys() {
 		try {
-			return new ObjectMapper().writeValueAsString(Topic.NEXUS.map().values().stream()
-					.filter(t -> !t.name().startsWith("$SYS")).collect(Collectors.toList()));
+			return new ObjectMapper()
+					.writeValueAsString(Topic.NEXUS.keySet().stream().filter(topicName -> !topicName.startsWith("$SYS"))
+							.map(key -> Topic.NEXUS.get(key)).collect(Collectors.toList()));
 		}
 		catch (JsonProcessingException e) {
 			logger.error(e.getMessage(), e);

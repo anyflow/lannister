@@ -17,15 +17,11 @@
 package net.anyflow.lannister.message;
 
 import java.io.IOException;
-import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.google.common.collect.Lists;
-import com.hazelcast.nio.serialization.ClassDefinition;
-import com.hazelcast.nio.serialization.ClassDefinitionBuilder;
-import com.hazelcast.nio.serialization.PortableReader;
-import com.hazelcast.nio.serialization.PortableWriter;
+import com.hazelcast.nio.ObjectDataInput;
+import com.hazelcast.nio.ObjectDataOutput;
 
 import io.netty.handler.codec.mqtt.MqttPublishMessage;
 import io.netty.handler.codec.mqtt.MqttQoS;
@@ -35,14 +31,15 @@ import net.anyflow.lannister.NettyUtil;
 import net.anyflow.lannister.plugin.IMessage;
 import net.anyflow.lannister.serialization.SerializableFactory;
 
-public class Message implements com.hazelcast.nio.serialization.Portable, IMessage, Cloneable {
+public class Message implements com.hazelcast.nio.serialization.IdentifiedDataSerializable, IMessage, Cloneable {
+	public final static Messages NEXUS = new Messages();
 	public final static int ID = 1;
 
 	public static final int MAX_MESSAGE_ID_NUM = 0xffff;
 	public static final int MIN_MESSAGE_ID_NUM = 1;
 
 	@JsonProperty
-	private Integer id;
+	private int id;
 	@JsonProperty
 	private String topicName;
 	@JsonProperty
@@ -52,9 +49,13 @@ public class Message implements com.hazelcast.nio.serialization.Portable, IMessa
 	@JsonProperty
 	private MqttQoS qos;
 	@JsonProperty
-	private Boolean isRetain;
+	private boolean isRetain;
 
-	public Message() { // just for Serialization
+	public Message() {
+	}
+
+	public Message(ObjectDataInput in) throws IOException {
+		readData(in);
 	}
 
 	public Message(int id, String topicName, String publisherId, byte[] message, MqttQoS qos, boolean isRetain) {
@@ -64,6 +65,10 @@ public class Message implements com.hazelcast.nio.serialization.Portable, IMessa
 		this.message = message != null ? message : new byte[] {};
 		this.qos = qos;
 		this.isRetain = isRetain;
+	}
+
+	public String key() {
+		return Messages.key(publisherId, id);
 	}
 
 	/*
@@ -76,7 +81,7 @@ public class Message implements com.hazelcast.nio.serialization.Portable, IMessa
 		return id;
 	}
 
-	public void setId(int id) {
+	public void id(int id) {
 		this.id = id;
 	}
 
@@ -123,7 +128,7 @@ public class Message implements com.hazelcast.nio.serialization.Portable, IMessa
 		return qos;
 	}
 
-	public void setQos(MqttQoS qos) {
+	public void qos(MqttQoS qos) {
 		this.qos = qos;
 	}
 
@@ -149,17 +154,9 @@ public class Message implements com.hazelcast.nio.serialization.Portable, IMessa
 				.append(isRetain).append(']').toString();
 	}
 
-	public String key() {
-		return key(publisherId, id);
-	}
-
 	@Override
 	public Message clone() {
 		return new Message(id, topicName, publisherId, message, qos, isRetain);
-	}
-
-	public static String key(String clientId, int messageId) {
-		return clientId + "_" + Integer.toString(messageId);
 	}
 
 	@JsonIgnore
@@ -170,63 +167,31 @@ public class Message implements com.hazelcast.nio.serialization.Portable, IMessa
 
 	@JsonIgnore
 	@Override
-	public int getClassId() {
+	public int getId() {
 		return ID;
 	}
 
 	@Override
-	public void writePortable(PortableWriter writer) throws IOException {
-		List<String> nullChecker = Lists.newArrayList();
-
-		if (id != null) {
-			writer.writeInt("id", id);
-			nullChecker.add("id");
-		}
-
-		if (topicName != null) {
-			writer.writeUTF("topicName", topicName);
-			nullChecker.add("topicName");
-		}
-
-		if (publisherId != null) {
-			writer.writeUTF("publisherId", publisherId);
-			nullChecker.add("publisherId");
-		}
-
-		if (message != null) {
-			writer.writeByteArray("message", message);
-			nullChecker.add("message");
-		}
-
-		if (qos != null) {
-			writer.writeInt("qos", qos.value());
-			nullChecker.add("qos");
-		}
-
-		if (isRetain != null) {
-			writer.writeBoolean("isRetain", isRetain);
-			nullChecker.add("isRetain");
-		}
-
-		writer.writeUTFArray("nullChecker", nullChecker.toArray(new String[0]));
+	public void writeData(ObjectDataOutput out) throws IOException {
+		out.writeInt(id);
+		out.writeUTF(topicName);
+		out.writeUTF(publisherId);
+		out.writeByteArray(message);
+		out.writeInt(qos != null ? qos.value() : Byte.MIN_VALUE);
+		out.writeBoolean(isRetain);
 	}
 
 	@Override
-	public void readPortable(PortableReader reader) throws IOException {
-		List<String> nullChecker = Lists.newArrayList(reader.readUTFArray("nullChecker"));
+	public void readData(ObjectDataInput in) throws IOException {
+		id = in.readInt();
+		topicName = in.readUTF();
+		publisherId = in.readUTF();
+		message = in.readByteArray();
 
-		if (nullChecker.contains("id")) id = reader.readInt("id");
-		if (nullChecker.contains("topicName")) topicName = reader.readUTF("topicName");
-		if (nullChecker.contains("publisherId")) publisherId = reader.readUTF("publisherId");
-		if (nullChecker.contains("message")) message = reader.readByteArray("message");
-		if (nullChecker.contains("qos")) qos = MqttQoS.valueOf(reader.readInt("qos"));
-		if (nullChecker.contains("isRetain")) isRetain = reader.readBoolean("isRetain");
-	}
+		int rawInt = in.readInt();
+		qos = rawInt != Byte.MIN_VALUE ? MqttQoS.valueOf(rawInt) : null;
 
-	public static ClassDefinition classDefinition() {
-		return new ClassDefinitionBuilder(SerializableFactory.ID, ID).addIntField("id").addUTFField("topicName")
-				.addUTFField("publisherId").addByteArrayField("message").addIntField("qos").addBooleanField("isRetain")
-				.addUTFArrayField("nullChecker").build();
+		isRetain = in.readBoolean();
 	}
 
 	public static Message newMessage(String clientId, MqttPublishMessage published) {

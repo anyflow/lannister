@@ -20,15 +20,15 @@ public class SessionTest {
 		String testTopic = "testTopic/test";
 		Session session = new Session("1", "1", 1, 50, true, null);
 
-		TopicSubscription ts0 = new TopicSubscription("testTopic/#", MqttQoS.AT_MOST_ONCE);
-		TopicSubscription ts1 = new TopicSubscription("testTopic/+", MqttQoS.AT_LEAST_ONCE);
-		TopicSubscription ts2 = new TopicSubscription(testTopic, MqttQoS.EXACTLY_ONCE);
+		TopicSubscription ts0 = new TopicSubscription(session.clientId(), "testTopic/#", MqttQoS.AT_MOST_ONCE);
+		TopicSubscription ts1 = new TopicSubscription(session.clientId(), "testTopic/+", MqttQoS.AT_LEAST_ONCE);
+		TopicSubscription ts2 = new TopicSubscription(session.clientId(), testTopic, MqttQoS.EXACTLY_ONCE);
 
-		session.topicSubscriptions().put(ts0.topicFilter(), ts0);
-		session.topicSubscriptions().put(ts1.topicFilter(), ts1);
-		session.topicSubscriptions().put(ts2.topicFilter(), ts2);
+		TopicSubscription.NEXUS.put(ts0);
+		TopicSubscription.NEXUS.put(ts1);
+		TopicSubscription.NEXUS.put(ts2);
 
-		Assert.assertEquals(3, session.topicSubscriptions().size());
+		Assert.assertEquals(3, TopicSubscription.NEXUS.topicFiltersOf(session.clientId()).size());
 
 		TopicSubscription target = session.matches(testTopic);
 

@@ -25,12 +25,13 @@ import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
 import io.netty.handler.codec.mqtt.MqttQoS;
 import io.netty.util.CharsetUtil;
-import net.anyflow.lannister.Hazelcast;
 import net.anyflow.lannister.Settings;
 import net.anyflow.lannister.Statistics;
+import net.anyflow.lannister.cluster.ClusterDataFactory;
 import net.anyflow.lannister.message.Message;
 import net.anyflow.lannister.session.Session;
 import net.anyflow.lannister.topic.Topic;
+import net.anyflow.lannister.topic.TopicSubscriber;
 
 public class ScheduledExecutor extends ChannelInboundHandlerAdapter {
 	private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(ScheduledExecutor.class);
@@ -49,13 +50,14 @@ public class ScheduledExecutor extends ChannelInboundHandlerAdapter {
 		@Override
 		public void run() {
 			Statistics.INSTANCE.data().entrySet().stream().forEach(e -> {
+				if (TopicSubscriber.NEXUS.clientIdsOf(e.getKey()).size() <= 0) { return; }
+
 				byte[] msg = e.getValue().value().getBytes(CharsetUtil.UTF_8);
 
-				Message message = new Message(-1, e.getKey(), Hazelcast.INSTANCE.currentId(), msg, MqttQoS.AT_MOST_ONCE,
-						false);
-				Topic topic = Topic.NEXUS.prepare(message);
+				Message message = new Message(-1, e.getKey(), ClusterDataFactory.INSTANCE.currentId(), msg,
+						MqttQoS.AT_MOST_ONCE, false);
 
-				topic.publish(message);
+				Topic.NEXUS.prepare(message).publish(message);
 			});
 		}
 	}

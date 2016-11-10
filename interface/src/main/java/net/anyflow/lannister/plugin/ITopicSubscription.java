@@ -20,12 +20,14 @@ import io.netty.handler.codec.mqtt.MqttQoS;
 
 public interface ITopicSubscription {
 
+	String clientId();
+
 	String topicFilter();
 
 	MqttQoS qos();
 
 	default String log() {
-		return (new StringBuilder()).append("topicFilter=").append(topicFilter()).append(", qos=").append(qos())
-				.toString();
+		return (new StringBuilder()).append("clientId=").append(clientId()).append("topicFilter=").append(topicFilter())
+				.append(", qos=").append(qos()).toString();
 	}
 }

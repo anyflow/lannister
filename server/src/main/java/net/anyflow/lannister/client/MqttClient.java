@@ -27,6 +27,8 @@ import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.EventLoopGroup;
+import io.netty.channel.epoll.EpollEventLoopGroup;
+import io.netty.channel.epoll.EpollSocketChannel;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioSocketChannel;
@@ -40,10 +42,11 @@ import io.netty.handler.ssl.SslContext;
 import io.netty.handler.ssl.SslContextBuilder;
 import io.netty.handler.ssl.util.InsecureTrustManagerFactory;
 import io.netty.util.concurrent.DefaultThreadFactory;
+import net.anyflow.lannister.Literals;
 import net.anyflow.lannister.Settings;
 import net.anyflow.lannister.message.ConnectOptions;
 import net.anyflow.lannister.message.Message;
-import net.anyflow.lannister.message.MessageFactory;
+import net.anyflow.lannister.packetreceiver.MqttMessageFactory;
 
 public class MqttClient {
 	private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(MqttClient.class);
@@ -75,9 +78,19 @@ public class MqttClient {
 	}
 
 	public MqttConnectReturnCode connect() throws InterruptedException {
-		group = new NioEventLoopGroup(1, new DefaultThreadFactory("lannister/client"));
 
-		bootstrap.group(group).channel(NioSocketChannel.class).handler(new ChannelInitializer<SocketChannel>() {
+		Class<? extends SocketChannel> socketChannelClass;
+
+		if (Literals.NETTY_EPOLL.equals(Settings.INSTANCE.nettyTransportMode())) {
+			group = new EpollEventLoopGroup(1, new DefaultThreadFactory("client"));
+			socketChannelClass = EpollSocketChannel.class;
+		}
+		else {
+			group = new NioEventLoopGroup(1, new DefaultThreadFactory("client"));
+			socketChannelClass = NioSocketChannel.class;
+		}
+
+		bootstrap.group(group).channel(socketChannelClass).handler(new ChannelInitializer<SocketChannel>() {
 			@Override
 			protected void initChannel(SocketChannel ch) throws Exception {
 				if ("mqtts".equalsIgnoreCase(uri.getScheme())) {
@@ -96,7 +109,7 @@ public class MqttClient {
 		channel = bootstrap.connect(uri.getHost(), uri.getPort()).sync().channel();
 
 		normalizeMessage(options.will());
-		send(MessageFactory.connect(options));
+		send(MqttMessageFactory.connect(options));
 
 		synchronized (sharedObject.locker()) {
 			int timeout = Settings.INSTANCE.getInt("mqttclient.responseTimeoutSeconds", 15);
@@ -116,7 +129,7 @@ public class MqttClient {
 		if (!isConnected()) { return; }
 
 		if (sendDisconnect) {
-			send(MessageFactory.disconnect());
+			send(MqttMessageFactory.disconnect());
 		}
 
 		channel.disconnect().addListener(ChannelFutureListener.CLOSE);
@@ -149,11 +162,11 @@ public class MqttClient {
 
 	public void publish(Message message) {
 		normalizeMessage(message);
-		send(MessageFactory.publish(message, false));
+		send(MqttMessageFactory.publish(message, false));
 	}
 
 	public void subscribe(MqttTopicSubscription... topicSubscriptions) throws InterruptedException {
-		send(MessageFactory.subscribe(nextMessageId(), topicSubscriptions));
+		send(MqttMessageFactory.subscribe(nextMessageId(), topicSubscriptions));
 
 		// TODO error handling,store subscription
 	}
@@ -171,7 +184,7 @@ public class MqttClient {
 	private void normalizeMessage(Message message) {
 		if (message == null) { return; }
 
-		message.setId(nextMessageId());
+		message.id(nextMessageId());
 		message.publisherId(this.options.clientId());
 	}
 

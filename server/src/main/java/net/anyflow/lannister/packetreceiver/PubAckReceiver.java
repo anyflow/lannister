@@ -19,6 +19,7 @@ package net.anyflow.lannister.packetreceiver;
 import java.util.Date;
 
 import io.netty.channel.ChannelFutureListener;
+import io.netty.channel.ChannelHandler.Sharable;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
 import io.netty.handler.codec.mqtt.MqttPubAckMessage;
@@ -29,13 +30,11 @@ import net.anyflow.lannister.plugin.DeliveredEventListener;
 import net.anyflow.lannister.plugin.DisconnectEventListener;
 import net.anyflow.lannister.plugin.Plugins;
 import net.anyflow.lannister.session.Session;
-import net.anyflow.lannister.topic.Topic;
-import net.anyflow.lannister.topic.TopicSubscriber;
-import net.anyflow.lannister.topic.Topics.ClientType;
 
+@Sharable
 public class PubAckReceiver extends SimpleChannelInboundHandler<MqttPubAckMessage> {
-
 	private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(PubAckReceiver.class);
+	public static final PubAckReceiver INSTANCE = new PubAckReceiver();
 
 	@Override
 	protected void channelRead0(ChannelHandlerContext ctx, MqttPubAckMessage msg) throws Exception {
@@ -55,32 +54,26 @@ public class PubAckReceiver extends SimpleChannelInboundHandler<MqttPubAckMessag
 		String clientId = session.clientId();
 		int messageId = msg.variableHeader().messageId();
 
-		Topic topic = Topic.NEXUS.get(clientId, messageId, ClientType.SUBSCRIBER);
-		if (topic == null) {
-			logger.error("Topic does not exist [clientId={}, messageId={}]", clientId, messageId);
+		OutboundMessageStatus status = OutboundMessageStatus.NEXUS.removeByKey(messageId, clientId);
+		if (status == null) {
+			logger.error("PUBACK target does not exist [clientId={}, messageId={}]", clientId, messageId);
 			session.dispose(true); // [MQTT-3.3.5-2]
 			return;
 		}
 
-		final TopicSubscriber topicSubscriber = topic.subscribers().get(clientId);
+		ctx.channel().eventLoop()
+				.execute(() -> Plugins.INSTANCE.get(DeliveredEventListener.class).delivered(new DeliveredEventArgs() {
+					@Override
+					public String clientId() {
+						return clientId;
+					}
 
-		OutboundMessageStatus status = topicSubscriber.outboundMessageStatuses().get(messageId);
+					@Override
+					public int messageId() {
+						return messageId;
+					}
+				}));
 
-		if (status != null) {
-			Plugins.INSTANCE.get(DeliveredEventListener.class).delivered(new DeliveredEventArgs() {
-				@Override
-				public String clientId() {
-					return clientId;
-				}
-
-				@Override
-				public int messageId() {
-					return messageId;
-				}
-			});
-		}
-
-		topicSubscriber.removeOutboundMessageStatus(messageId);
 		logger.debug("Outbound message status REMOVED [clientId={}, messageId={}]", clientId, messageId);
 	}
 }

@@ -18,24 +18,19 @@ package net.anyflow.lannister.message;
 
 import java.io.IOException;
 import java.util.Date;
-import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.google.common.collect.Lists;
-import com.hazelcast.nio.serialization.ClassDefinition;
-import com.hazelcast.nio.serialization.ClassDefinitionBuilder;
-import com.hazelcast.nio.serialization.PortableReader;
-import com.hazelcast.nio.serialization.PortableWriter;
+import com.hazelcast.nio.ObjectDataInput;
+import com.hazelcast.nio.ObjectDataOutput;
 
 import io.netty.handler.codec.mqtt.MqttQoS;
 import net.anyflow.lannister.serialization.SerializableFactory;
 
 public class OutboundMessageStatus extends MessageStatus {
+	public static final OutboundMessageStatuses NEXUS = new OutboundMessageStatuses();
 	public static final int ID = 3;
 
-	@JsonProperty
-	private String messageKey;
 	@JsonProperty
 	private Status status;
 	@JsonProperty
@@ -44,16 +39,17 @@ public class OutboundMessageStatus extends MessageStatus {
 	public OutboundMessageStatus() { // just for Serialization
 	}
 
-	public OutboundMessageStatus(String messageKey, String clientId, int messageId, Status status, MqttQoS qos) {
-		super(clientId, messageId);
+	public OutboundMessageStatus(String messageKey, String clientId, int messageId, String topicName, Status status,
+			MqttQoS qos) {
+		super(messageKey, clientId, messageId, topicName);
 
-		this.messageKey = messageKey;
 		this.status = status;
 		this.qos = qos;
 	}
 
-	public String messageKey() {
-		return messageKey;
+	@Override
+	public String key() {
+		return OutboundMessageStatuses.key(messageId(), clientId());
 	}
 
 	public Status status() {
@@ -77,47 +73,27 @@ public class OutboundMessageStatus extends MessageStatus {
 
 	@JsonIgnore
 	@Override
-	public int getClassId() {
+	public int getId() {
 		return ID;
 	}
 
 	@Override
-	public void writePortable(PortableWriter writer) throws IOException {
-		List<String> nullChecker = Lists.newArrayList();
+	public void writeData(ObjectDataOutput out) throws IOException {
+		super.writeData(out);
 
-		writePortable(nullChecker, writer);
-
-		if (messageKey != null) {
-			writer.writeUTF("messageKey", messageKey);
-			nullChecker.add("messageKey");
-		}
-		if (status != null) {
-			writer.writeByte("status", status.value());
-			nullChecker.add("status");
-		}
-		if (qos != null) {
-			writer.writeInt("qos", qos.value());
-			nullChecker.add("qos");
-		}
-
-		writer.writeUTFArray("nullChecker", nullChecker.toArray(new String[0]));
+		out.writeByte(status != null ? status.value() : Byte.MIN_VALUE);
+		out.writeInt(qos != null ? qos.value() : Byte.MIN_VALUE);
 	}
 
 	@Override
-	public void readPortable(PortableReader reader) throws IOException {
-		List<String> nullChecker = Lists.newArrayList(reader.readUTFArray("nullChecker"));
+	public void readData(ObjectDataInput in) throws IOException {
+		super.readData(in);
 
-		readPortable(nullChecker, reader);
+		Byte rawByte = in.readByte();
+		status = rawByte != Byte.MIN_VALUE ? Status.valueOf(rawByte) : null;
 
-		if (nullChecker.contains("messageKey")) messageKey = reader.readUTF("messageKey");
-		if (nullChecker.contains("status")) status = Status.valueOf(reader.readByte("status"));
-		if (nullChecker.contains("qos")) qos = MqttQoS.valueOf(reader.readInt("qos"));
-	}
-
-	public static ClassDefinition classDefinition() {
-		return new ClassDefinitionBuilder(SerializableFactory.ID, ID).addUTFField("clientId").addIntField("messageId")
-				.addLongField("createTime").addLongField("updateTime").addUTFField("messageKey").addByteField("status")
-				.addIntField("qos").addUTFArrayField("nullChecker").build();
+		int rawInt = in.readInt();
+		qos = rawInt != Byte.MIN_VALUE ? MqttQoS.valueOf(rawInt) : null;
 	}
 
 	public enum Status {
