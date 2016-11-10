@@ -15,7 +15,7 @@
  -->
 # Lannister
 
-[![Build Status](https://travis-ci.org/anyflow/lannister.svg?branch=develop)](https://travis-ci.org/anyflow/lannister/branches) [![Codacy Badge](https://api.codacy.com/project/badge/Grade/8d72feca76504d89a9846beecbbbc34b)](https://www.codacy.com/app/anyflow/lannister?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=anyflow/lannister&amp;utm_campaign=Badge_Grade) [![Codacy Badge](https://api.codacy.com/project/badge/Coverage/8d72feca76504d89a9846beecbbbc34b)](https://www.codacy.com/app/anyflow/lannister?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=anyflow/lannister&amp;utm_campaign=Badge_Coverage)
+[![Build Status](https://travis-ci.org/anyflow/lannister.svg?branch=master)](https://travis-ci.org/anyflow/lannister/branches) [![Codacy Badge](https://api.codacy.com/project/badge/Grade/8d72feca76504d89a9846beecbbbc34b)](https://www.codacy.com/app/anyflow/lannister?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=anyflow/lannister&amp;utm_campaign=Badge_Grade) [![Codacy Badge](https://api.codacy.com/project/badge/Coverage/8d72feca76504d89a9846beecbbbc34b)](https://www.codacy.com/app/anyflow/lannister?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=anyflow/lannister&amp;utm_campaign=Badge_Coverage)
 
 Lannister is a lightweight MQTT broker equipped with full specifications support, Clustering, WebSocket, SSL written in Java.
 
@@ -26,7 +26,7 @@ Lannister is a lightweight MQTT broker equipped with full specifications support
   * QoS 0,1,2 on Publish / Subscribe
   * Clean / Persistent Session
   * Retained / Will Message
-  * For more information, refer [Specification Conformance Test/Review Report](./specification.html).
+  * For more information, refer [Specification Conformance Test/Review Report](http://anyflow.github.io/lannister/specification.html).
 * **Clustering**
   * Distribution Transparency / High Availability / Distributed Cache
   * Easy, elastic Scaling out
