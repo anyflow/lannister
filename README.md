@@ -26,7 +26,7 @@ Lannister is a lightweight MQTT broker equipped with full specifications support
   * QoS 0,1,2 on Publish / Subscribe
   * Clean / Persistent Session
   * Retained / Will Message
-  * For more information, refer [Specification Conformance Test/Review Report](./specification.html).
+  * For more information, refer [Specification Conformance Test/Review Report](http://anyflow.github.io/lannister/specification.html).
 * **Clustering**
   * Distribution Transparency / High Availability / Distributed Cache
   * Easy, elastic Scaling out
