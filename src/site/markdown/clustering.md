@@ -1,6 +1,6 @@
 ## `[DRAFT]` Clustering
 
-Lannister's clustering features mainly rely on Hazelcast and follows its guidance strictly, hence the documentation focused on general clustering characteristics of Lannister and configuration used. For detailed information and fine tuning, refer [Hazelcast Reference Manual](http://docs.hazelcast.org/docs/3.7/manual/html-single/index.html).
+Lannister's clustering features heavily rely on Hazelcast and follows its guidance strictly, hence the documentation focused on general clustering characteristics of Lannister and configuration used. For detailed information and fine tuning, refer [Hazelcast Reference Manual](http://docs.hazelcast.org/docs/3.7/manual/html-single/index.html).
 
 ### Characteristics
 * **Distribution Transparency** : Clustered data are fully accessible on any node in the same cluster without knowing cluster information include location.
