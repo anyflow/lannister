@@ -18,7 +18,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>net.anyflow</groupId>
 	<artifactId>lannister</artifactId>
-	<version>0.9.8</version>
+	<version>0.9.9-SNAPSHOT</version>
 	<name>Lannister</name>
 	<url>https://anyflow.github.io/lannister</url>
 	<description>MQTT broker with full spec support and Clustering/WebSocket/SSL written in Java with using Netty/Hazelcast</description>
@@ -68,7 +68,7 @@
 		<url>http://github.com/anyflow/lannister</url>
 		<connection>scm:git:git@github.com:anyflow/lannister.git</connection>
 		<developerConnection>scm:git:git@github.com:anyflow/lannister.git</developerConnection>
-		<tag>v0.9.8</tag>
+		<tag>HEAD</tag>
 	</scm>
 	<modules>
 		<module>interface</module>
