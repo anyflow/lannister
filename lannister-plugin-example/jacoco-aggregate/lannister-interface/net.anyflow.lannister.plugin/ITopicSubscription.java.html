@@ -20,13 +20,15 @@ import io.netty.handler.codec.mqtt.MqttQoS;
 
 public interface ITopicSubscription {
 
+	String clientId();
+
 	String topicFilter();
 
 	MqttQoS qos();
 
 	default String log() {
-<span class="nc" id="L28">		return (new StringBuilder()).append(&quot;topicFilter=&quot;).append(topicFilter()).append(&quot;, qos=&quot;).append(qos())</span>
-<span class="nc" id="L29">				.toString();</span>
+<span class="nc" id="L30">		return (new StringBuilder()).append(&quot;clientId=&quot;).append(clientId()).append(&quot;topicFilter=&quot;).append(topicFilter())</span>
+<span class="nc" id="L31">				.append(&quot;, qos=&quot;).append(qos()).toString();</span>
 	}
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.7.7.201606060606</span></div></body></html>
