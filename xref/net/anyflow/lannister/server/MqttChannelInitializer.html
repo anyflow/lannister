@@ -66,7 +66,7 @@
 <a class="jxr_linenumber" name="L58" href="#L58">58</a>  			ch.pipeline().addLast(HttpObjectAggregator.<strong class="jxr_keyword">class</strong>.getName(), <strong class="jxr_keyword">new</strong> HttpObjectAggregator(1048576));
 <a class="jxr_linenumber" name="L59" href="#L59">59</a>  			ch.pipeline().addLast(HttpContentCompressor.<strong class="jxr_keyword">class</strong>.getName(), <strong class="jxr_keyword">new</strong> HttpContentCompressor());
 <a class="jxr_linenumber" name="L60" href="#L60">60</a>  			ch.pipeline().addLast(WebSocketServerProtocolHandler.<strong class="jxr_keyword">class</strong>.getName(),
-<a class="jxr_linenumber" name="L61" href="#L61">61</a>  					<strong class="jxr_keyword">new</strong> WebSocketServerProtocolHandler(websocketPath, <span class="jxr_string">"mqtt,mqttv3.1,mqttv3.1.1"</span>, <strong class="jxr_keyword">true</strong>, 65536));
+<a class="jxr_linenumber" name="L61" href="#L61">61</a>  					<strong class="jxr_keyword">new</strong> WebSocketServerProtocolHandler(websocketPath, <span class="jxr_string">"mqtt,mqttv3.1,mqttv3.1.1"</span>, <strong class="jxr_keyword">true</strong>, 65536)); <em class="jxr_comment">// [MQTT-6.0.0-3]</em>
 <a class="jxr_linenumber" name="L62" href="#L62">62</a>  			ch.pipeline().addLast(<strong class="jxr_keyword">new</strong> MqttWebSocketCodec());
 <a class="jxr_linenumber" name="L63" href="#L63">63</a>  		}
 <a class="jxr_linenumber" name="L64" href="#L64">64</a>  
@@ -75,12 +75,12 @@
 <a class="jxr_linenumber" name="L67" href="#L67">67</a>  		ch.pipeline().addLast(MqttDecoder.<strong class="jxr_keyword">class</strong>.getName(), <strong class="jxr_keyword">new</strong> MqttDecoder(maxBytesInMessage));
 <a class="jxr_linenumber" name="L68" href="#L68">68</a>  		ch.pipeline().addLast(MqttEncoder.<strong class="jxr_keyword">class</strong>.getName(), MqttEncoder.INSTANCE);
 <a class="jxr_linenumber" name="L69" href="#L69">69</a>  
-<a class="jxr_linenumber" name="L70" href="#L70">70</a>  		ch.pipeline().addLast(ConnectReceiver.<strong class="jxr_keyword">class</strong>.getName(), <strong class="jxr_keyword">new</strong> ConnectReceiver());
-<a class="jxr_linenumber" name="L71" href="#L71">71</a>  		ch.pipeline().addLast(PubAckReceiver.<strong class="jxr_keyword">class</strong>.getName(), <strong class="jxr_keyword">new</strong> PubAckReceiver());
-<a class="jxr_linenumber" name="L72" href="#L72">72</a>  		ch.pipeline().addLast(PublishReceiver.<strong class="jxr_keyword">class</strong>.getName(), <strong class="jxr_keyword">new</strong> PublishReceiver());
-<a class="jxr_linenumber" name="L73" href="#L73">73</a>  		ch.pipeline().addLast(SubscribeReceiver.<strong class="jxr_keyword">class</strong>.getName(), <strong class="jxr_keyword">new</strong> SubscribeReceiver());
-<a class="jxr_linenumber" name="L74" href="#L74">74</a>  		ch.pipeline().addLast(UnsubscribeReceiver.<strong class="jxr_keyword">class</strong>.getName(), <strong class="jxr_keyword">new</strong> UnsubscribeReceiver());
-<a class="jxr_linenumber" name="L75" href="#L75">75</a>  		ch.pipeline().addLast(GenericReceiver.<strong class="jxr_keyword">class</strong>.getName(), <strong class="jxr_keyword">new</strong> GenericReceiver());
+<a class="jxr_linenumber" name="L70" href="#L70">70</a>  		ch.pipeline().addLast(ConnectReceiver.<strong class="jxr_keyword">class</strong>.getName(), ConnectReceiver.INSTANCE);
+<a class="jxr_linenumber" name="L71" href="#L71">71</a>  		ch.pipeline().addLast(PubAckReceiver.<strong class="jxr_keyword">class</strong>.getName(), PubAckReceiver.INSTANCE);
+<a class="jxr_linenumber" name="L72" href="#L72">72</a>  		ch.pipeline().addLast(PublishReceiver.<strong class="jxr_keyword">class</strong>.getName(), PublishReceiver.INSTANCE);
+<a class="jxr_linenumber" name="L73" href="#L73">73</a>  		ch.pipeline().addLast(SubscribeReceiver.<strong class="jxr_keyword">class</strong>.getName(), SubscribeReceiver.INSTANCE);
+<a class="jxr_linenumber" name="L74" href="#L74">74</a>  		ch.pipeline().addLast(UnsubscribeReceiver.<strong class="jxr_keyword">class</strong>.getName(), UnsubscribeReceiver.INSTANCE);
+<a class="jxr_linenumber" name="L75" href="#L75">75</a>  		ch.pipeline().addLast(GenericReceiver.<strong class="jxr_keyword">class</strong>.getName(), GenericReceiver.INSTANCE);
 <a class="jxr_linenumber" name="L76" href="#L76">76</a>  	}
 <a class="jxr_linenumber" name="L77" href="#L77">77</a>  }
 </pre>

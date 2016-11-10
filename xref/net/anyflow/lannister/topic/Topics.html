@@ -26,123 +26,118 @@
 <a class="jxr_linenumber" name="L18" href="#L18">18</a>  
 <a class="jxr_linenumber" name="L19" href="#L19">19</a>  <strong class="jxr_keyword">import</strong> java.util.Collection;
 <a class="jxr_linenumber" name="L20" href="#L20">20</a>  <strong class="jxr_keyword">import</strong> java.util.List;
-<a class="jxr_linenumber" name="L21" href="#L21">21</a>  <strong class="jxr_keyword">import</strong> java.util.Map;
+<a class="jxr_linenumber" name="L21" href="#L21">21</a>  <strong class="jxr_keyword">import</strong> java.util.Set;
 <a class="jxr_linenumber" name="L22" href="#L22">22</a>  <strong class="jxr_keyword">import</strong> java.util.stream.Collectors;
 <a class="jxr_linenumber" name="L23" href="#L23">23</a>  
-<a class="jxr_linenumber" name="L24" href="#L24">24</a>  <strong class="jxr_keyword">import</strong> com.google.common.collect.Maps;
-<a class="jxr_linenumber" name="L25" href="#L25">25</a>  <strong class="jxr_keyword">import</strong> com.hazelcast.core.IMap;
-<a class="jxr_linenumber" name="L26" href="#L26">26</a>  <strong class="jxr_keyword">import</strong> com.hazelcast.core.ITopic;
-<a class="jxr_linenumber" name="L27" href="#L27">27</a>  
-<a class="jxr_linenumber" name="L28" href="#L28">28</a>  <strong class="jxr_keyword">import</strong> net.anyflow.lannister.Hazelcast;
-<a class="jxr_linenumber" name="L29" href="#L29">29</a>  <strong class="jxr_keyword">import</strong> net.anyflow.lannister.message.Message;
-<a class="jxr_linenumber" name="L30" href="#L30">30</a>  <strong class="jxr_keyword">import</strong> net.anyflow.lannister.session.Sessions;
-<a class="jxr_linenumber" name="L31" href="#L31">31</a>  
-<a class="jxr_linenumber" name="L32" href="#L32">32</a>  <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">class</strong> <a href="../../../../net/anyflow/lannister/topic/Topics.html">Topics</a> {
-<a class="jxr_linenumber" name="L33" href="#L33">33</a>  	@SuppressWarnings(<span class="jxr_string">"unused"</span>)
-<a class="jxr_linenumber" name="L34" href="#L34">34</a>  	<strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">final</strong> org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(Topics.<strong class="jxr_keyword">class</strong>);
-<a class="jxr_linenumber" name="L35" href="#L35">35</a>  
-<a class="jxr_linenumber" name="L36" href="#L36">36</a>  	<strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">final</strong> IMap&lt;String, Topic&gt; topics;
-<a class="jxr_linenumber" name="L37" href="#L37">37</a>  	<strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">final</strong> ITopic&lt;Notification&gt; notifier;
-<a class="jxr_linenumber" name="L38" href="#L38">38</a>  
-<a class="jxr_linenumber" name="L39" href="#L39">39</a>  	<strong class="jxr_keyword">protected</strong> <a href="../../../../net/anyflow/lannister/topic/Topics.html">Topics</a>(<a href="../../../../net/anyflow/lannister/session/Sessions.html">Sessions</a> sessions) {
-<a class="jxr_linenumber" name="L40" href="#L40">40</a>  		<strong class="jxr_keyword">this</strong>.topics = Hazelcast.INSTANCE.getMap(<span class="jxr_string">"topics"</span>);
-<a class="jxr_linenumber" name="L41" href="#L41">41</a>  		<strong class="jxr_keyword">this</strong>.notifier = Hazelcast.INSTANCE.getTopic(<span class="jxr_string">"publishNotifier"</span>);
-<a class="jxr_linenumber" name="L42" href="#L42">42</a>  		<strong class="jxr_keyword">this</strong>.notifier.addMessageListener(sessions);
-<a class="jxr_linenumber" name="L43" href="#L43">43</a>  	}
-<a class="jxr_linenumber" name="L44" href="#L44">44</a>  
-<a class="jxr_linenumber" name="L45" href="#L45">45</a>  	<strong class="jxr_keyword">public</strong> IMap&lt;String, Topic&gt; map() {
-<a class="jxr_linenumber" name="L46" href="#L46">46</a>  		<strong class="jxr_keyword">return</strong> topics;
-<a class="jxr_linenumber" name="L47" href="#L47">47</a>  	}
-<a class="jxr_linenumber" name="L48" href="#L48">48</a>  
-<a class="jxr_linenumber" name="L49" href="#L49">49</a>  	<strong class="jxr_keyword">public</strong> ITopic&lt;Notification&gt; notifier() {
-<a class="jxr_linenumber" name="L50" href="#L50">50</a>  		<strong class="jxr_keyword">return</strong> notifier;
-<a class="jxr_linenumber" name="L51" href="#L51">51</a>  	}
-<a class="jxr_linenumber" name="L52" href="#L52">52</a>  
-<a class="jxr_linenumber" name="L53" href="#L53">53</a>  	<strong class="jxr_keyword">public</strong> <a href="../../../../net/anyflow/lannister/topic/Topic.html">Topic</a> get(String name) {
-<a class="jxr_linenumber" name="L54" href="#L54">54</a>  		<strong class="jxr_keyword">return</strong> topics.get(name);
-<a class="jxr_linenumber" name="L55" href="#L55">55</a>  	}
-<a class="jxr_linenumber" name="L56" href="#L56">56</a>  
-<a class="jxr_linenumber" name="L57" href="#L57">57</a>  	<strong class="jxr_keyword">public</strong> enum <a href="../../../../net/anyflow/lannister/topic/Topics.html">ClientType</a> {
-<a class="jxr_linenumber" name="L58" href="#L58">58</a>  		SUBSCRIBER,
-<a class="jxr_linenumber" name="L59" href="#L59">59</a>  		PUBLISHER
-<a class="jxr_linenumber" name="L60" href="#L60">60</a>  	}
-<a class="jxr_linenumber" name="L61" href="#L61">61</a>  
-<a class="jxr_linenumber" name="L62" href="#L62">62</a>  	<strong class="jxr_keyword">public</strong> <a href="../../../../net/anyflow/lannister/topic/Topic.html">Topic</a> get(String clientId, <strong class="jxr_keyword">int</strong> messageId, <a href="../../../../net/anyflow/lannister/topic/Topics.html">ClientType</a> clientType) {
-<a class="jxr_linenumber" name="L63" href="#L63">63</a>  		<strong class="jxr_keyword">switch</strong> (clientType) {
-<a class="jxr_linenumber" name="L64" href="#L64">64</a>  		<strong class="jxr_keyword">case</strong> SUBSCRIBER:
-<a class="jxr_linenumber" name="L65" href="#L65">65</a>  			<strong class="jxr_keyword">return</strong> getFromSubscriber(clientId, messageId);
-<a class="jxr_linenumber" name="L66" href="#L66">66</a>  
-<a class="jxr_linenumber" name="L67" href="#L67">67</a>  		<strong class="jxr_keyword">case</strong> PUBLISHER:
-<a class="jxr_linenumber" name="L68" href="#L68">68</a>  			<strong class="jxr_keyword">return</strong> getFromPublisher(clientId, messageId);
-<a class="jxr_linenumber" name="L69" href="#L69">69</a>  
-<a class="jxr_linenumber" name="L70" href="#L70">70</a>  		<strong class="jxr_keyword">default</strong>:
-<a class="jxr_linenumber" name="L71" href="#L71">71</a>  			<strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> IllegalArgumentException();
-<a class="jxr_linenumber" name="L72" href="#L72">72</a>  		}
-<a class="jxr_linenumber" name="L73" href="#L73">73</a>  	}
-<a class="jxr_linenumber" name="L74" href="#L74">74</a>  
-<a class="jxr_linenumber" name="L75" href="#L75">75</a>  	<strong class="jxr_keyword">private</strong> <a href="../../../../net/anyflow/lannister/topic/Topic.html">Topic</a> getFromPublisher(String publisherId, <strong class="jxr_keyword">int</strong> messageId) {
-<a class="jxr_linenumber" name="L76" href="#L76">76</a>  		<strong class="jxr_keyword">return</strong> topics.values().parallelStream().filter(t -&gt; t.getInboundMessageStatus(publisherId, messageId) != <strong class="jxr_keyword">null</strong>)
-<a class="jxr_linenumber" name="L77" href="#L77">77</a>  				.findAny().orElse(<strong class="jxr_keyword">null</strong>);
-<a class="jxr_linenumber" name="L78" href="#L78">78</a>  	}
-<a class="jxr_linenumber" name="L79" href="#L79">79</a>  
-<a class="jxr_linenumber" name="L80" href="#L80">80</a>  	<strong class="jxr_keyword">private</strong> <a href="../../../../net/anyflow/lannister/topic/Topic.html">Topic</a> getFromSubscriber(String subscriberId, <strong class="jxr_keyword">int</strong> messageId) {
-<a class="jxr_linenumber" name="L81" href="#L81">81</a>  		<strong class="jxr_keyword">return</strong> topics.values().stream().filter(t -&gt; {
-<a class="jxr_linenumber" name="L82" href="#L82">82</a>  			TopicSubscriber ts = t.subscribers().get(subscriberId);
+<a class="jxr_linenumber" name="L24" href="#L24">24</a>  <strong class="jxr_keyword">import</strong> com.google.common.collect.Sets;
+<a class="jxr_linenumber" name="L25" href="#L25">25</a>  <strong class="jxr_keyword">import</strong> com.hazelcast.core.ITopic;
+<a class="jxr_linenumber" name="L26" href="#L26">26</a>  
+<a class="jxr_linenumber" name="L27" href="#L27">27</a>  <strong class="jxr_keyword">import</strong> net.anyflow.lannister.cluster.ClusterDataFactory;
+<a class="jxr_linenumber" name="L28" href="#L28">28</a>  <strong class="jxr_keyword">import</strong> net.anyflow.lannister.cluster.Map;
+<a class="jxr_linenumber" name="L29" href="#L29">29</a>  <strong class="jxr_keyword">import</strong> net.anyflow.lannister.message.InboundMessageStatus;
+<a class="jxr_linenumber" name="L30" href="#L30">30</a>  <strong class="jxr_keyword">import</strong> net.anyflow.lannister.message.Message;
+<a class="jxr_linenumber" name="L31" href="#L31">31</a>  <strong class="jxr_keyword">import</strong> net.anyflow.lannister.message.OutboundMessageStatus;
+<a class="jxr_linenumber" name="L32" href="#L32">32</a>  <strong class="jxr_keyword">import</strong> net.anyflow.lannister.session.Sessions;
+<a class="jxr_linenumber" name="L33" href="#L33">33</a>  
+<a class="jxr_linenumber" name="L34" href="#L34">34</a>  <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">class</strong> <a href="../../../../net/anyflow/lannister/topic/Topics.html">Topics</a> {
+<a class="jxr_linenumber" name="L35" href="#L35">35</a>  	@SuppressWarnings(<span class="jxr_string">"unused"</span>)
+<a class="jxr_linenumber" name="L36" href="#L36">36</a>  	<strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">final</strong> org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(Topics.<strong class="jxr_keyword">class</strong>);
+<a class="jxr_linenumber" name="L37" href="#L37">37</a>  
+<a class="jxr_linenumber" name="L38" href="#L38">38</a>  	<strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">final</strong> Map&lt;String, Topic&gt; topics;
+<a class="jxr_linenumber" name="L39" href="#L39">39</a>  	<strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">final</strong> ITopic&lt;Notification&gt; notifier;
+<a class="jxr_linenumber" name="L40" href="#L40">40</a>  
+<a class="jxr_linenumber" name="L41" href="#L41">41</a>  	<strong class="jxr_keyword">protected</strong> <a href="../../../../net/anyflow/lannister/topic/Topics.html">Topics</a>(<a href="../../../../net/anyflow/lannister/session/Sessions.html">Sessions</a> sessions) {
+<a class="jxr_linenumber" name="L42" href="#L42">42</a>  		<strong class="jxr_keyword">this</strong>.topics = ClusterDataFactory.INSTANCE.createMap(<span class="jxr_string">"topics"</span>);
+<a class="jxr_linenumber" name="L43" href="#L43">43</a>  		<strong class="jxr_keyword">this</strong>.notifier = ClusterDataFactory.INSTANCE.createTopic(<span class="jxr_string">"publishNotifier"</span>);
+<a class="jxr_linenumber" name="L44" href="#L44">44</a>  		<strong class="jxr_keyword">this</strong>.notifier.addMessageListener(sessions);
+<a class="jxr_linenumber" name="L45" href="#L45">45</a>  	}
+<a class="jxr_linenumber" name="L46" href="#L46">46</a>  
+<a class="jxr_linenumber" name="L47" href="#L47">47</a>  	<strong class="jxr_keyword">public</strong> Set&lt;String&gt; keySet() {
+<a class="jxr_linenumber" name="L48" href="#L48">48</a>  		<strong class="jxr_keyword">return</strong> Sets.newHashSet(topics.keySet());
+<a class="jxr_linenumber" name="L49" href="#L49">49</a>  	}
+<a class="jxr_linenumber" name="L50" href="#L50">50</a>  
+<a class="jxr_linenumber" name="L51" href="#L51">51</a>  	<strong class="jxr_keyword">public</strong> ITopic&lt;Notification&gt; notifier() {
+<a class="jxr_linenumber" name="L52" href="#L52">52</a>  		<strong class="jxr_keyword">return</strong> notifier;
+<a class="jxr_linenumber" name="L53" href="#L53">53</a>  	}
+<a class="jxr_linenumber" name="L54" href="#L54">54</a>  
+<a class="jxr_linenumber" name="L55" href="#L55">55</a>  	<strong class="jxr_keyword">public</strong> <a href="../../../../net/anyflow/lannister/topic/Topic.html">Topic</a> get(String name) {
+<a class="jxr_linenumber" name="L56" href="#L56">56</a>  		<strong class="jxr_keyword">return</strong> topics.get(name);
+<a class="jxr_linenumber" name="L57" href="#L57">57</a>  	}
+<a class="jxr_linenumber" name="L58" href="#L58">58</a>  
+<a class="jxr_linenumber" name="L59" href="#L59">59</a>  	<strong class="jxr_keyword">public</strong> enum <a href="../../../../net/anyflow/lannister/topic/Topics.html">ClientType</a> {
+<a class="jxr_linenumber" name="L60" href="#L60">60</a>  		SUBSCRIBER,
+<a class="jxr_linenumber" name="L61" href="#L61">61</a>  		PUBLISHER
+<a class="jxr_linenumber" name="L62" href="#L62">62</a>  	}
+<a class="jxr_linenumber" name="L63" href="#L63">63</a>  
+<a class="jxr_linenumber" name="L64" href="#L64">64</a>  	<strong class="jxr_keyword">public</strong> <a href="../../../../net/anyflow/lannister/topic/Topic.html">Topic</a> get(String clientId, <strong class="jxr_keyword">int</strong> messageId, <a href="../../../../net/anyflow/lannister/topic/Topics.html">ClientType</a> clientType) {
+<a class="jxr_linenumber" name="L65" href="#L65">65</a>  		<strong class="jxr_keyword">switch</strong> (clientType) {
+<a class="jxr_linenumber" name="L66" href="#L66">66</a>  		<strong class="jxr_keyword">case</strong> SUBSCRIBER:
+<a class="jxr_linenumber" name="L67" href="#L67">67</a>  			<strong class="jxr_keyword">return</strong> getFromSubscriber(clientId, messageId);
+<a class="jxr_linenumber" name="L68" href="#L68">68</a>  
+<a class="jxr_linenumber" name="L69" href="#L69">69</a>  		<strong class="jxr_keyword">case</strong> PUBLISHER:
+<a class="jxr_linenumber" name="L70" href="#L70">70</a>  			<strong class="jxr_keyword">return</strong> getFromPublisher(clientId, messageId);
+<a class="jxr_linenumber" name="L71" href="#L71">71</a>  
+<a class="jxr_linenumber" name="L72" href="#L72">72</a>  		<strong class="jxr_keyword">default</strong>:
+<a class="jxr_linenumber" name="L73" href="#L73">73</a>  			<strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> IllegalArgumentException();
+<a class="jxr_linenumber" name="L74" href="#L74">74</a>  		}
+<a class="jxr_linenumber" name="L75" href="#L75">75</a>  	}
+<a class="jxr_linenumber" name="L76" href="#L76">76</a>  
+<a class="jxr_linenumber" name="L77" href="#L77">77</a>  	<strong class="jxr_keyword">private</strong> <a href="../../../../net/anyflow/lannister/topic/Topic.html">Topic</a> getFromPublisher(String publisherId, <strong class="jxr_keyword">int</strong> messageId) {
+<a class="jxr_linenumber" name="L78" href="#L78">78</a>  		InboundMessageStatus status = InboundMessageStatus.NEXUS.getBy(messageId, publisherId);
+<a class="jxr_linenumber" name="L79" href="#L79">79</a>  		<strong class="jxr_keyword">if</strong> (status == <strong class="jxr_keyword">null</strong>) { <strong class="jxr_keyword">return</strong> <strong class="jxr_keyword">null</strong>; }
+<a class="jxr_linenumber" name="L80" href="#L80">80</a>  
+<a class="jxr_linenumber" name="L81" href="#L81">81</a>  		<strong class="jxr_keyword">return</strong> Topic.NEXUS.get(status.topicName());
+<a class="jxr_linenumber" name="L82" href="#L82">82</a>  	}
 <a class="jxr_linenumber" name="L83" href="#L83">83</a>  
-<a class="jxr_linenumber" name="L84" href="#L84">84</a>  			<strong class="jxr_keyword">return</strong> ts != <strong class="jxr_keyword">null</strong> &amp;&amp; ts.outboundMessageStatuses().get(messageId) != <strong class="jxr_keyword">null</strong>;
-<a class="jxr_linenumber" name="L85" href="#L85">85</a>  		}).findAny().orElse(<strong class="jxr_keyword">null</strong>);
-<a class="jxr_linenumber" name="L86" href="#L86">86</a>  	}
+<a class="jxr_linenumber" name="L84" href="#L84">84</a>  	<strong class="jxr_keyword">private</strong> <a href="../../../../net/anyflow/lannister/topic/Topic.html">Topic</a> getFromSubscriber(String subscriberId, <strong class="jxr_keyword">int</strong> messageId) {
+<a class="jxr_linenumber" name="L85" href="#L85">85</a>  		OutboundMessageStatus status = OutboundMessageStatus.NEXUS.getBy(messageId, subscriberId);
+<a class="jxr_linenumber" name="L86" href="#L86">86</a>  		<strong class="jxr_keyword">if</strong> (status == <strong class="jxr_keyword">null</strong>) { <strong class="jxr_keyword">return</strong> <strong class="jxr_keyword">null</strong>; }
 <a class="jxr_linenumber" name="L87" href="#L87">87</a>  
-<a class="jxr_linenumber" name="L88" href="#L88">88</a>  	<strong class="jxr_keyword">protected</strong> <strong class="jxr_keyword">void</strong> persist(<a href="../../../../net/anyflow/lannister/topic/Topic.html">Topic</a> topic) {
-<a class="jxr_linenumber" name="L89" href="#L89">89</a>  		assert topic != <strong class="jxr_keyword">null</strong>;
+<a class="jxr_linenumber" name="L88" href="#L88">88</a>  		<strong class="jxr_keyword">return</strong> Topic.NEXUS.get(status.topicName());
+<a class="jxr_linenumber" name="L89" href="#L89">89</a>  	}
 <a class="jxr_linenumber" name="L90" href="#L90">90</a>  
-<a class="jxr_linenumber" name="L91" href="#L91">91</a>  		topics.set(topic.name(), topic);
-<a class="jxr_linenumber" name="L92" href="#L92">92</a>  	}
+<a class="jxr_linenumber" name="L91" href="#L91">91</a>  	<strong class="jxr_keyword">protected</strong> <strong class="jxr_keyword">void</strong> persist(<a href="../../../../net/anyflow/lannister/topic/Topic.html">Topic</a> topic) {
+<a class="jxr_linenumber" name="L92" href="#L92">92</a>  		assert topic != <strong class="jxr_keyword">null</strong>;
 <a class="jxr_linenumber" name="L93" href="#L93">93</a>  
-<a class="jxr_linenumber" name="L94" href="#L94">94</a>  	<strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> insert(<a href="../../../../net/anyflow/lannister/topic/Topic.html">Topic</a> topic) {
-<a class="jxr_linenumber" name="L95" href="#L95">95</a>  		assert topic != <strong class="jxr_keyword">null</strong>;
+<a class="jxr_linenumber" name="L94" href="#L94">94</a>  		topics.put(topic.name(), topic);
+<a class="jxr_linenumber" name="L95" href="#L95">95</a>  	}
 <a class="jxr_linenumber" name="L96" href="#L96">96</a>  
-<a class="jxr_linenumber" name="L97" href="#L97">97</a>  		topic.updateSubscribers();
-<a class="jxr_linenumber" name="L98" href="#L98">98</a>  
-<a class="jxr_linenumber" name="L99" href="#L99">99</a>  		<em class="jxr_comment">// TODO should be added in case of no subscriber &amp; no retained Message?</em>
-<a class="jxr_linenumber" name="L100" href="#L100">100</a> 		persist(topic);
-<a class="jxr_linenumber" name="L101" href="#L101">101</a> 	}
-<a class="jxr_linenumber" name="L102" href="#L102">102</a> 
-<a class="jxr_linenumber" name="L103" href="#L103">103</a> 	<strong class="jxr_keyword">public</strong> <a href="../../../../net/anyflow/lannister/topic/Topic.html">Topic</a> remove(<a href="../../../../net/anyflow/lannister/topic/Topic.html">Topic</a> topic) {
-<a class="jxr_linenumber" name="L104" href="#L104">104</a> 		assert topic != <strong class="jxr_keyword">null</strong>;
-<a class="jxr_linenumber" name="L105" href="#L105">105</a> 		topic.dispose();
-<a class="jxr_linenumber" name="L106" href="#L106">106</a> 
-<a class="jxr_linenumber" name="L107" href="#L107">107</a> 		<strong class="jxr_keyword">return</strong> topics.remove(topic.name());
-<a class="jxr_linenumber" name="L108" href="#L108">108</a> 	}
-<a class="jxr_linenumber" name="L109" href="#L109">109</a> 
-<a class="jxr_linenumber" name="L110" href="#L110">110</a> 	<strong class="jxr_keyword">public</strong> <a href="../../../../net/anyflow/lannister/topic/Topic.html">Topic</a> prepare(<a href="../../../../net/anyflow/lannister/message/Message.html">Message</a> message) {
-<a class="jxr_linenumber" name="L111" href="#L111">111</a> 		Topic topic = get(message.topicName());
-<a class="jxr_linenumber" name="L112" href="#L112">112</a> 		<strong class="jxr_keyword">if</strong> (topic == <strong class="jxr_keyword">null</strong>) {
-<a class="jxr_linenumber" name="L113" href="#L113">113</a> 			topic = <strong class="jxr_keyword">new</strong> <a href="../../../../net/anyflow/lannister/topic/Topic.html">Topic</a>(message.topicName());
-<a class="jxr_linenumber" name="L114" href="#L114">114</a> 			insert(topic);
-<a class="jxr_linenumber" name="L115" href="#L115">115</a> 		}
-<a class="jxr_linenumber" name="L116" href="#L116">116</a> 
-<a class="jxr_linenumber" name="L117" href="#L117">117</a> 		<strong class="jxr_keyword">return</strong> topic;
-<a class="jxr_linenumber" name="L118" href="#L118">118</a> 	}
-<a class="jxr_linenumber" name="L119" href="#L119">119</a> 
-<a class="jxr_linenumber" name="L120" href="#L120">120</a> 	<strong class="jxr_keyword">public</strong> List&lt;Topic&gt; matches(String topicFilter) {
-<a class="jxr_linenumber" name="L121" href="#L121">121</a> 		<strong class="jxr_keyword">return</strong> topics.values().stream().filter(topic -&gt; TopicMatcher.match(topicFilter, topic.name()))
-<a class="jxr_linenumber" name="L122" href="#L122">122</a> 				.collect(Collectors.toList());
-<a class="jxr_linenumber" name="L123" href="#L123">123</a> 	}
-<a class="jxr_linenumber" name="L124" href="#L124">124</a> 
-<a class="jxr_linenumber" name="L125" href="#L125">125</a> 	<strong class="jxr_keyword">public</strong> Collection&lt;Topic&gt; matches(Collection&lt;String&gt; topicFilters) {
-<a class="jxr_linenumber" name="L126" href="#L126">126</a> 		Map&lt;String, Topic&gt; ret = Maps.newHashMap();
-<a class="jxr_linenumber" name="L127" href="#L127">127</a> 
-<a class="jxr_linenumber" name="L128" href="#L128">128</a> 		topics.values().stream().forEach(t -&gt; {
-<a class="jxr_linenumber" name="L129" href="#L129">129</a> 			<strong class="jxr_keyword">if</strong> (topicFilters.stream().filter(tf -&gt; TopicMatcher.match(tf, t.name())).count() &lt;= 0) { <strong class="jxr_keyword">return</strong>; }
-<a class="jxr_linenumber" name="L130" href="#L130">130</a> 			<strong class="jxr_keyword">if</strong> (ret.containsKey(t.name())) { <strong class="jxr_keyword">return</strong>; }
-<a class="jxr_linenumber" name="L131" href="#L131">131</a> 
-<a class="jxr_linenumber" name="L132" href="#L132">132</a> 			ret.put(t.name(), t);
-<a class="jxr_linenumber" name="L133" href="#L133">133</a> 		});
-<a class="jxr_linenumber" name="L134" href="#L134">134</a> 
-<a class="jxr_linenumber" name="L135" href="#L135">135</a> 		<strong class="jxr_keyword">return</strong> ret.values();
-<a class="jxr_linenumber" name="L136" href="#L136">136</a> 	}
-<a class="jxr_linenumber" name="L137" href="#L137">137</a> }
+<a class="jxr_linenumber" name="L97" href="#L97">97</a>  	<strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> insert(<a href="../../../../net/anyflow/lannister/topic/Topic.html">Topic</a> topic) {
+<a class="jxr_linenumber" name="L98" href="#L98">98</a>  		assert topic != <strong class="jxr_keyword">null</strong>;
+<a class="jxr_linenumber" name="L99" href="#L99">99</a>  
+<a class="jxr_linenumber" name="L100" href="#L100">100</a> 		TopicSubscriber.NEXUS.updateByTopicName(topic.name());
+<a class="jxr_linenumber" name="L101" href="#L101">101</a> 
+<a class="jxr_linenumber" name="L102" href="#L102">102</a> 		<em class="jxr_comment">// TODO should be added in case of no subscriber &amp; no retained Message?</em>
+<a class="jxr_linenumber" name="L103" href="#L103">103</a> 		persist(topic);
+<a class="jxr_linenumber" name="L104" href="#L104">104</a> 	}
+<a class="jxr_linenumber" name="L105" href="#L105">105</a> 
+<a class="jxr_linenumber" name="L106" href="#L106">106</a> 	<strong class="jxr_keyword">public</strong> <a href="../../../../net/anyflow/lannister/topic/Topic.html">Topic</a> remove(<a href="../../../../net/anyflow/lannister/topic/Topic.html">Topic</a> topic) {
+<a class="jxr_linenumber" name="L107" href="#L107">107</a> 		assert topic != <strong class="jxr_keyword">null</strong>;
+<a class="jxr_linenumber" name="L108" href="#L108">108</a> 
+<a class="jxr_linenumber" name="L109" href="#L109">109</a> 		<strong class="jxr_keyword">return</strong> topics.remove(topic.name());
+<a class="jxr_linenumber" name="L110" href="#L110">110</a> 	}
+<a class="jxr_linenumber" name="L111" href="#L111">111</a> 
+<a class="jxr_linenumber" name="L112" href="#L112">112</a> 	<strong class="jxr_keyword">public</strong> <a href="../../../../net/anyflow/lannister/topic/Topic.html">Topic</a> prepare(<a href="../../../../net/anyflow/lannister/message/Message.html">Message</a> message) {
+<a class="jxr_linenumber" name="L113" href="#L113">113</a> 		Topic topic = get(message.topicName());
+<a class="jxr_linenumber" name="L114" href="#L114">114</a> 		<strong class="jxr_keyword">if</strong> (topic == <strong class="jxr_keyword">null</strong>) {
+<a class="jxr_linenumber" name="L115" href="#L115">115</a> 			topic = <strong class="jxr_keyword">new</strong> <a href="../../../../net/anyflow/lannister/topic/Topic.html">Topic</a>(message.topicName());
+<a class="jxr_linenumber" name="L116" href="#L116">116</a> 			insert(topic);
+<a class="jxr_linenumber" name="L117" href="#L117">117</a> 		}
+<a class="jxr_linenumber" name="L118" href="#L118">118</a> 
+<a class="jxr_linenumber" name="L119" href="#L119">119</a> 		<strong class="jxr_keyword">return</strong> topic;
+<a class="jxr_linenumber" name="L120" href="#L120">120</a> 	}
+<a class="jxr_linenumber" name="L121" href="#L121">121</a> 
+<a class="jxr_linenumber" name="L122" href="#L122">122</a> 	<strong class="jxr_keyword">public</strong> List&lt;Topic&gt; matches(String topicFilter) {
+<a class="jxr_linenumber" name="L123" href="#L123">123</a> 		<strong class="jxr_keyword">return</strong> topics.keySet().stream().filter(topicName -&gt; TopicMatcher.match(topicFilter, topicName))
+<a class="jxr_linenumber" name="L124" href="#L124">124</a> 				.map(topicName -&gt; topics.get(topicName)).collect(Collectors.toList());
+<a class="jxr_linenumber" name="L125" href="#L125">125</a> 	}
+<a class="jxr_linenumber" name="L126" href="#L126">126</a> 
+<a class="jxr_linenumber" name="L127" href="#L127">127</a> 	<strong class="jxr_keyword">public</strong> List&lt;Topic&gt; matches(Collection&lt;String&gt; topicFilters) {
+<a class="jxr_linenumber" name="L128" href="#L128">128</a> 		<strong class="jxr_keyword">return</strong> topics.keySet().stream()
+<a class="jxr_linenumber" name="L129" href="#L129">129</a> 				.filter(topicName -&gt; topicFilters.stream().filter(tf -&gt; TopicMatcher.match(tf, topicName)).count() &gt; 0)
+<a class="jxr_linenumber" name="L130" href="#L130">130</a> 				.map(topicName -&gt; topics.get(topicName)).collect(Collectors.toList());
+<a class="jxr_linenumber" name="L131" href="#L131">131</a> 	}
+<a class="jxr_linenumber" name="L132" href="#L132">132</a> }
 </pre>
 <hr/>
 <div id="footer">Copyright &#169; 2016 <a href="https://github.com/anyflow">anyflow.net</a>. All rights reserved.</div>

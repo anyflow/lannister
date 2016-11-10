@@ -124,86 +124,87 @@
 <a class="jxr_linenumber" name="L116" href="#L116">116</a> 	}
 <a class="jxr_linenumber" name="L117" href="#L117">117</a> 
 <a class="jxr_linenumber" name="L118" href="#L118">118</a> 	<strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">void</strong> handleStaticResource(<a href="../../../../net/anyflow/lannister/http/HttpResponse.html">HttpResponse</a> response, String webResourceRequestPath) <strong class="jxr_keyword">throws</strong> IOException {
-<a class="jxr_linenumber" name="L119" href="#L119">119</a> 		<strong class="jxr_keyword">if</strong> (webResourceRequestPath.startsWith(<span class="jxr_string">"/"</span>)) {
-<a class="jxr_linenumber" name="L120" href="#L120">120</a> 			webResourceRequestPath = webResourceRequestPath.substring(1, webResourceRequestPath.length());
-<a class="jxr_linenumber" name="L121" href="#L121">121</a> 		}
-<a class="jxr_linenumber" name="L122" href="#L122">122</a> 
-<a class="jxr_linenumber" name="L123" href="#L123">123</a> 		InputStream is = Application.<strong class="jxr_keyword">class</strong>.getClassLoader().getResourceAsStream(webResourceRequestPath);
-<a class="jxr_linenumber" name="L124" href="#L124">124</a> 
-<a class="jxr_linenumber" name="L125" href="#L125">125</a> 		<strong class="jxr_keyword">try</strong> {
-<a class="jxr_linenumber" name="L126" href="#L126">126</a> 			<strong class="jxr_keyword">if</strong> (is == <strong class="jxr_keyword">null</strong>) {
-<a class="jxr_linenumber" name="L127" href="#L127">127</a> 				set404Response(response);
-<a class="jxr_linenumber" name="L128" href="#L128">128</a> 			}
-<a class="jxr_linenumber" name="L129" href="#L129">129</a> 			<strong class="jxr_keyword">else</strong> {
-<a class="jxr_linenumber" name="L130" href="#L130">130</a> 				response.content().writeBytes(IOUtils.toByteArray(is));
-<a class="jxr_linenumber" name="L131" href="#L131">131</a> 
-<a class="jxr_linenumber" name="L132" href="#L132">132</a> 				String ext = Files.getFileExtension(webResourceRequestPath);
-<a class="jxr_linenumber" name="L133" href="#L133">133</a> 				response.headers().set(HttpHeaderNames.CONTENT_TYPE,
-<a class="jxr_linenumber" name="L134" href="#L134">134</a> 						Settings.INSTANCE.webResourceExtensionToMimes().get(ext));
-<a class="jxr_linenumber" name="L135" href="#L135">135</a> 			}
-<a class="jxr_linenumber" name="L136" href="#L136">136</a> 		}
-<a class="jxr_linenumber" name="L137" href="#L137">137</a> 		<strong class="jxr_keyword">finally</strong> {
-<a class="jxr_linenumber" name="L138" href="#L138">138</a> 			<strong class="jxr_keyword">if</strong> (is != <strong class="jxr_keyword">null</strong>) {
-<a class="jxr_linenumber" name="L139" href="#L139">139</a> 				is.close();
-<a class="jxr_linenumber" name="L140" href="#L140">140</a> 			}
-<a class="jxr_linenumber" name="L141" href="#L141">141</a> 		}
-<a class="jxr_linenumber" name="L142" href="#L142">142</a> 	}
-<a class="jxr_linenumber" name="L143" href="#L143">143</a> 
-<a class="jxr_linenumber" name="L144" href="#L144">144</a> 	<strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">void</strong> handleDynamicResource(<a href="../../../../net/anyflow/lannister/http/HttpRequest.html">HttpRequest</a> request, <a href="../../../../net/anyflow/lannister/http/HttpResponse.html">HttpResponse</a> response)
-<a class="jxr_linenumber" name="L145" href="#L145">145</a> 			<strong class="jxr_keyword">throws</strong> InstantiationException, IllegalAccessException, IOException, URISyntaxException {
-<a class="jxr_linenumber" name="L146" href="#L146">146</a> 		HttpRequestHandler.MatchedCriterion mc = HttpRequestHandler.findRequestHandler(<strong class="jxr_keyword">new</strong> URI(request.uri()).getPath(),
-<a class="jxr_linenumber" name="L147" href="#L147">147</a> 				request.method().toString());
-<a class="jxr_linenumber" name="L148" href="#L148">148</a> 
-<a class="jxr_linenumber" name="L149" href="#L149">149</a> 		<strong class="jxr_keyword">if</strong> (mc.requestHandlerClass() == <strong class="jxr_keyword">null</strong>) {
-<a class="jxr_linenumber" name="L150" href="#L150">150</a> 			set404Response(response);
-<a class="jxr_linenumber" name="L151" href="#L151">151</a> 		}
-<a class="jxr_linenumber" name="L152" href="#L152">152</a> 		<strong class="jxr_keyword">else</strong> {
-<a class="jxr_linenumber" name="L153" href="#L153">153</a> 			HttpRequestHandler handler = mc.requestHandlerClass().newInstance();
-<a class="jxr_linenumber" name="L154" href="#L154">154</a> 
-<a class="jxr_linenumber" name="L155" href="#L155">155</a> 			String webResourcePath = handler.getClass().getAnnotation(HttpRequestHandler.Handles.<strong class="jxr_keyword">class</strong>)
-<a class="jxr_linenumber" name="L156" href="#L156">156</a> 					.webResourcePath();
-<a class="jxr_linenumber" name="L157" href="#L157">157</a> 
-<a class="jxr_linenumber" name="L158" href="#L158">158</a> 			<strong class="jxr_keyword">if</strong> (HttpRequestHandler.NO_WEB_RESOURCE_PATH.equals(webResourcePath)) {
-<a class="jxr_linenumber" name="L159" href="#L159">159</a> 				response.setContent(
-<a class="jxr_linenumber" name="L160" href="#L160">160</a> 						handler.initialize(request.pathParameters(mc.pathParameters()), response).service());
-<a class="jxr_linenumber" name="L161" href="#L161">161</a> 			}
-<a class="jxr_linenumber" name="L162" href="#L162">162</a> 			<strong class="jxr_keyword">else</strong> {
-<a class="jxr_linenumber" name="L163" href="#L163">163</a> 				handleStaticResource(response, webResourcePath);
-<a class="jxr_linenumber" name="L164" href="#L164">164</a> 			}
-<a class="jxr_linenumber" name="L165" href="#L165">165</a> 		}
-<a class="jxr_linenumber" name="L166" href="#L166">166</a> 	}
-<a class="jxr_linenumber" name="L167" href="#L167">167</a> 
-<a class="jxr_linenumber" name="L168" href="#L168">168</a> 	@Override
-<a class="jxr_linenumber" name="L169" href="#L169">169</a> 	<strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> channelReadComplete(ChannelHandlerContext ctx) <strong class="jxr_keyword">throws</strong> Exception {
-<a class="jxr_linenumber" name="L170" href="#L170">170</a> 		ctx.flush();
-<a class="jxr_linenumber" name="L171" href="#L171">171</a> 	}
-<a class="jxr_linenumber" name="L172" href="#L172">172</a> 
-<a class="jxr_linenumber" name="L173" href="#L173">173</a> 	@Override
-<a class="jxr_linenumber" name="L174" href="#L174">174</a> 	<strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> exceptionCaught(ChannelHandlerContext ctx, Throwable cause) <strong class="jxr_keyword">throws</strong> Exception {
-<a class="jxr_linenumber" name="L175" href="#L175">175</a> 		logger.error(cause.getMessage(), cause);
-<a class="jxr_linenumber" name="L176" href="#L176">176</a> 		ctx.close();
-<a class="jxr_linenumber" name="L177" href="#L177">177</a> 	}
-<a class="jxr_linenumber" name="L178" href="#L178">178</a> 
-<a class="jxr_linenumber" name="L179" href="#L179">179</a> 	<strong class="jxr_keyword">protected</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">void</strong> setDefaultHeaders(FullHttpRequest request, <a href="../../../../net/anyflow/lannister/http/HttpResponse.html">HttpResponse</a> response) {
-<a class="jxr_linenumber" name="L180" href="#L180">180</a> 		response.headers().add(HttpHeaderNames.SERVER,
-<a class="jxr_linenumber" name="L181" href="#L181">181</a> 				<span class="jxr_string">"lannister "</span> + net.anyflow.lannister.Settings.INSTANCE.version());
-<a class="jxr_linenumber" name="L182" href="#L182">182</a> 
-<a class="jxr_linenumber" name="L183" href="#L183">183</a> 		<strong class="jxr_keyword">boolean</strong> keepAlive = HttpHeaderValues.KEEP_ALIVE.toString()
-<a class="jxr_linenumber" name="L184" href="#L184">184</a> 				.equals(request.headers().get(HttpHeaderNames.CONNECTION));
-<a class="jxr_linenumber" name="L185" href="#L185">185</a> 		<strong class="jxr_keyword">if</strong> (keepAlive) {
-<a class="jxr_linenumber" name="L186" href="#L186">186</a> 			response.headers().set(HttpHeaderNames.CONNECTION, HttpHeaderValues.KEEP_ALIVE);
-<a class="jxr_linenumber" name="L187" href="#L187">187</a> 		}
-<a class="jxr_linenumber" name="L188" href="#L188">188</a> 
-<a class="jxr_linenumber" name="L189" href="#L189">189</a> 		<strong class="jxr_keyword">if</strong> (Settings.INSTANCE.getProperty(<span class="jxr_string">"webserver.allowCrossDomain"</span>, <span class="jxr_string">"false"</span>).equalsIgnoreCase(<span class="jxr_string">"true"</span>)) {
-<a class="jxr_linenumber" name="L190" href="#L190">190</a> 			response.headers().add(HttpHeaderNames.ACCESS_CONTROL_ALLOW_ORIGIN, <span class="jxr_string">"*"</span>);
-<a class="jxr_linenumber" name="L191" href="#L191">191</a> 			response.headers().add(HttpHeaderNames.ACCESS_CONTROL_ALLOW_METHODS, <span class="jxr_string">"POST, GET, PUT, DELETE"</span>);
-<a class="jxr_linenumber" name="L192" href="#L192">192</a> 			response.headers().add(HttpHeaderNames.ACCESS_CONTROL_ALLOW_HEADERS, <span class="jxr_string">"X-PINGARUNER"</span>);
-<a class="jxr_linenumber" name="L193" href="#L193">193</a> 			response.headers().add(HttpHeaderNames.ACCESS_CONTROL_MAX_AGE, <span class="jxr_string">"1728000"</span>);
-<a class="jxr_linenumber" name="L194" href="#L194">194</a> 		}
-<a class="jxr_linenumber" name="L195" href="#L195">195</a> 
-<a class="jxr_linenumber" name="L196" href="#L196">196</a> 		response.headers().set(HttpHeaderNames.CONTENT_LENGTH, response.content().readableBytes());
-<a class="jxr_linenumber" name="L197" href="#L197">197</a> 	}
-<a class="jxr_linenumber" name="L198" href="#L198">198</a> }
+<a class="jxr_linenumber" name="L119" href="#L119">119</a> 		String requestPath = webResourceRequestPath;
+<a class="jxr_linenumber" name="L120" href="#L120">120</a> 		<strong class="jxr_keyword">if</strong> (requestPath.startsWith(<span class="jxr_string">"/"</span>)) {
+<a class="jxr_linenumber" name="L121" href="#L121">121</a> 			requestPath = requestPath.substring(1, requestPath.length());
+<a class="jxr_linenumber" name="L122" href="#L122">122</a> 		}
+<a class="jxr_linenumber" name="L123" href="#L123">123</a> 
+<a class="jxr_linenumber" name="L124" href="#L124">124</a> 		InputStream is = Application.<strong class="jxr_keyword">class</strong>.getClassLoader().getResourceAsStream(requestPath);
+<a class="jxr_linenumber" name="L125" href="#L125">125</a> 
+<a class="jxr_linenumber" name="L126" href="#L126">126</a> 		<strong class="jxr_keyword">try</strong> {
+<a class="jxr_linenumber" name="L127" href="#L127">127</a> 			<strong class="jxr_keyword">if</strong> (is == <strong class="jxr_keyword">null</strong>) {
+<a class="jxr_linenumber" name="L128" href="#L128">128</a> 				set404Response(response);
+<a class="jxr_linenumber" name="L129" href="#L129">129</a> 			}
+<a class="jxr_linenumber" name="L130" href="#L130">130</a> 			<strong class="jxr_keyword">else</strong> {
+<a class="jxr_linenumber" name="L131" href="#L131">131</a> 				response.content().writeBytes(IOUtils.toByteArray(is));
+<a class="jxr_linenumber" name="L132" href="#L132">132</a> 
+<a class="jxr_linenumber" name="L133" href="#L133">133</a> 				String ext = Files.getFileExtension(requestPath);
+<a class="jxr_linenumber" name="L134" href="#L134">134</a> 				response.headers().set(HttpHeaderNames.CONTENT_TYPE,
+<a class="jxr_linenumber" name="L135" href="#L135">135</a> 						Settings.INSTANCE.webResourceExtensionToMimes().get(ext));
+<a class="jxr_linenumber" name="L136" href="#L136">136</a> 			}
+<a class="jxr_linenumber" name="L137" href="#L137">137</a> 		}
+<a class="jxr_linenumber" name="L138" href="#L138">138</a> 		<strong class="jxr_keyword">finally</strong> {
+<a class="jxr_linenumber" name="L139" href="#L139">139</a> 			<strong class="jxr_keyword">if</strong> (is != <strong class="jxr_keyword">null</strong>) {
+<a class="jxr_linenumber" name="L140" href="#L140">140</a> 				is.close();
+<a class="jxr_linenumber" name="L141" href="#L141">141</a> 			}
+<a class="jxr_linenumber" name="L142" href="#L142">142</a> 		}
+<a class="jxr_linenumber" name="L143" href="#L143">143</a> 	}
+<a class="jxr_linenumber" name="L144" href="#L144">144</a> 
+<a class="jxr_linenumber" name="L145" href="#L145">145</a> 	<strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">void</strong> handleDynamicResource(<a href="../../../../net/anyflow/lannister/http/HttpRequest.html">HttpRequest</a> request, <a href="../../../../net/anyflow/lannister/http/HttpResponse.html">HttpResponse</a> response)
+<a class="jxr_linenumber" name="L146" href="#L146">146</a> 			<strong class="jxr_keyword">throws</strong> InstantiationException, IllegalAccessException, IOException, URISyntaxException {
+<a class="jxr_linenumber" name="L147" href="#L147">147</a> 		HttpRequestHandler.MatchedCriterion mc = HttpRequestHandler.findRequestHandler(<strong class="jxr_keyword">new</strong> URI(request.uri()).getPath(),
+<a class="jxr_linenumber" name="L148" href="#L148">148</a> 				request.method().toString());
+<a class="jxr_linenumber" name="L149" href="#L149">149</a> 
+<a class="jxr_linenumber" name="L150" href="#L150">150</a> 		<strong class="jxr_keyword">if</strong> (mc.requestHandlerClass() == <strong class="jxr_keyword">null</strong>) {
+<a class="jxr_linenumber" name="L151" href="#L151">151</a> 			set404Response(response);
+<a class="jxr_linenumber" name="L152" href="#L152">152</a> 		}
+<a class="jxr_linenumber" name="L153" href="#L153">153</a> 		<strong class="jxr_keyword">else</strong> {
+<a class="jxr_linenumber" name="L154" href="#L154">154</a> 			HttpRequestHandler handler = mc.requestHandlerClass().newInstance();
+<a class="jxr_linenumber" name="L155" href="#L155">155</a> 
+<a class="jxr_linenumber" name="L156" href="#L156">156</a> 			String webResourcePath = handler.getClass().getAnnotation(HttpRequestHandler.Handles.<strong class="jxr_keyword">class</strong>)
+<a class="jxr_linenumber" name="L157" href="#L157">157</a> 					.webResourcePath();
+<a class="jxr_linenumber" name="L158" href="#L158">158</a> 
+<a class="jxr_linenumber" name="L159" href="#L159">159</a> 			<strong class="jxr_keyword">if</strong> (HttpRequestHandler.NO_WEB_RESOURCE_PATH.equals(webResourcePath)) {
+<a class="jxr_linenumber" name="L160" href="#L160">160</a> 				response.setContent(
+<a class="jxr_linenumber" name="L161" href="#L161">161</a> 						handler.initialize(request.pathParameters(mc.pathParameters()), response).service());
+<a class="jxr_linenumber" name="L162" href="#L162">162</a> 			}
+<a class="jxr_linenumber" name="L163" href="#L163">163</a> 			<strong class="jxr_keyword">else</strong> {
+<a class="jxr_linenumber" name="L164" href="#L164">164</a> 				handleStaticResource(response, webResourcePath);
+<a class="jxr_linenumber" name="L165" href="#L165">165</a> 			}
+<a class="jxr_linenumber" name="L166" href="#L166">166</a> 		}
+<a class="jxr_linenumber" name="L167" href="#L167">167</a> 	}
+<a class="jxr_linenumber" name="L168" href="#L168">168</a> 
+<a class="jxr_linenumber" name="L169" href="#L169">169</a> 	@Override
+<a class="jxr_linenumber" name="L170" href="#L170">170</a> 	<strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> channelReadComplete(ChannelHandlerContext ctx) <strong class="jxr_keyword">throws</strong> Exception {
+<a class="jxr_linenumber" name="L171" href="#L171">171</a> 		ctx.flush();
+<a class="jxr_linenumber" name="L172" href="#L172">172</a> 	}
+<a class="jxr_linenumber" name="L173" href="#L173">173</a> 
+<a class="jxr_linenumber" name="L174" href="#L174">174</a> 	@Override
+<a class="jxr_linenumber" name="L175" href="#L175">175</a> 	<strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> exceptionCaught(ChannelHandlerContext ctx, Throwable cause) <strong class="jxr_keyword">throws</strong> Exception {
+<a class="jxr_linenumber" name="L176" href="#L176">176</a> 		logger.error(cause.getMessage(), cause);
+<a class="jxr_linenumber" name="L177" href="#L177">177</a> 		ctx.close();
+<a class="jxr_linenumber" name="L178" href="#L178">178</a> 	}
+<a class="jxr_linenumber" name="L179" href="#L179">179</a> 
+<a class="jxr_linenumber" name="L180" href="#L180">180</a> 	<strong class="jxr_keyword">protected</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">void</strong> setDefaultHeaders(FullHttpRequest request, <a href="../../../../net/anyflow/lannister/http/HttpResponse.html">HttpResponse</a> response) {
+<a class="jxr_linenumber" name="L181" href="#L181">181</a> 		response.headers().add(HttpHeaderNames.SERVER,
+<a class="jxr_linenumber" name="L182" href="#L182">182</a> 				<span class="jxr_string">"lannister "</span> + net.anyflow.lannister.Settings.INSTANCE.version());
+<a class="jxr_linenumber" name="L183" href="#L183">183</a> 
+<a class="jxr_linenumber" name="L184" href="#L184">184</a> 		<strong class="jxr_keyword">boolean</strong> keepAlive = HttpHeaderValues.KEEP_ALIVE.toString()
+<a class="jxr_linenumber" name="L185" href="#L185">185</a> 				.equals(request.headers().get(HttpHeaderNames.CONNECTION));
+<a class="jxr_linenumber" name="L186" href="#L186">186</a> 		<strong class="jxr_keyword">if</strong> (keepAlive) {
+<a class="jxr_linenumber" name="L187" href="#L187">187</a> 			response.headers().set(HttpHeaderNames.CONNECTION, HttpHeaderValues.KEEP_ALIVE);
+<a class="jxr_linenumber" name="L188" href="#L188">188</a> 		}
+<a class="jxr_linenumber" name="L189" href="#L189">189</a> 
+<a class="jxr_linenumber" name="L190" href="#L190">190</a> 		<strong class="jxr_keyword">if</strong> (Settings.INSTANCE.getProperty(<span class="jxr_string">"webserver.allowCrossDomain"</span>, <span class="jxr_string">"false"</span>).equalsIgnoreCase(<span class="jxr_string">"true"</span>)) {
+<a class="jxr_linenumber" name="L191" href="#L191">191</a> 			response.headers().add(HttpHeaderNames.ACCESS_CONTROL_ALLOW_ORIGIN, <span class="jxr_string">"*"</span>);
+<a class="jxr_linenumber" name="L192" href="#L192">192</a> 			response.headers().add(HttpHeaderNames.ACCESS_CONTROL_ALLOW_METHODS, <span class="jxr_string">"POST, GET, PUT, DELETE"</span>);
+<a class="jxr_linenumber" name="L193" href="#L193">193</a> 			response.headers().add(HttpHeaderNames.ACCESS_CONTROL_ALLOW_HEADERS, <span class="jxr_string">"X-PINGARUNER"</span>);
+<a class="jxr_linenumber" name="L194" href="#L194">194</a> 			response.headers().add(HttpHeaderNames.ACCESS_CONTROL_MAX_AGE, <span class="jxr_string">"1728000"</span>);
+<a class="jxr_linenumber" name="L195" href="#L195">195</a> 		}
+<a class="jxr_linenumber" name="L196" href="#L196">196</a> 
+<a class="jxr_linenumber" name="L197" href="#L197">197</a> 		response.headers().set(HttpHeaderNames.CONTENT_LENGTH, response.content().readableBytes());
+<a class="jxr_linenumber" name="L198" href="#L198">198</a> 	}
+<a class="jxr_linenumber" name="L199" href="#L199">199</a> }
 </pre>
 <hr/>
 <div id="footer">Copyright &#169; 2016 <a href="https://github.com/anyflow">anyflow.net</a>. All rights reserved.</div>
