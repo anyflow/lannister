@@ -29,21 +29,21 @@ public class HazelcastSerializer&lt;T, S&gt; implements Serializer, Supplier&lt;
 <span class="nc" id="L29">		this(type, typeId, null);</span>
 <span class="nc" id="L30">	}</span>
 
-<span class="fc" id="L32">	protected HazelcastSerializer(final Class&lt;T&gt; type, int typeId, Supplier&lt;? extends S&gt; supplier) {</span>
-<span class="fc" id="L33">		this.type = type;</span>
-<span class="fc" id="L34">		this.typeId = typeId;</span>
-<span class="pc bpc" id="L35" title="1 of 2 branches missed.">		this.threadLocal = supplier != null ? ThreadLocal.withInitial(supplier) : null;</span>
-<span class="fc" id="L36">	}</span>
+<span class="nc" id="L32">	protected HazelcastSerializer(final Class&lt;T&gt; type, int typeId, Supplier&lt;? extends S&gt; supplier) {</span>
+<span class="nc" id="L33">		this.type = type;</span>
+<span class="nc" id="L34">		this.typeId = typeId;</span>
+<span class="nc bnc" id="L35" title="All 2 branches missed.">		this.threadLocal = supplier != null ? ThreadLocal.withInitial(supplier) : null;</span>
+<span class="nc" id="L36">	}</span>
 
 	@Override
 	public int getTypeId() {
-<span class="fc" id="L40">		return typeId;</span>
+<span class="nc" id="L40">		return typeId;</span>
 	}
 
 	@Override
 	public void destroy() {
 		// Did nothing in original Source(escape from code inspection error)
-<span class="fc" id="L46">	}</span>
+<span class="nc" id="L46">	}</span>
 
 	public Class&lt;T&gt; getType() {
 <span class="nc" id="L49">		return this.type;</span>

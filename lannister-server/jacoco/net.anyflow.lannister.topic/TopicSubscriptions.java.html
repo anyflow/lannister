@@ -1,0 +1,199 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>TopicSubscriptions.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">Lannister server</a> &gt; <a href="index.source.html" class="el_package">net.anyflow.lannister.topic</a> &gt; <span class="el_source">TopicSubscriptions.java</span></div><h1>TopicSubscriptions.java</h1><pre class="source lang-java linenums">/*
+ * Copyright 2016 The Lannister Project
+ * 
+ * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ * 
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package net.anyflow.lannister.topic;
+
+import java.util.Set;
+import java.util.concurrent.locks.Lock;
+
+import com.google.common.collect.Sets;
+
+import net.anyflow.lannister.cluster.ClusterDataFactory;
+import net.anyflow.lannister.cluster.Map;
+import net.anyflow.lannister.cluster.SerializableStringSet;
+
+public class TopicSubscriptions {
+<span class="fc" id="L28">	private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(TopicSubscriptions.class);</span>
+
+	private final Map&lt;String, TopicSubscription&gt; data;
+	private final Map&lt;String, SerializableStringSet&gt; topicfilterIndex;
+	private final Map&lt;String, SerializableStringSet&gt; clientidIndex;
+
+	private final Lock modifyLock;
+
+<span class="fc" id="L36">	protected TopicSubscriptions() {</span>
+<span class="fc" id="L37">		this.data = ClusterDataFactory.INSTANCE.createMap(&quot;TopicSubscriptions_data&quot;);</span>
+<span class="fc" id="L38">		this.topicfilterIndex = ClusterDataFactory.INSTANCE.createMap(&quot;TopicSubscriptions_topicfilterIndex&quot;);</span>
+<span class="fc" id="L39">		this.clientidIndex = ClusterDataFactory.INSTANCE.createMap(&quot;TopicSubscriptions_clientidIndex&quot;);</span>
+
+<span class="fc" id="L41">		this.modifyLock = ClusterDataFactory.INSTANCE.createLock(&quot;TopicSubscriptions_modifyLock&quot;);</span>
+<span class="fc" id="L42">	}</span>
+
+	public static String key(String topicFilter, String clientId) {
+<span class="fc" id="L45">		return topicFilter + &quot;_&quot; + clientId;</span>
+	}
+
+	public int size() {
+<span class="nc" id="L49">		return data.size();</span>
+	}
+
+	public Set&lt;String&gt; keySet() {
+<span class="nc" id="L53">		return Sets.newHashSet(data.keySet());</span>
+	}
+
+	public void put(TopicSubscription topicSubscription) {
+<span class="pc bpc" id="L57" title="1 of 2 branches missed.">		if (topicSubscription == null) { return; }</span>
+
+<span class="fc" id="L59">		modifyLock.lock();</span>
+		try {
+<span class="fc" id="L61">			this.data.put(topicSubscription.key(), topicSubscription);</span>
+
+<span class="fc" id="L63">			SerializableStringSet clientIds = this.topicfilterIndex.get(topicSubscription.topicFilter());</span>
+<span class="pc bpc" id="L64" title="1 of 2 branches missed.">			if (clientIds == null) {</span>
+<span class="fc" id="L65">				clientIds = new SerializableStringSet();</span>
+			}
+<span class="fc" id="L67">			clientIds.add(topicSubscription.clientId());</span>
+<span class="fc" id="L68">			this.topicfilterIndex.put(topicSubscription.topicFilter(), clientIds);</span>
+
+<span class="fc" id="L70">			SerializableStringSet topicFilters = this.clientidIndex.get(topicSubscription.clientId());</span>
+<span class="fc bfc" id="L71" title="All 2 branches covered.">			if (topicFilters == null) {</span>
+<span class="fc" id="L72">				topicFilters = new SerializableStringSet();</span>
+			}
+<span class="fc" id="L74">			topicFilters.add(topicSubscription.topicFilter());</span>
+<span class="fc" id="L75">			this.clientidIndex.put(topicSubscription.clientId(), topicFilters);</span>
+
+<span class="fc" id="L77">			Topic.NEXUS.keySet().stream()</span>
+<span class="fc" id="L78">					.filter(topicName -&gt; TopicMatcher.match(topicSubscription.topicFilter(), topicName))</span>
+<span class="fc" id="L79">					.forEach(topicName -&gt; TopicSubscriber.NEXUS</span>
+<span class="fc" id="L80">							.put(new TopicSubscriber(topicSubscription.clientId(), topicName)));</span>
+
+<span class="pc bpc" id="L82" title="1 of 2 branches missed.">			if (logger.isDebugEnabled()) {</span>
+<span class="fc" id="L83">				logger.debug(&quot;TopicSubscription added [topicFilter={}, clientId={}, qos={}]&quot;,</span>
+<span class="fc" id="L84">						topicSubscription.topicFilter(), topicSubscription.clientId(), topicSubscription.qos());</span>
+<span class="fc" id="L85">				logger.debug(&quot;TopicSubscriptions Size [data={}, topicfilterIndex={}, clientidIndex={}]&quot;, data.size(),</span>
+<span class="fc" id="L86">						topicfilterIndex.size(), clientidIndex.size());</span>
+			}
+		}
+		finally {
+<span class="pc" id="L90">			modifyLock.unlock();</span>
+<span class="fc" id="L91">		}</span>
+<span class="fc" id="L92">	}</span>
+
+	public Set&lt;String&gt; topicFilters() {
+<span class="fc" id="L95">		return Sets.newHashSet(topicfilterIndex.keySet());</span>
+	}
+
+	public TopicSubscription get(String key) {
+<span class="fc" id="L99">		return data.get(key);</span>
+	}
+
+	public TopicSubscription getBy(String topicFilter, String clientId) {
+<span class="fc" id="L103">		return get(key(topicFilter, clientId));</span>
+	}
+
+	public Set&lt;String&gt; clientIdsOf(String topicFilter) {
+<span class="fc" id="L107">		Set&lt;String&gt; ret = topicfilterIndex.get(topicFilter);</span>
+
+<span class="pc bpc" id="L109" title="1 of 2 branches missed.">		return ret == null ? Sets.newHashSet() : Sets.newHashSet(ret);</span>
+	}
+
+	public Set&lt;String&gt; topicFiltersOf(String clientId) {
+<span class="fc" id="L113">		Set&lt;String&gt; ret = clientidIndex.get(clientId);</span>
+
+<span class="pc bpc" id="L115" title="1 of 2 branches missed.">		return ret == null ? Sets.newHashSet() : Sets.newHashSet(ret);</span>
+	}
+
+	public TopicSubscription removeByKey(String topicFilter, String clientId) {
+<span class="nc" id="L119">		return removeByKey(key(topicFilter, clientId));</span>
+	}
+
+	private TopicSubscription removeByKey(String key) {
+<span class="nc" id="L123">		modifyLock.lock();</span>
+
+		try {
+<span class="nc" id="L126">			TopicSubscription removed = this.data.remove(key);</span>
+<span class="nc bnc" id="L127" title="All 2 branches missed.">			if (removed == null) { return null; }</span>
+
+<span class="nc" id="L129">			SerializableStringSet clientIds = topicfilterIndex.get(removed.topicFilter());</span>
+<span class="nc" id="L130">			clientIds.remove(removed.clientId());</span>
+
+<span class="nc bnc" id="L132" title="All 2 branches missed.">			if (clientIds.size() &lt;= 0) {</span>
+<span class="nc" id="L133">				topicfilterIndex.remove(removed.topicFilter());</span>
+			}
+			else {
+<span class="nc" id="L136">				topicfilterIndex.put(removed.topicFilter(), clientIds);</span>
+			}
+
+<span class="nc" id="L139">			SerializableStringSet topicFilters = clientidIndex.get(removed.clientId());</span>
+<span class="nc" id="L140">			topicFilters.remove(removed.topicFilter());</span>
+
+<span class="nc bnc" id="L142" title="All 2 branches missed.">			if (topicFilters.size() &lt;= 0) {</span>
+<span class="nc" id="L143">				clientidIndex.remove(removed.clientId());</span>
+			}
+			else {
+<span class="nc" id="L146">				clientidIndex.put(removed.clientId(), topicFilters);</span>
+			}
+
+<span class="nc bnc" id="L149" title="All 2 branches missed.">			if (logger.isDebugEnabled()) {</span>
+<span class="nc" id="L150">				logger.debug(&quot;TopicSubscription removed [topicFilter={}, clientId={}, qos={}]&quot;, removed.topicFilter(),</span>
+<span class="nc" id="L151">						removed.clientId(), removed.qos());</span>
+<span class="nc" id="L152">				logger.debug(&quot;TopicSubscriptions Size [data={}, topicfilterIndex={}, clientidIndex={}]&quot;, data.size(),</span>
+<span class="nc" id="L153">						topicfilterIndex.size(), clientidIndex.size());</span>
+			}
+<span class="nc" id="L155">			return removed;</span>
+		}
+		finally {
+<span class="nc" id="L158">			modifyLock.unlock();</span>
+		}
+	}
+
+	public Set&lt;String&gt; removeByClientId(String clientId) {
+<span class="fc" id="L163">		modifyLock.lock();</span>
+
+		try {
+<span class="fc" id="L166">			SerializableStringSet topicFilters = this.clientidIndex.remove(clientId);</span>
+<span class="fc bfc" id="L167" title="All 2 branches covered.">			if (topicFilters == null) { return Sets.newHashSet(); }</span>
+
+<span class="fc" id="L169">			topicFilters.forEach(topicFilter -&gt; {</span>
+<span class="fc" id="L170">				SerializableStringSet target = topicfilterIndex.get(topicFilter);</span>
+<span class="fc" id="L171">				target.remove(clientId);</span>
+
+<span class="pc bpc" id="L173" title="1 of 2 branches missed.">				if (target.size() &lt;= 0) {</span>
+<span class="fc" id="L174">					topicfilterIndex.remove(topicFilter);</span>
+				}
+				else {
+<span class="nc" id="L177">					topicfilterIndex.put(topicFilter, target);</span>
+				}
+<span class="fc" id="L179">			});</span>
+
+<span class="fc" id="L181">			topicFilters.stream().map(topicFilter -&gt; key(topicFilter, clientId)).forEach(key -&gt; {</span>
+<span class="fc" id="L182">				TopicSubscription removed = data.remove(key);</span>
+
+<span class="pc bpc" id="L184" title="1 of 2 branches missed.">				if (logger.isDebugEnabled()) {</span>
+<span class="fc" id="L185">					logger.debug(&quot;TopicSubscription removed [topicFilter={}, clientId={}, qos={}]&quot;,</span>
+<span class="fc" id="L186">							removed.topicFilter(), removed.clientId(), removed.qos());</span>
+<span class="fc" id="L187">					logger.debug(&quot;TopicSubscriptions Size [data={}, topicfilterIndex={}, clientidIndex={}]&quot;,</span>
+<span class="fc" id="L188">							data.size(), topicfilterIndex.size(), clientidIndex.size());</span>
+				}
+<span class="fc" id="L190">			});</span>
+
+<span class="fc" id="L192">			return topicFilters;</span>
+		}
+		finally {
+<span class="pc" id="L195">			modifyLock.unlock();</span>
+		}
+	}
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.7.7.201606060606</span></div></body></html>

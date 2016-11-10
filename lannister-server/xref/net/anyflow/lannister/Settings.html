@@ -8,13 +8,13 @@
 <div id="overview"><a href="../../../../apidocs/net/anyflow/lannister/Settings.html">View Javadoc</a></div><pre>
 <a class="jxr_linenumber" name="L1" href="#L1">1</a>   <em class="jxr_comment">/*</em>
 <a class="jxr_linenumber" name="L2" href="#L2">2</a>   <em class="jxr_comment"> * Copyright 2016 The Lannister Project</em>
-<a class="jxr_linenumber" name="L3" href="#L3">3</a>   <em class="jxr_comment"> * </em>
+<a class="jxr_linenumber" name="L3" href="#L3">3</a>   <em class="jxr_comment"> *</em>
 <a class="jxr_linenumber" name="L4" href="#L4">4</a>   <em class="jxr_comment"> * Licensed under the Apache License, Version 2.0 (the "License");</em>
 <a class="jxr_linenumber" name="L5" href="#L5">5</a>   <em class="jxr_comment"> * you may not use this file except in compliance with the License.</em>
 <a class="jxr_linenumber" name="L6" href="#L6">6</a>   <em class="jxr_comment"> * You may obtain a copy of the License at</em>
-<a class="jxr_linenumber" name="L7" href="#L7">7</a>   <em class="jxr_comment"> * </em>
+<a class="jxr_linenumber" name="L7" href="#L7">7</a>   <em class="jxr_comment"> *</em>
 <a class="jxr_linenumber" name="L8" href="#L8">8</a>   <em class="jxr_comment"> *     <a href="http://www.apache.org/licenses/LICENSE-2." target="alexandria_uri">http://www.apache.org/licenses/LICENSE-2.</a>0</em>
-<a class="jxr_linenumber" name="L9" href="#L9">9</a>   <em class="jxr_comment"> * </em>
+<a class="jxr_linenumber" name="L9" href="#L9">9</a>   <em class="jxr_comment"> *</em>
 <a class="jxr_linenumber" name="L10" href="#L10">10</a>  <em class="jxr_comment"> * Unless required by applicable law or agreed to in writing, software</em>
 <a class="jxr_linenumber" name="L11" href="#L11">11</a>  <em class="jxr_comment"> * distributed under the License is distributed on an "AS IS" BASIS,</em>
 <a class="jxr_linenumber" name="L12" href="#L12">12</a>  <em class="jxr_comment"> * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.</em>
@@ -35,41 +35,41 @@
 <a class="jxr_linenumber" name="L27" href="#L27">27</a>  <strong class="jxr_keyword">import</strong> com.google.common.collect.Lists;
 <a class="jxr_linenumber" name="L28" href="#L28">28</a>  
 <a class="jxr_linenumber" name="L29" href="#L29">29</a>  <strong class="jxr_keyword">import</strong> io.netty.handler.ssl.util.SelfSignedCertificate;
-<a class="jxr_linenumber" name="L30" href="#L30">30</a>  
-<a class="jxr_linenumber" name="L31" href="#L31">31</a>  <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">class</strong> <a href="../../../net/anyflow/lannister/Settings.html">Settings</a> <strong class="jxr_keyword">extends</strong> java.util.Properties {
-<a class="jxr_linenumber" name="L32" href="#L32">32</a>  
-<a class="jxr_linenumber" name="L33" href="#L33">33</a>  	<strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">long</strong> serialVersionUID = -3232325711649130464L;
-<a class="jxr_linenumber" name="L34" href="#L34">34</a>  
-<a class="jxr_linenumber" name="L35" href="#L35">35</a>  	<strong class="jxr_keyword">protected</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">final</strong> org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(Settings.<strong class="jxr_keyword">class</strong>);
-<a class="jxr_linenumber" name="L36" href="#L36">36</a>  
-<a class="jxr_linenumber" name="L37" href="#L37">37</a>  	<strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">static</strong> String CONFIG_NAME = <span class="jxr_string">"lannister.cfg"</span>;
-<a class="jxr_linenumber" name="L38" href="#L38">38</a>  
-<a class="jxr_linenumber" name="L39" href="#L39">39</a>  	<strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">static</strong> <a href="../../../net/anyflow/lannister/Settings.html">Settings</a> INSTANCE = <strong class="jxr_keyword">new</strong> <a href="../../../net/anyflow/lannister/Settings.html">Settings</a>();
-<a class="jxr_linenumber" name="L40" href="#L40">40</a>  
-<a class="jxr_linenumber" name="L41" href="#L41">41</a>  	<strong class="jxr_keyword">private</strong> Map&lt;String, String&gt; webResourceExtensionToMimes;
-<a class="jxr_linenumber" name="L42" href="#L42">42</a>  	<strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">transient</strong> SelfSignedCertificate ssc;
-<a class="jxr_linenumber" name="L43" href="#L43">43</a>  	<strong class="jxr_keyword">private</strong> java.util.Properties gitProperties;
-<a class="jxr_linenumber" name="L44" href="#L44">44</a>  
-<a class="jxr_linenumber" name="L45" href="#L45">45</a>  	@SuppressWarnings(<span class="jxr_string">"unchecked"</span>)
-<a class="jxr_linenumber" name="L46" href="#L46">46</a>  	<strong class="jxr_keyword">private</strong> <a href="../../../net/anyflow/lannister/Settings.html">Settings</a>() {
-<a class="jxr_linenumber" name="L47" href="#L47">47</a>  		gitProperties = <strong class="jxr_keyword">new</strong> java.util.Properties();
-<a class="jxr_linenumber" name="L48" href="#L48">48</a>  
-<a class="jxr_linenumber" name="L49" href="#L49">49</a>  		<strong class="jxr_keyword">try</strong> {
-<a class="jxr_linenumber" name="L50" href="#L50">50</a>  			load(Application.<strong class="jxr_keyword">class</strong>.getClassLoader().getResourceAsStream(CONFIG_NAME));
-<a class="jxr_linenumber" name="L51" href="#L51">51</a>  			gitProperties.load(Application.<strong class="jxr_keyword">class</strong>.getClassLoader().getResourceAsStream(<span class="jxr_string">"git.properties"</span>));
-<a class="jxr_linenumber" name="L52" href="#L52">52</a>  
-<a class="jxr_linenumber" name="L53" href="#L53">53</a>  			ssc = <strong class="jxr_keyword">new</strong> SelfSignedCertificate();
-<a class="jxr_linenumber" name="L54" href="#L54">54</a>  		}
-<a class="jxr_linenumber" name="L55" href="#L55">55</a>  		<strong class="jxr_keyword">catch</strong> (IOException e) {
-<a class="jxr_linenumber" name="L56" href="#L56">56</a>  			logger.error(<span class="jxr_string">"Settings instantiation failed."</span>, e);
-<a class="jxr_linenumber" name="L57" href="#L57">57</a>  		}
-<a class="jxr_linenumber" name="L58" href="#L58">58</a>  		<strong class="jxr_keyword">catch</strong> (CertificateException e) {
-<a class="jxr_linenumber" name="L59" href="#L59">59</a>  			logger.error(e.getMessage(), e);
-<a class="jxr_linenumber" name="L60" href="#L60">60</a>  		}
-<a class="jxr_linenumber" name="L61" href="#L61">61</a>  
-<a class="jxr_linenumber" name="L62" href="#L62">62</a>  		<strong class="jxr_keyword">try</strong> {
-<a class="jxr_linenumber" name="L63" href="#L63">63</a>  			webResourceExtensionToMimes = <strong class="jxr_keyword">new</strong> ObjectMapper().readValue(getProperty(<span class="jxr_string">"webserver.MIME"</span>),
-<a class="jxr_linenumber" name="L64" href="#L64">64</a>  					Map.<strong class="jxr_keyword">class</strong>);
+<a class="jxr_linenumber" name="L30" href="#L30">30</a>  <strong class="jxr_keyword">import</strong> net.anyflow.lannister.cluster.Mode;
+<a class="jxr_linenumber" name="L31" href="#L31">31</a>  
+<a class="jxr_linenumber" name="L32" href="#L32">32</a>  <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">class</strong> <a href="../../../net/anyflow/lannister/Settings.html">Settings</a> <strong class="jxr_keyword">extends</strong> java.util.Properties {
+<a class="jxr_linenumber" name="L33" href="#L33">33</a>  
+<a class="jxr_linenumber" name="L34" href="#L34">34</a>  	<strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">long</strong> serialVersionUID = -3232325711649130464L;
+<a class="jxr_linenumber" name="L35" href="#L35">35</a>  
+<a class="jxr_linenumber" name="L36" href="#L36">36</a>  	<strong class="jxr_keyword">protected</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">final</strong> org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(Settings.<strong class="jxr_keyword">class</strong>);
+<a class="jxr_linenumber" name="L37" href="#L37">37</a>  
+<a class="jxr_linenumber" name="L38" href="#L38">38</a>  	<strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">static</strong> String CONFIG_NAME = <span class="jxr_string">"lannister.properties"</span>;
+<a class="jxr_linenumber" name="L39" href="#L39">39</a>  
+<a class="jxr_linenumber" name="L40" href="#L40">40</a>  	<strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">static</strong> <a href="../../../net/anyflow/lannister/Settings.html">Settings</a> INSTANCE = <strong class="jxr_keyword">new</strong> <a href="../../../net/anyflow/lannister/Settings.html">Settings</a>();
+<a class="jxr_linenumber" name="L41" href="#L41">41</a>  
+<a class="jxr_linenumber" name="L42" href="#L42">42</a>  	<strong class="jxr_keyword">private</strong> Map&lt;String, String&gt; webResourceExtensionToMimes;
+<a class="jxr_linenumber" name="L43" href="#L43">43</a>  	<strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">transient</strong> SelfSignedCertificate ssc;
+<a class="jxr_linenumber" name="L44" href="#L44">44</a>  	<strong class="jxr_keyword">private</strong> java.util.Properties gitProperties;
+<a class="jxr_linenumber" name="L45" href="#L45">45</a>  
+<a class="jxr_linenumber" name="L46" href="#L46">46</a>  	@SuppressWarnings(<span class="jxr_string">"unchecked"</span>)
+<a class="jxr_linenumber" name="L47" href="#L47">47</a>  	<strong class="jxr_keyword">private</strong> <a href="../../../net/anyflow/lannister/Settings.html">Settings</a>() {
+<a class="jxr_linenumber" name="L48" href="#L48">48</a>  		gitProperties = <strong class="jxr_keyword">new</strong> java.util.Properties();
+<a class="jxr_linenumber" name="L49" href="#L49">49</a>  
+<a class="jxr_linenumber" name="L50" href="#L50">50</a>  		<strong class="jxr_keyword">try</strong> {
+<a class="jxr_linenumber" name="L51" href="#L51">51</a>  			load(Application.<strong class="jxr_keyword">class</strong>.getClassLoader().getResourceAsStream(CONFIG_NAME));
+<a class="jxr_linenumber" name="L52" href="#L52">52</a>  			gitProperties.load(Application.<strong class="jxr_keyword">class</strong>.getClassLoader().getResourceAsStream(<span class="jxr_string">"git.properties"</span>));
+<a class="jxr_linenumber" name="L53" href="#L53">53</a>  
+<a class="jxr_linenumber" name="L54" href="#L54">54</a>  			ssc = <strong class="jxr_keyword">new</strong> SelfSignedCertificate();
+<a class="jxr_linenumber" name="L55" href="#L55">55</a>  		}
+<a class="jxr_linenumber" name="L56" href="#L56">56</a>  		<strong class="jxr_keyword">catch</strong> (IOException e) {
+<a class="jxr_linenumber" name="L57" href="#L57">57</a>  			logger.error(<span class="jxr_string">"Settings instantiation failed."</span>, e);
+<a class="jxr_linenumber" name="L58" href="#L58">58</a>  		}
+<a class="jxr_linenumber" name="L59" href="#L59">59</a>  		<strong class="jxr_keyword">catch</strong> (CertificateException e) {
+<a class="jxr_linenumber" name="L60" href="#L60">60</a>  			logger.error(e.getMessage(), e);
+<a class="jxr_linenumber" name="L61" href="#L61">61</a>  		}
+<a class="jxr_linenumber" name="L62" href="#L62">62</a>  
+<a class="jxr_linenumber" name="L63" href="#L63">63</a>  		<strong class="jxr_keyword">try</strong> {
+<a class="jxr_linenumber" name="L64" href="#L64">64</a>  			webResourceExtensionToMimes = <strong class="jxr_keyword">new</strong> ObjectMapper().readValue(getProperty(<span class="jxr_string">"webserver.MIME"</span>), Map.<strong class="jxr_keyword">class</strong>);
 <a class="jxr_linenumber" name="L65" href="#L65">65</a>  		}
 <a class="jxr_linenumber" name="L66" href="#L66">66</a>  		<strong class="jxr_keyword">catch</strong> (IOException e) {
 <a class="jxr_linenumber" name="L67" href="#L67">67</a>  			logger.error(e.getMessage(), e);
@@ -169,36 +169,46 @@
 <a class="jxr_linenumber" name="L161" href="#L161">161</a> 		<strong class="jxr_keyword">return</strong> ret;
 <a class="jxr_linenumber" name="L162" href="#L162">162</a> 	}
 <a class="jxr_linenumber" name="L163" href="#L163">163</a> 
-<a class="jxr_linenumber" name="L164" href="#L164">164</a> 	<strong class="jxr_keyword">public</strong> String version() {
-<a class="jxr_linenumber" name="L165" href="#L165">165</a> 		<strong class="jxr_keyword">return</strong> <strong class="jxr_keyword">this</strong>.gitProperties.getProperty(<span class="jxr_string">"git.build.version"</span>);
-<a class="jxr_linenumber" name="L166" href="#L166">166</a> 	}
-<a class="jxr_linenumber" name="L167" href="#L167">167</a> 
-<a class="jxr_linenumber" name="L168" href="#L168">168</a> 	<strong class="jxr_keyword">public</strong> String commitId() {
-<a class="jxr_linenumber" name="L169" href="#L169">169</a> 		<strong class="jxr_keyword">return</strong> <strong class="jxr_keyword">this</strong>.gitProperties.getProperty(<span class="jxr_string">"git.commit.id"</span>);
-<a class="jxr_linenumber" name="L170" href="#L170">170</a> 	}
-<a class="jxr_linenumber" name="L171" href="#L171">171</a> 
-<a class="jxr_linenumber" name="L172" href="#L172">172</a> 	<strong class="jxr_keyword">public</strong> String commitIdDescribe() {
-<a class="jxr_linenumber" name="L173" href="#L173">173</a> 		<strong class="jxr_keyword">return</strong> <strong class="jxr_keyword">this</strong>.gitProperties.getProperty(<span class="jxr_string">"git.commit.id.describe"</span>);
-<a class="jxr_linenumber" name="L174" href="#L174">174</a> 	}
-<a class="jxr_linenumber" name="L175" href="#L175">175</a> 
-<a class="jxr_linenumber" name="L176" href="#L176">176</a> 	<strong class="jxr_keyword">public</strong> String commitMessage() {
-<a class="jxr_linenumber" name="L177" href="#L177">177</a> 		<strong class="jxr_keyword">return</strong> <strong class="jxr_keyword">this</strong>.gitProperties.getProperty(<span class="jxr_string">"git.commit.message.short"</span>);
-<a class="jxr_linenumber" name="L178" href="#L178">178</a> 	}
-<a class="jxr_linenumber" name="L179" href="#L179">179</a> 
-<a class="jxr_linenumber" name="L180" href="#L180">180</a> 	<strong class="jxr_keyword">public</strong> String buildTime() {
-<a class="jxr_linenumber" name="L181" href="#L181">181</a> 		<strong class="jxr_keyword">return</strong> <strong class="jxr_keyword">this</strong>.gitProperties.getProperty(<span class="jxr_string">"git.build.time"</span>);
-<a class="jxr_linenumber" name="L182" href="#L182">182</a> 	}
-<a class="jxr_linenumber" name="L183" href="#L183">183</a> 
-<a class="jxr_linenumber" name="L184" href="#L184">184</a> 	@Override
-<a class="jxr_linenumber" name="L185" href="#L185">185</a> 	<strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">boolean</strong> equals(Object o) {
-<a class="jxr_linenumber" name="L186" href="#L186">186</a> 		<strong class="jxr_keyword">return</strong> o instanceof Settings; <em class="jxr_comment">// JUST TO REMOVE FINDBUGS ERROR</em>
-<a class="jxr_linenumber" name="L187" href="#L187">187</a> 	}
-<a class="jxr_linenumber" name="L188" href="#L188">188</a> 
-<a class="jxr_linenumber" name="L189" href="#L189">189</a> 	@Override
-<a class="jxr_linenumber" name="L190" href="#L190">190</a> 	<strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">int</strong> hashCode() {
-<a class="jxr_linenumber" name="L191" href="#L191">191</a> 		<strong class="jxr_keyword">return</strong> version().hashCode(); <em class="jxr_comment">// JUST TO REMOVE FINDBUGS ERROR</em>
+<a class="jxr_linenumber" name="L164" href="#L164">164</a> 	<strong class="jxr_keyword">public</strong> String nettyTransportMode() {
+<a class="jxr_linenumber" name="L165" href="#L165">165</a> 		<strong class="jxr_keyword">if</strong> (!getBoolean(<span class="jxr_string">"netty.nativeTransportMode"</span>, <strong class="jxr_keyword">true</strong>)) { <strong class="jxr_keyword">return</strong> Literals.NETTY_NIO; }
+<a class="jxr_linenumber" name="L166" href="#L166">166</a> 
+<a class="jxr_linenumber" name="L167" href="#L167">167</a> 		<strong class="jxr_keyword">return</strong> System.getProperty(<span class="jxr_string">"os.name"</span>).startsWith(<span class="jxr_string">"Linux"</span>) ? Literals.NETTY_EPOLL : Literals.NETTY_NIO;
+<a class="jxr_linenumber" name="L168" href="#L168">168</a> 	}
+<a class="jxr_linenumber" name="L169" href="#L169">169</a> 
+<a class="jxr_linenumber" name="L170" href="#L170">170</a> 	<strong class="jxr_keyword">public</strong> <a href="../../../net/anyflow/lannister/cluster/Mode.html">Mode</a> clusteringMode() {
+<a class="jxr_linenumber" name="L171" href="#L171">171</a> 		<strong class="jxr_keyword">return</strong> Mode.from(getProperty(<span class="jxr_string">"clustering.mode"</span>, <span class="jxr_string">"hazelcast"</span>));
+<a class="jxr_linenumber" name="L172" href="#L172">172</a> 	}
+<a class="jxr_linenumber" name="L173" href="#L173">173</a> 
+<a class="jxr_linenumber" name="L174" href="#L174">174</a> 	<strong class="jxr_keyword">public</strong> String version() {
+<a class="jxr_linenumber" name="L175" href="#L175">175</a> 		<strong class="jxr_keyword">return</strong> <strong class="jxr_keyword">this</strong>.gitProperties.getProperty(<span class="jxr_string">"git.build.version"</span>);
+<a class="jxr_linenumber" name="L176" href="#L176">176</a> 	}
+<a class="jxr_linenumber" name="L177" href="#L177">177</a> 
+<a class="jxr_linenumber" name="L178" href="#L178">178</a> 	<strong class="jxr_keyword">public</strong> String commitId() {
+<a class="jxr_linenumber" name="L179" href="#L179">179</a> 		<strong class="jxr_keyword">return</strong> <strong class="jxr_keyword">this</strong>.gitProperties.getProperty(<span class="jxr_string">"git.commit.id"</span>);
+<a class="jxr_linenumber" name="L180" href="#L180">180</a> 	}
+<a class="jxr_linenumber" name="L181" href="#L181">181</a> 
+<a class="jxr_linenumber" name="L182" href="#L182">182</a> 	<strong class="jxr_keyword">public</strong> String commitIdDescribe() {
+<a class="jxr_linenumber" name="L183" href="#L183">183</a> 		<strong class="jxr_keyword">return</strong> <strong class="jxr_keyword">this</strong>.gitProperties.getProperty(<span class="jxr_string">"git.commit.id.describe"</span>);
+<a class="jxr_linenumber" name="L184" href="#L184">184</a> 	}
+<a class="jxr_linenumber" name="L185" href="#L185">185</a> 
+<a class="jxr_linenumber" name="L186" href="#L186">186</a> 	<strong class="jxr_keyword">public</strong> String commitMessage() {
+<a class="jxr_linenumber" name="L187" href="#L187">187</a> 		<strong class="jxr_keyword">return</strong> <strong class="jxr_keyword">this</strong>.gitProperties.getProperty(<span class="jxr_string">"git.commit.message.short"</span>);
+<a class="jxr_linenumber" name="L188" href="#L188">188</a> 	}
+<a class="jxr_linenumber" name="L189" href="#L189">189</a> 
+<a class="jxr_linenumber" name="L190" href="#L190">190</a> 	<strong class="jxr_keyword">public</strong> String buildTime() {
+<a class="jxr_linenumber" name="L191" href="#L191">191</a> 		<strong class="jxr_keyword">return</strong> <strong class="jxr_keyword">this</strong>.gitProperties.getProperty(<span class="jxr_string">"git.build.time"</span>);
 <a class="jxr_linenumber" name="L192" href="#L192">192</a> 	}
-<a class="jxr_linenumber" name="L193" href="#L193">193</a> }
+<a class="jxr_linenumber" name="L193" href="#L193">193</a> 
+<a class="jxr_linenumber" name="L194" href="#L194">194</a> 	@Override
+<a class="jxr_linenumber" name="L195" href="#L195">195</a> 	<strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">boolean</strong> equals(Object o) {
+<a class="jxr_linenumber" name="L196" href="#L196">196</a> 		<strong class="jxr_keyword">return</strong> o instanceof Settings; <em class="jxr_comment">// JUST TO REMOVE FINDBUGS ERROR</em>
+<a class="jxr_linenumber" name="L197" href="#L197">197</a> 	}
+<a class="jxr_linenumber" name="L198" href="#L198">198</a> 
+<a class="jxr_linenumber" name="L199" href="#L199">199</a> 	@Override
+<a class="jxr_linenumber" name="L200" href="#L200">200</a> 	<strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">int</strong> hashCode() {
+<a class="jxr_linenumber" name="L201" href="#L201">201</a> 		<strong class="jxr_keyword">return</strong> version().hashCode(); <em class="jxr_comment">// JUST TO REMOVE FINDBUGS ERROR</em>
+<a class="jxr_linenumber" name="L202" href="#L202">202</a> 	}
+<a class="jxr_linenumber" name="L203" href="#L203">203</a> }
 </pre>
 <hr/>
 <div id="footer">Copyright &#169; 2016 <a href="https://github.com/anyflow">anyflow.net</a>. All rights reserved.</div>

@@ -22,49 +22,55 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Strings;
 
+import io.netty.handler.codec.http.HttpResponseStatus;
 import net.anyflow.lannister.http.HttpRequestHandler;
 import net.anyflow.lannister.session.Session;
 
 @HttpRequestHandler.Handles(paths = { &quot;api/sessions&quot; }, httpMethods = { &quot;GET&quot; })
-<span class="fc" id="L29">public class Sessions extends HttpRequestHandler {</span>
+<span class="fc" id="L30">public class Sessions extends HttpRequestHandler {</span>
 
-<span class="fc" id="L31">	private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(Sessions.class);</span>
+<span class="fc" id="L32">	private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(Sessions.class);</span>
 
 	private String liveString() {
 		try {
-<span class="fc" id="L35">			return new ObjectMapper().writeValueAsString(Session.NEXUS.map().values().stream()</span>
-<span class="fc" id="L36">					.filter(s -&gt; s.isConnected(false)).collect(Collectors.toList()));</span>
+<span class="fc" id="L36">			return new ObjectMapper().writeValueAsString(Session.NEXUS.keySet().stream()</span>
+<span class="fc" id="L37">					.map(c -&gt; Session.NEXUS.get(c)).filter(s -&gt; s.isConnected(false)).collect(Collectors.toList()));</span>
 		}
-<span class="nc" id="L38">		catch (JsonProcessingException e) {</span>
-<span class="nc" id="L39">			logger.error(e.getMessage(), e);</span>
-<span class="nc" id="L40">			return null;</span>
+<span class="nc" id="L39">		catch (JsonProcessingException e) {</span>
+<span class="nc" id="L40">			logger.error(e.getMessage(), e);</span>
+
+<span class="nc" id="L42">			this.httpResponse().setStatus(HttpResponseStatus.INTERNAL_SERVER_ERROR);</span>
+<span class="nc" id="L43">			return null;</span>
 		}
 	}
 
 	private String allString() {
 		try {
-<span class="fc" id="L46">			return new ObjectMapper().writeValueAsString(Session.NEXUS.map().values());</span>
+<span class="fc" id="L49">			return new ObjectMapper().writeValueAsString(</span>
+<span class="fc" id="L50">					Session.NEXUS.keySet().stream().map(c -&gt; Session.NEXUS.get(c)).collect(Collectors.toList()));</span>
 		}
-<span class="nc" id="L48">		catch (JsonProcessingException e) {</span>
-<span class="nc" id="L49">			logger.error(e.getMessage(), e);</span>
-<span class="nc" id="L50">			return null;</span>
+<span class="nc" id="L52">		catch (JsonProcessingException e) {</span>
+<span class="nc" id="L53">			logger.error(e.getMessage(), e);</span>
+
+<span class="nc" id="L55">			this.httpResponse().setStatus(HttpResponseStatus.INTERNAL_SERVER_ERROR);</span>
+<span class="nc" id="L56">			return null;</span>
 		}
 	}
 
 	@Override
 	public String service() {
-<span class="fc" id="L56">		String filter = Strings.nullToEmpty(httpRequest().parameter(&quot;filter&quot;));</span>
+<span class="fc" id="L62">		String filter = Strings.nullToEmpty(httpRequest().parameter(&quot;filter&quot;));</span>
 
-<span class="pc bpc" id="L58" title="7 of 13 branches missed.">		switch (filter) {</span>
+<span class="pc bpc" id="L64" title="7 of 13 branches missed.">		switch (filter) {</span>
 		case &quot;&quot;:
 		case &quot;live&quot;:
-<span class="fc" id="L61">			return liveString();</span>
+<span class="fc" id="L67">			return liveString();</span>
 
 		case &quot;all&quot;:
-<span class="fc" id="L64">			return allString();</span>
+<span class="fc" id="L70">			return allString();</span>
 
 		default:
-<span class="nc" id="L67">			return null;</span>
+<span class="nc" id="L73">			return null;</span>
 		}
 	}
 }

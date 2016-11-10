@@ -26,7 +26,7 @@
 <a class="jxr_linenumber" name="L18" href="#L18">18</a>  
 <a class="jxr_linenumber" name="L19" href="#L19">19</a>  <strong class="jxr_keyword">import</strong> com.hazelcast.core.IdGenerator;
 <a class="jxr_linenumber" name="L20" href="#L20">20</a>  
-<a class="jxr_linenumber" name="L21" href="#L21">21</a>  <strong class="jxr_keyword">import</strong> net.anyflow.lannister.Hazelcast;
+<a class="jxr_linenumber" name="L21" href="#L21">21</a>  <strong class="jxr_keyword">import</strong> net.anyflow.lannister.cluster.ClusterDataFactory;
 <a class="jxr_linenumber" name="L22" href="#L22">22</a>  <strong class="jxr_keyword">import</strong> net.anyflow.lannister.http.HttpRequestHandler;
 <a class="jxr_linenumber" name="L23" href="#L23">23</a>  <strong class="jxr_keyword">import</strong> net.anyflow.lannister.session.Session;
 <a class="jxr_linenumber" name="L24" href="#L24">24</a>  
@@ -37,7 +37,7 @@
 <a class="jxr_linenumber" name="L29" href="#L29">29</a>  
 <a class="jxr_linenumber" name="L30" href="#L30">30</a>  	@Override
 <a class="jxr_linenumber" name="L31" href="#L31">31</a>  	<strong class="jxr_keyword">public</strong> String service() {
-<a class="jxr_linenumber" name="L32" href="#L32">32</a>  		IdGenerator idgen = Hazelcast.INSTANCE.getIdGenerator(<span class="jxr_string">"CLIENT_ID_GENERATOR"</span>);
+<a class="jxr_linenumber" name="L32" href="#L32">32</a>  		IdGenerator idgen = ClusterDataFactory.INSTANCE.createIdGenerator(<span class="jxr_string">"CLIENT_ID_GENERATOR"</span>);
 <a class="jxr_linenumber" name="L33" href="#L33">33</a>  
 <a class="jxr_linenumber" name="L34" href="#L34">34</a>  		String clientId = <strong class="jxr_keyword">null</strong>;
 <a class="jxr_linenumber" name="L35" href="#L35">35</a>  		<strong class="jxr_keyword">while</strong> (clientId == <strong class="jxr_keyword">null</strong>) {

@@ -16,33 +16,41 @@
 
 package net.anyflow.lannister;
 
-import java.util.Collections;
+import java.lang.management.ManagementFactory;
+import java.text.DecimalFormat;
+import java.text.NumberFormat;
 import java.util.Date;
-import java.util.List;
-import java.util.Map;
+import java.util.concurrent.locks.Lock;
 
-import com.google.common.collect.Lists;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.google.common.collect.Maps;
-import com.hazelcast.core.ILock;
-import com.hazelcast.core.IMap;
 
+import net.anyflow.lannister.cluster.ClusterDataFactory;
+import net.anyflow.lannister.cluster.Map;
+import net.anyflow.lannister.message.InboundMessageStatus;
+import net.anyflow.lannister.message.Message;
+import net.anyflow.lannister.message.MessageReferenceCounts;
+import net.anyflow.lannister.message.OutboundMessageStatus;
+import net.anyflow.lannister.serialization.SysValueSerializer;
 import net.anyflow.lannister.session.Session;
 import net.anyflow.lannister.topic.Topic;
+import net.anyflow.lannister.topic.TopicSubscriber;
+import net.anyflow.lannister.topic.TopicSubscription;
 
 public class Statistics {
 
-<span class="fc" id="L34">	public static final Statistics INSTANCE = new Statistics();</span>
+<span class="fc" id="L42">	public static final Statistics INSTANCE = new Statistics();</span>
+	private static final int CENT = 100;
 
-	public static final String $SYS_BROKER_VERSION = &quot;$SYS/broker/version&quot;;
-	public static final String $SYS_BROKER_TIMESTAMP = &quot;$SYS/broker/timestamp&quot;;
-	public static final String $SYS_BROKER_CHANGESET = &quot;$SYS/broker/changeset&quot;;
+	private java.util.Map&lt;String, SysValue&gt; data; // key : topic name
+	private Map&lt;Criterion, Long&gt; criterions;
+	private final Runtime runtime;
+	private final DecimalFormat decimalFormatter;
+	private final NumberFormat defaultFormatter;
+	private final com.sun.management.OperatingSystemMXBean osBean;
 
-<span class="fc" id="L40">	public static final List&lt;String&gt; $SYS_STATIC_TOPICS = Collections</span>
-<span class="fc" id="L41">			.unmodifiableList(Lists.newArrayList($SYS_BROKER_VERSION, $SYS_BROKER_TIMESTAMP, $SYS_BROKER_CHANGESET));</span>
-
-	private Map&lt;String, SysValue&gt; data; // key : topic name
-	private IMap&lt;Criterion, Long&gt; criterions;
-
+	@FunctionalInterface
+	@JsonSerialize(using = SysValueSerializer.class)
 	public interface SysValue {
 		String value();
 	}
@@ -50,173 +58,221 @@ public class Statistics {
 	private class RawSysValue implements SysValue {
 		private Criterion criterion;
 
-<span class="fc" id="L53">		private RawSysValue(Criterion criterion) {</span>
-<span class="fc" id="L54">			this.criterion = criterion;</span>
-<span class="fc" id="L55">		}</span>
+<span class="fc" id="L61">		private RawSysValue(Criterion criterion) {</span>
+<span class="fc" id="L62">			this.criterion = criterion;</span>
+<span class="fc" id="L63">		}</span>
 
 		@Override
 		public String value() {
-<span class="fc" id="L59">			return criterions.get(criterion).toString();</span>
+<span class="nc" id="L67">			return NumberFormat.getNumberInstance().format(criterions.get(criterion));</span>
 		}
 	}
 
-<span class="pc" id="L63">	public enum Criterion {</span>
-<span class="fc" id="L64">		BROKER_START_TIME,</span>
-<span class="fc" id="L65">		BYTE_RECEIVED,</span>
-<span class="fc" id="L66">		BYTE_SENT,</span>
-<span class="fc" id="L67">		CLIENTS_MAXIMUM,</span>
-<span class="fc" id="L68">		MESSAGES_RECEIVED,</span>
-<span class="fc" id="L69">		MESSAGES_SENT,</span>
-<span class="fc" id="L70">		MESSAGES_PUBLISH_DROPPED,</span>
-<span class="fc" id="L71">		MESSAGES_PUBLISH_RECEIVED,</span>
-<span class="fc" id="L72">		MESSAGES_PUBLISH_SENT;</span>
+<span class="pc" id="L71">	public enum Criterion {</span>
+<span class="fc" id="L72">		BROKER_START_TIME,</span>
+<span class="fc" id="L73">		BYTE_RECEIVED,</span>
+<span class="fc" id="L74">		BYTE_SENT,</span>
+<span class="fc" id="L75">		CLIENTS_MAXIMUM,</span>
+<span class="fc" id="L76">		MESSAGES_RECEIVED,</span>
+<span class="fc" id="L77">		MESSAGES_SENT,</span>
+<span class="fc" id="L78">		MESSAGES_PUBLISH_DROPPED,</span>
+<span class="fc" id="L79">		MESSAGES_PUBLISH_RECEIVED,</span>
+<span class="fc" id="L80">		MESSAGES_PUBLISH_SENT;</span>
 	}
 
-<span class="fc" id="L75">	private Statistics() {</span>
-<span class="fc" id="L76">		this.data = Maps.newHashMap();</span>
-<span class="fc" id="L77">		this.criterions = Hazelcast.INSTANCE.getMap(&quot;statistics&quot;);</span>
+<span class="fc" id="L83">	private Statistics() {</span>
+<span class="fc" id="L84">		this.data = Maps.newHashMap();</span>
+<span class="fc" id="L85">		this.criterions = ClusterDataFactory.INSTANCE.createMap(&quot;statistics&quot;);</span>
+<span class="fc" id="L86">		this.runtime = Runtime.getRuntime();</span>
+<span class="fc" id="L87">		this.osBean = (com.sun.management.OperatingSystemMXBean) ManagementFactory.getOperatingSystemMXBean();</span>
+<span class="fc" id="L88">		this.decimalFormatter = new DecimalFormat(&quot;#,###.0&quot;);</span>
+<span class="fc" id="L89">		this.defaultFormatter = NumberFormat.getNumberInstance();</span>
 
-<span class="fc" id="L79">		initializeCriterions();</span>
-<span class="fc" id="L80">		initializeData();</span>
-<span class="fc" id="L81">	}</span>
+<span class="fc" id="L91">		initializeCriterions();</span>
 
-	public Map&lt;String, SysValue&gt; data() {
-<span class="fc" id="L84">		return data;</span>
+<span class="fc" id="L93">		initializeTopics();</span>
+<span class="fc" id="L94">	}</span>
+
+	public java.util.Map&lt;String, SysValue&gt; data() {
+<span class="fc" id="L97">		return data;</span>
 	}
 
 	public void add(Criterion criterion, long size) {
-<span class="fc" id="L88">		ILock lock = Hazelcast.INSTANCE.getLock(criterion.toString());</span>
+<span class="fc" id="L101">		Lock lock = ClusterDataFactory.INSTANCE.createLock(criterion.toString());</span>
 
-<span class="fc" id="L90">		lock.lock();</span>
+<span class="fc" id="L103">		lock.lock();</span>
 		try {
-<span class="fc" id="L92">			Long val = criterions.get(criterion);</span>
-<span class="fc" id="L93">			val += size;</span>
+<span class="fc" id="L105">			Long val = criterions.get(criterion);</span>
+<span class="fc" id="L106">			val += size;</span>
 
-<span class="fc" id="L95">			criterions.set(criterion, val);</span>
+<span class="fc" id="L108">			criterions.put(criterion, val);</span>
 		}
 		finally {
-<span class="pc" id="L98">			lock.unlock();</span>
-<span class="fc" id="L99">		}</span>
-<span class="fc" id="L100">	}</span>
+<span class="pc" id="L111">			lock.unlock();</span>
+<span class="fc" id="L112">		}</span>
+<span class="fc" id="L113">	}</span>
 
 	public void setMaxActiveClients(long current) {
-<span class="fc" id="L103">		ILock lock = Hazelcast.INSTANCE.getLock(Criterion.CLIENTS_MAXIMUM.toString());</span>
+<span class="nc" id="L116">		Lock lock = ClusterDataFactory.INSTANCE.createLock(Criterion.CLIENTS_MAXIMUM.toString());</span>
 
-<span class="fc" id="L105">		lock.lock();</span>
+<span class="nc" id="L118">		lock.lock();</span>
 		try {
-<span class="fc" id="L107">			Long prev = criterions.get(Criterion.CLIENTS_MAXIMUM);</span>
+<span class="nc" id="L120">			Long prev = criterions.get(Criterion.CLIENTS_MAXIMUM);</span>
 
-<span class="fc bfc" id="L109" title="All 2 branches covered.">			if (prev &lt; current) {</span>
-<span class="fc" id="L110">				criterions.set(Criterion.CLIENTS_MAXIMUM, current);</span>
+<span class="nc bnc" id="L122" title="All 2 branches missed.">			if (prev &lt; current) {</span>
+<span class="nc" id="L123">				criterions.put(Criterion.CLIENTS_MAXIMUM, current);</span>
 			}
 		}
 		finally {
-<span class="pc" id="L114">			lock.unlock();</span>
-<span class="fc" id="L115">		}</span>
-<span class="fc" id="L116">	}</span>
-
-	public String getStatic(String topicName) {
-<span class="nc bnc" id="L119" title="All 14 branches missed.">		switch (topicName) {</span>
-		case $SYS_BROKER_VERSION:
-<span class="nc" id="L121">			return Settings.INSTANCE.version();</span>
-
-		case $SYS_BROKER_TIMESTAMP:
-<span class="nc" id="L124">			return Settings.INSTANCE.buildTime();</span>
-
-		case $SYS_BROKER_CHANGESET:
-<span class="nc" id="L127">			return Settings.INSTANCE.commitIdDescribe() + &quot; / &quot; + Settings.INSTANCE.commitId();</span>
-
-		default:
-<span class="nc" id="L130">			return null;</span>
-		}
-	}
+<span class="nc" id="L127">			lock.unlock();</span>
+<span class="nc" id="L128">		}</span>
+<span class="nc" id="L129">	}</span>
 
 	private void initializeCriterions() {
-<span class="pc bpc" id="L135" title="1 of 2 branches missed.">		if (criterions.get(Criterion.BROKER_START_TIME) == null) {</span>
-<span class="fc" id="L136">			criterions.set(Criterion.BROKER_START_TIME, new Date().getTime());</span>
+<span class="pc bpc" id="L132" title="1 of 2 branches missed.">		if (criterions.get(Criterion.BROKER_START_TIME) == null) {</span>
+<span class="fc" id="L133">			criterions.put(Criterion.BROKER_START_TIME, new Date().getTime());</span>
 		}
 
-<span class="fc" id="L139">		initialize(Criterion.BYTE_RECEIVED);</span>
-<span class="fc" id="L140">		initialize(Criterion.BYTE_SENT);</span>
-<span class="fc" id="L141">		initialize(Criterion.CLIENTS_MAXIMUM);</span>
-<span class="fc" id="L142">		initialize(Criterion.MESSAGES_RECEIVED);</span>
-<span class="fc" id="L143">		initialize(Criterion.MESSAGES_SENT);</span>
-<span class="fc" id="L144">		initialize(Criterion.MESSAGES_PUBLISH_DROPPED);</span>
-<span class="fc" id="L145">		initialize(Criterion.MESSAGES_PUBLISH_RECEIVED);</span>
-<span class="fc" id="L146">		initialize(Criterion.MESSAGES_PUBLISH_SENT);</span>
-<span class="fc" id="L147">	}</span>
+<span class="fc" id="L136">		initialize(Criterion.BYTE_RECEIVED);</span>
+<span class="fc" id="L137">		initialize(Criterion.BYTE_SENT);</span>
+<span class="fc" id="L138">		initialize(Criterion.CLIENTS_MAXIMUM);</span>
+<span class="fc" id="L139">		initialize(Criterion.MESSAGES_RECEIVED);</span>
+<span class="fc" id="L140">		initialize(Criterion.MESSAGES_SENT);</span>
+<span class="fc" id="L141">		initialize(Criterion.MESSAGES_PUBLISH_DROPPED);</span>
+<span class="fc" id="L142">		initialize(Criterion.MESSAGES_PUBLISH_RECEIVED);</span>
+<span class="fc" id="L143">		initialize(Criterion.MESSAGES_PUBLISH_SENT);</span>
+<span class="fc" id="L144">	}</span>
 
 	private void initialize(Criterion criterion) {
-<span class="pc bpc" id="L150" title="1 of 2 branches missed.">		if (criterions.get(criterion) != null) { return; }</span>
+<span class="pc bpc" id="L147" title="1 of 2 branches missed.">		if (criterions.get(criterion) != null) { return; }</span>
 
-<span class="fc" id="L152">		criterions.set(criterion, 0l);</span>
-<span class="fc" id="L153">	}</span>
+<span class="fc" id="L149">		criterions.put(criterion, 0l);</span>
+<span class="fc" id="L150">	}</span>
 
-	private void initializeData() {
-<span class="fc" id="L156">		data.put(&quot;$SYS/broker/load/bytes/received&quot;, new RawSysValue(Criterion.BYTE_RECEIVED));</span>
-<span class="fc" id="L157">		data.put(&quot;$SYS/broker/load/bytes/sent&quot;, new RawSysValue(Criterion.BYTE_SENT));</span>
-<span class="fc" id="L158">		data.put(&quot;$SYS/broker/clients/maximum&quot;, new RawSysValue(Criterion.CLIENTS_MAXIMUM));</span>
-<span class="fc" id="L159">		data.put(&quot;$SYS/broker/messages/received&quot;, new RawSysValue(Criterion.MESSAGES_RECEIVED));</span>
-<span class="fc" id="L160">		data.put(&quot;$SYS/broker/messages/sent&quot;, new RawSysValue(Criterion.MESSAGES_SENT));</span>
-<span class="fc" id="L161">		data.put(&quot;$SYS/broker/messages/publish/dropped&quot;, new RawSysValue(Criterion.MESSAGES_PUBLISH_DROPPED));</span>
-<span class="fc" id="L162">		data.put(&quot;$SYS/broker/messages/publish/received&quot;, new RawSysValue(Criterion.MESSAGES_PUBLISH_RECEIVED));</span>
-<span class="fc" id="L163">		data.put(&quot;$SYS/broker/messages/publish/sent&quot;, new RawSysValue(Criterion.MESSAGES_PUBLISH_SENT));</span>
+	private void initializeTopics() {
+		// MESSAGE
+<span class="fc" id="L154">		data.put(&quot;$SYS/broker/messages/received&quot;, new RawSysValue(Criterion.MESSAGES_RECEIVED));</span>
+<span class="fc" id="L155">		data.put(&quot;$SYS/broker/messages/sent&quot;, new RawSysValue(Criterion.MESSAGES_SENT));</span>
+<span class="fc" id="L156">		data.put(&quot;$SYS/broker/messages/publish/dropped&quot;, new RawSysValue(Criterion.MESSAGES_PUBLISH_DROPPED));</span>
+<span class="fc" id="L157">		data.put(&quot;$SYS/broker/messages/publish/received&quot;, new RawSysValue(Criterion.MESSAGES_PUBLISH_RECEIVED));</span>
+<span class="fc" id="L158">		data.put(&quot;$SYS/broker/messages/publish/sent&quot;, new RawSysValue(Criterion.MESSAGES_PUBLISH_SENT));</span>
+<span class="pc" id="L159">		data.put(&quot;$SYS/broker/messages/retained/count&quot;, () -&gt; defaultFormatter.format(</span>
+<span class="nc bnc" id="L160" title="All 2 branches missed.">				Topic.NEXUS.keySet().stream().filter(t -&gt; Topic.NEXUS.get(t).retainedMessage() != null).count()));</span>
 
-<span class="fc" id="L165">		data.put(&quot;$SYS/broker/clients/connected&quot;, new SysValue() {</span>
-			@Override
-			public String value() {
-<span class="fc" id="L168">				long current = Session.NEXUS.map().values().stream().filter(s -&gt; s.isConnected(false)).count();</span>
+		// CLIENT
+<span class="fc" id="L163">		data.put(&quot;$SYS/broker/clients/maximum&quot;, new RawSysValue(Criterion.CLIENTS_MAXIMUM));</span>
+<span class="fc" id="L164">		data.put(&quot;$SYS/broker/clients/connected&quot;, () -&gt; {</span>
+<span class="nc" id="L165">			long current = Session.NEXUS.keySet().stream().filter(s -&gt; Session.NEXUS.get(s).isConnected(false)).count();</span>
 
-<span class="fc" id="L170">				setMaxActiveClients(current);</span>
+<span class="nc" id="L167">			setMaxActiveClients(current);</span>
 
-<span class="fc" id="L172">				return Long.toString(current);</span>
-			}
+<span class="nc" id="L169">			return defaultFormatter.format(current);</span>
+		});
+<span class="pc" id="L171">		data.put(&quot;$SYS/broker/clients/disconnected&quot;, () -&gt; defaultFormatter</span>
+<span class="nc bnc" id="L172" title="All 2 branches missed.">				.format(Session.NEXUS.keySet().stream().filter(s -&gt; !Session.NEXUS.get(s).isConnected(false)).count()));</span>
+<span class="pc" id="L173">		data.put(&quot;$SYS/broker/clients/total&quot;, () -&gt; defaultFormatter.format(Session.NEXUS.keySet().size()));</span>
+
+		// STATIC
+<span class="pc" id="L176">		data.put(&quot;$SYS/broker/version&quot;, () -&gt; Settings.INSTANCE.version());</span>
+<span class="pc" id="L177">		data.put(&quot;$SYS/broker/timestamp&quot;, () -&gt; Settings.INSTANCE.buildTime());</span>
+<span class="fc" id="L178">		data.put(&quot;$SYS/broker/changeset&quot;,</span>
+<span class="nc" id="L179">				() -&gt; Settings.INSTANCE.commitId() + &quot; | &quot; + Settings.INSTANCE.commitIdDescribe());</span>
+
+		// ETC
+<span class="fc" id="L182">		data.put(&quot;$SYS/broker/load/bytes/received&quot;, new RawSysValue(Criterion.BYTE_RECEIVED));</span>
+<span class="fc" id="L183">		data.put(&quot;$SYS/broker/load/bytes/sent&quot;, new RawSysValue(Criterion.BYTE_SENT));</span>
+<span class="pc" id="L184">		data.put(&quot;$SYS/broker/subscriptions/count&quot;, () -&gt; defaultFormatter.format(TopicSubscription.NEXUS.size()));</span>
+<span class="pc" id="L185">		data.put(&quot;$SYS/broker/time&quot;, () -&gt; new Date().toString());</span>
+<span class="pc" id="L186">		data.put(&quot;$SYS/broker/uptime&quot;, () -&gt; defaultFormatter</span>
+<span class="nc" id="L187">				.format((double) (new Date().getTime() - criterions.get(Criterion.BROKER_START_TIME)) / (double) 1000));</span>
+
+		// RATE
+<span class="fc" id="L190">		data.put(&quot;$SYS/broker/messages/received/inSecond&quot;, () -&gt; {</span>
+<span class="nc" id="L191">			Long numerator = criterions.get(Criterion.MESSAGES_RECEIVED);</span>
+<span class="nc" id="L192">			Double denominator = (double) (new Date().getTime() - criterions.get(Criterion.BROKER_START_TIME))</span>
+					/ (double) 1000;
+
+<span class="nc" id="L195">			return decimalFormatter.format((double) numerator / denominator);</span>
+		});
+<span class="fc" id="L197">		data.put(&quot;$SYS/broker/messages/sent/inSecond&quot;, () -&gt; {</span>
+<span class="nc" id="L198">			Long numerator = criterions.get(Criterion.MESSAGES_SENT);</span>
+<span class="nc" id="L199">			Double denominator = (double) (new Date().getTime() - criterions.get(Criterion.BROKER_START_TIME))</span>
+					/ (double) 1000;
+
+<span class="nc" id="L202">			return decimalFormatter.format((double) numerator / denominator);</span>
+		});
+<span class="fc" id="L204">		data.put(&quot;$SYS/broker/load/bytes/received/inSecond&quot;, () -&gt; {</span>
+<span class="nc" id="L205">			Long numerator = criterions.get(Criterion.BYTE_RECEIVED);</span>
+<span class="nc" id="L206">			Double denominator = (double) (new Date().getTime() - criterions.get(Criterion.BROKER_START_TIME))</span>
+					/ (double) 1000;
+
+<span class="nc" id="L209">			return decimalFormatter.format((double) numerator / denominator);</span>
+		});
+<span class="fc" id="L211">		data.put(&quot;$SYS/broker/load/bytes/sent/inSecond&quot;, () -&gt; {</span>
+<span class="nc" id="L212">			Long numerator = criterions.get(Criterion.BYTE_SENT);</span>
+<span class="nc" id="L213">			Double denominator = (double) (new Date().getTime() - criterions.get(Criterion.BROKER_START_TIME))</span>
+					/ (double) 1000;
+
+<span class="nc" id="L216">			return decimalFormatter.format((double) numerator / denominator);</span>
+		});
+<span class="fc" id="L218">		data.put(&quot;$SYS/broker/messages/publish/dropped/inSecond&quot;, () -&gt; {</span>
+<span class="nc" id="L219">			Long numerator = criterions.get(Criterion.MESSAGES_PUBLISH_DROPPED);</span>
+<span class="nc" id="L220">			Double denominator = (double) (new Date().getTime() - criterions.get(Criterion.BROKER_START_TIME))</span>
+					/ (double) 1000;
+
+<span class="nc" id="L223">			return decimalFormatter.format((double) numerator / denominator);</span>
+		});
+<span class="fc" id="L225">		data.put(&quot;$SYS/broker/messages/publish/received/inSecond&quot;, () -&gt; {</span>
+<span class="nc" id="L226">			Long numerator = criterions.get(Criterion.MESSAGES_PUBLISH_RECEIVED);</span>
+<span class="nc" id="L227">			Double denominator = (double) (new Date().getTime() - criterions.get(Criterion.BROKER_START_TIME))</span>
+					/ (double) 1000;
+
+<span class="nc" id="L230">			return decimalFormatter.format((double) numerator / denominator);</span>
+		});
+<span class="fc" id="L232">		data.put(&quot;$SYS/broker/messages/publish/sent/inSecond&quot;, () -&gt; {</span>
+<span class="nc" id="L233">			Long numerator = criterions.get(Criterion.MESSAGES_PUBLISH_SENT);</span>
+<span class="nc" id="L234">			Double denominator = (double) (new Date().getTime() - criterions.get(Criterion.BROKER_START_TIME))</span>
+					/ (double) 1000;
+
+<span class="nc" id="L237">			return decimalFormatter.format((double) numerator / denominator);</span>
+		});
+<span class="fc" id="L239">		data.put(&quot;$SYS/broker/messages/publish/sent/inSecond&quot;, () -&gt; {</span>
+<span class="nc" id="L240">			Long numerator = criterions.get(Criterion.MESSAGES_PUBLISH_SENT);</span>
+<span class="nc" id="L241">			Double denominator = (double) (new Date().getTime() - criterions.get(Criterion.BROKER_START_TIME))</span>
+					/ (double) 1000;
+
+<span class="nc" id="L244">			return decimalFormatter.format((double) numerator / denominator);</span>
 		});
 
-<span class="fc" id="L176">		data.put(&quot;$SYS/broker/clients/disconnected&quot;, new SysValue() {</span>
-			@Override
-			public String value() {
-<span class="fc bfc" id="L179" title="All 2 branches covered.">				return Long.toString(Session.NEXUS.map().values().stream().filter(s -&gt; !s.isConnected(false)).count());</span>
-			}
-		});
+		// CUSTOM : SYSTEM
+<span class="fc" id="L248">		data.put(&quot;$SYS/broker/node/&quot; + ClusterDataFactory.INSTANCE.currentId() + &quot;/system/processor/count&quot;,</span>
+<span class="nc" id="L249">				() -&gt; defaultFormatter.format(Runtime.getRuntime().availableProcessors()));</span>
+<span class="fc" id="L250">		data.put(&quot;$SYS/broker/node/&quot; + ClusterDataFactory.INSTANCE.currentId() + &quot;/load/cpu/system/percent&quot;,</span>
+<span class="nc" id="L251">				() -&gt; decimalFormatter.format(osBean.getSystemCpuLoad() * CENT));</span>
+<span class="fc" id="L252">		data.put(&quot;$SYS/broker/node/&quot; + ClusterDataFactory.INSTANCE.currentId() + &quot;/load/cpu/jvm/percent&quot;,</span>
+<span class="nc" id="L253">				() -&gt; decimalFormatter.format(osBean.getProcessCpuLoad() * CENT));</span>
+<span class="fc" id="L254">		data.put(&quot;$SYS/broker/node/&quot; + ClusterDataFactory.INSTANCE.currentId() + &quot;/load/thread/active/count&quot;,</span>
+<span class="nc" id="L255">				() -&gt; defaultFormatter.format(java.lang.Thread.activeCount()));</span>
+<span class="fc" id="L256">		data.put(&quot;$SYS/broker/node/&quot; + ClusterDataFactory.INSTANCE.currentId() + &quot;/load/memory/max/byte&quot;,</span>
+<span class="nc" id="L257">				() -&gt; defaultFormatter.format(runtime.maxMemory()));</span>
+<span class="fc" id="L258">		data.put(&quot;$SYS/broker/node/&quot; + ClusterDataFactory.INSTANCE.currentId() + &quot;/load/memory/total/byte&quot;,</span>
+<span class="nc" id="L259">				() -&gt; defaultFormatter.format(runtime.totalMemory()));</span>
+<span class="fc" id="L260">		data.put(&quot;$SYS/broker/node/&quot; + ClusterDataFactory.INSTANCE.currentId() + &quot;/load/memory/free/byte&quot;,</span>
+<span class="nc" id="L261">				() -&gt; defaultFormatter.format(runtime.freeMemory()));</span>
 
-<span class="fc" id="L183">		data.put(&quot;$SYS/broker/clients/total&quot;, new SysValue() {</span>
-			@Override
-			public String value() {
-<span class="fc" id="L186">				return Long.toString(Session.NEXUS.map().entrySet().stream().count());</span>
-			}
-		});
-
-<span class="fc" id="L190">		data.put(&quot;$SYS/broker/messages/retained/count&quot;, new SysValue() {</span>
-			@Override
-			public String value() {
-<span class="fc" id="L193">				return Long</span>
-<span class="fc bfc" id="L194" title="All 2 branches covered.">						.toString(Topic.NEXUS.map().values().stream().filter(t -&gt; t.retainedMessage() != null).count());</span>
-			}
-		});
-
-<span class="fc" id="L198">		data.put(&quot;$SYS/broker/subscriptions/count&quot;, new SysValue() {</span>
-			@Override
-			public String value() {
-<span class="fc" id="L201">				return Long.toString(Session.NEXUS.map().values().stream().map(s -&gt; s.topicSubscriptions())</span>
-<span class="fc" id="L202">						.flatMap(s -&gt; s.values().stream()).count());</span>
-			}
-		});
-
-<span class="fc" id="L206">		data.put(&quot;$SYS/broker/time&quot;, new SysValue() {</span>
-			@Override
-			public String value() {
-<span class="fc" id="L209">				return new Date().toString();</span>
-			}
-		});
-
-<span class="fc" id="L213">		data.put(&quot;$SYS/broker/uptime&quot;, new SysValue() {</span>
-			@Override
-			public String value() {
-<span class="fc" id="L216">				return Double.toString(</span>
-<span class="fc" id="L217">						(double) (new Date().getTime() - criterions.get(Criterion.BROKER_START_TIME)) / (double) 1000);</span>
-			}
-		});
-<span class="fc" id="L220">	}</span>
+		// CUSTOM : DATA STRUCTURE STATISTICS
+<span class="pc" id="L264">		data.put(&quot;$SYS/broker/topic/count&quot;, () -&gt; defaultFormatter.format(Topic.NEXUS.keySet().size()));</span>
+<span class="pc" id="L265">		data.put(&quot;$SYS/broker/topic/subscriber/count&quot;, () -&gt; defaultFormatter.format(TopicSubscriber.NEXUS.size()));</span>
+<span class="pc" id="L266">		data.put(&quot;$SYS/broker/topic/subscription/count&quot;, () -&gt; defaultFormatter.format(TopicSubscription.NEXUS.size()));</span>
+<span class="fc" id="L267">		data.put(&quot;$SYS/broker/topic/filter/count&quot;,</span>
+<span class="nc" id="L268">				() -&gt; defaultFormatter.format(TopicSubscription.NEXUS.topicFilters().size()));</span>
+<span class="pc" id="L269">		data.put(&quot;$SYS/broker/messages/persisted/count&quot;, () -&gt; defaultFormatter.format(Message.NEXUS.size()));</span>
+<span class="fc" id="L270">		data.put(&quot;$SYS/broker/messages/persisted/inboundStatus/count&quot;,</span>
+<span class="nc" id="L271">				() -&gt; defaultFormatter.format(InboundMessageStatus.NEXUS.size()));</span>
+<span class="fc" id="L272">		data.put(&quot;$SYS/broker/messages/persisted/outboundStatus/count&quot;,</span>
+<span class="nc" id="L273">				() -&gt; defaultFormatter.format(OutboundMessageStatus.NEXUS.size()));</span>
+<span class="fc" id="L274">		data.put(&quot;$SYS/broker/messages/persisted/referenceCounter/count&quot;,</span>
+<span class="nc" id="L275">				() -&gt; defaultFormatter.format(MessageReferenceCounts.INSTANCE.size()));</span>
+<span class="fc" id="L276">	}</span>
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.7.7.201606060606</span></div></body></html>

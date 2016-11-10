@@ -1,0 +1,251 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>TopicSubscribers.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">Lannister server</a> &gt; <a href="index.source.html" class="el_package">net.anyflow.lannister.topic</a> &gt; <span class="el_source">TopicSubscribers.java</span></div><h1>TopicSubscribers.java</h1><pre class="source lang-java linenums">/*
+ * Copyright 2016 The Lannister Project
+ * 
+ * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ * 
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package net.anyflow.lannister.topic;
+
+import java.util.List;
+import java.util.Set;
+import java.util.concurrent.locks.Lock;
+import java.util.stream.Collectors;
+
+import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
+
+import net.anyflow.lannister.cluster.ClusterDataFactory;
+import net.anyflow.lannister.cluster.Map;
+import net.anyflow.lannister.cluster.SerializableStringSet;
+
+public class TopicSubscribers {
+<span class="fc" id="L31">	private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(TopicSubscribers.class);</span>
+
+	private final Map&lt;String, TopicSubscriber&gt; data;
+	private final Map&lt;String, SerializableStringSet&gt; topicnameIndex;
+	private final Map&lt;String, SerializableStringSet&gt; clientidIndex;
+
+	private final Lock modifyLock;
+
+<span class="fc" id="L39">	protected TopicSubscribers() {</span>
+<span class="fc" id="L40">		this.data = ClusterDataFactory.INSTANCE.createMap(&quot;TopicSubscribers_data&quot;);</span>
+<span class="fc" id="L41">		this.topicnameIndex = ClusterDataFactory.INSTANCE.createMap(&quot;TopicSubscribers_topicnameIndex&quot;);</span>
+<span class="fc" id="L42">		this.clientidIndex = ClusterDataFactory.INSTANCE.createMap(&quot;TopicSubscribers_clientidIndex&quot;);</span>
+
+<span class="fc" id="L44">		this.modifyLock = ClusterDataFactory.INSTANCE.createLock(&quot;TopicSubscribers_modifyLock&quot;);</span>
+<span class="fc" id="L45">	}</span>
+
+	public static String key(String topicName, String clientId) {
+<span class="fc" id="L48">		return topicName + &quot;_&quot; + clientId;</span>
+	}
+
+	public int size() {
+<span class="nc" id="L52">		return data.size();</span>
+	}
+
+	public Set&lt;String&gt; keySet() {
+<span class="nc" id="L56">		return Sets.newHashSet(data.keySet());</span>
+	}
+
+	public void put(TopicSubscriber topicSubscriber) {
+<span class="pc bpc" id="L60" title="1 of 2 branches missed.">		if (topicSubscriber == null) { return; }</span>
+
+<span class="fc" id="L62">		modifyLock.lock();</span>
+		try {
+<span class="fc" id="L64">			this.data.put(topicSubscriber.key(), topicSubscriber);</span>
+
+<span class="fc" id="L66">			SerializableStringSet clientIds = this.topicnameIndex.get(topicSubscriber.topicName());</span>
+<span class="fc bfc" id="L67" title="All 2 branches covered.">			if (clientIds == null) {</span>
+<span class="fc" id="L68">				clientIds = new SerializableStringSet();</span>
+			}
+<span class="fc" id="L70">			clientIds.add(topicSubscriber.clientId());</span>
+<span class="fc" id="L71">			this.topicnameIndex.put(topicSubscriber.topicName(), clientIds);</span>
+
+<span class="fc" id="L73">			SerializableStringSet topicNames = this.clientidIndex.get(topicSubscriber.clientId());</span>
+<span class="fc bfc" id="L74" title="All 2 branches covered.">			if (topicNames == null) {</span>
+<span class="fc" id="L75">				topicNames = new SerializableStringSet();</span>
+			}
+<span class="fc" id="L77">			topicNames.add(topicSubscriber.topicName());</span>
+<span class="fc" id="L78">			this.clientidIndex.put(topicSubscriber.clientId(), topicNames);</span>
+
+<span class="pc bpc" id="L80" title="1 of 2 branches missed.">			if (logger.isDebugEnabled()) {</span>
+<span class="fc" id="L81">				logger.debug(&quot;TopicSubscriber added [topicName={}, clientId={}]&quot;, topicSubscriber.topicName(),</span>
+<span class="fc" id="L82">						topicSubscriber.clientId());</span>
+<span class="fc" id="L83">				logger.debug(&quot;TopicSubscribers Size [data={}, topicnameIndex={}, clientidIndex={}]&quot;, data.size(),</span>
+<span class="fc" id="L84">						topicnameIndex.size(), clientidIndex.size());</span>
+			}
+		}
+		finally {
+<span class="pc" id="L88">			modifyLock.unlock();</span>
+<span class="fc" id="L89">		}</span>
+<span class="fc" id="L90">	}</span>
+
+	public TopicSubscriber get(String key) {
+<span class="nc" id="L93">		return data.get(key);</span>
+	}
+
+	public Set&lt;String&gt; clientIdsOf(String topicName) {
+<span class="fc" id="L97">		Set&lt;String&gt; ret = topicnameIndex.get(topicName);</span>
+
+<span class="fc bfc" id="L99" title="All 2 branches covered.">		return ret == null ? Sets.newHashSet() : Sets.newHashSet(ret);</span>
+	}
+
+	public Set&lt;String&gt; topicNamesOf(String clientId) {
+<span class="nc" id="L103">		Set&lt;String&gt; ret = clientidIndex.get(clientId);</span>
+
+<span class="nc bnc" id="L105" title="All 2 branches missed.">		return ret == null ? Sets.newHashSet() : Sets.newHashSet(ret);</span>
+	}
+
+	public void updateByTopicName(String topicName) {
+<span class="fc" id="L109">		TopicSubscription.NEXUS.topicFilters().stream()</span>
+<span class="fc" id="L110">				.filter(topicFilter -&gt; TopicMatcher.match(topicFilter, topicName))</span>
+<span class="fc" id="L111">				.forEach(topicFilter -&gt; TopicSubscription.NEXUS.clientIdsOf(topicFilter)</span>
+<span class="fc" id="L112">						.forEach(clientId -&gt; TopicSubscriber.NEXUS.put(new TopicSubscriber(clientId, topicName))));</span>
+<span class="fc" id="L113">	}</span>
+
+	public TopicSubscriber removeByKey(String topicName, String clientId) {
+<span class="nc" id="L116">		return removeByKey(key(topicName, clientId));</span>
+	}
+
+	private TopicSubscriber removeByKey(String key) {
+<span class="nc" id="L120">		modifyLock.lock();</span>
+		try {
+<span class="nc" id="L122">			TopicSubscriber removed = this.data.remove(key);</span>
+<span class="nc bnc" id="L123" title="All 2 branches missed.">			if (removed == null) { return null; }</span>
+
+<span class="nc" id="L125">			SerializableStringSet clientIds = topicnameIndex.get(removed.topicName());</span>
+<span class="nc" id="L126">			clientIds.remove(removed.clientId());</span>
+<span class="nc bnc" id="L127" title="All 2 branches missed.">			if (clientIds.size() &lt;= 0) {</span>
+<span class="nc" id="L128">				topicnameIndex.remove(removed.topicName());</span>
+			}
+			else {
+<span class="nc" id="L131">				topicnameIndex.put(removed.topicName(), clientIds);</span>
+			}
+
+<span class="nc" id="L134">			SerializableStringSet topicNames = clientidIndex.get(removed.clientId());</span>
+<span class="nc" id="L135">			topicNames.remove(removed.topicName());</span>
+<span class="nc bnc" id="L136" title="All 2 branches missed.">			if (topicNames.size() &lt;= 0) {</span>
+<span class="nc" id="L137">				clientidIndex.remove(removed.clientId());</span>
+			}
+			else {
+<span class="nc" id="L140">				clientidIndex.put(removed.clientId(), topicNames);</span>
+			}
+
+<span class="nc bnc" id="L143" title="All 2 branches missed.">			if (logger.isDebugEnabled()) {</span>
+<span class="nc" id="L144">				logger.debug(&quot;TopicSubscriber removed [topicName={}, clientId={}]&quot;, removed.topicName(),</span>
+<span class="nc" id="L145">						removed.clientId());</span>
+<span class="nc" id="L146">				logger.debug(&quot;TopicSubscribers Size [data={}, topicnameIndex={}, clientidIndex={}]&quot;, data.size(),</span>
+<span class="nc" id="L147">						topicnameIndex.size(), clientidIndex.size());</span>
+			}
+
+<span class="nc" id="L150">			return removed;</span>
+		}
+		finally {
+<span class="nc" id="L153">			modifyLock.unlock();</span>
+		}
+	}
+
+	public Set&lt;String&gt; removeByClientId(String clientId) {
+<span class="fc" id="L158">		modifyLock.lock();</span>
+		try {
+<span class="fc" id="L160">			SerializableStringSet topicNames = this.clientidIndex.remove(clientId);</span>
+<span class="fc bfc" id="L161" title="All 2 branches covered.">			if (topicNames == null) { return Sets.newHashSet(); }</span>
+
+<span class="fc" id="L163">			topicNames.forEach(topicName -&gt; {</span>
+<span class="fc" id="L164">				SerializableStringSet clientIds = topicnameIndex.get(topicName);</span>
+<span class="fc" id="L165">				clientIds.remove(clientId);</span>
+<span class="pc bpc" id="L166" title="1 of 2 branches missed.">				if (clientIds.size() &lt;= 0) {</span>
+<span class="fc" id="L167">					topicnameIndex.remove(topicName);</span>
+				}
+				else {
+<span class="nc" id="L170">					topicnameIndex.put(topicName, clientIds);</span>
+				}
+<span class="fc" id="L172">			});</span>
+
+<span class="fc" id="L174">			topicNames.stream().map(topicName -&gt; key(topicName, clientId)).forEach(key -&gt; {</span>
+<span class="fc" id="L175">				TopicSubscriber removed = data.remove(key);</span>
+
+<span class="pc bpc" id="L177" title="1 of 2 branches missed.">				if (logger.isDebugEnabled()) {</span>
+<span class="fc" id="L178">					logger.debug(&quot;TopicSubscriber removed [topicName={}, clientId={}]&quot;, removed.topicName(),</span>
+<span class="fc" id="L179">							removed.clientId());</span>
+<span class="fc" id="L180">					logger.debug(&quot;TopicSubscribers Size [data={}, topicnameIndex={}, clientidIndex={}]&quot;, data.size(),</span>
+<span class="fc" id="L181">							topicnameIndex.size(), clientidIndex.size());</span>
+				}
+<span class="fc" id="L183">			});</span>
+
+<span class="fc" id="L185">			return topicNames;</span>
+		}
+		finally {
+<span class="pc" id="L188">			modifyLock.unlock();</span>
+		}
+	}
+
+	public void removeByTopicFilter(String clientId, String topicFilter) {
+<span class="nc" id="L193">		modifyLock.lock();</span>
+		try {
+<span class="nc" id="L195">			List&lt;String&gt; topicNamesToRemove = this.topicNamesOf(clientId).stream()</span>
+<span class="nc" id="L196">					.filter(topicName -&gt; TopicMatcher.match(topicFilter, topicName)).collect(Collectors.toList());</span>
+
+<span class="nc" id="L198">			Set&lt;String&gt; otherTopicFilters = TopicSubscription.NEXUS.topicFiltersOf(clientId);</span>
+<span class="nc" id="L199">			otherTopicFilters.remove(topicFilter);</span>
+
+			// Remove topicNames from topicNmaesToRemove which matches with
+			// other topic filters
+<span class="nc" id="L203">			List&lt;String&gt; tempTopicNames = Lists.newArrayList(topicNamesToRemove);</span>
+<span class="nc" id="L204">			otherTopicFilters.stream().forEach(filter -&gt; {</span>
+<span class="nc" id="L205">				tempTopicNames.stream().forEach(name -&gt; {</span>
+<span class="nc bnc" id="L206" title="All 2 branches missed.">					if (TopicMatcher.match(filter, name)) {</span>
+<span class="nc" id="L207">						topicNamesToRemove.remove(name);</span>
+					}
+<span class="nc" id="L209">				});</span>
+<span class="nc" id="L210">			});</span>
+
+<span class="nc" id="L212">			topicNamesToRemove.stream().map(topicName -&gt; key(topicName, clientId)).forEach(key -&gt; data.remove(key));</span>
+
+<span class="nc" id="L214">			SerializableStringSet topicValues = clientidIndex.get(clientId);</span>
+<span class="nc bnc" id="L215" title="All 2 branches missed.">			if (topicValues != null) {</span>
+<span class="nc" id="L216">				topicValues.removeAll(topicNamesToRemove);</span>
+
+<span class="nc bnc" id="L218" title="All 2 branches missed.">				if (topicValues.size() &lt;= 0) {</span>
+<span class="nc" id="L219">					clientidIndex.remove(clientId);</span>
+				}
+				else {
+<span class="nc" id="L222">					clientidIndex.put(clientId, topicValues);</span>
+				}
+			}
+
+<span class="nc" id="L226">			topicNamesToRemove.forEach(topicName -&gt; {</span>
+<span class="nc" id="L227">				SerializableStringSet clientIds = topicnameIndex.get(topicName);</span>
+<span class="nc bnc" id="L228" title="All 2 branches missed.">				if (clientIds == null) { return; }</span>
+
+<span class="nc" id="L230">				clientIds.remove(clientId);</span>
+<span class="nc bnc" id="L231" title="All 2 branches missed.">				if (clientIds.size() &lt;= 0) {</span>
+<span class="nc" id="L232">					topicnameIndex.remove(topicName);</span>
+				}
+				else {
+<span class="nc" id="L235">					topicnameIndex.put(topicName, clientIds);</span>
+				}
+<span class="nc" id="L237">			});</span>
+
+<span class="nc bnc" id="L239" title="All 2 branches missed.">			if (logger.isDebugEnabled()) {</span>
+<span class="nc" id="L240">				logger.debug(&quot;TopicSubscribers removed [topicFilter={}, clientId={}, topicNameCount={}]&quot;, topicFilter,</span>
+<span class="nc" id="L241">						clientId, topicNamesToRemove.size());</span>
+<span class="nc" id="L242">				logger.debug(&quot;TopicSubscribers Size [data={}, topicnameIndex={}, clientidIndex={}]&quot;, data.size(),</span>
+<span class="nc" id="L243">						topicnameIndex.size(), clientidIndex.size());</span>
+			}
+		}
+		finally {
+<span class="nc" id="L247">			modifyLock.unlock();</span>
+<span class="nc" id="L248">		}</span>
+<span class="nc" id="L249">	}</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.7.7.201606060606</span></div></body></html>

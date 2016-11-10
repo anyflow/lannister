@@ -16,25 +16,49 @@
 
 package net.anyflow.lannister.plugin;
 
+import java.util.Arrays;
+
 import io.netty.handler.codec.mqtt.MqttQoS;
 
+/**
+ * Represent MQTT message.
+ */
 public interface IMessage {
+	/**
+	 * @return message identifier(packet identifier in MQTT 3.1.1)
+	 */
 	int id();
 
+	/**
+	 * @return topic's name the message belongs to
+	 */
 	String topicName();
 
+	/**
+	 * @return client identifier whose client published the message
+	 */
 	String publisherId();
 
+	/**
+	 * @return message itself
+	 */
 	byte[] message();
 
+	/**
+	 * @return message QoS. The value can be used different in client publishing
+	 *         time and broker publishing time
+	 */
 	MqttQoS qos();
 
+	/**
+	 * @return whether the message is retained or not
+	 */
 	boolean isRetain();
 
 	default String log() {
-<span class="fc" id="L35">		return (new StringBuilder()).append(&quot;messageId=&quot;).append(id()).append(&quot;, topicName=&quot;).append(topicName())</span>
-<span class="fc" id="L36">				.append(&quot;, publisherId=&quot;).append(publisherId()).append(&quot;, message=&quot;).append(message()).append(&quot;, qos=&quot;)</span>
-<span class="fc" id="L37">				.append(qos()).append(&quot;, isRetain=&quot;).append(isRetain()).toString();</span>
+<span class="fc" id="L59">		return (new StringBuilder()).append(&quot;messageId=&quot;).append(id()).append(&quot;, topicName=&quot;).append(topicName())</span>
+<span class="fc" id="L60">				.append(&quot;, publisherId=&quot;).append(publisherId()).append(&quot;, message=&quot;).append(Arrays.toString(message()))</span>
+<span class="fc" id="L61">				.append(&quot;, qos=&quot;).append(qos()).append(&quot;, isRetain=&quot;).append(isRetain()).toString();</span>
 	}
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.7.7.201606060606</span></div></body></html>

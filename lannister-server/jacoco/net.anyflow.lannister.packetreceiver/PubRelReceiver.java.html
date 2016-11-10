@@ -16,35 +16,44 @@
 
 package net.anyflow.lannister.packetreceiver;
 
-import net.anyflow.lannister.message.MessageFactory;
+import io.netty.channel.ChannelHandlerContext;
+import io.netty.handler.codec.mqtt.MqttMessage;
+import net.anyflow.lannister.message.InboundMessageStatus;
 import net.anyflow.lannister.session.Session;
 import net.anyflow.lannister.topic.Topic;
 import net.anyflow.lannister.topic.Topics.ClientType;
 
 public class PubRelReceiver {
+<span class="fc" id="L27">	private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(PubRelReceiver.class);</span>
 
-<span class="fc" id="L26">	private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(PubRelReceiver.class);</span>
+<span class="fc" id="L29">	public static final PubRelReceiver SHARED = new PubRelReceiver();</span>
 
-<span class="fc" id="L28">	public static final PubRelReceiver SHARED = new PubRelReceiver();</span>
+<span class="fc" id="L31">	private PubRelReceiver() {</span>
+<span class="fc" id="L32">	}</span>
 
-<span class="fc" id="L30">	private PubRelReceiver() {</span>
-<span class="fc" id="L31">	}</span>
-
-	protected void handle(Session session, int messageId) {
+	protected void handle(ChannelHandlerContext ctx, Session session, int messageId) {
 
 		// TODO what if the PUBREL is resented one?
 
-<span class="fc" id="L37">		Topic topic = Topic.NEXUS.get(session.clientId(), messageId, ClientType.PUBLISHER);</span>
-<span class="pc bpc" id="L38" title="1 of 2 branches missed.">		if (topic == null) {</span>
-<span class="nc" id="L39">			logger.error(&quot;Topic does not exist [clientId={}, messageId={}]&quot;, session.clientId(), messageId);</span>
-<span class="nc" id="L40">			session.dispose(true); // [MQTT-3.3.5-2]</span>
-<span class="nc" id="L41">			return;</span>
+<span class="fc" id="L38">		Topic topic = Topic.NEXUS.get(session.clientId(), messageId, ClientType.PUBLISHER);</span>
+<span class="pc bpc" id="L39" title="1 of 2 branches missed.">		if (topic == null) {</span>
+<span class="nc" id="L40">			logger.error(&quot;PUBREL target does not exist [clientId={}, messageId={}]&quot;, session.clientId(), messageId);</span>
+<span class="nc" id="L41">			session.dispose(true); // [MQTT-3.3.5-2]</span>
+<span class="nc" id="L42">			return;</span>
 		}
 
-<span class="fc" id="L44">		session.send(MessageFactory.pubcomp(messageId)).addListener(f -&gt; {</span>
-<span class="fc" id="L45">			topic.removeInboundMessageStatus(session.clientId(), messageId);</span>
-<span class="fc" id="L46">			logger.debug(&quot;Inbound message status REMOVED [clientId={}, messageId={}]&quot;, session.clientId(), messageId);</span>
-<span class="fc" id="L47">		});</span>
-<span class="fc" id="L48">	}</span>
+<span class="fc" id="L45">		MqttMessage toSend = MqttMessageFactory.pubcomp(messageId);</span>
+<span class="fc" id="L46">		final String log = toSend.toString();</span>
+
+<span class="fc" id="L48">		session.send(toSend, f -&gt; {</span>
+<span class="pc bpc" id="L49" title="1 of 2 branches missed.">			if (!f.isSuccess()) {</span>
+<span class="nc" id="L50">				logger.error(&quot;packet outgoing failed [{}] {}&quot;, log, f.cause());</span>
+<span class="nc" id="L51">				return;</span>
+			}
+
+<span class="fc" id="L54">			InboundMessageStatus.NEXUS.removeByKey(messageId, session.clientId());</span>
+<span class="fc" id="L55">			logger.debug(&quot;Inbound message status REMOVED [clientId={}, messageId={}]&quot;, session.clientId(), messageId);</span>
+<span class="fc" id="L56">		});</span>
+<span class="fc" id="L57">	}</span>
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.7.7.201606060606</span></div></body></html>

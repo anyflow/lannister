@@ -1,0 +1,209 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>OutboundMessageStatuses.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">Lannister server</a> &gt; <a href="index.source.html" class="el_package">net.anyflow.lannister.message</a> &gt; <span class="el_source">OutboundMessageStatuses.java</span></div><h1>OutboundMessageStatuses.java</h1><pre class="source lang-java linenums">/*
+ * Copyright 2016 The Lannister Project
+ * 
+ * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ * 
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package net.anyflow.lannister.message;
+
+import java.util.Set;
+import java.util.concurrent.locks.Lock;
+
+import com.google.common.collect.Sets;
+
+import net.anyflow.lannister.cluster.ClusterDataFactory;
+import net.anyflow.lannister.cluster.Map;
+import net.anyflow.lannister.cluster.SerializableIntegerSet;
+import net.anyflow.lannister.cluster.SerializableStringSet;
+
+public class OutboundMessageStatuses {
+<span class="fc" id="L29">	private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(OutboundMessageStatuses.class);</span>
+
+	private final Map&lt;String, OutboundMessageStatus&gt; data;
+	private final Map&lt;Integer, SerializableStringSet&gt; messageidIndex;
+	private final Map&lt;String, SerializableIntegerSet&gt; clientidIndex;
+
+	private final Lock modifyLock;
+
+<span class="fc" id="L37">	protected OutboundMessageStatuses() {</span>
+<span class="fc" id="L38">		this.data = ClusterDataFactory.INSTANCE.createMap(&quot;OutboundMessageStatuses_data&quot;);</span>
+<span class="fc" id="L39">		this.messageidIndex = ClusterDataFactory.INSTANCE.createMap(&quot;OutboundMessageStatuses_messageidIndex&quot;);</span>
+<span class="fc" id="L40">		this.clientidIndex = ClusterDataFactory.INSTANCE.createMap(&quot;OutboundMessageStatuses_clientidIndex&quot;);</span>
+
+<span class="fc" id="L42">		this.modifyLock = ClusterDataFactory.INSTANCE.createLock(&quot;OutboundMessageStatuses_modifyLock&quot;);</span>
+<span class="fc" id="L43">	}</span>
+
+	public static String key(Integer messageId, String clientId) {
+<span class="fc" id="L46">		return clientId + &quot;_&quot; + Integer.toString(messageId);</span>
+	}
+
+	public int size() {
+<span class="nc" id="L50">		return data.size();</span>
+	}
+
+	public Set&lt;String&gt; keySet() {
+<span class="nc" id="L54">		return Sets.newHashSet(data.keySet());</span>
+	}
+
+	public void put(OutboundMessageStatus outboundMessageStatus) {
+<span class="pc bpc" id="L58" title="1 of 2 branches missed.">		if (outboundMessageStatus == null) { return; }</span>
+
+<span class="fc" id="L60">		modifyLock.lock();</span>
+		try {
+<span class="fc" id="L62">			this.data.put(outboundMessageStatus.key(), outboundMessageStatus);</span>
+
+<span class="fc" id="L64">			SerializableStringSet clientIds = this.messageidIndex.get(outboundMessageStatus.messageId());</span>
+<span class="fc bfc" id="L65" title="All 2 branches covered.">			if (clientIds == null) {</span>
+<span class="fc" id="L66">				clientIds = new SerializableStringSet();</span>
+			}
+<span class="fc" id="L68">			clientIds.add(outboundMessageStatus.clientId());</span>
+<span class="fc" id="L69">			this.messageidIndex.put(outboundMessageStatus.messageId(), clientIds);</span>
+
+<span class="fc" id="L71">			SerializableIntegerSet messageIds = this.clientidIndex.get(outboundMessageStatus.clientId());</span>
+<span class="pc bpc" id="L72" title="1 of 2 branches missed.">			if (messageIds == null) {</span>
+<span class="fc" id="L73">				messageIds = new SerializableIntegerSet();</span>
+			}
+<span class="fc" id="L75">			messageIds.add(outboundMessageStatus.messageId());</span>
+<span class="fc" id="L76">			this.clientidIndex.put(outboundMessageStatus.clientId(), messageIds);</span>
+
+<span class="fc" id="L78">			MessageReferenceCounts.INSTANCE.retain(outboundMessageStatus.messageKey());</span>
+
+<span class="pc bpc" id="L80" title="1 of 2 branches missed.">			if (logger.isDebugEnabled()) {</span>
+<span class="fc" id="L81">				logger.debug(&quot;OutboundMessageStatus added [messageId={}, clientId={}, status=]&quot;,</span>
+<span class="fc" id="L82">						outboundMessageStatus.messageId(), outboundMessageStatus.clientId(),</span>
+<span class="fc" id="L83">						outboundMessageStatus.status());</span>
+<span class="fc" id="L84">				logger.debug(&quot;OutboundMessageStatuses Size [data={}, messageidIndex={}, clientidIndex={}]&quot;, data.size(),</span>
+<span class="fc" id="L85">						messageidIndex.size(), clientidIndex.size());</span>
+			}
+		}
+		finally {
+<span class="pc" id="L89">			modifyLock.unlock();</span>
+<span class="fc" id="L90">		}</span>
+<span class="fc" id="L91">	}</span>
+
+	public OutboundMessageStatus get(String key) {
+<span class="nc" id="L94">		return data.get(key);</span>
+	}
+
+	public OutboundMessageStatus getBy(Integer messageId, String clientId) {
+<span class="fc" id="L98">		return data.get(key(messageId, clientId));</span>
+	}
+
+	public Set&lt;Integer&gt; messageIdsOf(String clientId) {
+<span class="fc" id="L102">		Set&lt;Integer&gt; ret = clientidIndex.get(clientId);</span>
+
+<span class="pc bpc" id="L104" title="1 of 2 branches missed.">		return ret == null ? Sets.newHashSet() : Sets.newHashSet(ret);</span>
+	}
+
+	public OutboundMessageStatus removeByKey(Integer messageId, String clientId) {
+<span class="fc" id="L108">		return removeByKey(key(messageId, clientId));</span>
+	}
+
+	private OutboundMessageStatus removeByKey(String key) {
+<span class="fc" id="L112">		modifyLock.lock();</span>
+
+		try {
+<span class="fc" id="L115">			OutboundMessageStatus removed = this.data.remove(key);</span>
+<span class="pc bpc" id="L116" title="1 of 2 branches missed.">			if (removed == null) { return null; }</span>
+
+<span class="fc" id="L118">			SerializableStringSet clientIds = messageidIndex.get(removed.messageId());</span>
+<span class="fc" id="L119">			clientIds.remove(removed.clientId());</span>
+<span class="pc bpc" id="L120" title="1 of 2 branches missed.">			if (clientIds.size() &lt;= 0) {</span>
+<span class="nc" id="L121">				messageidIndex.remove(removed.messageId());</span>
+			}
+			else {
+<span class="fc" id="L124">				messageidIndex.put(removed.messageId(), clientIds);</span>
+			}
+
+<span class="fc" id="L127">			SerializableIntegerSet messageIds = clientidIndex.get(removed.clientId());</span>
+<span class="fc" id="L128">			messageIds.remove(removed.messageId());</span>
+<span class="pc bpc" id="L129" title="1 of 2 branches missed.">			if (messageIds.size() &lt;= 0) {</span>
+<span class="fc" id="L130">				clientidIndex.remove(removed.clientId());</span>
+			}
+			else {
+<span class="nc" id="L133">				clientidIndex.put(removed.clientId(), messageIds);</span>
+			}
+
+<span class="fc" id="L136">			MessageReferenceCounts.INSTANCE.release(removed.messageKey());</span>
+
+<span class="pc bpc" id="L138" title="1 of 2 branches missed.">			if (logger.isDebugEnabled()) {</span>
+<span class="fc" id="L139">				logger.debug(&quot;OutboundMessageStatus removed [messageId={}, clientId={}, status=]&quot;, removed.messageId(),</span>
+<span class="fc" id="L140">						removed.clientId(), removed.status());</span>
+<span class="fc" id="L141">				logger.debug(&quot;OutboundMessageStatuses Size [data={}, messageidIndex={}, clientidIndex={}]&quot;, data.size(),</span>
+<span class="fc" id="L142">						messageidIndex.size(), clientidIndex.size());</span>
+			}
+
+<span class="fc" id="L145">			return removed;</span>
+		}
+		finally {
+<span class="pc" id="L148">			modifyLock.unlock();</span>
+		}
+	}
+
+	public Set&lt;Integer&gt; removeByClientId(String clientId) {
+<span class="fc" id="L153">		modifyLock.lock();</span>
+
+		try {
+<span class="fc" id="L156">			SerializableIntegerSet messageIds = this.clientidIndex.remove(clientId);</span>
+<span class="pc bpc" id="L157" title="1 of 2 branches missed.">			if (messageIds == null) { return Sets.newHashSet(); }</span>
+
+<span class="nc" id="L159">			messageIds.forEach(messageId -&gt; {</span>
+<span class="nc" id="L160">				SerializableStringSet clientIds = messageidIndex.get(messageId);</span>
+<span class="nc" id="L161">				clientIds.remove(clientId);</span>
+<span class="nc bnc" id="L162" title="All 2 branches missed.">				if (clientIds.size() &lt;= 0) {</span>
+<span class="nc" id="L163">					messageidIndex.remove(messageId);</span>
+				}
+				else {
+<span class="nc" id="L166">					messageidIndex.put(messageId, clientIds);</span>
+				}
+<span class="nc" id="L168">			});</span>
+<span class="nc" id="L169">			messageIds.stream().map(messageId -&gt; key(messageId, clientId)).forEach(key -&gt; {</span>
+<span class="nc" id="L170">				OutboundMessageStatus removed = data.remove(key);</span>
+
+<span class="nc" id="L172">				MessageReferenceCounts.INSTANCE.release(removed.messageKey());</span>
+
+<span class="nc bnc" id="L174" title="All 2 branches missed.">				if (logger.isDebugEnabled()) {</span>
+<span class="nc" id="L175">					logger.debug(&quot;OutboundMessageStatus removed [messageId={}, clientId={}, status=]&quot;,</span>
+<span class="nc" id="L176">							removed.messageId(), removed.clientId(), removed.status());</span>
+<span class="nc" id="L177">					logger.debug(&quot;OutboundMessageStatuses Size [data={}, messageidIndex={}, clientidIndex={}]&quot;,</span>
+<span class="nc" id="L178">							data.size(), messageidIndex.size(), clientidIndex.size());</span>
+				}
+<span class="nc" id="L180">			});</span>
+
+<span class="nc" id="L182">			return messageIds;</span>
+		}
+		finally {
+<span class="pc" id="L185">			modifyLock.unlock();</span>
+		}
+	}
+
+	public boolean containsKey(Integer messageId, String clientId) {
+<span class="fc" id="L190">		return data.containsKey(key(messageId, clientId));</span>
+	}
+
+	public void update(Integer messageId, String clientId, OutboundMessageStatus.Status targetStatus) {
+<span class="fc" id="L194">		String key = key(messageId, clientId);</span>
+
+<span class="fc" id="L196">		OutboundMessageStatus status = data.get(key);</span>
+<span class="pc bpc" id="L197" title="1 of 2 branches missed.">		if (status == null) { return; }</span>
+
+<span class="fc" id="L199">		status.status(targetStatus);</span>
+
+<span class="fc" id="L201">		data.put(key, status);</span>
+
+<span class="pc bpc" id="L203" title="1 of 2 branches missed.">		if (logger.isDebugEnabled()) {</span>
+<span class="fc" id="L204">			logger.debug(&quot;OutboundMessageStatus updated [messageId={}, clientId={}, status=]&quot;, status.messageId(),</span>
+<span class="fc" id="L205">					status.clientId(), status.status());</span>
+		}
+<span class="fc" id="L207">	}</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.7.7.201606060606</span></div></body></html>

@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>Messages.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">Lannister server</a> &gt; <a href="index.source.html" class="el_package">net.anyflow.lannister.message</a> &gt; <span class="el_source">Messages.java</span></div><h1>Messages.java</h1><pre class="source lang-java linenums">/*
+ * Copyright 2016 The Lannister Project
+ * 
+ * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ * 
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package net.anyflow.lannister.message;
+
+import java.util.Set;
+
+import com.google.common.collect.Sets;
+
+import net.anyflow.lannister.cluster.ClusterDataFactory;
+import net.anyflow.lannister.cluster.Map;
+import net.anyflow.lannister.message.InboundMessageStatus.Status;
+
+public class Messages {
+<span class="fc" id="L27">	private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(Messages.class);</span>
+
+	private final Map&lt;String, Message&gt; data;
+
+<span class="fc" id="L31">	protected Messages() {</span>
+<span class="fc" id="L32">		data = ClusterDataFactory.INSTANCE.createMap(&quot;Messages_data&quot;);</span>
+<span class="fc" id="L33">	}</span>
+
+	public static String key(String publisherId, Integer messageId) {
+<span class="fc" id="L36">		return publisherId + &quot;_&quot; + Integer.toString(messageId);</span>
+	}
+
+	public int size() {
+<span class="nc" id="L40">		return data.size();</span>
+	}
+
+	public void dispose() {
+<span class="nc" id="L44">		data.dispose();</span>
+<span class="nc" id="L45">	}</span>
+
+	public Message remove(String key) {
+<span class="nc" id="L48">		Message ret = data.remove(key);</span>
+<span class="nc bnc" id="L49" title="All 2 branches missed.">		if (ret == null) { return null; }</span>
+
+<span class="nc bnc" id="L51" title="All 2 branches missed.">		if (logger.isDebugEnabled()) {</span>
+<span class="nc" id="L52">			logger.debug(&quot;REMOVEed Message [messageId={}, publisherId={}, topicName=]&quot;, ret.id(), ret.publisherId(),</span>
+<span class="nc" id="L53">					ret.topicName());</span>
+<span class="nc" id="L54">			logger.debug(&quot;Messages size={}&quot;, data.size());</span>
+		}
+
+<span class="nc" id="L57">		return ret;</span>
+	}
+
+	public Set&lt;String&gt; keySet() {
+<span class="nc" id="L61">		return Sets.newHashSet(data.keySet());</span>
+	}
+
+	public Message get(String key) {
+<span class="fc" id="L65">		return data.get(key);</span>
+	}
+
+	public void put(String key, Message message) {
+<span class="fc" id="L69">		data.put(key, message);</span>
+
+<span class="fc" id="L71">		InboundMessageStatus.NEXUS.put(new InboundMessageStatus(message.key(), message.publisherId(), message.id(),</span>
+<span class="fc" id="L72">				message.topicName(), Status.RECEIVED));</span>
+
+<span class="pc bpc" id="L74" title="1 of 2 branches missed.">		if (logger.isDebugEnabled()) {</span>
+<span class="fc" id="L75">			logger.debug(&quot;ADDed Message [messageId={}, publisherId={}, topicName=]&quot;, message.id(),</span>
+<span class="fc" id="L76">					message.publisherId(), message.topicName());</span>
+<span class="fc" id="L77">			logger.debug(&quot;Messages size={}&quot;, data.size());</span>
+		}
+<span class="fc" id="L79">	}</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.7.7.201606060606</span></div></body></html>

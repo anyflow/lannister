@@ -69,23 +69,23 @@ public class Plugins {
 <span class="fc" id="L69">		Reflections reflections = new Reflections(classLoader, new SubTypesScanner(false));</span>
 
 <span class="fc" id="L71">		load(Authenticator.class, reflections.getSubTypesOf(Authenticator.class).stream()</span>
-<span class="pc bnc" id="L72" title="All 2 branches missed.">				.filter(p -&gt; !p.equals(DefaultAuthenticator.class)));</span>
+<span class="pc bpc" id="L72" title="1 of 2 branches missed.">				.filter(p -&gt; !p.equals(DefaultAuthenticator.class)));</span>
 <span class="fc" id="L73">		load(Authorizer.class,</span>
-<span class="pc bnc" id="L74" title="All 2 branches missed.">				reflections.getSubTypesOf(Authorizer.class).stream().filter(p -&gt; !p.equals(DefaultAuthorizer.class)));</span>
+<span class="pc bpc" id="L74" title="1 of 2 branches missed.">				reflections.getSubTypesOf(Authorizer.class).stream().filter(p -&gt; !p.equals(DefaultAuthorizer.class)));</span>
 <span class="fc" id="L75">		load(ServiceChecker.class, reflections.getSubTypesOf(ServiceChecker.class).stream()</span>
-<span class="pc bnc" id="L76" title="All 2 branches missed.">				.filter(p -&gt; !p.equals(DefaultServiceChecker.class)));</span>
+<span class="pc bpc" id="L76" title="1 of 2 branches missed.">				.filter(p -&gt; !p.equals(DefaultServiceChecker.class)));</span>
 <span class="fc" id="L77">		load(ConnectEventListener.class, reflections.getSubTypesOf(ConnectEventListener.class).stream()</span>
-<span class="pc bnc" id="L78" title="All 2 branches missed.">				.filter(p -&gt; !p.equals(DefaultConnectEventListener.class)));</span>
+<span class="pc bpc" id="L78" title="1 of 2 branches missed.">				.filter(p -&gt; !p.equals(DefaultConnectEventListener.class)));</span>
 <span class="fc" id="L79">		load(DisconnectEventListener.class, reflections.getSubTypesOf(DisconnectEventListener.class).stream()</span>
-<span class="pc bnc" id="L80" title="All 2 branches missed.">				.filter(p -&gt; !p.equals(DefaultDisconnectEventListener.class)));</span>
+<span class="pc bpc" id="L80" title="1 of 2 branches missed.">				.filter(p -&gt; !p.equals(DefaultDisconnectEventListener.class)));</span>
 <span class="fc" id="L81">		load(PublishEventListener.class, reflections.getSubTypesOf(PublishEventListener.class).stream()</span>
-<span class="pc bnc" id="L82" title="All 2 branches missed.">				.filter(p -&gt; !p.equals(DefaultPublishEventListener.class)));</span>
+<span class="pc bpc" id="L82" title="1 of 2 branches missed.">				.filter(p -&gt; !p.equals(DefaultPublishEventListener.class)));</span>
 <span class="fc" id="L83">		load(DeliveredEventListener.class, reflections.getSubTypesOf(DeliveredEventListener.class).stream()</span>
-<span class="pc bnc" id="L84" title="All 2 branches missed.">				.filter(p -&gt; !p.equals(DefaultDeliveredEventListener.class)));</span>
+<span class="pc bpc" id="L84" title="1 of 2 branches missed.">				.filter(p -&gt; !p.equals(DefaultDeliveredEventListener.class)));</span>
 <span class="fc" id="L85">		load(SubscribeEventListener.class, reflections.getSubTypesOf(SubscribeEventListener.class).stream()</span>
-<span class="pc bnc" id="L86" title="All 2 branches missed.">				.filter(p -&gt; !p.equals(DefaultSubscribeEventListener.class)));</span>
+<span class="pc bpc" id="L86" title="1 of 2 branches missed.">				.filter(p -&gt; !p.equals(DefaultSubscribeEventListener.class)));</span>
 <span class="fc" id="L87">		load(UnsubscribeEventListener.class, reflections.getSubTypesOf(UnsubscribeEventListener.class).stream()</span>
-<span class="pc bnc" id="L88" title="All 2 branches missed.">				.filter(p -&gt; !p.equals(DefaultUnsubscribeEventListener.class)));</span>
+<span class="pc bpc" id="L88" title="1 of 2 branches missed.">				.filter(p -&gt; !p.equals(DefaultUnsubscribeEventListener.class)));</span>
 <span class="fc" id="L89">	}</span>
 
 	@SuppressWarnings(&quot;unchecked&quot;)
@@ -114,16 +114,16 @@ public class Plugins {
 <span class="fc" id="L114">		File dir = new File(appRootPath() + &quot;/plugin/&quot;);</span>
 <span class="fc" id="L115">		File[] files = dir.listFiles();</span>
 <span class="pc bpc" id="L116" title="1 of 2 branches missed.">		if (files != null) {</span>
-<span class="nc" id="L117">			List&lt;URL&gt; ret = Lists.newArrayList();</span>
+<span class="fc" id="L117">			List&lt;URL&gt; ret = Lists.newArrayList();</span>
 
-<span class="nc bnc" id="L119" title="All 2 branches missed.">			for (File item : files) {</span>
-<span class="nc" id="L120">				ret.add(item.toURI().toURL());</span>
+<span class="fc bfc" id="L119" title="All 2 branches covered.">			for (File item : files) {</span>
+<span class="fc" id="L120">				ret.add(item.toURI().toURL());</span>
 			}
 
-<span class="nc" id="L123">			return ret.toArray(new URL[0]);</span>
+<span class="fc" id="L123">			return ret.toArray(new URL[0]);</span>
 		}
 		else {
-<span class="fc" id="L126">			return new URL[0];</span>
+<span class="nc" id="L126">			return new URL[0];</span>
 		}
 	}
 
@@ -132,13 +132,13 @@ public class Plugins {
 <span class="pc bpc" id="L132" title="1 of 2 branches missed.">		if (plugin == null) { return; }</span>
 
 		try {
-<span class="nc" id="L135">			T instance = plugin.newInstance();</span>
-<span class="nc" id="L136">			plugins.put(clazz, instance);</span>
-<span class="nc" id="L137">			logger.info(&quot;Plugin loaded [{}]&quot;, instance.getClass().getName());</span>
+<span class="fc" id="L135">			T instance = plugin.newInstance();</span>
+<span class="fc" id="L136">			plugins.put(clazz, instance);</span>
+<span class="fc" id="L137">			logger.info(&quot;Plugin loaded [{}]&quot;, instance.getClass().getName());</span>
 		}
 <span class="nc" id="L139">		catch (InstantiationException | IllegalAccessException e) {</span>
 <span class="nc" id="L140">			logger.error(e.getMessage(), e);</span>
-<span class="nc" id="L141">		}</span>
-<span class="nc" id="L142">	}</span>
+<span class="fc" id="L141">		}</span>
+<span class="fc" id="L142">	}</span>
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.7.7.201606060606</span></div></body></html>

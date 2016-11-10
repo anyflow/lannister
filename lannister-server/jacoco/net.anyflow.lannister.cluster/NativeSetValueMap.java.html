@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>NativeSetValueMap.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">Lannister server</a> &gt; <a href="index.source.html" class="el_package">net.anyflow.lannister.cluster</a> &gt; <span class="el_source">NativeSetValueMap.java</span></div><h1>NativeSetValueMap.java</h1><pre class="source lang-java linenums">/*
+ * Copyright 2016 The Lannister Project
+ * 
+ * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ * 
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package net.anyflow.lannister.cluster;
+
+import com.google.common.collect.Maps;
+
+public class NativeSetValueMap&lt;K, V&gt; implements Map&lt;K, Set&lt;V&gt;&gt; {
+
+	private final java.util.Map&lt;K, Set&lt;V&gt;&gt; engine;
+
+<span class="nc" id="L24">	public NativeSetValueMap(String name) {</span>
+<span class="nc" id="L25">		engine = Maps.newHashMap();</span>
+<span class="nc" id="L26">	}</span>
+
+	@Override
+	public void put(K key, Set&lt;V&gt; value) {
+<span class="nc" id="L30">		Set&lt;V&gt; prev = engine.put(key, value);</span>
+<span class="nc bnc" id="L31" title="All 2 branches missed.">		if (prev != null) {</span>
+<span class="nc" id="L32">			prev.dispose();</span>
+		}
+<span class="nc" id="L34">	}</span>
+
+	@Override
+	public Set&lt;V&gt; get(K key) {
+<span class="nc" id="L38">		return engine.get(key);</span>
+	}
+
+	@Override
+	public Set&lt;V&gt; remove(K key) {
+<span class="nc" id="L43">		return engine.remove(key);</span>
+	}
+
+	@Override
+	public int size() {
+<span class="nc" id="L48">		return engine.size();</span>
+	}
+
+	@Override
+	public void dispose() {
+		// DO NOTHING
+<span class="nc" id="L54">	}</span>
+
+	@Override
+	public boolean containsKey(K key) {
+<span class="nc" id="L58">		return engine.containsKey(key);</span>
+	}
+
+	@Override
+	public java.util.Set&lt;K&gt; keySet() {
+<span class="nc" id="L63">		return engine.keySet();</span>
+	}
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.7.7.201606060606</span></div></body></html>

@@ -16,9 +16,11 @@
 
 package net.anyflow.lannister.serialization;
 
-import com.hazelcast.nio.serialization.Portable;
-import com.hazelcast.nio.serialization.PortableFactory;
+import com.hazelcast.nio.serialization.DataSerializableFactory;
+import com.hazelcast.nio.serialization.IdentifiedDataSerializable;
 
+import net.anyflow.lannister.cluster.SerializableIntegerSet;
+import net.anyflow.lannister.cluster.SerializableStringSet;
 import net.anyflow.lannister.message.InboundMessageStatus;
 import net.anyflow.lannister.message.Message;
 import net.anyflow.lannister.message.OutboundMessageStatus;
@@ -28,38 +30,44 @@ import net.anyflow.lannister.topic.Topic;
 import net.anyflow.lannister.topic.TopicSubscriber;
 import net.anyflow.lannister.topic.TopicSubscription;
 
-<span class="fc" id="L31">public class SerializableFactory implements PortableFactory {</span>
+<span class="nc" id="L33">public class SerializableFactory implements DataSerializableFactory {</span>
 	public static final int ID = 1;
 
 	@Override
-	public Portable create(int classId) {
-<span class="pc bpc" id="L36" title="1 of 9 branches missed.">		switch (classId) {</span>
+	public IdentifiedDataSerializable create(int classId) {
+<span class="nc bnc" id="L38" title="All 11 branches missed.">		switch (classId) {</span>
 		case Message.ID:
-<span class="fc" id="L38">			return new Message();</span>
+<span class="nc" id="L40">			return new Message();</span>
 
 		case InboundMessageStatus.ID:
-<span class="fc" id="L41">			return new InboundMessageStatus();</span>
+<span class="nc" id="L43">			return new InboundMessageStatus();</span>
 
 		case OutboundMessageStatus.ID:
-<span class="fc" id="L44">			return new OutboundMessageStatus();</span>
+<span class="nc" id="L46">			return new OutboundMessageStatus();</span>
 
 		case Session.ID:
-<span class="fc" id="L47">			return new Session();</span>
+<span class="nc" id="L49">			return new Session();</span>
 
 		case Notification.ID:
-<span class="fc" id="L50">			return new Notification();</span>
+<span class="nc" id="L52">			return new Notification();</span>
 
 		case Topic.ID:
-<span class="fc" id="L53">			return new Topic();</span>
+<span class="nc" id="L55">			return new Topic();</span>
 
 		case TopicSubscriber.ID:
-<span class="fc" id="L56">			return new TopicSubscriber();</span>
+<span class="nc" id="L58">			return new TopicSubscriber();</span>
 
 		case TopicSubscription.ID:
-<span class="fc" id="L59">			return new TopicSubscription();</span>
+<span class="nc" id="L61">			return new TopicSubscription();</span>
+
+		case SerializableStringSet.ID:
+<span class="nc" id="L64">			return new SerializableStringSet();</span>
+
+		case SerializableIntegerSet.ID:
+<span class="nc" id="L67">			return new SerializableIntegerSet();</span>
 
 		default:
-<span class="nc" id="L62">			return null;</span>
+<span class="nc" id="L70">			throw new Error(&quot;Invalid class ID of Hazelcast Serialization [ID=&quot; + classId + &quot;]&quot;);</span>
 		}
 	}
 }

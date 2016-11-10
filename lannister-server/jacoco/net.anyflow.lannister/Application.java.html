@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>Application.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">Lannister server</a> &gt; <a href="index.source.html" class="el_package">net.anyflow.lannister</a> &gt; <span class="el_source">Application.java</span></div><h1>Application.java</h1><pre class="source lang-java linenums">/*
  * Copyright 2016 The Lannister Project
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *     http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -16,86 +16,126 @@
 
 package net.anyflow.lannister;
 
+import java.util.concurrent.ThreadFactory;
+
+import io.netty.channel.EventLoopGroup;
+import io.netty.channel.epoll.EpollEventLoopGroup;
+import io.netty.channel.nio.NioEventLoopGroup;
+import io.netty.util.concurrent.DefaultThreadFactory;
+import net.anyflow.lannister.cluster.Hazelcast;
 import net.anyflow.lannister.http.WebServer;
 import net.anyflow.lannister.server.MqttServer;
 import net.anyflow.lannister.topic.Topic;
 
 public class Application {
 
-<span class="fc" id="L25">	private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(Application.class);</span>
+<span class="fc" id="L32">	private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(Application.class);</span>
 
-<span class="fc" id="L27">	public static final Application INSTANCE = new Application();</span>
+<span class="fc" id="L34">	public static final Application INSTANCE = new Application();</span>
+
+	private EventLoopGroup bossGroup;
+	private EventLoopGroup workerGroup;
 
 	private MqttServer mqttServer;
 	private WebServer webServer;
 
-<span class="fc" id="L32">	private Application() {</span>
+<span class="fc" id="L42">	private Application() {</span>
 		// Do nothing
-<span class="fc" id="L34">	}</span>
+<span class="fc" id="L44">	}</span>
 
 	public boolean start() {
 		try {
-<span class="fc" id="L38">			configureLog4j();</span>
+<span class="fc" id="L48">			configureLog4j();</span>
 
-<span class="fc" id="L40">			logger.info(&quot;Lannister bootstrapping started&quot;);</span>
+<span class="fc" id="L50">			logger.info(&quot;Lannister bootstrapping started&quot;);</span>
 
-<span class="fc" id="L42">			Topic.NEXUS.get(&quot;&quot;); // TODO Just for initializing Topic.NEXUS. If</span>
+<span class="fc" id="L52">			Topic.NEXUS.get(&quot;&quot;); // TODO Just for initializing Topic.NEXUS. If</span>
 									// absent, NoClassDefFound Error occur in
 									// Statistics.. I don't know why
 
-<span class="fc" id="L46">			mqttServer = new MqttServer();</span>
-<span class="fc" id="L47">			mqttServer.start();</span>
+<span class="fc" id="L56">			startServers();</span>
 
-<span class="fc" id="L49">			webServer = new WebServer();</span>
-<span class="fc" id="L50">			webServer.start(&quot;net.anyflow&quot;);</span>
-
-<span class="fc" id="L52">			Runtime.getRuntime().addShutdownHook(new Thread() {</span>
+<span class="fc" id="L58">			Runtime.getRuntime().addShutdownHook(new Thread() {</span>
 				@Override
 				public void run() {
-<span class="fc" id="L55">					shutdown();</span>
-<span class="fc" id="L56">				}</span>
+<span class="fc" id="L61">					shutdown();</span>
+<span class="fc" id="L62">				}</span>
 			});
 
-<span class="fc" id="L59">			logger.info(&quot;Lannister bootstrapping completed&quot;);</span>
-<span class="fc" id="L60">			logger.info(&quot;build version  : {}&quot;, Settings.INSTANCE.version());</span>
-<span class="fc" id="L61">			logger.info(&quot;build time     : {}&quot;, Settings.INSTANCE.buildTime());</span>
-<span class="fc" id="L62">			logger.info(&quot;commit ID      : {}&quot;, Settings.INSTANCE.commitId());</span>
-<span class="fc" id="L63">			logger.info(&quot;commit ID desc : {}&quot;, Settings.INSTANCE.commitIdDescribe());</span>
-<span class="fc" id="L64">			logger.info(&quot;commit message : {}&quot;, Settings.INSTANCE.commitMessage());</span>
+<span class="fc" id="L65">			logger.info(&quot;Lannister bootstrapping completed&quot;);</span>
+<span class="fc" id="L66">			logger.info(&quot;build version  : {}&quot;, Settings.INSTANCE.version());</span>
+<span class="fc" id="L67">			logger.info(&quot;build time     : {}&quot;, Settings.INSTANCE.buildTime());</span>
+<span class="fc" id="L68">			logger.info(&quot;commit ID      : {}&quot;, Settings.INSTANCE.commitId());</span>
+<span class="fc" id="L69">			logger.info(&quot;commit ID desc : {}&quot;, Settings.INSTANCE.commitIdDescribe());</span>
+<span class="fc" id="L70">			logger.info(&quot;commit message : {}&quot;, Settings.INSTANCE.commitMessage());</span>
+<span class="fc" id="L71">			logger.info(&quot;Netty transport mode : {}&quot;, Settings.INSTANCE.nettyTransportMode());</span>
+<span class="fc" id="L72">			logger.info(&quot;Clustering mode : {}&quot;, Settings.INSTANCE.clusteringMode());</span>
 
-<span class="fc" id="L66">			return true;</span>
+<span class="fc" id="L74">			return true;</span>
 		}
-<span class="nc" id="L68">		catch (Exception e) {</span>
-<span class="nc" id="L69">			logger.error(e.getMessage(), e);</span>
-<span class="nc" id="L70">			return false;</span>
+<span class="nc" id="L76">		catch (Exception e) {</span>
+<span class="nc" id="L77">			logger.error(e.getMessage(), e);</span>
+<span class="nc" id="L78">			return false;</span>
 		}
 	}
 
+	public void startServers() throws Exception {
+<span class="fc" id="L83">		int bossThreadCount = Settings.INSTANCE.getInt(&quot;netty.bossThreadCount&quot;, 0);</span>
+<span class="fc" id="L84">		int workerThreadCount = Settings.INSTANCE.getInt(&quot;netty.workerThreadCount&quot;, 0);</span>
+
+<span class="fc" id="L86">		ThreadFactory bossThreadFactory = new DefaultThreadFactory(&quot;lannister/boss&quot;);</span>
+<span class="fc" id="L87">		ThreadFactory workerThreadFactory = new DefaultThreadFactory(&quot;lannister/worker&quot;);</span>
+
+<span class="pc bpc" id="L89" title="1 of 2 branches missed.">		if (Literals.NETTY_EPOLL.equals(Settings.INSTANCE.nettyTransportMode())) {</span>
+<span class="nc" id="L90">			bossGroup = new EpollEventLoopGroup(bossThreadCount, bossThreadFactory);</span>
+<span class="nc" id="L91">			workerGroup = new EpollEventLoopGroup(workerThreadCount, workerThreadFactory);</span>
+		}
+		else {
+<span class="fc" id="L94">			bossGroup = new NioEventLoopGroup(bossThreadCount, bossThreadFactory);</span>
+<span class="fc" id="L95">			workerGroup = new NioEventLoopGroup(workerThreadCount, workerThreadFactory);</span>
+		}
+
+<span class="fc" id="L98">		mqttServer = new MqttServer(bossGroup, workerGroup);</span>
+<span class="fc" id="L99">		mqttServer.start();</span>
+
+<span class="fc" id="L101">		webServer = new WebServer(bossGroup, workerGroup);</span>
+<span class="fc" id="L102">		webServer.start(&quot;net.anyflow&quot;);</span>
+<span class="fc" id="L103">	}</span>
+
 	public void shutdown() {
-<span class="fc" id="L75">		logger.info(&quot;Lannister shutting down...&quot;);</span>
+<span class="fc" id="L106">		logger.info(&quot;Lannister shutting down...&quot;);</span>
 
 		try {
-<span class="fc" id="L78">			webServer.shutdown();</span>
-<span class="fc" id="L79">			mqttServer.shutdown();</span>
-<span class="fc" id="L80">			Hazelcast.INSTANCE.shutdown();</span>
-		}
-<span class="nc" id="L82">		catch (Exception e) {</span>
-<span class="nc" id="L83">			logger.error(e.getMessage(), e);</span>
-<span class="fc" id="L84">		}</span>
+<span class="pc bpc" id="L109" title="1 of 2 branches missed.">			if (bossGroup != null) {</span>
+<span class="fc" id="L110">				bossGroup.shutdownGracefully().awaitUninterruptibly();</span>
+<span class="fc" id="L111">				logger.debug(&quot;Boss event loop group shutdowned&quot;);</span>
+			}
 
-<span class="fc" id="L86">		logger.info(&quot;Lannister shutdowned gracefully&quot;);</span>
-<span class="fc" id="L87">	}</span>
+<span class="pc bpc" id="L114" title="1 of 2 branches missed.">			if (workerGroup != null) {</span>
+<span class="fc" id="L115">				workerGroup.shutdownGracefully().awaitUninterruptibly();</span>
+<span class="fc" id="L116">				logger.debug(&quot;Worker event loop group shutdowned&quot;);</span>
+			}
+
+<span class="fc" id="L119">			Hazelcast.INSTANCE.shutdown();</span>
+		}
+<span class="nc" id="L121">		catch (Exception e) {</span>
+<span class="nc" id="L122">			logger.error(e.getMessage(), e);</span>
+<span class="fc" id="L123">		}</span>
+
+<span class="fc" id="L125">		logger.info(&quot;Lannister shutdowned gracefully&quot;);</span>
+<span class="fc" id="L126">	}</span>
 
 	public static void main(String[] args) {
-<span class="fc" id="L90">		Thread.currentThread().setName(&quot;main thread&quot;);</span>
+<span class="fc" id="L129">		Thread.currentThread().setName(&quot;main thread&quot;);</span>
 
-<span class="pc bpc" id="L92" title="1 of 2 branches missed.">		if (!INSTANCE.start()) {</span>
-<span class="nc" id="L93">			System.exit(-1);</span>
+<span class="pc bpc" id="L131" title="1 of 2 branches missed.">		if (!INSTANCE.start()) {</span>
+<span class="nc" id="L132">			System.exit(-1);</span>
 		}
-<span class="fc" id="L95">	}</span>
+<span class="fc" id="L134">	}</span>
 
 	public static void configureLog4j() {
-<span class="fc" id="L98">		org.apache.log4j.xml.DOMConfigurator.configure(Application.class.getClassLoader().getResource(&quot;log4j.xml&quot;));</span>
-<span class="fc" id="L99">	}</span>
+<span class="fc" id="L137">		org.apache.log4j.xml.DOMConfigurator</span>
+<span class="fc" id="L138">				.configure(Application.class.getClassLoader().getResource(&quot;lannister.log4j.xml&quot;));</span>
+<span class="fc" id="L139">	}</span>
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.7.7.201606060606</span></div></body></html>

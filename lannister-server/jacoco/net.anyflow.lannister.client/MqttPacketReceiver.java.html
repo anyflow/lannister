@@ -23,7 +23,7 @@ import io.netty.handler.codec.mqtt.MqttMessageIdVariableHeader;
 import io.netty.handler.codec.mqtt.MqttPublishMessage;
 import io.netty.handler.codec.mqtt.MqttQoS;
 import net.anyflow.lannister.message.Message;
-import net.anyflow.lannister.message.MessageFactory;
+import net.anyflow.lannister.packetreceiver.MqttMessageFactory;
 
 public class MqttPacketReceiver extends SimpleChannelInboundHandler&lt;MqttMessage&gt; {
 	@SuppressWarnings(&quot;unused&quot;)
@@ -49,10 +49,10 @@ public class MqttPacketReceiver extends SimpleChannelInboundHandler&lt;MqttMessa
 
 <span class="fc" id="L50">			int messageId = ((MqttPublishMessage) msg).variableHeader().messageId();</span>
 <span class="pc bpc" id="L51" title="1 of 2 branches missed.">			if (((MqttPublishMessage) msg).fixedHeader().qosLevel() == MqttQoS.AT_LEAST_ONCE) {</span>
-<span class="fc" id="L52">				client.send(MessageFactory.puback(messageId));</span>
+<span class="fc" id="L52">				client.send(MqttMessageFactory.puback(messageId));</span>
 			}
 <span class="nc bnc" id="L54" title="All 2 branches missed.">			else if (((MqttPublishMessage) msg).fixedHeader().qosLevel() == MqttQoS.EXACTLY_ONCE) {</span>
-<span class="nc" id="L55">				client.send(MessageFactory.pubrec(messageId));</span>
+<span class="nc" id="L55">				client.send(MqttMessageFactory.pubrec(messageId));</span>
 			}
 			break;
 
@@ -65,7 +65,7 @@ public class MqttPacketReceiver extends SimpleChannelInboundHandler&lt;MqttMessa
 <span class="fc" id="L65">			break;</span>
 
 		case PUBREC:
-<span class="fc" id="L68">			client.send(MessageFactory.pubrel(((MqttMessageIdVariableHeader) msg.variableHeader()).messageId()));</span>
+<span class="fc" id="L68">			client.send(MqttMessageFactory.pubrel(((MqttMessageIdVariableHeader) msg.variableHeader()).messageId()));</span>
 <span class="fc" id="L69">			break;</span>
 
 		case SUBACK:

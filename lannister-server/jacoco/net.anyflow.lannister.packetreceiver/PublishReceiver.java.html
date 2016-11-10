@@ -19,14 +19,15 @@ package net.anyflow.lannister.packetreceiver;
 import java.util.Date;
 
 import io.netty.channel.ChannelFutureListener;
+import io.netty.channel.ChannelHandler.Sharable;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
+import io.netty.handler.codec.mqtt.MqttMessage;
 import io.netty.handler.codec.mqtt.MqttPublishMessage;
 import net.anyflow.lannister.AbnormalDisconnectEventArgs;
 import net.anyflow.lannister.Statistics;
 import net.anyflow.lannister.message.InboundMessageStatus;
 import net.anyflow.lannister.message.Message;
-import net.anyflow.lannister.message.MessageFactory;
 import net.anyflow.lannister.plugin.DisconnectEventListener;
 import net.anyflow.lannister.plugin.IMessage;
 import net.anyflow.lannister.plugin.Plugins;
@@ -36,41 +37,42 @@ import net.anyflow.lannister.session.Session;
 import net.anyflow.lannister.topic.Topic;
 import net.anyflow.lannister.topic.TopicMatcher;
 
-<span class="fc" id="L39">public class PublishReceiver extends SimpleChannelInboundHandler&lt;MqttPublishMessage&gt; {</span>
-
-<span class="fc" id="L41">	private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(PublishReceiver.class);</span>
+@Sharable
+<span class="fc" id="L41">public class PublishReceiver extends SimpleChannelInboundHandler&lt;MqttPublishMessage&gt; {</span>
+<span class="fc" id="L42">	private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(PublishReceiver.class);</span>
+<span class="fc" id="L43">	public static final PublishReceiver INSTANCE = new PublishReceiver();</span>
 
 	@Override
 	protected void channelRead0(ChannelHandlerContext ctx, MqttPublishMessage msg) throws Exception {
-<span class="fc" id="L45">		logger.debug(&quot;packet incoming [message={}]&quot;, msg.toString());</span>
-<span class="fc" id="L46">		Statistics.INSTANCE.add(Statistics.Criterion.MESSAGES_PUBLISH_RECEIVED, 1);</span>
+<span class="fc" id="L47">		logger.debug(&quot;packet incoming [message={}]&quot;, msg.toString());</span>
+<span class="fc" id="L48">		Statistics.INSTANCE.add(Statistics.Criterion.MESSAGES_PUBLISH_RECEIVED, 1);</span>
 
-<span class="fc" id="L48">		Session session = Session.NEXUS.get(ctx.channel().id());</span>
-<span class="pc bpc" id="L49" title="1 of 2 branches missed.">		if (session == null) {</span>
-<span class="nc" id="L50">			logger.error(&quot;None exist session message [message={}]&quot;, msg.toString());</span>
+<span class="fc" id="L50">		Session session = Session.NEXUS.get(ctx.channel().id());</span>
+<span class="pc bpc" id="L51" title="1 of 2 branches missed.">		if (session == null) {</span>
+<span class="nc" id="L52">			logger.error(&quot;None exist session message [message={}]&quot;, msg.toString());</span>
 
-<span class="nc" id="L52">			ctx.channel().disconnect().addListener(ChannelFutureListener.CLOSE).addListener(fs -&gt; // [MQTT-4.8.0-1]</span>
-<span class="nc" id="L53">			Plugins.INSTANCE.get(DisconnectEventListener.class).disconnected(new AbnormalDisconnectEventArgs()));</span>
-<span class="nc" id="L54">			return;</span>
+<span class="nc" id="L54">			ctx.channel().disconnect().addListener(ChannelFutureListener.CLOSE).addListener(fs -&gt; // [MQTT-4.8.0-1]</span>
+<span class="nc" id="L55">			Plugins.INSTANCE.get(DisconnectEventListener.class).disconnected(new AbnormalDisconnectEventArgs()));</span>
+<span class="nc" id="L56">			return;</span>
 		}
 
-<span class="fc" id="L57">		session.setLastIncomingTime(new Date());</span>
+<span class="fc" id="L59">		session.setLastIncomingTime(new Date());</span>
 
-<span class="pc bpc" id="L59" title="1 of 2 branches missed.">		if (!TopicMatcher.isValid(msg.variableHeader().topicName(), false)) {</span>
-<span class="nc" id="L60">			session.dispose(true);</span>
-<span class="nc" id="L61">			return;</span>
+<span class="pc bpc" id="L61" title="1 of 2 branches missed.">		if (!TopicMatcher.isValid(msg.variableHeader().topicName(), false)) {</span>
+<span class="nc" id="L62">			session.dispose(true);</span>
+<span class="nc" id="L63">			return;</span>
 		}
 
-<span class="fc" id="L64">		Message message = Message.newMessage(session.clientId(), msg);</span>
+<span class="fc" id="L66">		Message message = Message.newMessage(session.clientId(), msg);</span>
 
-<span class="pc bpc" id="L66" title="1 of 2 branches missed.">		if (!Plugins.INSTANCE.get(PublishEventListener.class).allowPublish(new PublishEventArgs() {</span>
+<span class="pc bpc" id="L68" title="1 of 2 branches missed.">		if (!Plugins.INSTANCE.get(PublishEventListener.class).allowPublish(new PublishEventArgs() {</span>
 			@Override
 			public IMessage message() {
-<span class="fc" id="L69">				return message;</span>
+<span class="fc" id="L71">				return message;</span>
 			}
 		})) {
-<span class="nc" id="L72">			session.dispose(true);</span>
-<span class="nc" id="L73">			return;</span>
+<span class="nc" id="L74">			session.dispose(true);</span>
+<span class="nc" id="L75">			return;</span>
 		}
 
 		// TODO What to do when sender re-publish message corrensponds to
@@ -82,36 +84,57 @@ import net.anyflow.lannister.topic.TopicMatcher;
 		// messages to be delivered to any onward recipients in this
 		// case.[MQTT-4.3.3-2].
 
-<span class="fc" id="L85">		final Topic topic = Topic.NEXUS.prepare(message);</span>
+<span class="fc" id="L87">		final Topic topic = Topic.NEXUS.prepare(message);</span>
 
-<span class="pc bpc" id="L87" title="1 of 2 branches missed.">		if (message.isRetain()) {// else do nothing [MQTT-3.3.1-12]</span>
-<span class="nc" id="L88">			topic.setRetainedMessage(message); // [MQTT-3.3.1-5]</span>
+<span class="pc bpc" id="L89" title="1 of 2 branches missed.">		if (message.isRetain()) {// else do nothing [MQTT-3.3.1-12]</span>
+<span class="nc" id="L90">			topic.setRetainedMessage(message); // [MQTT-3.3.1-5]</span>
 		}
 
-<span class="fc" id="L91">		message.setRetain(false);</span>
+<span class="fc" id="L93">		message.setRetain(false);</span>
 
-<span class="fc" id="L93">		topic.publish(message);</span>
+<span class="fc" id="L95">		topic.publish(message);</span>
 
-<span class="pc bpc" id="L95" title="3 of 4 branches missed.">		switch (msg.fixedHeader().qosLevel()) {</span>
+		MqttMessage toSend;
+		final String log;
+
+<span class="pc bpc" id="L100" title="3 of 4 branches missed.">		switch (msg.fixedHeader().qosLevel()) {</span>
 		case AT_MOST_ONCE:
-<span class="nc" id="L97">			return; // QoS 0 do not send any acknowledge packet [MQTT-3.3.4-1]</span>
+<span class="nc" id="L102">			return; // QoS 0 do not send any acknowledge packet [MQTT-3.3.4-1]</span>
 
 		case AT_LEAST_ONCE:
-<span class="nc" id="L100">			session.send(MessageFactory.puback(msg.variableHeader().messageId())).addListener(</span>
-<span class="nc" id="L101">					f -&gt; topic.removeInboundMessageStatus(session.clientId(), msg.variableHeader().messageId())); // [MQTT-3.3.4-1],[MQTT-2.3.1-6]</span>
-<span class="nc" id="L102">			logger.debug(&quot;Inbound message status REMOVED [clientId={}, messageId={}]&quot;, session.clientId(),</span>
-<span class="nc" id="L103">					msg.variableHeader().messageId());</span>
-<span class="nc" id="L104">			return;</span>
+<span class="nc" id="L105">			toSend = MqttMessageFactory.puback(msg.variableHeader().messageId());</span>
+<span class="nc" id="L106">			log = toSend.toString();</span>
+
+<span class="nc" id="L108">			session.send(toSend, f -&gt; {</span>
+<span class="nc bnc" id="L109" title="All 2 branches missed.">				if (!f.isSuccess()) {</span>
+<span class="nc" id="L110">					logger.error(&quot;packet outgoing failed [{}] {}&quot;, log, f.cause());</span>
+<span class="nc" id="L111">					return;</span>
+				}
+
+<span class="nc" id="L114">				InboundMessageStatus.NEXUS.removeByKey(msg.variableHeader().messageId(), session.clientId());</span>
+<span class="nc" id="L115">			}); // [MQTT-3.3.4-1],[MQTT-2.3.1-6]</span>
+<span class="nc" id="L116">			logger.debug(&quot;Inbound message status REMOVED [clientId={}, messageId={}]&quot;, session.clientId(),</span>
+<span class="nc" id="L117">					msg.variableHeader().messageId());</span>
+<span class="nc" id="L118">			return;</span>
 
 		case EXACTLY_ONCE:
-<span class="fc" id="L107">			session.send(MessageFactory.pubrec(msg.variableHeader().messageId()))</span>
-<span class="fc" id="L108">					.addListener(f -&gt; topic.setInboundMessageStatus(session.clientId(),</span>
-<span class="fc" id="L109">							msg.variableHeader().messageId(), InboundMessageStatus.Status.PUBRECED)); // [MQTT-3.3.4-1],[MQTT-2.3.1-6]</span>
-<span class="fc" id="L110">			return;</span>
+<span class="fc" id="L121">			toSend = MqttMessageFactory.pubrec(msg.variableHeader().messageId());</span>
+<span class="fc" id="L122">			log = toSend.toString();</span>
+
+<span class="fc" id="L124">			session.send(MqttMessageFactory.pubrec(msg.variableHeader().messageId()), f -&gt; {</span>
+<span class="pc bpc" id="L125" title="1 of 2 branches missed.">				if (!f.isSuccess()) {</span>
+<span class="nc" id="L126">					logger.error(&quot;packet outgoing failed [{}] {}&quot;, log, f.cause());</span>
+<span class="nc" id="L127">					return;</span>
+				}
+
+<span class="fc" id="L130">				InboundMessageStatus.NEXUS.update(msg.variableHeader().messageId(), session.clientId(),</span>
+						InboundMessageStatus.Status.PUBRECED);
+<span class="fc" id="L132">			}); // [MQTT-3.3.4-1],[MQTT-2.3.1-6]</span>
+<span class="fc" id="L133">			return;</span>
 
 		default:
-<span class="nc" id="L113">			session.dispose(true); // [MQTT-3.3.1-4]</span>
-<span class="nc" id="L114">			return;</span>
+<span class="nc" id="L136">			session.dispose(true); // [MQTT-3.3.1-4]</span>
+<span class="nc" id="L137">			return;</span>
 		}
 	}
 }

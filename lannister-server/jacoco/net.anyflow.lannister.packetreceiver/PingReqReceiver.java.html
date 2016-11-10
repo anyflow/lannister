@@ -16,21 +16,20 @@
 
 package net.anyflow.lannister.packetreceiver;
 
-import net.anyflow.lannister.message.MessageFactory;
+import io.netty.channel.ChannelHandlerContext;
 import net.anyflow.lannister.session.Session;
 
 public class PingReqReceiver {
-
 	@SuppressWarnings(&quot;unused&quot;)
-<span class="nc" id="L25">	private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(PingReqReceiver.class);</span>
+<span class="nc" id="L24">	private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(PingReqReceiver.class);</span>
 
-<span class="nc" id="L27">	public static final PingReqReceiver SHARED = new PingReqReceiver();</span>
+<span class="nc" id="L26">	public static final PingReqReceiver SHARED = new PingReqReceiver();</span>
 
-<span class="nc" id="L29">	private PingReqReceiver() {</span>
-<span class="nc" id="L30">	}</span>
+<span class="nc" id="L28">	private PingReqReceiver() {</span>
+<span class="nc" id="L29">	}</span>
 
-	protected void handle(Session session) {
-<span class="nc" id="L33">		session.send(MessageFactory.pingresp()); // [MQTT-3.12.4-1]</span>
-<span class="nc" id="L34">	}</span>
+	protected void handle(ChannelHandlerContext ctx, Session session) {
+<span class="nc" id="L32">		session.send(MqttMessageFactory.pingresp(), null); // [MQTT-3.12.4-1]</span>
+<span class="nc" id="L33">	}</span>
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.7.7.201606060606</span></div></body></html>

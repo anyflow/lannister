@@ -28,15 +28,15 @@
 <a class="jxr_linenumber" name="L20" href="#L20">20</a>  		String testTopic = <span class="jxr_string">"testTopic/test"</span>;
 <a class="jxr_linenumber" name="L21" href="#L21">21</a>  		Session session = <strong class="jxr_keyword">new</strong> Session(<span class="jxr_string">"1"</span>, <span class="jxr_string">"1"</span>, 1, 50, <strong class="jxr_keyword">true</strong>, <strong class="jxr_keyword">null</strong>);
 <a class="jxr_linenumber" name="L22" href="#L22">22</a>  
-<a class="jxr_linenumber" name="L23" href="#L23">23</a>  		TopicSubscription ts0 = <strong class="jxr_keyword">new</strong> TopicSubscription(<span class="jxr_string">"testTopic/#"</span>, MqttQoS.AT_MOST_ONCE);
-<a class="jxr_linenumber" name="L24" href="#L24">24</a>  		TopicSubscription ts1 = <strong class="jxr_keyword">new</strong> TopicSubscription(<span class="jxr_string">"testTopic/+"</span>, MqttQoS.AT_LEAST_ONCE);
-<a class="jxr_linenumber" name="L25" href="#L25">25</a>  		TopicSubscription ts2 = <strong class="jxr_keyword">new</strong> TopicSubscription(testTopic, MqttQoS.EXACTLY_ONCE);
+<a class="jxr_linenumber" name="L23" href="#L23">23</a>  		TopicSubscription ts0 = <strong class="jxr_keyword">new</strong> TopicSubscription(session.clientId(), <span class="jxr_string">"testTopic/#"</span>, MqttQoS.AT_MOST_ONCE);
+<a class="jxr_linenumber" name="L24" href="#L24">24</a>  		TopicSubscription ts1 = <strong class="jxr_keyword">new</strong> TopicSubscription(session.clientId(), <span class="jxr_string">"testTopic/+"</span>, MqttQoS.AT_LEAST_ONCE);
+<a class="jxr_linenumber" name="L25" href="#L25">25</a>  		TopicSubscription ts2 = <strong class="jxr_keyword">new</strong> TopicSubscription(session.clientId(), testTopic, MqttQoS.EXACTLY_ONCE);
 <a class="jxr_linenumber" name="L26" href="#L26">26</a>  
-<a class="jxr_linenumber" name="L27" href="#L27">27</a>  		session.topicSubscriptions().put(ts0.topicFilter(), ts0);
-<a class="jxr_linenumber" name="L28" href="#L28">28</a>  		session.topicSubscriptions().put(ts1.topicFilter(), ts1);
-<a class="jxr_linenumber" name="L29" href="#L29">29</a>  		session.topicSubscriptions().put(ts2.topicFilter(), ts2);
+<a class="jxr_linenumber" name="L27" href="#L27">27</a>  		TopicSubscription.NEXUS.put(ts0);
+<a class="jxr_linenumber" name="L28" href="#L28">28</a>  		TopicSubscription.NEXUS.put(ts1);
+<a class="jxr_linenumber" name="L29" href="#L29">29</a>  		TopicSubscription.NEXUS.put(ts2);
 <a class="jxr_linenumber" name="L30" href="#L30">30</a>  
-<a class="jxr_linenumber" name="L31" href="#L31">31</a>  		Assert.assertEquals(3, session.topicSubscriptions().size());
+<a class="jxr_linenumber" name="L31" href="#L31">31</a>  		Assert.assertEquals(3, TopicSubscription.NEXUS.topicFiltersOf(session.clientId()).size());
 <a class="jxr_linenumber" name="L32" href="#L32">32</a>  
 <a class="jxr_linenumber" name="L33" href="#L33">33</a>  		TopicSubscription target = session.matches(testTopic);
 <a class="jxr_linenumber" name="L34" href="#L34">34</a>  

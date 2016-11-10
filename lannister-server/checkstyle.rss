@@ -20,19 +20,19 @@ under the License.
 <rss version="0.91">
   <channel>
     <title>Lannister server - Checkstyle report</title>
-    <link>https://github.com/anyflow/lannister/lannister-server</link>
+    <link>https://anyflow.github.io/lannister/lannister-server</link>
     <description>Lannister server - Checkstyle report</description>
     <language>en-us</language>
     <copyright>&#169;2016 anyflow.net</copyright>
     <item>
-      <title>File: 76,
-             Errors: 2868,
+      <title>File: 107,
+             Errors: 3669,
              Warnings: 0,
              Infos: 0
       </title>
-            <link>https://github.com/anyflow/lannister/lannister-server/checkstyle.html</link>
+            <link>https://anyflow.github.io/lannister/lannister-server/checkstyle.html</link>
       <description>
-        <p>Click <a href="https://github.com/anyflow/lannister/lannister-server/checkstyle.html">here</a> for the full Checkstyle report.</p>
+        <p>Click <a href="https://anyflow.github.io/lannister/lannister-server/checkstyle.html">here</a> for the full Checkstyle report.</p>
 
         <table summary="Files" boder="1">
           <thead>
@@ -46,35 +46,7 @@ under the License.
           <tbody>
                           <tr>
                 <td>
-                  <a href="https://github.com/anyflow/lannister/lannister-server/checkstyle.html#net.anyflow.lannister.server.MqttChannelInitializer.java">net/anyflow/lannister/server/MqttChannelInitializer.java</a>
-                </td>
-                <td>
-                  0
-                </td>
-                <td>
-                  0
-                </td>
-                <td>
-                  38
-                </td>
-              </tr>
-                          <tr>
-                <td>
-                  <a href="https://github.com/anyflow/lannister/lannister-server/checkstyle.html#net.anyflow.lannister.Hazelcast.java">net/anyflow/lannister/Hazelcast.java</a>
-                </td>
-                <td>
-                  0
-                </td>
-                <td>
-                  0
-                </td>
-                <td>
-                  35
-                </td>
-              </tr>
-                          <tr>
-                <td>
-                  <a href="https://github.com/anyflow/lannister/lannister-server/checkstyle.html#net.anyflow.lannister.packetreceiver.DisconnectReceiver.java">net/anyflow/lannister/packetreceiver/DisconnectReceiver.java</a>
+                  <a href="https://anyflow.github.io/lannister/lannister-server/checkstyle.html#net.anyflow.lannister.httphandler.api.TopicSubscriptions.java">net/anyflow/lannister/httphandler/api/TopicSubscriptions.java</a>
                 </td>
                 <td>
                   0
@@ -88,49 +60,7 @@ under the License.
               </tr>
                           <tr>
                 <td>
-                  <a href="https://github.com/anyflow/lannister/lannister-server/checkstyle.html#net.anyflow.lannister.Statistics.java">net/anyflow/lannister/Statistics.java</a>
-                </td>
-                <td>
-                  0
-                </td>
-                <td>
-                  0
-                </td>
-                <td>
-                  76
-                </td>
-              </tr>
-                          <tr>
-                <td>
-                  <a href="https://github.com/anyflow/lannister/lannister-server/checkstyle.html#net.anyflow.lannister.plugin.DefaultServiceChecker.java">net/anyflow/lannister/plugin/DefaultServiceChecker.java</a>
-                </td>
-                <td>
-                  0
-                </td>
-                <td>
-                  0
-                </td>
-                <td>
-                  11
-                </td>
-              </tr>
-                          <tr>
-                <td>
-                  <a href="https://github.com/anyflow/lannister/lannister-server/checkstyle.html#net.anyflow.lannister.http.MessageReceiver.java">net/anyflow/lannister/http/MessageReceiver.java</a>
-                </td>
-                <td>
-                  0
-                </td>
-                <td>
-                  0
-                </td>
-                <td>
-                  7
-                </td>
-              </tr>
-                          <tr>
-                <td>
-                  <a href="https://github.com/anyflow/lannister/lannister-server/checkstyle.html#net.anyflow.lannister.http.HtmlGenerator.java">net/anyflow/lannister/http/HtmlGenerator.java</a>
+                  <a href="https://anyflow.github.io/lannister/lannister-server/checkstyle.html#net.anyflow.lannister.http.HtmlGenerator.java">net/anyflow/lannister/http/HtmlGenerator.java</a>
                 </td>
                 <td>
                   0
@@ -144,35 +74,7 @@ under the License.
               </tr>
                           <tr>
                 <td>
-                  <a href="https://github.com/anyflow/lannister/lannister-server/checkstyle.html#net.anyflow.lannister.server.ScheduledExecutor.java">net/anyflow/lannister/server/ScheduledExecutor.java</a>
-                </td>
-                <td>
-                  0
-                </td>
-                <td>
-                  0
-                </td>
-                <td>
-                  24
-                </td>
-              </tr>
-                          <tr>
-                <td>
-                  <a href="https://github.com/anyflow/lannister/lannister-server/checkstyle.html#net.anyflow.lannister.message.MessageStatus.java">net/anyflow/lannister/message/MessageStatus.java</a>
-                </td>
-                <td>
-                  0
-                </td>
-                <td>
-                  0
-                </td>
-                <td>
-                  48
-                </td>
-              </tr>
-                          <tr>
-                <td>
-                  <a href="https://github.com/anyflow/lannister/lannister-server/checkstyle.html#net.anyflow.lannister.http.HttpResponse.java">net/anyflow/lannister/http/HttpResponse.java</a>
+                  <a href="https://anyflow.github.io/lannister/lannister-server/checkstyle.html#net.anyflow.lannister.http.HttpResponse.java">net/anyflow/lannister/http/HttpResponse.java</a>
                 </td>
                 <td>
                   0
@@ -186,7 +88,7 @@ under the License.
               </tr>
                           <tr>
                 <td>
-                  <a href="https://github.com/anyflow/lannister/lannister-server/checkstyle.html#net.anyflow.lannister.topic.Topic.java">net/anyflow/lannister/topic/Topic.java</a>
+                  <a href="https://anyflow.github.io/lannister/lannister-server/checkstyle.html#net.anyflow.lannister.http.HttpClient.java">net/anyflow/lannister/http/HttpClient.java</a>
                 </td>
                 <td>
                   0
@@ -195,12 +97,12 @@ under the License.
                   0
                 </td>
                 <td>
-                  136
+                  73
                 </td>
               </tr>
                           <tr>
                 <td>
-                  <a href="https://github.com/anyflow/lannister/lannister-server/checkstyle.html#net.anyflow.lannister.http.HttpClient.java">net/anyflow/lannister/http/HttpClient.java</a>
+                  <a href="https://anyflow.github.io/lannister/lannister-server/checkstyle.html#net.anyflow.lannister.message.InboundMessageStatuses.java">net/anyflow/lannister/message/InboundMessageStatuses.java</a>
                 </td>
                 <td>
                   0
@@ -209,12 +111,12 @@ under the License.
                   0
                 </td>
                 <td>
-                  70
+                  74
                 </td>
               </tr>
                           <tr>
                 <td>
-                  <a href="https://github.com/anyflow/lannister/lannister-server/checkstyle.html#net.anyflow.lannister.http.HttpConstants.java">net/anyflow/lannister/http/HttpConstants.java</a>
+                  <a href="https://anyflow.github.io/lannister/lannister-server/checkstyle.html#net.anyflow.lannister.http.HttpConstants.java">net/anyflow/lannister/http/HttpConstants.java</a>
                 </td>
                 <td>
                   0
@@ -228,7 +130,7 @@ under the License.
               </tr>
                           <tr>
                 <td>
-                  <a href="https://github.com/anyflow/lannister/lannister-server/checkstyle.html#net.anyflow.lannister.http.IHttpClient.java">net/anyflow/lannister/http/IHttpClient.java</a>
+                  <a href="https://anyflow.github.io/lannister/lannister-server/checkstyle.html#net.anyflow.lannister.message.Message.java">net/anyflow/lannister/message/Message.java</a>
                 </td>
                 <td>
                   0
@@ -237,12 +139,12 @@ under the License.
                   0
                 </td>
                 <td>
-                  16
+                  91
                 </td>
               </tr>
                           <tr>
                 <td>
-                  <a href="https://github.com/anyflow/lannister/lannister-server/checkstyle.html#net.anyflow.lannister.message.Message.java">net/anyflow/lannister/message/Message.java</a>
+                  <a href="https://anyflow.github.io/lannister/lannister-server/checkstyle.html#net.anyflow.lannister.packetreceiver.ConnectReceiver.java">net/anyflow/lannister/packetreceiver/ConnectReceiver.java</a>
                 </td>
                 <td>
                   0
@@ -251,54 +153,12 @@ under the License.
                   0
                 </td>
                 <td>
-                  104
+                  90
                 </td>
               </tr>
                           <tr>
                 <td>
-                  <a href="https://github.com/anyflow/lannister/lannister-server/checkstyle.html#net.anyflow.lannister.message.InboundMessageStatus.java">net/anyflow/lannister/message/InboundMessageStatus.java</a>
-                </td>
-                <td>
-                  0
-                </td>
-                <td>
-                  0
-                </td>
-                <td>
-                  47
-                </td>
-              </tr>
-                          <tr>
-                <td>
-                  <a href="https://github.com/anyflow/lannister/lannister-server/checkstyle.html#net.anyflow.lannister.packetreceiver.ConnectReceiver.java">net/anyflow/lannister/packetreceiver/ConnectReceiver.java</a>
-                </td>
-                <td>
-                  0
-                </td>
-                <td>
-                  0
-                </td>
-                <td>
-                  84
-                </td>
-              </tr>
-                          <tr>
-                <td>
-                  <a href="https://github.com/anyflow/lannister/lannister-server/checkstyle.html#net.anyflow.lannister.packetreceiver.PingReqReceiver.java">net/anyflow/lannister/packetreceiver/PingReqReceiver.java</a>
-                </td>
-                <td>
-                  0
-                </td>
-                <td>
-                  0
-                </td>
-                <td>
-                  14
-                </td>
-              </tr>
-                          <tr>
-                <td>
-                  <a href="https://github.com/anyflow/lannister/lannister-server/checkstyle.html#net.anyflow.lannister.http.WebsocketFrameHandler.java">net/anyflow/lannister/http/WebsocketFrameHandler.java</a>
+                  <a href="https://anyflow.github.io/lannister/lannister-server/checkstyle.html#net.anyflow.lannister.http.WebsocketFrameHandler.java">net/anyflow/lannister/http/WebsocketFrameHandler.java</a>
                 </td>
                 <td>
                   0
@@ -312,7 +172,7 @@ under the License.
               </tr>
                           <tr>
                 <td>
-                  <a href="https://github.com/anyflow/lannister/lannister-server/checkstyle.html#net.anyflow.lannister.session.MessageSender.java">net/anyflow/lannister/session/MessageSender.java</a>
+                  <a href="https://anyflow.github.io/lannister/lannister-server/checkstyle.html#net.anyflow.lannister.Settings.java">net/anyflow/lannister/Settings.java</a>
                 </td>
                 <td>
                   0
@@ -321,12 +181,12 @@ under the License.
                   0
                 </td>
                 <td>
-                  76
+                  66
                 </td>
               </tr>
                           <tr>
                 <td>
-                  <a href="https://github.com/anyflow/lannister/lannister-server/checkstyle.html#net.anyflow.lannister.Settings.java">net/anyflow/lannister/Settings.java</a>
+                  <a href="https://anyflow.github.io/lannister/lannister-server/checkstyle.html#net.anyflow.lannister.message.Messages.java">net/anyflow/lannister/message/Messages.java</a>
                 </td>
                 <td>
                   0
@@ -335,12 +195,12 @@ under the License.
                   0
                 </td>
                 <td>
-                  64
+                  34
                 </td>
               </tr>
                           <tr>
                 <td>
-                  <a href="https://github.com/anyflow/lannister/lannister-server/checkstyle.html#net.anyflow.lannister.plugin.DefaultPublishEventListener.java">net/anyflow/lannister/plugin/DefaultPublishEventListener.java</a>
+                  <a href="https://anyflow.github.io/lannister/lannister-server/checkstyle.html#net.anyflow.lannister.cluster.ClusterDataFactory.java">net/anyflow/lannister/cluster/ClusterDataFactory.java</a>
                 </td>
                 <td>
                   0
@@ -349,12 +209,12 @@ under the License.
                   0
                 </td>
                 <td>
-                  13
+                  24
                 </td>
               </tr>
                           <tr>
                 <td>
-                  <a href="https://github.com/anyflow/lannister/lannister-server/checkstyle.html#net.anyflow.lannister.http.HttpRequestHandler.java">net/anyflow/lannister/http/HttpRequestHandler.java</a>
+                  <a href="https://anyflow.github.io/lannister/lannister-server/checkstyle.html#net.anyflow.lannister.http.HttpRequestHandler.java">net/anyflow/lannister/http/HttpRequestHandler.java</a>
                 </td>
                 <td>
                   0
@@ -368,7 +228,7 @@ under the License.
               </tr>
                           <tr>
                 <td>
-                  <a href="https://github.com/anyflow/lannister/lannister-server/checkstyle.html#net.anyflow.lannister.NettyUtil.java">net/anyflow/lannister/NettyUtil.java</a>
+                  <a href="https://anyflow.github.io/lannister/lannister-server/checkstyle.html#net.anyflow.lannister.topic.TopicSubscriptions.java">net/anyflow/lannister/topic/TopicSubscriptions.java</a>
                 </td>
                 <td>
                   0
@@ -377,26 +237,12 @@ under the License.
                   0
                 </td>
                 <td>
-                  8
-                </td>
-              </tr>
-                          <tr>
-                <td>
-                  <a href="https://github.com/anyflow/lannister/lannister-server/checkstyle.html#net.anyflow.lannister.plugin.DefaultConnectEventListener.java">net/anyflow/lannister/plugin/DefaultConnectEventListener.java</a>
-                </td>
-                <td>
-                  0
-                </td>
-                <td>
-                  0
-                </td>
-                <td>
-                  13
+                  91
                 </td>
               </tr>
                           <tr>
                 <td>
-                  <a href="https://github.com/anyflow/lannister/lannister-server/checkstyle.html#net.anyflow.lannister.packetreceiver.PubRelReceiver.java">net/anyflow/lannister/packetreceiver/PubRelReceiver.java</a>
+                  <a href="https://anyflow.github.io/lannister/lannister-server/checkstyle.html#net.anyflow.lannister.httphandler.api.OutboundMessageStatuses.java">net/anyflow/lannister/httphandler/api/OutboundMessageStatuses.java</a>
                 </td>
                 <td>
                   0
@@ -405,614 +251,12 @@ under the License.
                   0
                 </td>
                 <td>
-                  20
-                </td>
-              </tr>
-                          <tr>
-                <td>
-                  <a href="https://github.com/anyflow/lannister/lannister-server/checkstyle.html#net.anyflow.lannister.server.MqttWebSocketCodec.java">net/anyflow/lannister/server/MqttWebSocketCodec.java</a>
-                </td>
-                <td>
-                  0
-                </td>
-                <td>
-                  0
-                </td>
-                <td>
-                  14
+                  16
                 </td>
               </tr>
                           <tr>
                 <td>
-                  <a href="https://github.com/anyflow/lannister/lannister-server/checkstyle.html#net.anyflow.lannister.packetreceiver.UnsubscribeReceiver.java">net/anyflow/lannister/packetreceiver/UnsubscribeReceiver.java</a>
-                </td>
-                <td>
-                  0
-                </td>
-                <td>
-                  0
-                </td>
-                <td>
-                  20
-                </td>
-              </tr>
-                          <tr>
-                <td>
-                  <a href="https://github.com/anyflow/lannister/lannister-server/checkstyle.html#net.anyflow.lannister.httphandler.api.Topics.java">net/anyflow/lannister/httphandler/api/Topics.java</a>
-                </td>
-                <td>
-                  0
-                </td>
-                <td>
-                  0
-                </td>
-                <td>
-                  17
-                </td>
-              </tr>
-                          <tr>
-                <td>
-                  <a href="https://github.com/anyflow/lannister/lannister-server/checkstyle.html#net.anyflow.lannister.packetreceiver.PublishReceiver.java">net/anyflow/lannister/packetreceiver/PublishReceiver.java</a>
-                </td>
-                <td>
-                  0
-                </td>
-                <td>
-                  0
-                </td>
-                <td>
-                  32
-                </td>
-              </tr>
-                          <tr>
-                <td>
-                  <a href="https://github.com/anyflow/lannister/lannister-server/checkstyle.html#net.anyflow.lannister.serialization.SerializableFactory.java">net/anyflow/lannister/serialization/SerializableFactory.java</a>
-                </td>
-                <td>
-                  0
-                </td>
-                <td>
-                  0
-                </td>
-                <td>
-                  8
-                </td>
-              </tr>
-                          <tr>
-                <td>
-                  <a href="https://github.com/anyflow/lannister/lannister-server/checkstyle.html#net.anyflow.lannister.session.TopicSubscriptionInterceptor.java">net/anyflow/lannister/session/TopicSubscriptionInterceptor.java</a>
-                </td>
-                <td>
-                  0
-                </td>
-                <td>
-                  0
-                </td>
-                <td>
-                  35
-                </td>
-              </tr>
-                          <tr>
-                <td>
-                  <a href="https://github.com/anyflow/lannister/lannister-server/checkstyle.html#net.anyflow.lannister.session.Session.java">net/anyflow/lannister/session/Session.java</a>
-                </td>
-                <td>
-                  0
-                </td>
-                <td>
-                  0
-                </td>
-                <td>
-                  140
-                </td>
-              </tr>
-                          <tr>
-                <td>
-                  <a href="https://github.com/anyflow/lannister/lannister-server/checkstyle.html#net.anyflow.lannister.session.Sessions.java">net/anyflow/lannister/session/Sessions.java</a>
-                </td>
-                <td>
-                  0
-                </td>
-                <td>
-                  0
-                </td>
-                <td>
-                  45
-                </td>
-              </tr>
-                          <tr>
-                <td>
-                  <a href="https://github.com/anyflow/lannister/lannister-server/checkstyle.html#net.anyflow.lannister.packetreceiver.PubRecReceiver.java">net/anyflow/lannister/packetreceiver/PubRecReceiver.java</a>
-                </td>
-                <td>
-                  0
-                </td>
-                <td>
-                  0
-                </td>
-                <td>
-                  22
-                </td>
-              </tr>
-                          <tr>
-                <td>
-                  <a href="https://github.com/anyflow/lannister/lannister-server/checkstyle.html#net.anyflow.lannister.plugin.DefaultSubscribeEventListener.java">net/anyflow/lannister/plugin/DefaultSubscribeEventListener.java</a>
-                </td>
-                <td>
-                  0
-                </td>
-                <td>
-                  0
-                </td>
-                <td>
-                  14
-                </td>
-              </tr>
-                          <tr>
-                <td>
-                  <a href="https://github.com/anyflow/lannister/lannister-server/checkstyle.html#net.anyflow.lannister.client.SharedObject.java">net/anyflow/lannister/client/SharedObject.java</a>
-                </td>
-                <td>
-                  0
-                </td>
-                <td>
-                  0
-                </td>
-                <td>
-                  14
-                </td>
-              </tr>
-                          <tr>
-                <td>
-                  <a href="https://github.com/anyflow/lannister/lannister-server/checkstyle.html#net.anyflow.lannister.plugin.DefaultAuthorizer.java">net/anyflow/lannister/plugin/DefaultAuthorizer.java</a>
-                </td>
-                <td>
-                  0
-                </td>
-                <td>
-                  0
-                </td>
-                <td>
-                  14
-                </td>
-              </tr>
-                          <tr>
-                <td>
-                  <a href="https://github.com/anyflow/lannister/lannister-server/checkstyle.html#net.anyflow.lannister.http.WebServer.java">net/anyflow/lannister/http/WebServer.java</a>
-                </td>
-                <td>
-                  0
-                </td>
-                <td>
-                  0
-                </td>
-                <td>
-                  40
-                </td>
-              </tr>
-                          <tr>
-                <td>
-                  <a href="https://github.com/anyflow/lannister/lannister-server/checkstyle.html#net.anyflow.lannister.Application.java">net/anyflow/lannister/Application.java</a>
-                </td>
-                <td>
-                  0
-                </td>
-                <td>
-                  0
-                </td>
-                <td>
-                  30
-                </td>
-              </tr>
-                          <tr>
-                <td>
-                  <a href="https://github.com/anyflow/lannister/lannister-server/checkstyle.html#net.anyflow.lannister.serialization.JsonSerializer.java">net/anyflow/lannister/serialization/JsonSerializer.java</a>
-                </td>
-                <td>
-                  0
-                </td>
-                <td>
-                  0
-                </td>
-                <td>
-                  19
-                </td>
-              </tr>
-                          <tr>
-                <td>
-                  <a href="https://github.com/anyflow/lannister/lannister-server/checkstyle.html#net.anyflow.lannister.server.MqttServer.java">net/anyflow/lannister/server/MqttServer.java</a>
-                </td>
-                <td>
-                  0
-                </td>
-                <td>
-                  0
-                </td>
-                <td>
-                  37
-                </td>
-              </tr>
-                          <tr>
-                <td>
-                  <a href="https://github.com/anyflow/lannister/lannister-server/checkstyle.html#net.anyflow.lannister.message.MessageFactory.java">net/anyflow/lannister/message/MessageFactory.java</a>
-                </td>
-                <td>
-                  0
-                </td>
-                <td>
-                  0
-                </td>
-                <td>
-                  81
-                </td>
-              </tr>
-                          <tr>
-                <td>
-                  <a href="https://github.com/anyflow/lannister/lannister-server/checkstyle.html#net.anyflow.lannister.packetreceiver.PubCompReceiver.java">net/anyflow/lannister/packetreceiver/PubCompReceiver.java</a>
-                </td>
-                <td>
-                  0
-                </td>
-                <td>
-                  0
-                </td>
-                <td>
-                  19
-                </td>
-              </tr>
-                          <tr>
-                <td>
-                  <a href="https://github.com/anyflow/lannister/lannister-server/checkstyle.html#net.anyflow.lannister.client.MessageReceiver.java">net/anyflow/lannister/client/MessageReceiver.java</a>
-                </td>
-                <td>
-                  0
-                </td>
-                <td>
-                  0
-                </td>
-                <td>
-                  8
-                </td>
-              </tr>
-                          <tr>
-                <td>
-                  <a href="https://github.com/anyflow/lannister/lannister-server/checkstyle.html#net.anyflow.lannister.client.MqttClient.java">net/anyflow/lannister/client/MqttClient.java</a>
-                </td>
-                <td>
-                  0
-                </td>
-                <td>
-                  0
-                </td>
-                <td>
-                  77
-                </td>
-              </tr>
-                          <tr>
-                <td>
-                  <a href="https://github.com/anyflow/lannister/lannister-server/checkstyle.html#net.anyflow.lannister.topic.TopicSubscriberInterceptor.java">net/anyflow/lannister/topic/TopicSubscriberInterceptor.java</a>
-                </td>
-                <td>
-                  0
-                </td>
-                <td>
-                  0
-                </td>
-                <td>
-                  31
-                </td>
-              </tr>
-                          <tr>
-                <td>
-                  <a href="https://github.com/anyflow/lannister/lannister-server/checkstyle.html#net.anyflow.lannister.http.HttpRequestRouter.java">net/anyflow/lannister/http/HttpRequestRouter.java</a>
-                </td>
-                <td>
-                  0
-                </td>
-                <td>
-                  0
-                </td>
-                <td>
-                  79
-                </td>
-              </tr>
-                          <tr>
-                <td>
-                  <a href="https://github.com/anyflow/lannister/lannister-server/checkstyle.html#net.anyflow.lannister.topic.Topics.java">net/anyflow/lannister/topic/Topics.java</a>
-                </td>
-                <td>
-                  0
-                </td>
-                <td>
-                  0
-                </td>
-                <td>
-                  60
-                </td>
-              </tr>
-                          <tr>
-                <td>
-                  <a href="https://github.com/anyflow/lannister/lannister-server/checkstyle.html#net.anyflow.lannister.plugin.DefaultAuthenticator.java">net/anyflow/lannister/plugin/DefaultAuthenticator.java</a>
-                </td>
-                <td>
-                  0
-                </td>
-                <td>
-                  0
-                </td>
-                <td>
-                  20
-                </td>
-              </tr>
-                          <tr>
-                <td>
-                  <a href="https://github.com/anyflow/lannister/lannister-server/checkstyle.html#net.anyflow.lannister.serialization.HazelcastSerializer.java">net/anyflow/lannister/serialization/HazelcastSerializer.java</a>
-                </td>
-                <td>
-                  0
-                </td>
-                <td>
-                  0
-                </td>
-                <td>
-                  26
-                </td>
-              </tr>
-                          <tr>
-                <td>
-                  <a href="https://github.com/anyflow/lannister/lannister-server/checkstyle.html#net.anyflow.lannister.plugin.DefaultDisconnectEventListener.java">net/anyflow/lannister/plugin/DefaultDisconnectEventListener.java</a>
-                </td>
-                <td>
-                  0
-                </td>
-                <td>
-                  0
-                </td>
-                <td>
-                  12
-                </td>
-              </tr>
-                          <tr>
-                <td>
-                  <a href="https://github.com/anyflow/lannister/lannister-server/checkstyle.html#net.anyflow.lannister.message.OutboundMessageStatus.java">net/anyflow/lannister/message/OutboundMessageStatus.java</a>
-                </td>
-                <td>
-                  0
-                </td>
-                <td>
-                  0
-                </td>
-                <td>
-                  63
-                </td>
-              </tr>
-                          <tr>
-                <td>
-                  <a href="https://github.com/anyflow/lannister/lannister-server/checkstyle.html#net.anyflow.lannister.server.ByteCounterCodec.java">net/anyflow/lannister/server/ByteCounterCodec.java</a>
-                </td>
-                <td>
-                  0
-                </td>
-                <td>
-                  0
-                </td>
-                <td>
-                  19
-                </td>
-              </tr>
-                          <tr>
-                <td>
-                  <a href="https://github.com/anyflow/lannister/lannister-server/checkstyle.html#net.anyflow.lannister.AbnormalDisconnectEventArgs.java">net/anyflow/lannister/AbnormalDisconnectEventArgs.java</a>
-                </td>
-                <td>
-                  0
-                </td>
-                <td>
-                  0
-                </td>
-                <td>
-                  6
-                </td>
-              </tr>
-                          <tr>
-                <td>
-                  <a href="https://github.com/anyflow/lannister/lannister-server/checkstyle.html#net.anyflow.lannister.packetreceiver.SubscribeReceiver.java">net/anyflow/lannister/packetreceiver/SubscribeReceiver.java</a>
-                </td>
-                <td>
-                  0
-                </td>
-                <td>
-                  0
-                </td>
-                <td>
-                  46
-                </td>
-              </tr>
-                          <tr>
-                <td>
-                  <a href="https://github.com/anyflow/lannister/lannister-server/checkstyle.html#net.anyflow.lannister.message.ConnectOptions.java">net/anyflow/lannister/message/ConnectOptions.java</a>
-                </td>
-                <td>
-                  0
-                </td>
-                <td>
-                  0
-                </td>
-                <td>
-                  71
-                </td>
-              </tr>
-                          <tr>
-                <td>
-                  <a href="https://github.com/anyflow/lannister/lannister-server/checkstyle.html#net.anyflow.lannister.client.MqttPacketReceiver.java">net/anyflow/lannister/client/MqttPacketReceiver.java</a>
-                </td>
-                <td>
-                  0
-                </td>
-                <td>
-                  0
-                </td>
-                <td>
-                  31
-                </td>
-              </tr>
-                          <tr>
-                <td>
-                  <a href="https://github.com/anyflow/lannister/lannister-server/checkstyle.html#net.anyflow.lannister.http.HttpClientHandler.java">net/anyflow/lannister/http/HttpClientHandler.java</a>
-                </td>
-                <td>
-                  0
-                </td>
-                <td>
-                  0
-                </td>
-                <td>
-                  30
-                </td>
-              </tr>
-                          <tr>
-                <td>
-                  <a href="https://github.com/anyflow/lannister/lannister-server/checkstyle.html#net.anyflow.lannister.http.WebServerChannelInitializer.java">net/anyflow/lannister/http/WebServerChannelInitializer.java</a>
-                </td>
-                <td>
-                  0
-                </td>
-                <td>
-                  0
-                </td>
-                <td>
-                  32
-                </td>
-              </tr>
-                          <tr>
-                <td>
-                  <a href="https://github.com/anyflow/lannister/lannister-server/checkstyle.html#net.anyflow.lannister.plugin.Plugins.java">net/anyflow/lannister/plugin/Plugins.java</a>
-                </td>
-                <td>
-                  0
-                </td>
-                <td>
-                  0
-                </td>
-                <td>
-                  58
-                </td>
-              </tr>
-                          <tr>
-                <td>
-                  <a href="https://github.com/anyflow/lannister/lannister-server/checkstyle.html#net.anyflow.lannister.Literals.java">net/anyflow/lannister/Literals.java</a>
-                </td>
-                <td>
-                  0
-                </td>
-                <td>
-                  0
-                </td>
-                <td>
-                  17
-                </td>
-              </tr>
-                          <tr>
-                <td>
-                  <a href="https://github.com/anyflow/lannister/lannister-server/checkstyle.html#net.anyflow.lannister.http.HttpRequest.java">net/anyflow/lannister/http/HttpRequest.java</a>
-                </td>
-                <td>
-                  0
-                </td>
-                <td>
-                  0
-                </td>
-                <td>
-                  109
-                </td>
-              </tr>
-                          <tr>
-                <td>
-                  <a href="https://github.com/anyflow/lannister/lannister-server/checkstyle.html#net.anyflow.lannister.plugin.DefaultDeliveredEventListener.java">net/anyflow/lannister/plugin/DefaultDeliveredEventListener.java</a>
-                </td>
-                <td>
-                  0
-                </td>
-                <td>
-                  0
-                </td>
-                <td>
-                  12
-                </td>
-              </tr>
-                          <tr>
-                <td>
-                  <a href="https://github.com/anyflow/lannister/lannister-server/checkstyle.html#net.anyflow.lannister.topic.TopicMatcher.java">net/anyflow/lannister/topic/TopicMatcher.java</a>
-                </td>
-                <td>
-                  0
-                </td>
-                <td>
-                  0
-                </td>
-                <td>
-                  56
-                </td>
-              </tr>
-                          <tr>
-                <td>
-                  <a href="https://github.com/anyflow/lannister/lannister-server/checkstyle.html#net.anyflow.lannister.httphandler.admin.Index.java">net/anyflow/lannister/httphandler/admin/Index.java</a>
-                </td>
-                <td>
-                  0
-                </td>
-                <td>
-                  0
-                </td>
-                <td>
-                  13
-                </td>
-              </tr>
-                          <tr>
-                <td>
-                  <a href="https://github.com/anyflow/lannister/lannister-server/checkstyle.html#net.anyflow.lannister.plugin.DefaultUnsubscribeEventListener.java">net/anyflow/lannister/plugin/DefaultUnsubscribeEventListener.java</a>
-                </td>
-                <td>
-                  0
-                </td>
-                <td>
-                  0
-                </td>
-                <td>
-                  13
-                </td>
-              </tr>
-                          <tr>
-                <td>
-                  <a href="https://github.com/anyflow/lannister/lannister-server/checkstyle.html#net.anyflow.lannister.httphandler.Index.java">net/anyflow/lannister/httphandler/Index.java</a>
-                </td>
-                <td>
-                  0
-                </td>
-                <td>
-                  0
-                </td>
-                <td>
-                  12
-                </td>
-              </tr>
-                          <tr>
-                <td>
-                  <a href="https://github.com/anyflow/lannister/lannister-server/checkstyle.html#net.anyflow.lannister.topic.TopicSubscriber.java">net/anyflow/lannister/topic/TopicSubscriber.java</a>
-                </td>
-                <td>
-                  0
-                </td>
-                <td>
-                  0
-                </td>
-                <td>
-                  61
-                </td>
-              </tr>
-                          <tr>
-                <td>
-                  <a href="https://github.com/anyflow/lannister/lannister-server/checkstyle.html#net.anyflow.lannister.httphandler.api.Sessions.java">net/anyflow/lannister/httphandler/api/Sessions.java</a>
+                  <a href="https://anyflow.github.io/lannister/lannister-server/checkstyle.html#net.anyflow.lannister.httphandler.api.Topics.java">net/anyflow/lannister/httphandler/api/Topics.java</a>
                 </td>
                 <td>
                   0
@@ -1026,7 +270,7 @@ under the License.
               </tr>
                           <tr>
                 <td>
-                  <a href="https://github.com/anyflow/lannister/lannister-server/checkstyle.html#net.anyflow.lannister.packetreceiver.GenericReceiver.java">net/anyflow/lannister/packetreceiver/GenericReceiver.java</a>
+                  <a href="https://anyflow.github.io/lannister/lannister-server/checkstyle.html#net.anyflow.lannister.serialization.SerializableFactory.java">net/anyflow/lannister/serialization/SerializableFactory.java</a>
                 </td>
                 <td>
                   0
@@ -1035,12 +279,12 @@ under the License.
                   0
                 </td>
                 <td>
-                  41
+                  9
                 </td>
               </tr>
                           <tr>
                 <td>
-                  <a href="https://github.com/anyflow/lannister/lannister-server/checkstyle.html#net.anyflow.lannister.packetreceiver.PubAckReceiver.java">net/anyflow/lannister/packetreceiver/PubAckReceiver.java</a>
+                  <a href="https://anyflow.github.io/lannister/lannister-server/checkstyle.html#net.anyflow.lannister.serialization.SysValueSerializer.java">net/anyflow/lannister/serialization/SysValueSerializer.java</a>
                 </td>
                 <td>
                   0
@@ -1049,12 +293,12 @@ under the License.
                   0
                 </td>
                 <td>
-                  23
+                  11
                 </td>
               </tr>
                           <tr>
                 <td>
-                  <a href="https://github.com/anyflow/lannister/lannister-server/checkstyle.html#net.anyflow.lannister.httphandler.api.Clients.java">net/anyflow/lannister/httphandler/api/Clients.java</a>
+                  <a href="https://anyflow.github.io/lannister/lannister-server/checkstyle.html#net.anyflow.lannister.httphandler.api.TopicSubscribers.java">net/anyflow/lannister/httphandler/api/TopicSubscribers.java</a>
                 </td>
                 <td>
                   0
@@ -1063,12 +307,12 @@ under the License.
                   0
                 </td>
                 <td>
-                  13
+                  16
                 </td>
               </tr>
                           <tr>
                 <td>
-                  <a href="https://github.com/anyflow/lannister/lannister-server/checkstyle.html#net.anyflow.lannister.topic.Notification.java">net/anyflow/lannister/topic/Notification.java</a>
+                  <a href="https://anyflow.github.io/lannister/lannister-server/checkstyle.html#net.anyflow.lannister.session.Session.java">net/anyflow/lannister/session/Session.java</a>
                 </td>
                 <td>
                   0
@@ -1077,12 +321,68 @@ under the License.
                   0
                 </td>
                 <td>
-                  44
+                  122
                 </td>
               </tr>
                           <tr>
                 <td>
-                  <a href="https://github.com/anyflow/lannister/lannister-server/checkstyle.html#net.anyflow.lannister.topic.TopicSubscription.java">net/anyflow/lannister/topic/TopicSubscription.java</a>
+                  <a href="https://anyflow.github.io/lannister/lannister-server/checkstyle.html#net.anyflow.lannister.session.Sessions.java">net/anyflow/lannister/session/Sessions.java</a>
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  52
+                </td>
+              </tr>
+                          <tr>
+                <td>
+                  <a href="https://anyflow.github.io/lannister/lannister-server/checkstyle.html#net.anyflow.lannister.packetreceiver.PubRecReceiver.java">net/anyflow/lannister/packetreceiver/PubRecReceiver.java</a>
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  22
+                </td>
+              </tr>
+                          <tr>
+                <td>
+                  <a href="https://anyflow.github.io/lannister/lannister-server/checkstyle.html#net.anyflow.lannister.client.SharedObject.java">net/anyflow/lannister/client/SharedObject.java</a>
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  14
+                </td>
+              </tr>
+                          <tr>
+                <td>
+                  <a href="https://anyflow.github.io/lannister/lannister-server/checkstyle.html#net.anyflow.lannister.plugin.DefaultAuthorizer.java">net/anyflow/lannister/plugin/DefaultAuthorizer.java</a>
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  14
+                </td>
+              </tr>
+                          <tr>
+                <td>
+                  <a href="https://anyflow.github.io/lannister/lannister-server/checkstyle.html#net.anyflow.lannister.http.WebServer.java">net/anyflow/lannister/http/WebServer.java</a>
                 </td>
                 <td>
                   0
@@ -1096,7 +396,1141 @@ under the License.
               </tr>
                           <tr>
                 <td>
-                  <a href="https://github.com/anyflow/lannister/lannister-server/checkstyle.html#net.anyflow.lannister.serialization.ChannelIdSerializer.java">net/anyflow/lannister/serialization/ChannelIdSerializer.java</a>
+                  <a href="https://anyflow.github.io/lannister/lannister-server/checkstyle.html#net.anyflow.lannister.Application.java">net/anyflow/lannister/Application.java</a>
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  45
+                </td>
+              </tr>
+                          <tr>
+                <td>
+                  <a href="https://anyflow.github.io/lannister/lannister-server/checkstyle.html#net.anyflow.lannister.serialization.JsonSerializer.java">net/anyflow/lannister/serialization/JsonSerializer.java</a>
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  19
+                </td>
+              </tr>
+                          <tr>
+                <td>
+                  <a href="https://anyflow.github.io/lannister/lannister-server/checkstyle.html#net.anyflow.lannister.httphandler.api.MessageReferenceCounts.java">net/anyflow/lannister/httphandler/api/MessageReferenceCounts.java</a>
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  15
+                </td>
+              </tr>
+                          <tr>
+                <td>
+                  <a href="https://anyflow.github.io/lannister/lannister-server/checkstyle.html#net.anyflow.lannister.packetreceiver.PubCompReceiver.java">net/anyflow/lannister/packetreceiver/PubCompReceiver.java</a>
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  20
+                </td>
+              </tr>
+                          <tr>
+                <td>
+                  <a href="https://anyflow.github.io/lannister/lannister-server/checkstyle.html#net.anyflow.lannister.client.MessageReceiver.java">net/anyflow/lannister/client/MessageReceiver.java</a>
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  8
+                </td>
+              </tr>
+                          <tr>
+                <td>
+                  <a href="https://anyflow.github.io/lannister/lannister-server/checkstyle.html#net.anyflow.lannister.cluster.Hazelcast.java">net/anyflow/lannister/cluster/Hazelcast.java</a>
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  33
+                </td>
+              </tr>
+                          <tr>
+                <td>
+                  <a href="https://anyflow.github.io/lannister/lannister-server/checkstyle.html#net.anyflow.lannister.serialization.HazelcastSerializer.java">net/anyflow/lannister/serialization/HazelcastSerializer.java</a>
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  26
+                </td>
+              </tr>
+                          <tr>
+                <td>
+                  <a href="https://anyflow.github.io/lannister/lannister-server/checkstyle.html#net.anyflow.lannister.cluster.SerializableIntegerSet.java">net/anyflow/lannister/cluster/SerializableIntegerSet.java</a>
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  18
+                </td>
+              </tr>
+                          <tr>
+                <td>
+                  <a href="https://anyflow.github.io/lannister/lannister-server/checkstyle.html#net.anyflow.lannister.AbnormalDisconnectEventArgs.java">net/anyflow/lannister/AbnormalDisconnectEventArgs.java</a>
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  6
+                </td>
+              </tr>
+                          <tr>
+                <td>
+                  <a href="https://anyflow.github.io/lannister/lannister-server/checkstyle.html#net.anyflow.lannister.packetreceiver.SubscribeReceiver.java">net/anyflow/lannister/packetreceiver/SubscribeReceiver.java</a>
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  50
+                </td>
+              </tr>
+                          <tr>
+                <td>
+                  <a href="https://anyflow.github.io/lannister/lannister-server/checkstyle.html#net.anyflow.lannister.message.ConnectOptions.java">net/anyflow/lannister/message/ConnectOptions.java</a>
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  71
+                </td>
+              </tr>
+                          <tr>
+                <td>
+                  <a href="https://anyflow.github.io/lannister/lannister-server/checkstyle.html#net.anyflow.lannister.cluster.Mode.java">net/anyflow/lannister/cluster/Mode.java</a>
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  17
+                </td>
+              </tr>
+                          <tr>
+                <td>
+                  <a href="https://anyflow.github.io/lannister/lannister-server/checkstyle.html#net.anyflow.lannister.topic.TopicSubscribers.java">net/anyflow/lannister/topic/TopicSubscribers.java</a>
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  106
+                </td>
+              </tr>
+                          <tr>
+                <td>
+                  <a href="https://anyflow.github.io/lannister/lannister-server/checkstyle.html#net.anyflow.lannister.client.MqttPacketReceiver.java">net/anyflow/lannister/client/MqttPacketReceiver.java</a>
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  33
+                </td>
+              </tr>
+                          <tr>
+                <td>
+                  <a href="https://anyflow.github.io/lannister/lannister-server/checkstyle.html#net.anyflow.lannister.http.HttpClientHandler.java">net/anyflow/lannister/http/HttpClientHandler.java</a>
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  30
+                </td>
+              </tr>
+                          <tr>
+                <td>
+                  <a href="https://anyflow.github.io/lannister/lannister-server/checkstyle.html#net.anyflow.lannister.httphandler.api.Messages.java">net/anyflow/lannister/httphandler/api/Messages.java</a>
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  14
+                </td>
+              </tr>
+                          <tr>
+                <td>
+                  <a href="https://anyflow.github.io/lannister/lannister-server/checkstyle.html#net.anyflow.lannister.http.WebServerChannelInitializer.java">net/anyflow/lannister/http/WebServerChannelInitializer.java</a>
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  32
+                </td>
+              </tr>
+                          <tr>
+                <td>
+                  <a href="https://anyflow.github.io/lannister/lannister-server/checkstyle.html#net.anyflow.lannister.cluster.NativeSet.java">net/anyflow/lannister/cluster/NativeSet.java</a>
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  13
+                </td>
+              </tr>
+                          <tr>
+                <td>
+                  <a href="https://anyflow.github.io/lannister/lannister-server/checkstyle.html#net.anyflow.lannister.Literals.java">net/anyflow/lannister/Literals.java</a>
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  19
+                </td>
+              </tr>
+                          <tr>
+                <td>
+                  <a href="https://anyflow.github.io/lannister/lannister-server/checkstyle.html#net.anyflow.lannister.cluster.Map.java">net/anyflow/lannister/cluster/Map.java</a>
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  12
+                </td>
+              </tr>
+                          <tr>
+                <td>
+                  <a href="https://anyflow.github.io/lannister/lannister-server/checkstyle.html#net.anyflow.lannister.plugin.DefaultDeliveredEventListener.java">net/anyflow/lannister/plugin/DefaultDeliveredEventListener.java</a>
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  12
+                </td>
+              </tr>
+                          <tr>
+                <td>
+                  <a href="https://anyflow.github.io/lannister/lannister-server/checkstyle.html#net.anyflow.lannister.topic.TopicMatcher.java">net/anyflow/lannister/topic/TopicMatcher.java</a>
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  56
+                </td>
+              </tr>
+                          <tr>
+                <td>
+                  <a href="https://anyflow.github.io/lannister/lannister-server/checkstyle.html#net.anyflow.lannister.plugin.DefaultUnsubscribeEventListener.java">net/anyflow/lannister/plugin/DefaultUnsubscribeEventListener.java</a>
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  13
+                </td>
+              </tr>
+                          <tr>
+                <td>
+                  <a href="https://anyflow.github.io/lannister/lannister-server/checkstyle.html#net.anyflow.lannister.packetreceiver.GenericReceiver.java">net/anyflow/lannister/packetreceiver/GenericReceiver.java</a>
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  43
+                </td>
+              </tr>
+                          <tr>
+                <td>
+                  <a href="https://anyflow.github.io/lannister/lannister-server/checkstyle.html#net.anyflow.lannister.cluster.Ignite.java">net/anyflow/lannister/cluster/Ignite.java</a>
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  15
+                </td>
+              </tr>
+                          <tr>
+                <td>
+                  <a href="https://anyflow.github.io/lannister/lannister-server/checkstyle.html#net.anyflow.lannister.cluster.SerializableStringSet.java">net/anyflow/lannister/cluster/SerializableStringSet.java</a>
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  18
+                </td>
+              </tr>
+                          <tr>
+                <td>
+                  <a href="https://anyflow.github.io/lannister/lannister-server/checkstyle.html#net.anyflow.lannister.topic.TopicSubscription.java">net/anyflow/lannister/topic/TopicSubscription.java</a>
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  41
+                </td>
+              </tr>
+                          <tr>
+                <td>
+                  <a href="https://anyflow.github.io/lannister/lannister-server/checkstyle.html#net.anyflow.lannister.cluster.IgniteMap.java">net/anyflow/lannister/cluster/IgniteMap.java</a>
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  22
+                </td>
+              </tr>
+                          <tr>
+                <td>
+                  <a href="https://anyflow.github.io/lannister/lannister-server/checkstyle.html#net.anyflow.lannister.server.MqttChannelInitializer.java">net/anyflow/lannister/server/MqttChannelInitializer.java</a>
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  38
+                </td>
+              </tr>
+                          <tr>
+                <td>
+                  <a href="https://anyflow.github.io/lannister/lannister-server/checkstyle.html#net.anyflow.lannister.packetreceiver.DisconnectReceiver.java">net/anyflow/lannister/packetreceiver/DisconnectReceiver.java</a>
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  19
+                </td>
+              </tr>
+                          <tr>
+                <td>
+                  <a href="https://anyflow.github.io/lannister/lannister-server/checkstyle.html#net.anyflow.lannister.Statistics.java">net/anyflow/lannister/Statistics.java</a>
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  131
+                </td>
+              </tr>
+                          <tr>
+                <td>
+                  <a href="https://anyflow.github.io/lannister/lannister-server/checkstyle.html#net.anyflow.lannister.plugin.DefaultServiceChecker.java">net/anyflow/lannister/plugin/DefaultServiceChecker.java</a>
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  11
+                </td>
+              </tr>
+                          <tr>
+                <td>
+                  <a href="https://anyflow.github.io/lannister/lannister-server/checkstyle.html#net.anyflow.lannister.http.MessageReceiver.java">net/anyflow/lannister/http/MessageReceiver.java</a>
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  7
+                </td>
+              </tr>
+                          <tr>
+                <td>
+                  <a href="https://anyflow.github.io/lannister/lannister-server/checkstyle.html#net.anyflow.lannister.httphandler.api.InboundMessageStatuses.java">net/anyflow/lannister/httphandler/api/InboundMessageStatuses.java</a>
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  16
+                </td>
+              </tr>
+                          <tr>
+                <td>
+                  <a href="https://anyflow.github.io/lannister/lannister-server/checkstyle.html#net.anyflow.lannister.server.ScheduledExecutor.java">net/anyflow/lannister/server/ScheduledExecutor.java</a>
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  26
+                </td>
+              </tr>
+                          <tr>
+                <td>
+                  <a href="https://anyflow.github.io/lannister/lannister-server/checkstyle.html#net.anyflow.lannister.message.MessageStatus.java">net/anyflow/lannister/message/MessageStatus.java</a>
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  52
+                </td>
+              </tr>
+                          <tr>
+                <td>
+                  <a href="https://anyflow.github.io/lannister/lannister-server/checkstyle.html#net.anyflow.lannister.topic.Topic.java">net/anyflow/lannister/topic/Topic.java</a>
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  55
+                </td>
+              </tr>
+                          <tr>
+                <td>
+                  <a href="https://anyflow.github.io/lannister/lannister-server/checkstyle.html#net.anyflow.lannister.http.IHttpClient.java">net/anyflow/lannister/http/IHttpClient.java</a>
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  16
+                </td>
+              </tr>
+                          <tr>
+                <td>
+                  <a href="https://anyflow.github.io/lannister/lannister-server/checkstyle.html#net.anyflow.lannister.cluster.SingleIdGenerator.java">net/anyflow/lannister/cluster/SingleIdGenerator.java</a>
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  19
+                </td>
+              </tr>
+                          <tr>
+                <td>
+                  <a href="https://anyflow.github.io/lannister/lannister-server/checkstyle.html#net.anyflow.lannister.message.InboundMessageStatus.java">net/anyflow/lannister/message/InboundMessageStatus.java</a>
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  48
+                </td>
+              </tr>
+                          <tr>
+                <td>
+                  <a href="https://anyflow.github.io/lannister/lannister-server/checkstyle.html#net.anyflow.lannister.packetreceiver.PingReqReceiver.java">net/anyflow/lannister/packetreceiver/PingReqReceiver.java</a>
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  16
+                </td>
+              </tr>
+                          <tr>
+                <td>
+                  <a href="https://anyflow.github.io/lannister/lannister-server/checkstyle.html#net.anyflow.lannister.session.MessageSender.java">net/anyflow/lannister/session/MessageSender.java</a>
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  97
+                </td>
+              </tr>
+                          <tr>
+                <td>
+                  <a href="https://anyflow.github.io/lannister/lannister-server/checkstyle.html#net.anyflow.lannister.cluster.SingleTopic.java">net/anyflow/lannister/cluster/SingleTopic.java</a>
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  22
+                </td>
+              </tr>
+                          <tr>
+                <td>
+                  <a href="https://anyflow.github.io/lannister/lannister-server/checkstyle.html#net.anyflow.lannister.plugin.DefaultPublishEventListener.java">net/anyflow/lannister/plugin/DefaultPublishEventListener.java</a>
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  13
+                </td>
+              </tr>
+                          <tr>
+                <td>
+                  <a href="https://anyflow.github.io/lannister/lannister-server/checkstyle.html#net.anyflow.lannister.cluster.HazelcastSet.java">net/anyflow/lannister/cluster/HazelcastSet.java</a>
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  15
+                </td>
+              </tr>
+                          <tr>
+                <td>
+                  <a href="https://anyflow.github.io/lannister/lannister-server/checkstyle.html#net.anyflow.lannister.NettyUtil.java">net/anyflow/lannister/NettyUtil.java</a>
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  8
+                </td>
+              </tr>
+                          <tr>
+                <td>
+                  <a href="https://anyflow.github.io/lannister/lannister-server/checkstyle.html#net.anyflow.lannister.plugin.DefaultConnectEventListener.java">net/anyflow/lannister/plugin/DefaultConnectEventListener.java</a>
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  13
+                </td>
+              </tr>
+                          <tr>
+                <td>
+                  <a href="https://anyflow.github.io/lannister/lannister-server/checkstyle.html#lannister.properties">lannister.properties</a>
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  0
+                </td>
+              </tr>
+                          <tr>
+                <td>
+                  <a href="https://anyflow.github.io/lannister/lannister-server/checkstyle.html#net.anyflow.lannister.cluster.HazelcastMap.java">net/anyflow/lannister/cluster/HazelcastMap.java</a>
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  21
+                </td>
+              </tr>
+                          <tr>
+                <td>
+                  <a href="https://anyflow.github.io/lannister/lannister-server/checkstyle.html#net.anyflow.lannister.packetreceiver.PubRelReceiver.java">net/anyflow/lannister/packetreceiver/PubRelReceiver.java</a>
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  22
+                </td>
+              </tr>
+                          <tr>
+                <td>
+                  <a href="https://anyflow.github.io/lannister/lannister-server/checkstyle.html#net.anyflow.lannister.server.MqttWebSocketCodec.java">net/anyflow/lannister/server/MqttWebSocketCodec.java</a>
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  14
+                </td>
+              </tr>
+                          <tr>
+                <td>
+                  <a href="https://anyflow.github.io/lannister/lannister-server/checkstyle.html#net.anyflow.lannister.packetreceiver.UnsubscribeReceiver.java">net/anyflow/lannister/packetreceiver/UnsubscribeReceiver.java</a>
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  23
+                </td>
+              </tr>
+                          <tr>
+                <td>
+                  <a href="https://anyflow.github.io/lannister/lannister-server/checkstyle.html#net.anyflow.lannister.packetreceiver.PublishReceiver.java">net/anyflow/lannister/packetreceiver/PublishReceiver.java</a>
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  36
+                </td>
+              </tr>
+                          <tr>
+                <td>
+                  <a href="https://anyflow.github.io/lannister/lannister-server/checkstyle.html#net.anyflow.lannister.message.MessageReferenceCounts.java">net/anyflow/lannister/message/MessageReferenceCounts.java</a>
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  27
+                </td>
+              </tr>
+                          <tr>
+                <td>
+                  <a href="https://anyflow.github.io/lannister/lannister-server/checkstyle.html#net.anyflow.lannister.cluster.NativeSetValueMap.java">net/anyflow/lannister/cluster/NativeSetValueMap.java</a>
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  20
+                </td>
+              </tr>
+                          <tr>
+                <td>
+                  <a href="https://anyflow.github.io/lannister/lannister-server/checkstyle.html#net.anyflow.lannister.httphandler.api.Statistics.java">net/anyflow/lannister/httphandler/api/Statistics.java</a>
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  15
+                </td>
+              </tr>
+                          <tr>
+                <td>
+                  <a href="https://anyflow.github.io/lannister/lannister-server/checkstyle.html#net.anyflow.lannister.plugin.DefaultSubscribeEventListener.java">net/anyflow/lannister/plugin/DefaultSubscribeEventListener.java</a>
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  14
+                </td>
+              </tr>
+                          <tr>
+                <td>
+                  <a href="https://anyflow.github.io/lannister/lannister-server/checkstyle.html#net.anyflow.lannister.packetreceiver.MqttMessageFactory.java">net/anyflow/lannister/packetreceiver/MqttMessageFactory.java</a>
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  82
+                </td>
+              </tr>
+                          <tr>
+                <td>
+                  <a href="https://anyflow.github.io/lannister/lannister-server/checkstyle.html#net.anyflow.lannister.server.MqttServer.java">net/anyflow/lannister/server/MqttServer.java</a>
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  47
+                </td>
+              </tr>
+                          <tr>
+                <td>
+                  <a href="https://anyflow.github.io/lannister/lannister-server/checkstyle.html#net.anyflow.lannister.client.MqttClient.java">net/anyflow/lannister/client/MqttClient.java</a>
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  80
+                </td>
+              </tr>
+                          <tr>
+                <td>
+                  <a href="https://anyflow.github.io/lannister/lannister-server/checkstyle.html#net.anyflow.lannister.http.HttpRequestRouter.java">net/anyflow/lannister/http/HttpRequestRouter.java</a>
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  79
+                </td>
+              </tr>
+                          <tr>
+                <td>
+                  <a href="https://anyflow.github.io/lannister/lannister-server/checkstyle.html#net.anyflow.lannister.topic.Topics.java">net/anyflow/lannister/topic/Topics.java</a>
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  63
+                </td>
+              </tr>
+                          <tr>
+                <td>
+                  <a href="https://anyflow.github.io/lannister/lannister-server/checkstyle.html#net.anyflow.lannister.plugin.DefaultAuthenticator.java">net/anyflow/lannister/plugin/DefaultAuthenticator.java</a>
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  20
+                </td>
+              </tr>
+                          <tr>
+                <td>
+                  <a href="https://anyflow.github.io/lannister/lannister-server/checkstyle.html#net.anyflow.lannister.serialization.MapSerializer.java">net/anyflow/lannister/serialization/MapSerializer.java</a>
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  12
+                </td>
+              </tr>
+                          <tr>
+                <td>
+                  <a href="https://anyflow.github.io/lannister/lannister-server/checkstyle.html#net.anyflow.lannister.plugin.DefaultDisconnectEventListener.java">net/anyflow/lannister/plugin/DefaultDisconnectEventListener.java</a>
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  12
+                </td>
+              </tr>
+                          <tr>
+                <td>
+                  <a href="https://anyflow.github.io/lannister/lannister-server/checkstyle.html#net.anyflow.lannister.message.OutboundMessageStatus.java">net/anyflow/lannister/message/OutboundMessageStatus.java</a>
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  56
+                </td>
+              </tr>
+                          <tr>
+                <td>
+                  <a href="https://anyflow.github.io/lannister/lannister-server/checkstyle.html#net.anyflow.lannister.server.ByteCounterCodec.java">net/anyflow/lannister/server/ByteCounterCodec.java</a>
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  19
+                </td>
+              </tr>
+                          <tr>
+                <td>
+                  <a href="https://anyflow.github.io/lannister/lannister-server/checkstyle.html#net.anyflow.lannister.message.OutboundMessageStatuses.java">net/anyflow/lannister/message/OutboundMessageStatuses.java</a>
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  98
+                </td>
+              </tr>
+                          <tr>
+                <td>
+                  <a href="https://anyflow.github.io/lannister/lannister-server/checkstyle.html#net.anyflow.lannister.cluster.HazelcastSetValueMap.java">net/anyflow/lannister/cluster/HazelcastSetValueMap.java</a>
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  28
+                </td>
+              </tr>
+                          <tr>
+                <td>
+                  <a href="https://anyflow.github.io/lannister/lannister-server/checkstyle.html#net.anyflow.lannister.plugin.Plugins.java">net/anyflow/lannister/plugin/Plugins.java</a>
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  58
+                </td>
+              </tr>
+                          <tr>
+                <td>
+                  <a href="https://anyflow.github.io/lannister/lannister-server/checkstyle.html#net.anyflow.lannister.http.HttpRequest.java">net/anyflow/lannister/http/HttpRequest.java</a>
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  109
+                </td>
+              </tr>
+                          <tr>
+                <td>
+                  <a href="https://anyflow.github.io/lannister/lannister-server/checkstyle.html#net.anyflow.lannister.cluster.ClusterDataDisposer.java">net/anyflow/lannister/cluster/ClusterDataDisposer.java</a>
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  13
+                </td>
+              </tr>
+                          <tr>
+                <td>
+                  <a href="https://anyflow.github.io/lannister/lannister-server/checkstyle.html#net.anyflow.lannister.cluster.NativeMap.java">net/anyflow/lannister/cluster/NativeMap.java</a>
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  20
+                </td>
+              </tr>
+                          <tr>
+                <td>
+                  <a href="https://anyflow.github.io/lannister/lannister-server/checkstyle.html#net.anyflow.lannister.httphandler.admin.Index.java">net/anyflow/lannister/httphandler/admin/Index.java</a>
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  13
+                </td>
+              </tr>
+                          <tr>
+                <td>
+                  <a href="https://anyflow.github.io/lannister/lannister-server/checkstyle.html#net.anyflow.lannister.httphandler.Index.java">net/anyflow/lannister/httphandler/Index.java</a>
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  12
+                </td>
+              </tr>
+                          <tr>
+                <td>
+                  <a href="https://anyflow.github.io/lannister/lannister-server/checkstyle.html#net.anyflow.lannister.topic.TopicSubscriber.java">net/anyflow/lannister/topic/TopicSubscriber.java</a>
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  31
+                </td>
+              </tr>
+                          <tr>
+                <td>
+                  <a href="https://anyflow.github.io/lannister/lannister-server/checkstyle.html#net.anyflow.lannister.httphandler.api.Sessions.java">net/anyflow/lannister/httphandler/api/Sessions.java</a>
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  20
+                </td>
+              </tr>
+                          <tr>
+                <td>
+                  <a href="https://anyflow.github.io/lannister/lannister-server/checkstyle.html#net.anyflow.lannister.packetreceiver.PubAckReceiver.java">net/anyflow/lannister/packetreceiver/PubAckReceiver.java</a>
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  22
+                </td>
+              </tr>
+                          <tr>
+                <td>
+                  <a href="https://anyflow.github.io/lannister/lannister-server/checkstyle.html#net.anyflow.lannister.httphandler.api.Clients.java">net/anyflow/lannister/httphandler/api/Clients.java</a>
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  13
+                </td>
+              </tr>
+                          <tr>
+                <td>
+                  <a href="https://anyflow.github.io/lannister/lannister-server/checkstyle.html#net.anyflow.lannister.topic.Notification.java">net/anyflow/lannister/topic/Notification.java</a>
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  32
+                </td>
+              </tr>
+                          <tr>
+                <td>
+                  <a href="https://anyflow.github.io/lannister/lannister-server/checkstyle.html#net.anyflow.lannister.cluster.Set.java">net/anyflow/lannister/cluster/Set.java</a>
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  10
+                </td>
+              </tr>
+                          <tr>
+                <td>
+                  <a href="https://anyflow.github.io/lannister/lannister-server/checkstyle.html#net.anyflow.lannister.serialization.ChannelIdSerializer.java">net/anyflow/lannister/serialization/ChannelIdSerializer.java</a>
                 </td>
                 <td>
                   0

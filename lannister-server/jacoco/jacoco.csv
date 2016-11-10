@@ -1,62 +1,85 @@
 GROUP,PACKAGE,CLASS,INSTRUCTION_MISSED,INSTRUCTION_COVERED,BRANCH_MISSED,BRANCH_COVERED,LINE_MISSED,LINE_COVERED,COMPLEXITY_MISSED,COMPLEXITY_COVERED,METHOD_MISSED,METHOD_COVERED
 Lannister server,net.anyflow.lannister.httphandler.admin,Index,9,0,0,0,3,0,3,0,3,0
+Lannister server,net.anyflow.lannister.cluster,Mode,7,75,1,3,1,10,2,6,1,5
+Lannister server,net.anyflow.lannister.cluster,SerializableIntegerSet,49,3,4,0,14,2,7,1,5,1
+Lannister server,net.anyflow.lannister.cluster,ClusterDataFactory.new Object() {...},3,23,0,0,0,1,0,1,0,1
+Lannister server,net.anyflow.lannister.cluster,NativeSetValueMap,44,0,2,0,13,0,9,0,8,0
+Lannister server,net.anyflow.lannister.cluster,NativeMap,1,36,0,0,1,10,1,7,1,7
+Lannister server,net.anyflow.lannister.cluster,HazelcastSet,26,0,0,0,8,0,5,0,5,0
+Lannister server,net.anyflow.lannister.cluster,HazelcastSetValueMap,97,0,4,0,22,0,12,0,10,0
+Lannister server,net.anyflow.lannister.cluster,ClusterDataDisposer.new Object() {...},3,23,0,0,0,1,0,1,0,1
+Lannister server,net.anyflow.lannister.cluster,Hazelcast,84,20,2,2,19,5,9,3,7,3
+Lannister server,net.anyflow.lannister.cluster,ClusterDataDisposer,5,16,3,1,3,6,3,3,0,3
+Lannister server,net.anyflow.lannister.cluster,Ignite,19,0,0,0,6,0,3,0,3,0
+Lannister server,net.anyflow.lannister.cluster,IgniteMap,53,0,0,0,13,0,8,0,8,0
+Lannister server,net.anyflow.lannister.cluster,SingleTopic,28,53,2,0,6,13,7,5,6,5
+Lannister server,net.anyflow.lannister.cluster,ClusterDataFactory,70,62,17,5,19,14,17,7,2,7
+Lannister server,net.anyflow.lannister.cluster,HazelcastMap,41,0,0,0,12,0,8,0,8,0
+Lannister server,net.anyflow.lannister.cluster,SingleIdGenerator,25,14,2,0,7,4,6,2,5,2
+Lannister server,net.anyflow.lannister.cluster,NativeSet,21,0,0,0,7,0,5,0,5,0
+Lannister server,net.anyflow.lannister.cluster,SerializableStringSet,47,3,4,0,14,2,7,1,5,1
 Lannister server,net.anyflow.lannister.client,SharedObject,0,21,0,0,0,8,0,4,0,4
-Lannister server,net.anyflow.lannister.client,MqttClient,17,234,5,13,3,50,5,18,0,14
+Lannister server,net.anyflow.lannister.client,MqttClient,30,241,6,14,5,52,6,18,0,14
 Lannister server,net.anyflow.lannister.client,MqttClient.new ChannelInitializer() {...},0,75,0,2,0,9,0,3,0,2
 Lannister server,net.anyflow.lannister.client,MqttPacketReceiver.new Object() {...},6,41,0,0,0,1,0,1,0,1
 Lannister server,net.anyflow.lannister.client,MqttPacketReceiver,18,82,4,6,2,20,3,6,0,3
 Lannister server,net.anyflow.lannister.topic,TopicMatcher,19,240,7,55,4,53,8,29,1,5
 Lannister server,net.anyflow.lannister.topic,Topics.new Object() {...},2,17,0,0,0,1,0,1,0,1
-Lannister server,net.anyflow.lannister.topic,Topics,31,203,12,17,4,40,11,23,0,19
+Lannister server,net.anyflow.lannister.topic,Topics,83,134,16,9,9,30,19,13,6,13
 Lannister server,net.anyflow.lannister.topic,Topics.ClientType,5,33,0,0,0,3,1,3,1,3
-Lannister server,net.anyflow.lannister.topic,Topic,157,595,44,34,16,126,37,38,1,35
-Lannister server,net.anyflow.lannister.topic,Notification,10,113,4,4,2,30,4,10,0,10
-Lannister server,net.anyflow.lannister.topic,TopicSubscriberInterceptor,11,49,5,3,2,16,5,10,1,10
-Lannister server,net.anyflow.lannister.topic,TopicSubscriber,3,183,6,6,0,40,6,12,0,12
-Lannister server,net.anyflow.lannister.topic,TopicSubscription,0,96,4,4,0,25,4,9,0,9
-Lannister server,net.anyflow.lannister.serialization,SerializableFactory,2,37,1,8,1,10,1,9,0,2
-Lannister server,net.anyflow.lannister.serialization,HazelcastSerializer,14,20,1,1,4,7,4,3,3,3
+Lannister server,net.anyflow.lannister.topic,Topic,125,174,41,19,21,40,36,9,6,9
+Lannister server,net.anyflow.lannister.topic,TopicSubscribers,363,285,26,12,62,55,28,17,13,13
+Lannister server,net.anyflow.lannister.topic,Notification,73,21,12,0,22,8,11,4,5,4
+Lannister server,net.anyflow.lannister.topic,TopicSubscriptions,173,331,15,11,24,59,15,17,4,15
+Lannister server,net.anyflow.lannister.topic,TopicSubscriber,40,26,0,0,12,8,6,5,6,5
+Lannister server,net.anyflow.lannister.topic,TopicSubscription,67,32,4,0,15,10,8,6,6,6
+Lannister server,net.anyflow.lannister.serialization,SerializableFactory,59,0,11,0,13,0,12,0,2,0
+Lannister server,net.anyflow.lannister.serialization,HazelcastSerializer,34,0,2,0,11,0,7,0,6,0
+Lannister server,net.anyflow.lannister.serialization,MapSerializer,18,0,0,0,3,0,3,0,3,0
 Lannister server,net.anyflow.lannister.serialization,ChannelIdSerializer,0,8,0,0,0,3,0,2,0,2
-Lannister server,net.anyflow.lannister.serialization,JsonSerializer,31,19,0,0,4,5,4,3,4,3
-Lannister server,net.anyflow.lannister.httphandler.api,Topics,25,71,7,8,7,9,6,9,0,6
-Lannister server,net.anyflow.lannister.httphandler.api,Sessions,25,66,7,6,7,9,6,8,0,6
+Lannister server,net.anyflow.lannister.serialization,SysValueSerializer,8,0,0,0,3,0,2,0,2,0
+Lannister server,net.anyflow.lannister.serialization,JsonSerializer,50,0,0,0,9,0,7,0,7,0
+Lannister server,net.anyflow.lannister.httphandler.api,TopicSubscribers,69,0,9,0,12,0,10,0,5,0
+Lannister server,net.anyflow.lannister.httphandler.api,InboundMessageStatuses,69,0,9,0,12,0,10,0,5,0
+Lannister server,net.anyflow.lannister.httphandler.api,MessageReferenceCounts,60,0,9,0,12,0,9,0,4,0
+Lannister server,net.anyflow.lannister.httphandler.api,Topics,31,82,8,7,8,11,7,10,0,8
+Lannister server,net.anyflow.lannister.httphandler.api,Sessions,35,79,7,6,9,10,6,10,0,8
+Lannister server,net.anyflow.lannister.httphandler.api,Statistics,30,0,0,0,8,0,3,0,3,0
 Lannister server,net.anyflow.lannister.httphandler.api,Clients,3,39,1,3,1,8,1,4,0,3
-Lannister server,net.anyflow.lannister.message,InboundMessageStatus.Status,39,41,4,0,3,7,4,4,2,4
-Lannister server,net.anyflow.lannister.message,MessageStatus,3,135,8,8,1,30,9,8,1,8
-Lannister server,net.anyflow.lannister.message,OutboundMessageStatus.Status,17,74,1,3,1,10,2,6,1,5
+Lannister server,net.anyflow.lannister.httphandler.api,OutboundMessageStatuses,69,0,9,0,12,0,10,0,5,0
+Lannister server,net.anyflow.lannister.httphandler.api,TopicSubscriptions,69,0,9,0,12,0,10,0,5,0
+Lannister server,net.anyflow.lannister.httphandler.api,Messages,69,0,9,0,12,0,10,0,5,0
+Lannister server,net.anyflow.lannister.message,InboundMessageStatus.Status,42,38,4,0,4,6,5,3,3,3
+Lannister server,net.anyflow.lannister.message,MessageStatus,90,39,8,0,19,13,8,6,4,6
+Lannister server,net.anyflow.lannister.message,OutboundMessageStatus.Status,42,49,4,0,4,7,5,3,3,3
+Lannister server,net.anyflow.lannister.message,InboundMessageStatuses,38,348,10,10,3,63,11,10,1,10
+Lannister server,net.anyflow.lannister.message,OutboundMessageStatuses,168,374,15,13,22,68,19,12,6,11
+Lannister server,net.anyflow.lannister.message,MessageReferenceCounts,48,76,3,5,9,18,6,5,3,4
+Lannister server,net.anyflow.lannister.message,Messages,56,82,5,1,11,14,7,5,4,5
 Lannister server,net.anyflow.lannister.message,ConnectOptions,40,57,0,0,17,22,5,11,5,11
-Lannister server,net.anyflow.lannister.message,MessageFactory,39,318,2,14,6,45,5,16,3,10
-Lannister server,net.anyflow.lannister.message,OutboundMessageStatus,6,148,6,6,2,35,8,9,2,9
-Lannister server,net.anyflow.lannister.message,InboundMessageStatus,6,88,2,2,0,25,2,9,0,9
-Lannister server,net.anyflow.lannister.message,Message,11,338,15,13,2,68,15,22,1,22
+Lannister server,net.anyflow.lannister.message,OutboundMessageStatus,65,37,8,0,15,10,10,5,6,5
+Lannister server,net.anyflow.lannister.message,InboundMessageStatus,37,34,4,0,11,9,7,5,5,5
+Lannister server,net.anyflow.lannister.message,Message,88,146,7,1,24,32,11,16,7,16
 Lannister server,net.anyflow.lannister.httphandler,Index,2,7,0,0,1,2,1,2,1,2
 Lannister server,net.anyflow.lannister,NettyUtil,3,14,0,0,1,4,1,1,1,1
-Lannister server,net.anyflow.lannister,Application,16,101,1,1,6,31,1,6,0,6
-Lannister server,net.anyflow.lannister,Statistics.new Statistics.SysValue() {...},0,24,0,0,0,3,0,4,0,4
-Lannister server,net.anyflow.lannister,Statistics.new Statistics.SysValue() {...},0,11,0,0,0,2,0,2,0,2
-Lannister server,net.anyflow.lannister,Statistics.new Statistics.SysValue() {...},0,23,0,0,0,3,0,2,0,2
-Lannister server,net.anyflow.lannister,Statistics.new Statistics.SysValue() {...},0,25,0,0,0,4,0,3,0,3
-Lannister server,net.anyflow.lannister,Statistics.new Statistics.SysValue() {...},0,23,0,2,0,2,0,4,0,3
-Lannister server,net.anyflow.lannister,Statistics.new Statistics.SysValue() {...},0,13,0,0,0,2,0,2,0,2
-Lannister server,net.anyflow.lannister,Statistics.new Statistics.SysValue() {...},0,22,0,2,0,3,0,4,0,3
+Lannister server,net.anyflow.lannister,Application,31,179,4,4,8,47,4,7,0,7
 Lannister server,net.anyflow.lannister,AbnormalDisconnectEventArgs,0,10,0,0,0,4,0,4,0,4
 Lannister server,net.anyflow.lannister,Application.new Thread() {...},0,10,0,0,0,3,0,2,0,2
-Lannister server,net.anyflow.lannister,Settings,52,204,7,7,11,43,9,21,2,21
-Lannister server,net.anyflow.lannister,Hazelcast,11,117,0,0,3,23,0,9,0,9
+Lannister server,net.anyflow.lannister,Settings,56,222,9,9,11,46,11,23,2,23
 Lannister server,net.anyflow.lannister,Literals,3,0,0,0,1,0,1,0,1,0
-Lannister server,net.anyflow.lannister,Statistics,61,299,16,4,5,56,12,9,1,8
+Lannister server,net.anyflow.lannister,Statistics,522,504,8,2,50,76,42,7,37,7
 Lannister server,net.anyflow.lannister,Statistics.Criterion,9,99,0,0,0,10,2,2,2,2
-Lannister server,net.anyflow.lannister,Statistics.RawSysValue,0,18,0,0,0,4,0,2,0,2
-Lannister server,net.anyflow.lannister.plugin,DefaultDisconnectEventListener,0,15,0,0,0,6,0,4,0,4
-Lannister server,net.anyflow.lannister.plugin,Plugins,140,256,22,2,16,48,21,8,9,8
-Lannister server,net.anyflow.lannister.plugin,DefaultConnectEventListener,0,15,0,0,0,5,0,4,0,4
-Lannister server,net.anyflow.lannister.plugin,DefaultPublishEventListener,0,16,0,0,0,5,0,4,0,4
-Lannister server,net.anyflow.lannister.plugin,DefaultSubscribeEventListener,1,33,1,3,0,7,1,6,0,5
-Lannister server,net.anyflow.lannister.plugin,DefaultServiceChecker,0,16,0,0,0,5,0,4,0,4
-Lannister server,net.anyflow.lannister.plugin,DefaultAuthenticator,0,36,0,0,0,7,0,5,0,5
-Lannister server,net.anyflow.lannister.plugin,DefaultAuthorizer,0,18,0,0,0,5,0,4,0,4
+Lannister server,net.anyflow.lannister,Statistics.RawSysValue,9,9,0,0,1,3,1,1,1,1
+Lannister server,net.anyflow.lannister.plugin,DefaultDisconnectEventListener,8,7,0,0,3,3,2,2,2,2
+Lannister server,net.anyflow.lannister.plugin,Plugins,33,363,11,13,8,56,11,18,0,17
+Lannister server,net.anyflow.lannister.plugin,DefaultConnectEventListener,8,7,0,0,3,2,2,2,2,2
+Lannister server,net.anyflow.lannister.plugin,DefaultPublishEventListener,9,7,0,0,3,2,2,2,2,2
+Lannister server,net.anyflow.lannister.plugin,DefaultSubscribeEventListener,3,31,1,3,1,6,2,5,1,4
+Lannister server,net.anyflow.lannister.plugin,DefaultServiceChecker,9,7,0,0,3,2,2,2,2,2
+Lannister server,net.anyflow.lannister.plugin,DefaultAuthenticator,35,7,4,0,7,2,5,2,3,2
+Lannister server,net.anyflow.lannister.plugin,DefaultAuthorizer,11,7,0,0,3,2,2,2,2,2
 Lannister server,net.anyflow.lannister.plugin,DefaultUnsubscribeEventListener,8,7,0,0,3,3,2,2,2,2
-Lannister server,net.anyflow.lannister.plugin,DefaultDeliveredEventListener,0,15,0,0,0,6,0,4,0,4
+Lannister server,net.anyflow.lannister.plugin,DefaultDeliveredEventListener,8,7,0,0,3,3,2,2,2,2
 Lannister server,net.anyflow.lannister.http,HtmlGenerator,115,0,2,0,27,0,7,0,6,0
 Lannister server,net.anyflow.lannister.http,HttpResponse,59,195,10,10,9,34,7,9,0,6
 Lannister server,net.anyflow.lannister.http,HttpClientHandler,18,42,3,3,4,13,4,4,1,4
@@ -65,45 +88,45 @@ Lannister server,net.anyflow.lannister.http,HttpClient.new ChannelInitializer() 
 Lannister server,net.anyflow.lannister.http,WebServerChannelInitializer,66,63,3,3,9,13,3,3,0,3
 Lannister server,net.anyflow.lannister.http,HttpRequestHandler,34,201,5,17,2,38,5,17,1,10
 Lannister server,net.anyflow.lannister.http,HttpConstants.HeaderValues,3,0,0,0,1,0,1,0,1,0
-Lannister server,net.anyflow.lannister.http,WebServer,15,137,4,4,6,30,6,5,2,5
+Lannister server,net.anyflow.lannister.http,WebServer,9,95,3,3,3,23,5,4,2,4
 Lannister server,net.anyflow.lannister.http,WebsocketFrameHandler,11,0,0,0,4,0,3,0,3,0
 Lannister server,net.anyflow.lannister.http,HttpRequestHandler.MatchedCriterion,6,15,0,0,2,5,2,3,2,3
-Lannister server,net.anyflow.lannister.http,HttpRequestRouter,111,251,18,14,28,57,17,10,2,9
+Lannister server,net.anyflow.lannister.http,HttpRequestRouter,111,253,18,14,28,58,17,10,2,9
 Lannister server,net.anyflow.lannister.http,HttpConstants,3,0,0,0,1,0,1,0,1,0
-Lannister server,net.anyflow.lannister.http,HttpClient,75,212,11,9,18,41,15,10,5,10
+Lannister server,net.anyflow.lannister.http,HttpClient,87,219,12,10,20,43,16,10,5,10
 Lannister server,net.anyflow.lannister.http,HttpRequest,171,532,36,40,32,96,33,24,6,13
 Lannister server,net.anyflow.lannister.http,HttpRequestHandler.ReturnWrapper,0,58,0,4,0,12,0,4,0,2
-Lannister server,net.anyflow.lannister.packetreceiver,DisconnectReceiver,0,18,0,0,0,7,0,3,0,3
-Lannister server,net.anyflow.lannister.packetreceiver,PubAckReceiver,33,77,3,3,7,17,4,3,1,3
-Lannister server,net.anyflow.lannister.packetreceiver,PubCompReceiver,50,0,2,0,13,0,4,0,3,0
-Lannister server,net.anyflow.lannister.packetreceiver,PubRelReceiver,11,44,1,1,3,11,1,4,0,4
+Lannister server,net.anyflow.lannister.packetreceiver,DisconnectReceiver,0,22,0,0,0,8,0,3,0,3
+Lannister server,net.anyflow.lannister.packetreceiver,PubAckReceiver,33,71,2,2,7,15,3,4,1,4
+Lannister server,net.anyflow.lannister.packetreceiver,MqttMessageFactory,39,325,2,14,6,46,5,16,3,10
+Lannister server,net.anyflow.lannister.packetreceiver,PubCompReceiver,39,0,2,0,11,0,4,0,3,0
+Lannister server,net.anyflow.lannister.packetreceiver,PubRelReceiver,18,52,2,2,5,14,2,4,0,4
 Lannister server,net.anyflow.lannister.packetreceiver,UnsubscribeReceiver.new UnsubscribeEventArgs() {...},19,0,0,0,3,0,3,0,3,0
-Lannister server,net.anyflow.lannister.packetreceiver,SubscribeReceiver,54,144,9,7,14,34,10,7,2,7
+Lannister server,net.anyflow.lannister.packetreceiver,SubscribeReceiver,54,156,9,7,14,35,10,8,2,8
 Lannister server,net.anyflow.lannister.packetreceiver,ConnectReceiver.new ConnectEventArgs() {...},0,24,0,0,0,5,0,5,0,5
 Lannister server,net.anyflow.lannister.packetreceiver,ConnectReceiver.new ConnectEventArgs() {...},0,18,0,0,0,5,0,5,0,5
-Lannister server,net.anyflow.lannister.packetreceiver,PublishReceiver,69,93,7,5,17,19,9,4,2,4
+Lannister server,net.anyflow.lannister.packetreceiver,PublishReceiver,91,107,10,6,25,23,11,4,2,4
 Lannister server,net.anyflow.lannister.packetreceiver,PubRecReceiver.new DeliveredEventArgs() {...},19,0,0,0,3,0,3,0,3,0
 Lannister server,net.anyflow.lannister.packetreceiver,PingReqReceiver,16,0,0,0,6,0,3,0,3,0
-Lannister server,net.anyflow.lannister.packetreceiver,ConnectReceiver,12,385,6,48,2,77,6,33,0,12
+Lannister server,net.anyflow.lannister.packetreceiver,ConnectReceiver,19,402,7,49,4,83,7,34,0,13
 Lannister server,net.anyflow.lannister.packetreceiver,SubscribeReceiver.new Map.Entry() {...},2,18,0,0,1,3,1,3,1,3
 Lannister server,net.anyflow.lannister.packetreceiver,SubscribeReceiver.new SubscribeEventArgs() {...},4,20,0,0,1,3,1,3,1,3
-Lannister server,net.anyflow.lannister.packetreceiver,UnsubscribeReceiver,85,7,6,0,16,2,6,2,3,2
+Lannister server,net.anyflow.lannister.packetreceiver,UnsubscribeReceiver,90,11,6,0,19,3,6,2,3,2
 Lannister server,net.anyflow.lannister.packetreceiver,PublishReceiver.new PublishEventArgs() {...},0,12,0,0,0,2,0,2,0,2
 Lannister server,net.anyflow.lannister.packetreceiver,PublishReceiver.new Object() {...},3,23,0,0,0,1,0,1,0,1
-Lannister server,net.anyflow.lannister.packetreceiver,GenericReceiver,133,67,10,6,30,18,13,6,5,4
+Lannister server,net.anyflow.lannister.packetreceiver,GenericReceiver,136,73,10,6,32,20,13,6,5,4
 Lannister server,net.anyflow.lannister.packetreceiver,PubAckReceiver.new DeliveredEventArgs() {...},0,18,0,0,0,3,0,3,0,3
 Lannister server,net.anyflow.lannister.packetreceiver,GenericReceiver.new Object() {...},5,35,0,0,0,1,0,1,0,1
-Lannister server,net.anyflow.lannister.packetreceiver,PubRecReceiver,80,0,8,0,19,0,7,0,3,0
-Lannister server,net.anyflow.lannister.server,MqttServer,24,181,13,9,8,39,10,6,0,5
+Lannister server,net.anyflow.lannister.packetreceiver,PubRecReceiver,72,0,6,0,17,0,7,0,4,0
+Lannister server,net.anyflow.lannister.server,MqttServer,20,169,12,8,4,37,9,5,0,4
 Lannister server,net.anyflow.lannister.server,ScheduledExecutor.SessionExpirator,0,46,0,2,0,10,0,6,0,5
 Lannister server,net.anyflow.lannister.server,ByteCounterCodec,0,39,0,0,0,10,0,4,0,4
 Lannister server,net.anyflow.lannister.server,ScheduledExecutor,0,42,0,0,0,8,0,3,0,3
-Lannister server,net.anyflow.lannister.server,MqttChannelInitializer,68,139,2,4,7,24,2,4,0,3
-Lannister server,net.anyflow.lannister.server,ScheduledExecutor..SysPublisher,0,38,0,0,0,8,0,3,0,3
+Lannister server,net.anyflow.lannister.server,MqttChannelInitializer,68,127,2,4,7,24,2,4,0,3
+Lannister server,net.anyflow.lannister.server,ScheduledExecutor..SysPublisher,26,18,1,1,4,4,1,3,0,3
 Lannister server,net.anyflow.lannister.server,MqttWebSocketCodec,19,0,0,0,5,0,3,0,3,0
-Lannister server,net.anyflow.lannister.session,TopicSubscriptionInterceptor,50,56,2,0,12,14,9,8,8,8
-Lannister server,net.anyflow.lannister.session,MessageSender,253,212,18,6,37,48,20,15,7,15
-Lannister server,net.anyflow.lannister.session,Session,10,633,23,39,1,128,23,38,0,30
+Lannister server,net.anyflow.lannister.session,MessageSender,269,198,24,12,51,51,23,14,5,13
+Lannister server,net.anyflow.lannister.session,Session,168,313,20,20,34,73,18,28,5,21
 Lannister server,net.anyflow.lannister.session,MessageSender.new Object() {...},8,61,0,0,0,3,0,1,0,1
-Lannister server,net.anyflow.lannister.session,Session.new DisconnectEventArgs() {...},0,25,0,2,0,4,0,5,0,4
-Lannister server,net.anyflow.lannister.session,Sessions,11,154,2,10,0,37,2,15,0,11
+Lannister server,net.anyflow.lannister.session,Session.new DisconnectEventArgs() {...},0,26,0,2,0,4,0,5,0,4
+Lannister server,net.anyflow.lannister.session,Sessions,85,221,9,11,0,43,7,14,0,11

@@ -16,95 +16,106 @@
 
 package net.anyflow.lannister.session;
 
-import java.util.Map;
+import java.util.Set;
 
 import com.google.common.base.Strings;
 import com.google.common.collect.Maps;
-import com.hazelcast.core.IMap;
 import com.hazelcast.core.Message;
 import com.hazelcast.core.MessageListener;
 
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelId;
-import net.anyflow.lannister.Hazelcast;
+import net.anyflow.lannister.cluster.ClusterDataFactory;
+import net.anyflow.lannister.cluster.Map;
 import net.anyflow.lannister.topic.Notification;
 
 public class Sessions implements MessageListener&lt;Notification&gt; {
+<span class="fc" id="L33">	private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(Sessions.class);</span>
 
-	@SuppressWarnings(&quot;unused&quot;)
-<span class="fc" id="L35">	private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(Sessions.class);</span>
+	private final Map&lt;String, Session&gt; sessions;
+	private final java.util.Map&lt;ChannelId, String&gt; clientIds; // KEY:channelId
+	private final java.util.Map&lt;String, ChannelHandlerContext&gt; ctxs; // KEY:clientlId
 
-	private final IMap&lt;String, Session&gt; sessions;
-	private final Map&lt;ChannelId, String&gt; clientIds; // KEY:channelId
-	private final Map&lt;String, ChannelHandlerContext&gt; ctxs; // KEY:clientlId
-
-<span class="fc" id="L41">	protected Sessions() {</span>
-<span class="fc" id="L42">		sessions = Hazelcast.INSTANCE.getMap(&quot;sessions&quot;);</span>
-<span class="fc" id="L43">		clientIds = Maps.newHashMap();</span>
-<span class="fc" id="L44">		ctxs = Maps.newHashMap();</span>
-<span class="fc" id="L45">	}</span>
+<span class="fc" id="L39">	protected Sessions() {</span>
+<span class="fc" id="L40">		sessions = ClusterDataFactory.INSTANCE.createMap(&quot;sessions&quot;);</span>
+<span class="fc" id="L41">		clientIds = Maps.newHashMap();</span>
+<span class="fc" id="L42">		ctxs = Maps.newHashMap();</span>
+<span class="fc" id="L43">	}</span>
 
 	public void put(Session session, ChannelHandlerContext ctx) {
-<span class="fc" id="L48">		synchronized (this) {</span>
-<span class="fc" id="L49">			session.setConnected(true);</span>
-<span class="fc" id="L50">			sessions.set(session.clientId(), session); // [MQTT-3.1.2-4]</span>
-<span class="fc" id="L51">			clientIds.put(ctx.channel().id(), session.clientId());</span>
-<span class="fc" id="L52">			ctxs.put(session.clientId(), ctx);</span>
-<span class="pc" id="L53">		}</span>
-<span class="fc" id="L54">	}</span>
+<span class="fc" id="L46">		synchronized (this) {</span>
+<span class="fc" id="L47">			session.setConnected(true);</span>
+<span class="fc" id="L48">			sessions.put(session.clientId(), session); // [MQTT-3.1.2-4]</span>
+<span class="fc" id="L49">			clientIds.put(ctx.channel().id(), session.clientId());</span>
+<span class="fc" id="L50">			ctxs.put(session.clientId(), ctx);</span>
+<span class="pc" id="L51">		}</span>
+
+<span class="pc bpc" id="L53" title="1 of 2 branches missed.">		if (logger.isDebugEnabled()) {</span>
+<span class="fc" id="L54">			logger.debug(&quot;session added [clientId={}, sessionsSize={}, clientIdsSize={}, ctxsSize={}]&quot;,</span>
+<span class="fc" id="L55">					session.clientId(), sessions.size(), clientIds.size(), ctxs.size());</span>
+		}
+<span class="fc" id="L57">	}</span>
 
 	public void persist(Session session) {
-<span class="fc" id="L57">		sessions.set(session.clientId(), session);</span>
-<span class="fc" id="L58">	}</span>
+<span class="fc" id="L60">		sessions.put(session.clientId(), session);</span>
+<span class="fc" id="L61">	}</span>
 
 	public ChannelHandlerContext channelHandlerContext(String clientId) {
-<span class="fc" id="L61">		return ctxs.get(clientId);</span>
+<span class="fc" id="L64">		return ctxs.get(clientId);</span>
 	}
 
 	public Session get(ChannelId channelId) {
-<span class="fc" id="L65">		String clientId = clientIds.get(channelId);</span>
+<span class="fc" id="L68">		String clientId = clientIds.get(channelId);</span>
 
-<span class="fc bfc" id="L67" title="All 2 branches covered.">		if (Strings.isNullOrEmpty(clientId)) { return null; }</span>
+<span class="fc bfc" id="L70" title="All 2 branches covered.">		if (Strings.isNullOrEmpty(clientId)) { return null; }</span>
 
-<span class="fc" id="L69">		return sessions.get(clientId);</span>
+<span class="fc" id="L72">		return sessions.get(clientId);</span>
 	}
 
 	public Session get(String clientId) {
-<span class="fc" id="L73">		return sessions.get(clientId);</span>
+<span class="fc" id="L76">		return sessions.get(clientId);</span>
 	}
 
-	public Map&lt;String, ChannelHandlerContext&gt; ctxs() {
-<span class="fc" id="L77">		return ctxs;</span>
+	public java.util.Map&lt;String, ChannelHandlerContext&gt; ctxs() {
+<span class="fc" id="L80">		return ctxs;</span>
 	}
 
 	protected void remove(Session session) {
-<span class="pc bpc" id="L81" title="1 of 2 branches missed.">		if (session == null) { return; }</span>
+<span class="pc bpc" id="L84" title="1 of 2 branches missed.">		if (session == null) { return; }</span>
 
-<span class="fc" id="L83">		synchronized (this) {</span>
-<span class="fc bfc" id="L84" title="All 2 branches covered.">			if (session.cleanSession()) { // [MQTT-3.1.2-5]</span>
-<span class="fc" id="L85">				sessions.remove(session.clientId());</span>
+<span class="fc" id="L86">		synchronized (this) {</span>
+			try {
+<span class="fc bfc" id="L88" title="All 2 branches covered.">				if (session.cleanSession()) { // [MQTT-3.1.2-5]</span>
+<span class="fc" id="L89">					sessions.remove(session.clientId());</span>
+				}
+
+<span class="fc" id="L92">				ChannelId channelId = session.channelId();</span>
+<span class="pc bpc" id="L93" title="1 of 2 branches missed.">				if (channelId == null) { return; }</span>
+
+<span class="fc" id="L95">				clientIds.remove(channelId);</span>
+<span class="fc" id="L96">				ctxs.remove(session.clientId());</span>
 			}
+			finally {
+<span class="pc bpc" id="L99" title="5 of 6 branches missed.">				if (logger.isDebugEnabled()) {</span>
+<span class="pc" id="L100">					logger.debug(&quot;session removed [clientId={}, sessionsSize={}, clientIdsSize={}, ctxsSize={}]&quot;,</span>
+<span class="pc" id="L101">							session.clientId(), sessions.size(), clientIds.size(), ctxs.size());</span>
+				}
+			}
+<span class="pc" id="L104">		}</span>
+<span class="fc" id="L105">	}</span>
 
-<span class="fc" id="L88">			ChannelId channelId = session.channelId();</span>
-<span class="fc bfc" id="L89" title="All 2 branches covered.">			if (channelId == null) { return; }</span>
-
-<span class="fc" id="L91">			clientIds.remove(channelId);</span>
-<span class="fc" id="L92">			ctxs.remove(session.clientId());</span>
-<span class="pc" id="L93">		}</span>
-<span class="fc" id="L94">	}</span>
-
-	public IMap&lt;String, Session&gt; map() {
-<span class="fc" id="L97">		return sessions;</span>
+	public Set&lt;String&gt; keySet() {
+<span class="fc" id="L108">		return sessions.keySet();</span>
 	}
 
 	@Override
 	public void onMessage(Message&lt;Notification&gt; message) {
-<span class="fc" id="L102">		Notification notified = message.getMessageObject();</span>
+<span class="fc" id="L113">		Notification notified = message.getMessageObject();</span>
 
-<span class="fc" id="L104">		Session session = get(notified.clientId());</span>
-<span class="pc bpc" id="L105" title="1 of 4 branches missed.">		if (session == null || !session.isConnected(true)) { return; }</span>
+<span class="fc" id="L115">		Session session = get(notified.clientId());</span>
+<span class="pc bpc" id="L116" title="1 of 4 branches missed.">		if (session == null || !session.isConnected(true)) { return; }</span>
 
-<span class="fc" id="L107">		session.sendPublish(notified.topic(), notified.message());// [MQTT-3.3.1-8],[MQTT-3.3.1-9]</span>
-<span class="fc" id="L108">	}</span>
+<span class="fc" id="L118">		session.sendPublish(notified.topic(), notified.message());// [MQTT-3.3.1-8],[MQTT-3.3.1-9]</span>
+<span class="fc" id="L119">	}</span>
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.7.7.201606060606</span></div></body></html>
