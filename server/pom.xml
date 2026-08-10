@@ -134,6 +134,8 @@
 				<includes>
 					<include>startup.sh</include>
 					<include>shutdown.sh</include>
+					<include>startup.bat</include>
+					<include>shutdown.bat</include>
 				</includes>
 			</resource>
 			<resource>
